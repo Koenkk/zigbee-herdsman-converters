@@ -9,3 +9,12 @@ install:
 script:
   - npm run verify
   - npm run eslint
+
+deploy:
+  provider: npm
+  email: "koenkanters94@gmail.com"
+  api_key:
+    secure: GUsmI/vpO8Gk90AgDZim2kXG5ZPN9fAUhJ2VMP1czDyYEC4M7y/Eg4irWsdA1mLeGzdCNVetyXt2X5JOkb/xuCbfodVk6fZvbTxJiqwt+OAf0QlrWGEpAjfJfwRhiWY8EfdrUViEEvjIGfqmJRQlp+gRD/5bB+VRD5k5zbLoFEdcp9Cd4EH0L8EnldG64ZFtE8hMRX6J2YVlO9VK98yTlAq4l9vEFEjLI+cNrWK8h9X8auju7giRCNnOItWLHMN6rsnF0PBTx0XCy2BoaRBVAsFewHQUTjcs8AeFGATCtf+rbQwRFLSq65BGmApYzoR5wINHz/T2JocJrjH7Pgoj0sdmL5apl5T2jLIfIzmhF2A/N8oiuotFaltj7zqYYVr4gR0N26UJg0jQQQnnufbTGXIQvm8ov2FBZp3i6mor3vCZhEe6eGfOriG7KkTSMsQKAYkLnTMCibSPYk6moD49eDLzwEUU9FYx/hEl/iHvEIWj4CaWrLBFvykAbwgb83tmYNOnsBD5OzDfj4BEYe8ygkIISkxKtdfCFX/ItpN/bBKDL7sYrHzerHNCxzb8+sXV1ioHo5HbLQQCAtaCpooErCexG/ptmTVAe4v6c0Y6WIIo32QfudBaUyYHzIcGFYBJwOa0A3ECAJkNA18kkmGso0KtverqjbY6vaTgCeeyMBk=
+  on:
+    tags: true
+    branch: master
