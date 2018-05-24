@@ -42,7 +42,7 @@ const converters = {
     xiaomi_battery_3v: {
         cid: 'genBasic',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             let voltage = null;
 
             if (msg.data.data['65281']) {
@@ -59,7 +59,7 @@ const converters = {
     WXKG01LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg, publish) => {
+        convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             const state = msg.data.data['onOff'];
 
@@ -85,14 +85,14 @@ const converters = {
     xiaomi_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {temperature: parseFloat(msg.data.data['measuredValue']) / 100.0};
         },
     },
     MFKZQ01LM_action_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
                 +---+
@@ -130,7 +130,7 @@ const converters = {
     MFKZQ01LM_action_analog: {
         cid: 'genAnalogInput',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
             presentValue = rotation angel left < 0, rigth > 0
@@ -142,7 +142,7 @@ const converters = {
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
         },
     },
@@ -171,21 +171,21 @@ const converters = {
     xiaomi_contact: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
         },
     },
     light_brightness: {
         cid: 'genLevelCtrl',
         type: 'devChange',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {brightness: msg.data.data['currentLevel']};
         },
     },
     light_color_colortemp: {
         cid: 'lightingColorCtrl',
         type: 'devChange',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             const result = {};
 
             if (msg.data.data['colorTemperature']) {
@@ -205,7 +205,7 @@ const converters = {
     WXKG11LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             let clicks;
 
@@ -223,63 +223,63 @@ const converters = {
     xiaomi_illuminance: {
         cid: 'msIlluminanceMeasurement',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {illuminance: msg.data.data['measuredValue']};
         },
     },
     xiaomi_pressure: {
         cid: 'msPressureMeasurement',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {pressure: msg.data.data['measuredValue']};
         },
     },
     WXKG02LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {click: getKey(model.ep, msg.endpoints[0].epId)};
         },
     },
     WXKG03LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {click: 'single'};
         },
     },
     SJCGQ11LM_water_leak_basic: {
         cid: 'genBasic',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {water_leak: msg.data.data['65281']['100'] === 1};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
         cid: 'ssIasZone',
         type: 'statusChange',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {water_leak: msg.data.zoneStatus === 1};
         },
     },
     xiaomi_state: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
     xiaomi_power: {
         cid: 'genAnalogInput',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {power: precisionRound(msg.data.data['presentValue'], 2)};
         },
     },
     ZNCZ02LM_state: {
         cid: 'genBasic',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
                 return {
@@ -295,7 +295,7 @@ const converters = {
     QBKG04LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
@@ -304,7 +304,7 @@ const converters = {
     QBKG03LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
                 const payload = {};
@@ -316,28 +316,28 @@ const converters = {
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {power: precisionRound(msg.data.data['instantaneousDemand'], 2)};
         },
     },
     CC2530ROUTER_state: {
         cid: 'genOnOff',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
         cid: 'genBinaryValue',
         type: 'attReport',
-        convert: (model, msg) => {
+        convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             return {
                 description: data['description'],
@@ -351,52 +351,52 @@ const converters = {
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_basic_change: {
         cid: 'genBasic',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_illuminance_change: {
         cid: 'msIlluminanceMeasurement',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_occupancy_change: {
         cid: 'msOccupancySensing',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_temperature_change: {
         cid: 'msTemperatureMeasurement',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_humidity_change: {
         cid: 'msRelativeHumidity',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_pressure_change: {
         cid: 'msPressureMeasurement',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_analog_change: {
         cid: 'genAnalogInput',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_multistate_change: {
         cid: 'genMultistateInput',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
     ignore_metering_change: {
         cid: 'seMetering',
         type: 'devChange',
-        convert: () => null,
+        convert: (model, msg, publish, options) => null,
     },
 };
 
