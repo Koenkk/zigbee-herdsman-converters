@@ -263,6 +263,16 @@ const devices = {
         fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta],
         toZigbee: [],
     },
+
+    // OSRAM
+    'LIGHTIFY A19 Tunable White': {
+        model: 'AA70155',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED A19 tunable white',
+        supports: 'on/off, brightness, color temperature',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+    },
 };
 
 module.exports = devices;
