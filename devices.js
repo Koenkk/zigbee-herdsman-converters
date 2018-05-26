@@ -19,6 +19,15 @@ const LED1536G5 = {
     toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
 };
 
+const AA70155 = {
+    model: 'AA70155',
+    vendor: 'OSRAM',
+    description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
+    supports: 'on/off, brightness, color temperature',
+    fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+};
+
 const devices = {
     // Xiaomi
     'lumi.sensor_switch': {
@@ -265,14 +274,6 @@ const devices = {
     },
 
     // OSRAM
-    'LIGHTIFY A19 Tunable White': {
-        model: 'AA70155',
-        vendor: 'OSRAM',
-        description: 'LIGHTIFY LED A19 tunable white',
-        supports: 'on/off, brightness, color temperature',
-        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
-    },
     'Classic A60 RGBW': {
         model: 'AA69697',
         vendor: 'OSRAM',
@@ -281,6 +282,9 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color],
     },
+    // AA70155 is model number of both bulbs.
+    'LIGHTIFY A19 Tunable White': AA70155,
+    'Classic A60 TW': AA70155,
 };
 
 module.exports = devices;
