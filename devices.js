@@ -273,6 +273,14 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
     },
+    'Classic A60 RGBW': {
+        model: 'AA69697',
+        vendor: 'OSRAM',
+        description: 'Classic A60 RGBW',
+        supports: 'on/off, brightness, color temperature, color xy',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color],
+    },
 };
 
 module.exports = devices;
