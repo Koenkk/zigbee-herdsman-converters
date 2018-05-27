@@ -285,6 +285,16 @@ const devices = {
     // AA70155 is model number of both bulbs.
     'LIGHTIFY A19 Tunable White': AA70155,
     'Classic A60 TW': AA70155,
+
+    // Hive
+    'FWBulb01': {
+        model: 'HALIGHTDIMWWE27',
+        vendor: 'Hive',
+        description: 'Active light dimmable',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness],
+    },
 };
 
 module.exports = devices;
