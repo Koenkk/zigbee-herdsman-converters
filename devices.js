@@ -28,6 +28,18 @@ const AA70155 = {
     toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
 };
 
+const WXKG12LM = {
+    model: 'WXKG12LM',
+    vendor: 'Xiaomi',
+    description: 'Aqara wireless switch (with gyroscope)',
+    supports: 'single, double, shake, hold, release',
+    fromZigbee: [
+        fz.xiaomi_battery_3v, fz.WXKG12LM_action_click_multistate, fz.ignore_onoff_change,
+        fz.ignore_basic_change, fz.ignore_multistate_change,
+    ],
+    toZigbee: [],
+};
+
 const devices = {
     // Xiaomi
     'lumi.sensor_switch': {
@@ -46,24 +58,11 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.sensor_switch.aq3': {
-        model: 'WXKG12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless switch with gyro',
-        supports: 'single, double, shake, hold, release',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG12LM_action_multistate,
-            fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_multistate_change],
-        toZigbee: [],
-    },
-    'lumi.sensor_swit': {
-        model: 'WXKG12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless switch with gyro',
-        supports: 'single, double, shake, hold, release',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG12LM_action_multistate,
-            fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_multistate_change],
-        toZigbee: [],
-    },
+    // WXKG12LM uses 2 model IDs.
+    // https://github.com/Koenkk/zigbee-shepherd-converters/pull/3/files#diff-6c9a6acf22f90d1c6e524d9f3c5c1745R58
+    // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/448
+    'lumi.sensor_switch.aq3': WXKG12LM,
+    'lumi.sensor_swit': WXKG12LM,
     'lumi.sensor_86sw1\u0000lu': {
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
