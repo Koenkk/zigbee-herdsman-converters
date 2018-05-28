@@ -46,6 +46,22 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
+	'lumi.sensor_switch.aq3': {
+        model: 'WXKG12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless switch with gyro',
+        supports: 'single, double, shake, hold, release',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG12LM_action_multistate, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_multistate_change],
+        toZigbee: [],
+    },
+	'lumi.sensor_swit': {
+        model: 'WXKG12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless switch with gyro',
+        supports: 'single, double, shake, hold, release',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG12LM_action_multistate, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_multistate_change],
+        toZigbee: [],
+    },
     'lumi.sensor_86sw1\u0000lu': {
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
