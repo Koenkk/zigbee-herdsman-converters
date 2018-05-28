@@ -27,7 +27,7 @@
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
   "dependencies": {},
   "devDependencies": {
-    "eslint": "*",
-    "eslint-config-google": "*"
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.9.1"
   }
 }
