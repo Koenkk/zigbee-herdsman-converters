@@ -139,6 +139,32 @@ const converters = {
             return {action: value < 0 ? 'rotate_left' : 'rotate_right'};
         },
     },
+    WXKG12LM_action_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+        /*
+        presentValue = 1 = Single click
+        presentValue = 2 = Double click
+        presentValue = 16 = Hold for more 400ms
+        presentValue = 17 = Release after hold for more 400ms
+        presentValue = 18 = Shake
+        */
+            const value = msg.data.data['presentValue'];
+            let action = null;
+
+            if (value === 1) {
+                publish({click: 'single'});
+                action = null;
+            } else if (value === 2) {
+                publish({click: 'double'});
+                action = null;
+            } else if (value === 16) action = 'hold';
+            else if (value === 17) action = 'release';
+            else if (value === 18) action = 'shake';
+            return action ? {'action': action} : null;
+        },
+    },
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
         type: 'attReport',
