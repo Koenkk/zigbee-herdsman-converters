@@ -52,7 +52,10 @@ const converters = {
             }
 
             if (voltage) {
-                return {battery: toPercentage(voltage, battery3V.min, battery3V.max)};
+                return {
+                    battery: toPercentage(voltage, battery3V.min, battery3V.max),
+                    voltage: voltage,
+                };
             }
         },
     },
