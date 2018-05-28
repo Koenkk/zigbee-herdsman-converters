@@ -285,6 +285,14 @@ const devices = {
     // AA70155 is model number of both bulbs.
     'LIGHTIFY A19 Tunable White': AA70155,
     'Classic A60 TW': AA70155,
+    'Plug 01': {
+        model: 'AB3257001NJ',
+        description: 'Smart+ plug',
+        supports: 'on/off',
+        vendor: 'OSRAM',
+        fromZigbee: [fz.AB3257001NJ_state],
+        toZigbee: [tz.onoff],
+    },
 
     // Hive
     'FWBulb01': {

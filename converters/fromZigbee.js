@@ -359,6 +359,14 @@ const converters = {
             };
         },
     },
+    AB3257001NJ_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            // eslint-disable-next-line no-console
+            console.log('PLEASE REPORT THIS IN https://github.com/Koenkk/zigbee2mqtt/issues/62', msg.data);
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_change: {
