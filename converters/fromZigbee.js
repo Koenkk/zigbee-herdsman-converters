@@ -63,16 +63,26 @@ const converters = {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             const state = msg.data.data['onOff'];
 
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
-                store[deviceID] = setTimeout(() => {
+                store[deviceID].timer = setTimeout(() => {
                     publish({click: 'long'});
-                    store[deviceID] = null;
+                    store[deviceID].timer = null;
+                    store[deviceID].long = true;
                 }, 300); // After 300 milliseconds of not releasing we assume long click.
             } else if (state === 1) {
-                if (store[deviceID]) {
-                    clearTimeout(store[deviceID]);
-                    store[deviceID] = null;
+                if (store[deviceID].long) {
+                    publish({click: 'long_release'});
+                    store[deviceID].long = false;
+                }
+
+                if (store[deviceID].timer) {
+                    clearTimeout(store[deviceID].timer);
+                    store[deviceID].timer = null;
                     publish({click: 'single'});
                 }
             } else {
