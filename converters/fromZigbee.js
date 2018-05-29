@@ -75,11 +75,12 @@ const converters = {
                 store[deviceID].timer = setTimeout(() => {
                     publish({click: 'long'});
                     store[deviceID].timer = null;
-                    store[deviceID].long = true;
+                    store[deviceID].long = Date.now();
                 }, 300); // After 300 milliseconds of not releasing we assume long click.
             } else if (state === 1) {
                 if (store[deviceID].long) {
-                    publish({click: 'long_release'});
+                    const duration = Date.now() - store[deviceID].long;
+                    publish({click: 'long_release', duration: duration});
                     store[deviceID].long = false;
                 }
 
