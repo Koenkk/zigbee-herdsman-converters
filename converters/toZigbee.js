@@ -19,7 +19,7 @@ const converters = {
                 cmd: 'moveToLevel',
                 zclData: {
                     level: value,
-                    transtime: message.hasOwnProperty('transition') ? message.transition : 0,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 },
             };
         },
@@ -33,7 +33,7 @@ const converters = {
                 cmd: 'moveToColorTemp',
                 zclData: {
                     colortemp: value,
-                    transtime: message.hasOwnProperty('transition') ? message.transition : 0,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 },
             };
         },
@@ -48,7 +48,7 @@ const converters = {
                 zclData: {
                     colorx: value.x * 65535,
                     colory: value.y * 65535,
-                    transtime: message.hasOwnProperty('transition') ? message.transition : 0,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 },
             };
         },
