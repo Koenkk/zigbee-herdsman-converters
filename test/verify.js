@@ -35,11 +35,11 @@ Object.keys(devices).forEach((deviceKey) => {
         const converter = device.toZigbee[converterKey];
 
         verifyKeys(
-            ['key', 'convert'],
+            ['key', 'convert', 'attr'],
             Object.keys(converter),
             converterKey,
         );
 
-        assert.strictEqual(1, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
+        assert.strictEqual(2, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
 });
