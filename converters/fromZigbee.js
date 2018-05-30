@@ -222,11 +222,16 @@ const converters = {
                 result.color_temp = msg.data.data['colorTemperature'];
             }
 
-            if (msg.data.data['currentX'] && msg.data.data['currentY']) {
-                result.color = {
-                    x: precisionRound(msg.data.data['currentX'] / 65535, 3),
-                    y: precisionRound(msg.data.data['currentY'] / 65535, 3),
-                };
+            if (msg.data.data['currentX'] || msg.data.data['currentY']) {
+                result.color = {};
+
+                if (msg.data.data['currentX']) {
+                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentY']) {
+                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                }
             }
 
             return result;

@@ -7,7 +7,7 @@ const LED1623G12 = {
     description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, opal white',
     supports: 'on/off, brightness',
     fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness],
+    toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
 };
 
 const LED1536G5 = {
@@ -16,7 +16,7 @@ const LED1536G5 = {
     description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
     supports: 'on/off, brightness, color temperature',
     fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
 };
 
 const AA70155 = {
@@ -25,7 +25,7 @@ const AA70155 = {
     description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
     supports: 'on/off, brightness, color temperature',
     fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
 };
 
 const WXKG12LM = {
@@ -209,7 +209,7 @@ const devices = {
         description: 'TRADFRI LED bulb E27 980 lumen, dimmable, white spectrum, opal white',
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
     },
     // LED1623G12 uses 2 model IDs, see https://github.com/Koenkk/zigbee2mqtt/issues/21
     'TRADFRI bulb E27 opal 1000lm': LED1623G12,
@@ -220,7 +220,7 @@ const devices = {
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
     },
     'TRADFRI bulb GU10 W 400lm': {
         model: 'LED1650R5',
@@ -228,7 +228,7 @@ const devices = {
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
     // LED1536G5 has an E12 and E14 version.
     'TRADFRI bulb E14 WS opal 400lm': LED1536G5,
@@ -239,7 +239,7 @@ const devices = {
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
 
     // Philips
@@ -249,7 +249,7 @@ const devices = {
         description: 'Hue Go',
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
 
     // Belkin
@@ -259,7 +259,7 @@ const devices = {
         description: 'WeMo smart LED bulb',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
 
     // EDP
@@ -297,7 +297,7 @@ const devices = {
         description: 'Classic A60 RGBW',
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
     // AA70155 is model number of both bulbs.
     'LIGHTIFY A19 Tunable White': AA70155,
@@ -318,7 +318,7 @@ const devices = {
         description: 'Active light dimmable',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
 };
 
