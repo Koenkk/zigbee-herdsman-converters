@@ -257,7 +257,7 @@ const devices = {
         description: 'Hue White Single bulb B22',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff, tz.light_brightness],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
 
     // Belkin
