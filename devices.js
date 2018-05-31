@@ -251,6 +251,14 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
+    'LWB010': { 
+        model: '8718696449691', 
+        vendor: 'Philips', 
+        description: 'Hue White Single bulb B22', 
+        supports: 'on/off, brightness', 
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change], 
+        toZigbee: [tz.onoff, tz.light_brightness], 
+    },
 
     // Belkin
     'MZ100': {
