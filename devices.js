@@ -71,7 +71,7 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click],
         toZigbee: [],
     },
-    'lumi.sensor_86sw2\u0000Un': {
+    'lumi.sensor_86sw2.es1': {
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
