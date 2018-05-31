@@ -40,6 +40,16 @@ const WXKG12LM = {
     toZigbee: [],
 };
 
+const WXKG02LM = {
+    model: 'WXKG02LM',
+    vendor: 'Xiaomi',
+    description: 'Aqara double key wireless wall switch',
+    supports: 'left, right and both click',
+    fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click],
+    toZigbee: [],
+    ep: {'left': 1, 'right': 2, 'both': 3},
+};
+
 const devices = {
     // Xiaomi
     'lumi.sensor_switch': {
@@ -71,15 +81,10 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click],
         toZigbee: [],
     },
-    'lumi.sensor_86sw2.es1': {
-        model: 'WXKG02LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wireless wall switch',
-        supports: 'left, right and both click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click],
-        toZigbee: [],
-        ep: {'left': 1, 'right': 2, 'both': 3},
-    },
+    // WXKG02LM uses 2 model IDs.
+    // https://github.com/Koenkk/zigbee-shepherd-converters/pull/5
+    'lumi.sensor_86sw2\u0000Un': WXKG02LM,
+    'lumi.sensor_86sw2.es1': WXKG02LM,
     'lumi.ctrl_neutral1': {
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
