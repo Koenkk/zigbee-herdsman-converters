@@ -333,6 +333,16 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
+
+    // Innr
+    'RB 185 C': {
+        model: 'RB 185 C',
+        vendor: 'Innr',
+        description: 'E27 Bulb RGBW',
+        supports: 'on/off, brightness, color temperature, color xy',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
+    },
 };
 
 module.exports = devices;
