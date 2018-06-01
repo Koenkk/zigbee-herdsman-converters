@@ -246,6 +246,14 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
+    'TRADFRI bulb E27 CWS opal 600lm': {
+        model: 'LED1624G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 600 lumen, dimmable, color, opal white',
+        supports: 'on/off, brightness, color temperature, color xy',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_color, tz.ignore_transition],
+    },
 
     // Philips
     'LLC020': {
