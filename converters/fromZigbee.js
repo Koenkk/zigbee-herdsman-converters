@@ -182,7 +182,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = options.occupancy_timeout ? options.occupancy_timeout : occupancyTimeout;
+            const timeout = (options && options.occupancy_timeout) ? options.occupancy_timeout : occupancyTimeout;
             const deviceID = msg.endpoints[0].device.ieeeAddr;
 
             // Stop existing timer because motion is detected and set a new one.
@@ -311,7 +311,7 @@ const converters = {
             return {power: precisionRound(msg.data.data['presentValue'], 2)};
         },
     },
-    ZNCZ02LM_state: {
+    xiaomi_plug_state: {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
