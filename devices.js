@@ -56,8 +56,8 @@ const QBCZ11LM = {
     supports: 'on/off, power measurement',
     vendor: 'Xiaomi',
     fromZigbee: [
-        fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change, 
-        fz.ignore_basic_change, fz.ignore_analog_change
+        fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+        fz.ignore_basic_change, fz.ignore_analog_change,
     ],
     toZigbee: [tz.onoff],
 };
@@ -202,6 +202,7 @@ const devices = {
         ],
         toZigbee: [tz.onoff],
     },
+    // QBCZ11LM has 2 modelID's: https://github.com/Koenkk/zigbee-shepherd-converters/pull/8
     'lumi.ctrl_86plug': QBCZ11LM,
     'lumi.ctrl_86plug.aq1': QBCZ11LM,
     'lumi.sensor_smoke': {
