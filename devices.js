@@ -185,17 +185,20 @@ const devices = {
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.xiaomi_state, fz.xiaomi_power, fz.ZNCZ02LM_state, fz.ignore_onoff_change,
+            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.onoff],
     },
-    'lumi.ctrl_86plug': {
+    'lumi.ctrl_86plug.aq1': {
         model: 'QBCZ11LM',
         description: 'Aqara socket Zigbee',
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_state, fz.xiaomi_power, fz.ignore_onoff_change, fz.ignore_analog_change],
+        fromZigbee: [
+            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change, 
+            fz.ignore_basic_change, fz.ignore_analog_change
+        ],
         toZigbee: [tz.onoff],
     },
     'lumi.sensor_smoke': {
