@@ -50,6 +50,18 @@ const WXKG02LM = {
     ep: {'left': 1, 'right': 2, 'both': 3},
 };
 
+const QBCZ11LM = {
+    model: 'QBCZ11LM',
+    description: 'Aqara socket Zigbee',
+    supports: 'on/off, power measurement',
+    vendor: 'Xiaomi',
+    fromZigbee: [
+        fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change, 
+        fz.ignore_basic_change, fz.ignore_analog_change
+    ],
+    toZigbee: [tz.onoff],
+};
+
 const devices = {
     // Xiaomi
     'lumi.sensor_switch': {
@@ -190,17 +202,8 @@ const devices = {
         ],
         toZigbee: [tz.onoff],
     },
-    'lumi.ctrl_86plug.aq1': {
-        model: 'QBCZ11LM',
-        description: 'Aqara socket Zigbee',
-        supports: 'on/off, power measurement',
-        vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change, 
-            fz.ignore_basic_change, fz.ignore_analog_change
-        ],
-        toZigbee: [tz.onoff],
-    },
+    'lumi.ctrl_86plug': QBCZ11LM,
+    'lumi.ctrl_86plug.aq1': QBCZ11LM,
     'lumi.sensor_smoke': {
         model: 'JTYJ-GD-01LM/BW',
         description: 'MiJia Honeywell smoke detector',
