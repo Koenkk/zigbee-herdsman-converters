@@ -348,6 +348,18 @@ const converters = {
             }
         },
     },
+    QBKG03LM_buttons: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const key = getKey(model.buttonsEp, msg.endpoints[0].epId);
+            if (key) {
+                const payload = {};
+                payload['button_'+key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+                return payload;
+            }
+        },
+    },
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
