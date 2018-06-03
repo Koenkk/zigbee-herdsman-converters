@@ -136,7 +136,9 @@ const converters = {
             else if (value >= 512) action = {'action': 'tap', 'side': value-512};
             else if (value >= 256) action = {'action': 'slide', 'side': value-256};
             else if (value >= 128) action = {'action': 'flip180', 'side': value-128};
-            else if (value >= 64) action = {'action': 'flip90', 'from_side': Math.floor((value-64) / 8), 'to_side': value % 8};
+            else if (value >= 64) action = {'action': 'flip90', 
+                                            'from_side': Math.floor((value-64) / 8), 
+                                            'to_side': value % 8};
 
             return action ? action : null;
         },
@@ -152,7 +154,7 @@ const converters = {
             const value = msg.data.data['presentValue'];
             return {
                 action: value < 0 ? 'rotate_left' : 'rotate_right',
-                angel: Math.floor(value * 100) / 100
+                angel: Math.floor(value * 100) / 100,
             };
         },
     },
