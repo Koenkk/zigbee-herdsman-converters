@@ -111,9 +111,9 @@ const devices = {
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
         supports: 'l1 and l2 on/off',
-        fromZigbee: [fz.QBKG03LM_state, fz.ignore_onoff_change],
+        fromZigbee: [fz.QBKG03LM_state, fz.QBKG03LM_buttons],
         toZigbee: [tz.onoff],
-        ep: {'l1': 2, 'l2': 3},
+        ep: {'left': 2, 'right': 3},
     },
     'lumi.sens': {
         model: 'WSDCGQ01LM',

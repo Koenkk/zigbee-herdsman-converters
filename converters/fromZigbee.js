@@ -130,15 +130,17 @@ const converters = {
             const value = msg.data.data['presentValue'];
             let action = null;
 
-            if (value === 0) action = 'shake';
-            else if (value === 2) action = 'wakeup';
-            else if (value === 3) action = 'fall';
-            else if (value >= 512) action = 'tap';
-            else if (value >= 256) action = 'slide';
-            else if (value >= 128) action = 'flip180';
-            else if (value >= 64) action = 'flip90';
+            if (value === 0) action = {'action': 'shake'};
+            else if (value === 2) action = {'action': 'wakeup'};
+            else if (value === 3) action = {'action': 'fall'};
+            else if (value >= 512) action = {'action': 'tap', 'side': value-512};
+            else if (value >= 256) action = {'action': 'slide', 'side': value-256};
+            else if (value >= 128) action = {'action': 'flip180', 'side': value-128};
+            else if (value >= 64) {
+                action = {'action': 'flip90', 'from_side': Math.floor((value-64) / 8), 'to_side': value % 8};
+            }
 
-            return action ? {'action': action} : null;
+            return action ? action : null;
         },
     },
     MFKZQ01LM_action_analog: {
@@ -147,10 +149,13 @@ const converters = {
         convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
-            presentValue = rotation angel left < 0, rigth > 0
+            presentValue = rotation angle left < 0, right > 0
             */
             const value = msg.data.data['presentValue'];
-            return {action: value < 0 ? 'rotate_left' : 'rotate_right'};
+            return {
+                action: value < 0 ? 'rotate_left' : 'rotate_right',
+                angle: Math.floor(value * 100) / 100,
+            };
         },
     },
     WXKG12LM_action_click_multistate: {
@@ -344,6 +349,19 @@ const converters = {
                 const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                return payload;
+            }
+        },
+    },
+    QBKG03LM_buttons: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const mapping = {4: 'left', 5: 'right'};
+            const button = mapping[msg.endpoints[0].epId];
+            if (button) {
+                const payload = {};
+                payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
             }
         },
