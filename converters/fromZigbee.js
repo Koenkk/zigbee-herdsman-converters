@@ -136,9 +136,9 @@ const converters = {
             else if (value >= 512) action = {'action': 'tap', 'side': value-512};
             else if (value >= 256) action = {'action': 'slide', 'side': value-256};
             else if (value >= 128) action = {'action': 'flip180', 'side': value-128};
-            else if (value >= 64) action = {'action': 'flip90', 
-                                            'from_side': Math.floor((value-64) / 8), 
-                                            'to_side': value % 8};
+            else if (value >= 64) {
+                action = {'action': 'flip90', 'from_side': Math.floor((value-64) / 8), 'to_side': value % 8};
+            }
 
             return action ? action : null;
         },
@@ -149,12 +149,12 @@ const converters = {
         convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
-            presentValue = rotation angel left < 0, rigth > 0
+            presentValue = rotation angle left < 0, right > 0
             */
             const value = msg.data.data['presentValue'];
             return {
                 action: value < 0 ? 'rotate_left' : 'rotate_right',
-                angel: Math.floor(value * 100) / 100,
+                angle: Math.floor(value * 100) / 100,
             };
         },
     },
@@ -357,10 +357,11 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const key = getKey(model.buttonsEp, msg.endpoints[0].epId);
-            if (key) {
+            const mapping = {4: 'left', 5: 'right'};
+            const button = mapping[msg.endpoints[0].epId];
+            if (button) {
                 const payload = {};
-                payload['button_'+key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+                payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
             }
         },
