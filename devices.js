@@ -1,70 +1,10 @@
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
-const LED1623G12 = {
-    model: 'LED1623G12',
-    vendor: 'IKEA',
-    description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, opal white',
-    supports: 'on/off, brightness',
-    fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
-};
-
-const LED1536G5 = {
-    model: 'LED1536G5',
-    vendor: 'IKEA',
-    description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
-    supports: 'on/off, brightness, color temperature',
-    fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
-};
-
-const AA70155 = {
-    model: 'AA70155',
-    vendor: 'OSRAM',
-    description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
-    supports: 'on/off, brightness, color temperature',
-    fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
-    toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
-};
-
-const WXKG12LM = {
-    model: 'WXKG12LM',
-    vendor: 'Xiaomi',
-    description: 'Aqara wireless switch (with gyroscope)',
-    supports: 'single, double, shake, hold, release',
-    fromZigbee: [
-        fz.xiaomi_battery_3v, fz.WXKG12LM_action_click_multistate, fz.ignore_onoff_change,
-        fz.ignore_basic_change, fz.ignore_multistate_change,
-    ],
-    toZigbee: [],
-};
-
-const WXKG02LM = {
-    model: 'WXKG02LM',
-    vendor: 'Xiaomi',
-    description: 'Aqara double key wireless wall switch',
-    supports: 'left, right and both click',
-    fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click],
-    toZigbee: [],
-    ep: {'left': 1, 'right': 2, 'both': 3},
-};
-
-const QBCZ11LM = {
-    model: 'QBCZ11LM',
-    description: 'Aqara socket Zigbee',
-    supports: 'on/off, power measurement',
-    vendor: 'Xiaomi',
-    fromZigbee: [
-        fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
-        fz.ignore_basic_change, fz.ignore_analog_change,
-    ],
-    toZigbee: [tz.onoff],
-};
-
-const devices = {
+const devices = [
     // Xiaomi
-    'lumi.sensor_switch': {
+    {
+        zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
@@ -72,7 +12,8 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG01LM_click, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.sensor_switch.aq2': {
+    {
+        zigbeeModel: ['lumi.sensor_switch.aq2'],
         model: 'WXKG11LM',
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
@@ -80,12 +21,20 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
-    // WXKG12LM uses 2 model IDs.
-    // https://github.com/Koenkk/zigbee-shepherd-converters/pull/3/files#diff-6c9a6acf22f90d1c6e524d9f3c5c1745R58
-    // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/448
-    'lumi.sensor_switch.aq3': WXKG12LM,
-    'lumi.sensor_swit': WXKG12LM,
-    'lumi.sensor_86sw1\u0000lu': {
+    {
+        zigbeeModel: ['lumi.sensor_switch.aq3', 'lumi.sensor_swit'],
+        model: 'WXKG12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless switch (with gyroscope)',
+        supports: 'single, double, shake, hold, release',
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG12LM_action_click_multistate, fz.ignore_onoff_change,
+            fz.ignore_basic_change, fz.ignore_multistate_change,
+        ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.sensor_86sw1\u0000lu'],
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
@@ -93,11 +42,18 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click],
         toZigbee: [],
     },
-    // WXKG02LM uses 2 model IDs.
-    // https://github.com/Koenkk/zigbee-shepherd-converters/pull/5
-    'lumi.sensor_86sw2\u0000Un': WXKG02LM,
-    'lumi.sensor_86sw2.es1': WXKG02LM,
-    'lumi.ctrl_neutral1': {
+    {
+        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1'],
+        model: 'WXKG02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara double key wireless wall switch',
+        supports: 'left, right and both click',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click],
+        toZigbee: [],
+        ep: {'left': 1, 'right': 2, 'both': 3},
+    },
+    {
+        zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch',
@@ -106,7 +62,8 @@ const devices = {
         toZigbee: [tz.onoff],
         ep: {'': 2},
     },
-    'lumi.ctrl_neutral2': {
+    {
+        zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
@@ -115,7 +72,8 @@ const devices = {
         toZigbee: [tz.onoff],
         ep: {'left': 2, 'right': 3},
     },
-    'lumi.sens': {
+    {
+        zigbeeModel: ['lumi.sens'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia temperature & humidity sensor ',
@@ -123,7 +81,8 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.weather': {
+    {
+        zigbeeModel: ['lumi.weather'],
         model: 'WSDCGQ11LM',
         vendor: 'Xiaomi',
         description: 'Aqara temperature, humidity and pressure sensor',
@@ -134,7 +93,8 @@ const devices = {
         ],
         toZigbee: [],
     },
-    'lumi.sensor_motion': {
+    {
+        zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
@@ -142,7 +102,8 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_occupancy, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.sensor_motion.aq2': {
+    {
+        zigbeeModel: ['lumi.sensor_motion.aq2'],
         model: 'RTCGQ11LM',
         vendor: 'Xiaomi',
         description: 'Aqara human body movement and illuminance sensor',
@@ -153,7 +114,8 @@ const devices = {
         ],
         toZigbee: [],
     },
-    'lumi.sensor_magnet': {
+    {
+        zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia door & window contact sensor',
@@ -161,7 +123,8 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.sensor_magnet.aq2': {
+    {
+        zigbeeModel: ['lumi.sensor_magnet.aq2'],
         model: 'MCCGQ11LM',
         vendor: 'Xiaomi',
         description: 'Aqara door & window contact sensor',
@@ -169,7 +132,8 @@ const devices = {
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.ignore_onoff_change, fz.ignore_basic_change],
         toZigbee: [],
     },
-    'lumi.sensor_wleak.aq1': {
+    {
+        zigbeeModel: ['lumi.sensor_wleak.aq1'],
         model: 'SJCGQ11LM',
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
@@ -180,7 +144,8 @@ const devices = {
         ],
         toZigbee: [],
     },
-    'lumi.sensor_cube': {
+    {
+        zigbeeModel: ['lumi.sensor_cube'],
         model: 'MFKZQ01LM',
         vendor: 'Xiaomi',
         description: 'Mi smart home cube',
@@ -191,7 +156,8 @@ const devices = {
         ],
         toZigbee: [],
     },
-    'lumi.plug': {
+    {
+        zigbeeModel: ['lumi.plug'],
         model: 'ZNCZ02LM',
         description: 'Mi power plug ZigBee',
         supports: 'on/off, power measurement',
@@ -202,10 +168,20 @@ const devices = {
         ],
         toZigbee: [tz.onoff],
     },
-    // QBCZ11LM has 2 modelID's: https://github.com/Koenkk/zigbee-shepherd-converters/pull/8
-    'lumi.ctrl_86plug': QBCZ11LM,
-    'lumi.ctrl_86plug.aq1': QBCZ11LM,
-    'lumi.sensor_smoke': {
+    {
+        zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
+        model: 'QBCZ11LM',
+        description: 'Aqara socket Zigbee',
+        supports: 'on/off, power measurement',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.ignore_basic_change, fz.ignore_analog_change,
+        ],
+        toZigbee: [tz.onoff],
+    },
+    {
+        zigbeeModel: ['lumi.sensor_smoke'],
         model: 'JTYJ-GD-01LM/BW',
         description: 'MiJia Honeywell smoke detector',
         supports: 'smoke',
@@ -215,7 +191,8 @@ const devices = {
     },
 
     // IKEA
-    'TRADFRI bulb E27 WS opal 980lm': {
+    {
+        zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 980 lumen, dimmable, white spectrum, opal white',
@@ -223,10 +200,17 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
     },
-    // LED1623G12 uses 2 model IDs, see https://github.com/Koenkk/zigbee2mqtt/issues/21
-    'TRADFRI bulb E27 opal 1000lm': LED1623G12,
-    'TRADFRI bulb E27 W opal 1000lm': LED1623G12,
-    'TRADFRI bulb GU10 WS 400lm': {
+    {
+        zigbeeModel: ['TRADFRI bulb E27 opal 1000lm', 'TRADFRI bulb E27 W opal 1000lm'],
+        model: 'LED1623G12',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, opal white',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
@@ -234,7 +218,8 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
     },
-    'TRADFRI bulb GU10 W 400lm': {
+    {
+        zigbeeModel: ['TRADFRI bulb GU10 W 400lm'],
         model: 'LED1650R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
@@ -242,10 +227,17 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
-    // LED1536G5 has an E12 and E14 version.
-    'TRADFRI bulb E14 WS opal 400lm': LED1536G5,
-    'TRADFRI bulb E12 WS opal 400lm': LED1536G5,
-    'TRADFRI bulb E26 opal 1000lm': {
+    {
+        zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
+        model: 'LED1536G5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
+        supports: 'on/off, brightness, color temperature',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E26 opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
@@ -253,7 +245,8 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
-    'TRADFRI bulb E27 CWS opal 600lm': {
+    {
+        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 600 lumen, dimmable, color, opal white',
@@ -263,7 +256,8 @@ const devices = {
     },
 
     // Philips
-    'LLC020': {
+    {
+        zigbeeModel: ['LLC020'],
         model: '7146060PH',
         vendor: 'Philips',
         description: 'Hue Go',
@@ -271,7 +265,8 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
-    'LWB010': {
+    {
+        zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
         description: 'Hue White Single bulb B22',
@@ -279,7 +274,8 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
-    'LCT015': {
+    {
+        zigbeeModel: ['LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
@@ -289,7 +285,8 @@ const devices = {
     },
 
     // Belkin
-    'MZ100': {
+    {
+        zigbeeModel: ['MZ100'],
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
@@ -299,7 +296,8 @@ const devices = {
     },
 
     // EDP
-    'ZB-SmartPlug-1.0.0': {
+    {
+        zigbeeModel: ['ZB-SmartPlug-1.0.0'],
         model: 'PLUG EDP RE:DY',
         vendor: 'EDP',
         description: 're:dy plug',
@@ -317,7 +315,8 @@ const devices = {
     },
 
     // Texax Instruments
-    'lumi.router': {
+    {
+        zigbeeModel: ['lumi.router'],
         model: 'CC2530.ROUTER',
         vendor: 'Texas Instruments',
         description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
@@ -327,7 +326,8 @@ const devices = {
     },
 
     // OSRAM
-    'Classic A60 RGBW': {
+    {
+        zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
@@ -335,10 +335,18 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
-    // AA70155 is model number of both bulbs.
-    'LIGHTIFY A19 Tunable White': AA70155,
-    'Classic A60 TW': AA70155,
-    'Plug 01': {
+    {
+        // AA70155 is model number of both bulbs.
+        zigbeeModel: ['LIGHTIFY A19 Tunable White', 'Classic A60 TW'],
+        model: 'AA70155',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
+        supports: 'on/off, brightness, color temperature',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
+    },
+    {
+        zigbeeModel: ['Plug 01'],
         model: 'AB3257001NJ',
         description: 'Smart+ plug',
         supports: 'on/off',
@@ -348,7 +356,8 @@ const devices = {
     },
 
     // Hive
-    'FWBulb01': {
+    {
+        zigbeeModel: ['FWBulb01'],
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
         description: 'Active light dimmable',
@@ -358,7 +367,8 @@ const devices = {
     },
 
     // Innr
-    'RB 185 C': {
+    {
+        zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 Bulb RGBW',
@@ -366,6 +376,6 @@ const devices = {
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
-};
+];
 
 module.exports = devices;
