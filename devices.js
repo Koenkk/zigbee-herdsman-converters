@@ -163,7 +163,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.onoff],
@@ -175,7 +175,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.xiaomi_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.onoff],
@@ -304,14 +304,15 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change],
         toZigbee: [tz.onoff],
-        report: [{
-            'cid': 'seMetering',
-            'attr': 'instantaneousDemand',
-            'ep': 85,
-            'minInt': 10,
-            'maxInt': 60,
-            'repChange': 1,
-        }],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 85);
+
+            if (device) {
+                device.report('seMetering', 'instantaneousDemand', 10, 60, 1, (error) => {
+                    callback(!error);
+                });
+            }
+        },
     },
 
     // Texax Instruments
@@ -351,8 +352,26 @@ const devices = [
         description: 'Smart+ plug',
         supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.AB3257001NJ_state],
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfgRptRec = {
+                direction: 0, attrId: 0, dataType: 16, minRepIntval: 1, maxRepIntval: 1000, repChange: 0,
+            };
+
+            const device = shepherd.find(ieeeAddr, 3);
+            if (device) {
+                device.bind('genOnOff', coordinator, (error) => {
+                    if (error) {
+                        callback(error);
+                    } else {
+                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
+                            callback(rsp[0].status === 0);
+                        });
+                    }
+                });
+            }
+        },
     },
 
     // Hive
