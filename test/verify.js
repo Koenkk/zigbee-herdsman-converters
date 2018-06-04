@@ -7,12 +7,13 @@ function verifyKeys(expected, actual, id) {
     });
 }
 
-Object.keys(devices).forEach((deviceKey) => {
-    const device = devices[deviceKey];
+let foundZigbeeModels = [];
+let foundModels = [];
 
+devices.forEach((device) => {
     // Verify device attributes.
     verifyKeys(
-        ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
+        ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'zigbeeModel'],
         Object.keys(device),
         device.model,
     );
@@ -42,4 +43,17 @@ Object.keys(devices).forEach((deviceKey) => {
 
         assert.strictEqual(2, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
+
+    // Check for duplicate zigbee model ids
+    device.zigbeeModel.forEach((m) => {
+        if (foundZigbeeModels.includes(m)) {
+            assert.fail(`Duplicate zigbee model ${m}`);
+        }
+    });
+
+    // Check for duplicate model ids
+    assert(!foundModels.includes(device.model), `Duplicate model ${device.model}`);
+
+    foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel);
+    foundModels.push(device.model);
 });
