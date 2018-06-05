@@ -395,7 +395,7 @@ const devices = [
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
-    
+
     // Sylvania
     {
         zigbeeModel: ['LIGHTIFY RT Tunable White'],
