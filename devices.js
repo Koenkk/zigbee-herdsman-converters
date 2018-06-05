@@ -395,6 +395,37 @@ const devices = [
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
+
+    // Sylvania
+    {
+        zigbeeModel: ['LIGHTIFY RT Tunable White'],
+        model: '73742',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED adjustable white RT 5/6',
+        supports: 'on/off, brightness, color temperature',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
+    },
+    {
+        zigbeeModel: ['LIGHTIFY BR Tunable White'],
+        model: '73740',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED adjustable white BR30',
+        supports: 'on/off, brightness, color temperature',
+        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
+    },
+
+    // GE
+    {
+        zigbeeModel: ['ZLL Light'],
+        model: '22670',
+        vendor: 'GE',
+        description: 'Link smart LED light bulb, BR30 soft white (2700K)',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+    },
 ];
 
 module.exports = devices;
