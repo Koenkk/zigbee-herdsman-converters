@@ -397,7 +397,8 @@ const devices = [
     },
     
     // Sylvania
-    'LIGHTIFY RT Tunable White': {
+    {
+        zigbeeModel: ['LIGHTIFY RT Tunable White'],
         model: '73742',
         vendor: 'Sylvania',
         description: 'Lightify Recessed Tunable White',
@@ -405,7 +406,8 @@ const devices = [
         fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
     },
-    'LIGHTIFY BR Tunable White': {
+    {
+        zigbeeModel: ['LIGHTIFY BR Tunable White'],
         model: '73807',
         vendor: 'Sylvania',
         description: 'Lightify BR30 Tunable White',
@@ -415,7 +417,8 @@ const devices = [
     },
 
     // GE Link
-    'ZLL Light': {
+    {
+        zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
         description: 'GE Link Smart LED R30',
