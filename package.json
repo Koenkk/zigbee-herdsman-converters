@@ -25,7 +25,9 @@
     "url": "https://github.com/Koenkk/zigbee-shepherd-converters/issues"
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
-  "dependencies": {},
+  "dependencies": {
+    "debounce": "*"
+  },
   "devDependencies": {
     "eslint": "*",
     "eslint-config-google": "*"
