@@ -71,7 +71,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
         s.direction = false;
     }
 
-    s.publish({value: s.value});
+    s.publish({brightness: s.value});
 };
 
 
