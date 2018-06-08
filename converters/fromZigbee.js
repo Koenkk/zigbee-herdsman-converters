@@ -1,3 +1,5 @@
+const debounce = require('debounce');
+
 const clickLookup = {
     1: 'single',
     2: 'double',
@@ -37,6 +39,41 @@ const getKey = (object, value) => {
 
 // Global variable store that can be used by devices.
 const store = {};
+
+const ictcg1 = (model, msg, publish, options, action) => {
+    const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+    if (!store[deviceID]) {
+        const _publish = debounce((msg) => publish(msg), 250);
+        store[deviceID] = {since: false, direction: false, value: 255, publish: _publish};
+    }
+
+    const s = store[deviceID];
+    if (s.since && s.direction) {
+        // Update value
+        const duration = Date.now() - s.since;
+        const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
+        const newValue = s.value + delta;
+        if (newValue >= 0 && newValue <= 255) {
+            s.value = newValue;
+        }
+    }
+
+    if (action === 'move') {
+        s.since = Date.now();
+        s.direction = msg.data.payload.movemode === 1 ? 'left' : 'right';
+    } else if (action === 'stop' || action === 'level') {
+        if (action === 'level') {
+            s.value = msg.data.payload.level;
+        }
+
+        s.since = false;
+        s.direction = false;
+    }
+
+    s.publish({value: s.value});
+};
+
 
 const converters = {
     xiaomi_battery_3v: {
@@ -399,6 +436,26 @@ const converters = {
             };
         },
     },
+    ICTC_G_1_move: {
+        cmd: 'move',
+        convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
+    },
+    ICTC_G_1_moveWithOnOff: {
+        cmd: 'moveWithOnOff',
+        convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
+    },
+    ICTC_G_1_stop: {
+        cmd: 'stop',
+        convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
+    },
+    ICTC_G_1_stopWithOnOff: {
+        cmd: 'stopWithOnOff',
+        convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
+    },
+    ICTC_G_1_moveToLevelWithOnOff: {
+        cmd: 'moveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_change: {
@@ -449,6 +506,14 @@ const converters = {
     ignore_metering_change: {
         cid: 'seMetering',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_cmd_readRsp: {
+        cmd: 'readRsp',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_cmd_discoverRsp: {
+        cmd: 'discoverRsp',
         convert: (model, msg, publish, options) => null,
     },
 };

@@ -22,11 +22,14 @@ devices.forEach((device) => {
     Object.keys(device.fromZigbee).forEach((converterKey) => {
         const converter = device.fromZigbee[converterKey];
 
-        verifyKeys(
-            ['cid', 'type', 'convert'],
-            Object.keys(converter),
-            converterKey,
-        );
+        const keys = Object.keys(converter);
+        if (keys.includes('cid')) {
+            verifyKeys(['cid', 'type', 'convert'], keys, converterKey);
+        } else if (keys.includes('cmd')) {
+            verifyKeys(['cmd', 'convert'], keys, converterKey);
+        } else {
+            assert.fail(`${converterKey}: missing ['cid', 'type'] or ['cmd']`)
+        }
 
         assert.strictEqual(4, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
