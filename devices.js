@@ -375,7 +375,7 @@ const devices = [
         toZigbee: [tz.onoff],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfgRptRec = {
-                direction: 0, attrId: 0, dataType: 16, minRepIntval: 1, maxRepIntval: 1000, repChange: 0,
+                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
             };
 
             const device = shepherd.find(ieeeAddr, 3);
