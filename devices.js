@@ -472,9 +472,9 @@ const devices = [
                     }
                 });
             }
-        }
+        },
     },
-    
+
     // Sengled
     {
         zigbeeModel: ['E11-G13'],
@@ -484,7 +484,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
-    },    
+    },
 ];
 
 module.exports = devices;
