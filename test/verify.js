@@ -1,3 +1,5 @@
+'use strict';
+
 const devices = require('../devices');
 const assert = require('assert');
 
