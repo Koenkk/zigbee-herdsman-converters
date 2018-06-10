@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
