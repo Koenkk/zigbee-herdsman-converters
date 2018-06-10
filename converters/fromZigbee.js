@@ -10,8 +10,8 @@ const clickLookup = {
 };
 
 const battery3V = {
-    min: 2500,
-    max: 3000,
+    min: 2800,
+    max: 3300,
 };
 
 const occupancyTimeout = 60; // In seconds
