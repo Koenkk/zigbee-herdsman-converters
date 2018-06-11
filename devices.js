@@ -480,7 +480,7 @@ const devices = [
         zigbeeModel: ['E11-G13'],
         model: 'E11-G13',
         vendor: 'Sengled',
-        description: 'Sengled Element Classic bulb',
+        description: 'Element Classic (A19)',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
