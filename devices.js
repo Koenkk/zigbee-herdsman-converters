@@ -447,6 +447,44 @@ const devices = [
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
     },
+    {
+        zigbeeModel: ['45852'],
+        model: '45852GE',
+        vendor: 'GE',
+        description: 'ZigBee plug-in smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfgRptRec = {
+                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
+            };
+
+            const device = shepherd.find(ieeeAddr, 1);
+            if (device) {
+                device.bind('genOnOff', coordinator, (error) => {
+                    if (error) {
+                        callback(error);
+                    } else {
+                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
+                            callback(rsp[0].status === 0);
+                        });
+                    }
+                });
+            }
+        },
+    },
+
+    // Sengled
+    {
+        zigbeeModel: ['E11-G13'],
+        model: 'E11-G13',
+        vendor: 'Sengled',
+        description: 'Element Classic (A19)',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+    },
 ];
 
 module.exports = devices;
