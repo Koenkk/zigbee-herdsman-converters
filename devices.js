@@ -449,9 +449,9 @@ const devices = [
     },
     {
         zigbeeModel: ['45852'],
-        model: '45852',
+        model: '45852GE',
         vendor: 'GE',
-        description: 'GE wall switch 45852',
+        description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
