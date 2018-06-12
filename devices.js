@@ -275,6 +275,15 @@ const devices = [
             });
         },
     },
+    {
+        zigbeeModel: ['TRADFRI transformer 30W'],
+        model: '603.426.56',
+        vendor: 'IKEA',
+        description: 'TRADFRI driver for wireless control (30 watt)',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+    },
 
     // Philips
     {
