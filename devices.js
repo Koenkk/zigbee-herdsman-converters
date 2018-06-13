@@ -294,7 +294,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W'],
-        model: '603.426.56',
+        model: 'ICPSHC24-30EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (30 watt)',
         ...generic.light_onoff_brightness(),
