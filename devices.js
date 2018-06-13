@@ -274,6 +274,13 @@ const devices = [
         ...generic.light_onoff_brightness_colorxy(),
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm'],
+        model: 'LED1649C5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 400 lumen, dimmable warm white, chandelier opal',
+        ...generic.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRI wireless dimmer'],
         model: 'ICTC-G-1',
         vendor: 'IKEA',
