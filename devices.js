@@ -100,7 +100,7 @@ const devices = [
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'l1 and l2 on/off',
+        supports: 'left and right on/off',
         fromZigbee: [fz.QBKG03LM_state, fz.QBKG03LM_buttons],
         toZigbee: [tz.onoff],
         ep: {'left': 2, 'right': 3},
