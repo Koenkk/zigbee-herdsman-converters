@@ -533,7 +533,7 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
-    ignore_analog_change: {
+    ignore_analog_report: {
         cid: 'genAnalogInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
