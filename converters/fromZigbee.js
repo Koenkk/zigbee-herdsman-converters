@@ -371,7 +371,31 @@ const converters = {
             }
         },
     },
-    QBKG04LM_state: {
+    QBKG11LM_power: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    power: precisionRound(data['152'], 2),
+                    consumption: precisionRound(data['149'], 2),
+                    temperature: precisionRound(data['3'], 2),
+                };
+            }
+        },
+    },
+    QBKG12LM_power: {
+        cid: 'genAnalogInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const key = `power_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const payload = {};
+            payload[key] = precisionRound(msg.data.data['presentValue'], 2);
+            return payload;
+        },
+    },
+    QBKG04LM_QBKG11LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -380,7 +404,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_state: {
+    QBKG03LM_QBKG12LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -498,6 +522,11 @@ const converters = {
     ignore_analog_change: {
         cid: 'genAnalogInput',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_multistate_report: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_multistate_change: {
