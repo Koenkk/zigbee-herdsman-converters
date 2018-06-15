@@ -125,8 +125,8 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'left and right on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.ignore_analog_change, fz.QBKG12LM_power,
-            fz.ignore_multistate_report, fz.ignore_multistate_change,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.onoff],
         ep: {'left': 1, 'right': 2},
