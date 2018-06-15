@@ -389,7 +389,8 @@ const converters = {
         cid: 'genAnalogInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const key = `power_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const mapping = {4: 'left', 5: 'right'};
+            const key = `power_${mapping[msg.endpoints[0].epId]}`;
             const payload = {};
             payload[key] = precisionRound(msg.data.data['presentValue'], 2);
             return payload;
