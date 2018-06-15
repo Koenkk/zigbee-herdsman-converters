@@ -185,7 +185,7 @@ const devices = [
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
-            fz.ignore_analog_change, fz.ignore_multistate_change,
+            fz.ignore_analog_change, fz.ignore_multistate_change, fz.ignore_basic_change,
         ],
         toZigbee: [],
     },
