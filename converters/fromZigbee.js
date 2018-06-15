@@ -386,14 +386,22 @@ const converters = {
         },
     },
     QBKG12LM_power: {
-        cid: 'genAnalogInput',
+        cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            // TODO
+            console.log('EP', msg.endpoints[0].epId);
+
             const mapping = {4: 'left', 5: 'right'};
-            const key = `power_${mapping[msg.endpoints[0].epId]}`;
-            const payload = {};
-            payload[key] = precisionRound(msg.data.data['presentValue'], 2);
-            return payload;
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                const key = mapping[msg.endpoints[0].epId];
+                const payload = {};
+                payload[`power_${key}`] = precisionRound(data['152'], 2);
+                payload[`consumption_${key}`] = precisionRound(data['149'], 2);
+                payload[`temperature_${key}`] = precisionRound(data['3'], 2);
+                return payload;
+            }
         },
     },
     QBKG04LM_QBKG11LM_state: {
@@ -523,6 +531,11 @@ const converters = {
     ignore_analog_change: {
         cid: 'genAnalogInput',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_analog_change: {
+        cid: 'genAnalogInput',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_multistate_report: {
