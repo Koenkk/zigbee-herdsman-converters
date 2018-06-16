@@ -391,11 +391,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             // TODO
             console.log('EP', msg.endpoints[0].epId);
-
-            const mapping = {4: 'left', 5: 'right'};
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
-                const key = mapping[msg.endpoints[0].epId];
+                const key = getKey(model.ep, msg.endpoints[0].epId);
                 const payload = {};
                 payload[`power_${key}`] = precisionRound(data['152'], 2);
                 payload[`consumption_${key}`] = precisionRound(data['149'], 2);
