@@ -225,19 +225,19 @@ const devices = [
 
     // IKEA
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 980 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 950 lumen, dimmable, white spectrum, clear',
+        description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
