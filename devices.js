@@ -234,6 +234,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm'],
+        model: 'LED1546G12',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 950 lumen, dimmable, white spectrum, clear',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 opal 1000lm', 'TRADFRI bulb E27 W opal 1000lm'],
         model: 'LED1623G12',
         vendor: 'IKEA',
