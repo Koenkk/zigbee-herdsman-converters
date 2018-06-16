@@ -106,7 +106,6 @@ const devices = [
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.ignore_analog_report,
         ],
         toZigbee: [tz.onoff],
-        ep: {'': 2},
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
