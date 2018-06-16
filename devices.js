@@ -333,6 +333,33 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['FLOALT panel WS 30x30'],
+        model: 'L1527',
+        vendor: 'IKEA',
+        description: 'FLOALT LED light panel, dimmable, white spectrum (30x30 cm)',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
+        zigbeeModel: ['FLOALT panel WS 60x60'],
+        model: 'L1529',
+        vendor: 'IKEA',
+        description: 'FLOALT LED light panel, dimmable, white spectrum (60x60 cm)',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
+        zigbeeModel: ['FLOALT panel WS 30x90'],
+        model: 'L1528',
+        vendor: 'IKEA',
+        description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 
     // Philips
     {
