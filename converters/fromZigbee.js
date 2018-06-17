@@ -389,16 +389,13 @@ const converters = {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            // TODO
-            console.log('EP', msg.endpoints[0].epId);
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
-                const key = getKey(model.ep, msg.endpoints[0].epId);
-                const payload = {};
-                payload[`power_${key}`] = precisionRound(data['152'], 2);
-                payload[`consumption_${key}`] = precisionRound(data['149'], 2);
-                payload[`temperature_${key}`] = precisionRound(data['3'], 2);
-                return payload;
+                return {
+                    power: precisionRound(data['152'], 2),
+                    consumption: precisionRound(data['149'], 2),
+                    temperature: precisionRound(data['3'], 2),
+                };
             }
         },
     },
