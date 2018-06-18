@@ -249,6 +249,13 @@ const converters = {
             return {contact: msg.data.data['onOff'] === 0};
         },
     },
+    light_state: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
     light_brightness: {
         cid: 'genLevelCtrl',
         type: 'devChange',
