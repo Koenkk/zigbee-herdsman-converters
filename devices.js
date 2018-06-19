@@ -721,6 +721,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+
+    // JIAWEN
+    {
+        zigbeeModel: ['FB56-ZCW08KU1.1'],
+        model: 'K2RGBW01',
+        vendor: 'JIAWEN',
+        description: 'Wireless Bulb E27 9W RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
 ];
 
 module.exports = devices;
