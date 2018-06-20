@@ -732,6 +732,26 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+
+    // TODO
+    {
+        zigbeeModel: ['FB56+ZSC05HG1.0'],
+        model: 'TODO',
+        vendor: 'TODO',
+        description: 'TODO',
+        supports: 'TODO',
+        fromZigbee: [],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 11);
+
+            if (device) {
+                device.report('genOnOff', 'onOff', 0, 1000, 1, (error) => {
+                    callback(!error);
+                });
+            }
+        },
+    },
 ];
 
 module.exports = devices;
