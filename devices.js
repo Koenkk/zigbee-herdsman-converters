@@ -743,11 +743,20 @@ const devices = [
         fromZigbee: [],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 11);
+            const cfgRptRec = {
+                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
+            };
 
+            const device = shepherd.find(ieeeAddr, 11);
             if (device) {
-                device.report('genOnOff', 'onOff', 0, 1000, 1, (error) => {
-                    callback(!error);
+                device.bind('genOnOff', coordinator, (error) => {
+                    if (error) {
+                        callback(error);
+                    } else {
+                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
+                            callback(rsp[0].status === 0);
+                        });
+                    }
                 });
             }
         },
