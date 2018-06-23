@@ -732,6 +732,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    
+    // DNCKAT
+    {
+        zigbeeModel: ['DNCKAT_S001'],
+        model: 'DNCKATSW001',
+        vendor: 'DNCKAT',
+        description: 'DNCKAT single key wired wall light switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff],
+    },
 ];
 
 module.exports = devices;
