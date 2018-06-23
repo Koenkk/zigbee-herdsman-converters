@@ -66,6 +66,19 @@ const converters = {
             };
         },
     },
+    fan_mode: {
+        key: 'fan_mode',
+        attr: ['fanMode'],
+        convert: (value, message) => {
+            return {
+                cid: 'hvacFanCtrl',
+                cmd: 'setFanMode',
+                zclData: {
+                    mode: value,
+                },
+            };
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
