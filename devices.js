@@ -944,6 +944,8 @@ const devices = [
             };
 
             const device = shepherd.find(ieeeAddr, 1);
+            device.write('hvacFanCtrl', 'fanMode', 2, () => null);
+
             if (device) {
                 device.bind('genOnOff', coordinator, (error) => {
                     if (error) {
