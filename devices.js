@@ -746,7 +746,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-    
+
     // DNCKAT
     {
         zigbeeModel: ['DNCKAT_S001'],
