@@ -937,14 +937,12 @@ const devices = [
         description: 'Universal wink enabled white ceiling fan premier remote control',
         supports: 'on/off',
         fromZigbee: [fz.generic_state, fz.light_brightness],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.fan_mode],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.HBUniversalCFRemote_fan_mode],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
             const cfgRptRec = {
                 direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
             };
-
-            const device = shepherd.find(ieeeAddr, 1);
-            device.write('hvacFanCtrl', 'fanMode', 2, () => null);
 
             if (device) {
                 device.bind('genOnOff', coordinator, (error) => {

@@ -41,7 +41,7 @@ devices.forEach((device) => {
         const converter = device.toZigbee[converterKey];
 
         verifyKeys(
-            ['key', 'convert', 'attr'],
+            ['key', 'convert', 'attr', 'type'],
             Object.keys(converter),
             converterKey,
         );
