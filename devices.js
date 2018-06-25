@@ -34,6 +34,34 @@ const generic = {
     },
 };
 
+const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
+
+const execute = (device, actions, callback) => {
+    if (device) {
+        actions = actions.reverse();
+
+        const next = () => {
+            if (actions.length === 0) {
+                callback(true);
+                return;
+            }
+
+            const action = actions.pop();
+            action((error) => {
+                if (error) {
+                    callback(false);
+                } else {
+                    next();
+                }
+            });
+        };
+
+        next();
+    } else {
+        callback(false);
+    }
+};
+
 const devices = [
     // Xiaomi
     {
@@ -344,9 +372,7 @@ const devices = [
         onAfIncomingMsg: [1],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-            device.bind('genLevelCtrl', coordinator, (error) => {
-                callback(!error);
-            });
+            execute(device, [(cb) => device.bind('genLevelCtrl', coordinator, cb)], callback);
         },
     },
     {
@@ -446,12 +472,7 @@ const devices = [
         toZigbee: [tz.onoff],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
-
-            if (device) {
-                device.report('seMetering', 'instantaneousDemand', 10, 60, 1, (error) => {
-                    callback(!error);
-                });
-            }
+            execute(device, [(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb)], callback);
         },
     },
 
@@ -504,22 +525,14 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfgRptRec = {
-                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
-            };
-
             const device = shepherd.find(ieeeAddr, 3);
-            if (device) {
-                device.bind('genOnOff', coordinator, (error) => {
-                    if (error) {
-                        callback(error);
-                    } else {
-                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
-                            callback(rsp[0].status === 0);
-                        });
-                    }
-                });
-            }
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
@@ -692,22 +705,14 @@ const devices = [
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfgRptRec = {
-                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
-            };
-
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
-            if (device) {
-                device.bind('genOnOff', coordinator, (error) => {
-                    if (error) {
-                        callback(error);
-                    } else {
-                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
-                            callback(rsp[0].status === 0);
-                        });
-                    }
-                });
-            }
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
