@@ -432,6 +432,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LWB006'],
+        model: '9290011370',
+        vendor: 'Philips',
+        description: 'Hue white Hue white A60 E27',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
         zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
