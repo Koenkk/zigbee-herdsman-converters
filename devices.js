@@ -435,7 +435,7 @@ const devices = [
         zigbeeModel: ['LWB006'],
         model: '9290011370',
         vendor: 'Philips',
-        description: 'Hue white Hue white A60 E27',
+        description: 'Hue white A60 bulb E27',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
