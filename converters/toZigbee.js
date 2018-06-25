@@ -81,9 +81,7 @@ const converters = {
                 'medium': 2,
                 'medium-high': 3,
                 'high': 4,
-                '5': 5,
-                'comfort-breeze': 6,
-                'light': 7,
+                'breeze': 6,
             };
 
             if (mapping.hasOwnProperty(value)) {

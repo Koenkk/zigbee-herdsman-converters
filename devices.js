@@ -939,22 +939,18 @@ const devices = [
         fromZigbee: [fz.generic_state, fz.light_brightness],
         toZigbee: [tz.onoff, tz.light_brightness, tz.HBUniversalCFRemote_fan_mode],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            // const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
-            const cfgRptRec = {
-                direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0,
-            };
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
 
-            if (device) {
-                device.bind('genOnOff', coordinator, (error) => {
-                    if (error) {
-                        callback(error);
-                    } else {
-                        device.foundation('genOnOff', 'configReport', [cfgRptRec]).then((rsp) => {
-                            callback(rsp[0].status === 0);
-                        });
-                    }
-                });
-            }
+                // TODO: is this needed?
+                // (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 ];
