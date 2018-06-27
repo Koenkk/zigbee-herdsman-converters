@@ -495,6 +495,15 @@ const devices = [
         fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['DNCKAT_S001'],
+        model: 'DNCKATSW001',
+        vendor: 'Custom devices (DiY)',
+        description: '[DNCKAT single key wired wall light switch](https://dzungpv.github.io/dnckatsw001/)',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff],
+    },
 
     // OSRAM
     {
@@ -745,17 +754,6 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
-    },
-
-    // DNCKAT
-    {
-        zigbeeModel: ['DNCKAT_S001'],
-        model: 'DNCKATSW001',
-        vendor: 'DNCKAT',
-        description: 'DNCKAT single key wired wall light switch',
-        supports: 'on/off',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff],
     },
 ];
 
