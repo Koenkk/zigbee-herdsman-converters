@@ -489,6 +489,20 @@ const converters = {
             };
         },
     },
+    _324131092621_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    _324131092621_off: {
+        cid: 'genOnOff',
+        type: 'cmdOffWithEffect',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
