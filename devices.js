@@ -491,22 +491,16 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Dimmer Switch',
         supports: 'TODO',
-        fromZigbee: [],
+        fromZigbee: [fz._324131092621_on, fz._324131092621_off],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genScenes', coordinator, cb),
+            ];
 
-            if (device) {
-                device.bind('genOnOff', coordinator, (error) => {
-                    if (error) {
-                        callback(error);
-                    } else {
-                        device.bind('genLevelCtrl', coordinator, (error) => {
-                            callback(error);
-                        });
-                    }
-                });
-            }
+            execute(device, actions, callback);
         },
     },
 
