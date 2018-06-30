@@ -485,6 +485,7 @@ const converters = {
                 power: msg.data.data['activePower'],
                 current: msg.data.data['rmsCurrent'],
                 voltage: msg.data.data['rmsVoltage'],
+                power_factor: msg.data.data['powerFactor'],
             };
         },
     },
