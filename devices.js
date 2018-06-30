@@ -755,6 +755,28 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+
+    // Netvox
+    {
+        zigbeeModel: ['Z809AE3R'],
+        model: 'Z809A',
+        vendor: 'Netvox',
+        description: 'Power socket with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.Z809A_power],
+        toZigbee: [tz.onoff],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'powerFactor', 10, 1000, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices;

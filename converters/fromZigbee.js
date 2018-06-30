@@ -477,6 +477,18 @@ const converters = {
             };
         },
     },
+    Z809A_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['activePower'],
+                current: msg.data.data['rmsCurrent'],
+                voltage: msg.data.data['rmsVoltage'],
+                power_factor: msg.data.data['powerFactor'],
+            };
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
@@ -556,6 +568,11 @@ const converters = {
     },
     ignore_metering_change: {
         cid: 'seMetering',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_electrical_change: {
+        cid: 'haElectricalMeasurement',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
