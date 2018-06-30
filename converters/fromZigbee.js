@@ -489,7 +489,6 @@ const converters = {
             };
         },
     },
-
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
