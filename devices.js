@@ -450,6 +450,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['LST002'],
+        model: 'xxxx',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStripe+',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
