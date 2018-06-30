@@ -777,12 +777,13 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
     // Nanoleaf
     {
         zigbeeModel: ['NL08-0800'],
         model: 'NL08-0800',
-        vendor: 'SmartIvy',
-        description: 'NANOLEAF - Smart Ivy Bulb - E27',
+        vendor: 'Nanoleaf',
+        description: 'Smart Ivy Bulb E27',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
