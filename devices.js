@@ -535,6 +535,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
+        model: 'AB32840',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED Classic B40 TW tunable white',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['Plug 01'],
         model: 'AB3257001NJ',
         description: 'Smart+ plug',
