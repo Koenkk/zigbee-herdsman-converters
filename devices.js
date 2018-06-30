@@ -771,6 +771,7 @@ const devices = [
                 (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
                 (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
                 (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'powerFactor', 10, 1000, 1, cb),
             ];
 
             execute(device, actions, callback);
