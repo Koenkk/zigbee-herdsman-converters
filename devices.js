@@ -795,7 +795,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    //Nanoleaf
+    // Nanoleaf
     {
         zigbeeModel: ['NL08-0800'],
         model: 'NL08-0800',
