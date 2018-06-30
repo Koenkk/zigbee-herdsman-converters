@@ -486,18 +486,22 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['RWL020'],
+        zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
-        description: 'Hue Dimmer Switch',
-        supports: 'TODO',
+        description: 'Hue dimmer Switch',
+        supports: 'on/off',
         fromZigbee: [fz._324131092621_on, fz._324131092621_off],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('genScenes', coordinator, cb),
+                (cb) => device.bind('manuSpecificCluster1', coordinator, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.bind('manuSpecificCluster1', coordinator, cb),
             ];
 
             execute(device, actions, callback);
