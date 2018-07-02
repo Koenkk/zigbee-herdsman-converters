@@ -520,6 +520,7 @@ const converters = {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
             const mode = msg.data.data.stepsize === 30 ? 'press' : 'hold';
+            const payload = {action: `${direction}-${mode}`};
 
             // Initialize store
             if (!store[deviceID]) {
@@ -529,11 +530,13 @@ const converters = {
             if (mode === 'press') {
                 const newValue = store[deviceID].value + (direction === 'up' ? 50 : -50);
                 store[deviceID].value = numberWithinRange(newValue, 0, 255);
-                return {brightness: store[deviceID].value};
+                payload.brightness = store[deviceID].value;
             } else if (mode === 'hold') {
                 store[deviceID].since = Date.now();
                 store[deviceID].direction = direction;
             }
+
+            return payload;
         },
     },
     _324131092621_stop: {
@@ -546,7 +549,7 @@ const converters = {
                 const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
                 const newValue = store[deviceID].value + delta;
                 store[deviceID].value = numberWithinRange(newValue, 0, 255);
-                return {brightness: store[deviceID].value};
+                return {brightness: store[deviceID].value, action: `${store[deviceID].direction}-hold-release`};
             }
         },
     },
