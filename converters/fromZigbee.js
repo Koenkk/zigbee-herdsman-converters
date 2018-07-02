@@ -32,6 +32,16 @@ const precisionRound = (number, precision) => {
     return Math.round(number * factor) / factor;
 };
 
+const numberWithinRange = (number, min, max) => {
+    if (number > max) {
+        return max;
+    } else if (number < min) {
+        return min;
+    } else {
+        return number;
+    }
+};
+
 // get object property name (key) by it's value
 const getKey = (object, value) => {
     for (let key in object) {
@@ -501,6 +511,43 @@ const converters = {
         type: 'cmdOffWithEffect',
         convert: (model, msg, publish, options) => {
             return {action: 'off'};
+        },
+    },
+    _324131092621_step: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            const mode = msg.data.data.stepsize === 30 ? 'press' : 'hold';
+
+            // Initialize store
+            if (!store[deviceID]) {
+                store[deviceID] = {value: 255, since: null, direction: null};
+            }
+
+            if (mode === 'press') {
+                const newValue = store[deviceID].value + (direction === 'up' ? 50 : -50);
+                store[deviceID].value = numberWithinRange(newValue, 0, 255);
+                return {brightness: store[deviceID].value};
+            } else if (mode === 'hold') {
+                store[deviceID].since = Date.now();
+                store[deviceID].direction = direction;
+            }
+        },
+    },
+    _324131092621_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            if (store[deviceID] && store[deviceID].since && store[deviceID].direction) {
+                const duration = Date.now() - store[deviceID].since;
+                const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
+                const newValue = store[deviceID].value + delta;
+                store[deviceID].value = numberWithinRange(newValue, 0, 255);
+                return {brightness: store[deviceID].value};
+            }
         },
     },
     ICTC_G_1_move: {
