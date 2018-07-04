@@ -495,16 +495,19 @@ const devices = [
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-            const ep2 = shepherd.find(ieeeAddr, 2);
-
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('manuSpecificCluster1', coordinator, cb),
-                (cb) => ep2.bind('genOnOff', coordinator, cb),
-                (cb) => ep2.bind('manuSpecificCluster1', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
             ];
 
-            execute(device, actions, callback);
+            execute(device, actions, (result) => {
+                if (result) {
+                    const device = shepherd.find(ieeeAddr, 2);
+                    execute(device, [(cb) => device.bind('genPowerCfg', coordinator, cb)], callback);
+                } else {
+                    callback(result);
+                }
+            });
         },
     },
 

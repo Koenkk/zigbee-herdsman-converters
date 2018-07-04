@@ -86,6 +86,15 @@ const ictcg1 = (model, msg, publish, options, action) => {
     s.publish({brightness: s.value});
 };
 
+const holdUpdateBrightness324131092621 = (deviceID) => {
+    if (store[deviceID] && store[deviceID].since && store[deviceID].direction) {
+        const duration = Date.now() - store[deviceID].since;
+        const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
+        const newValue = store[deviceID].value + delta;
+        store[deviceID].value = numberWithinRange(newValue, 0, 255);
+    }
+};
+
 
 const converters = {
     xiaomi_battery_3v: {
@@ -520,7 +529,6 @@ const converters = {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
             const mode = msg.data.data.stepsize === 30 ? 'press' : 'hold';
-            const payload = {action: `${direction}-${mode}`};
 
             // Initialize store
             if (!store[deviceID]) {
@@ -530,13 +538,13 @@ const converters = {
             if (mode === 'press') {
                 const newValue = store[deviceID].value + (direction === 'up' ? 50 : -50);
                 store[deviceID].value = numberWithinRange(newValue, 0, 255);
-                payload.brightness = store[deviceID].value;
             } else if (mode === 'hold') {
+                holdUpdateBrightness324131092621(deviceID);
                 store[deviceID].since = Date.now();
                 store[deviceID].direction = direction;
             }
 
-            return payload;
+            return {action: `${direction}-${mode}`, brightness: store[deviceID].value};
         },
     },
     _324131092621_stop: {
@@ -544,11 +552,11 @@ const converters = {
         type: 'cmdStop',
         convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
-            if (store[deviceID] && store[deviceID].since && store[deviceID].direction) {
-                const duration = Date.now() - store[deviceID].since;
-                const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
-                const newValue = store[deviceID].value + delta;
-                store[deviceID].value = numberWithinRange(newValue, 0, 255);
+
+            if (store[deviceID]) {
+                holdUpdateBrightness324131092621(deviceID);
+                store[deviceID].since = null;
+                store[deviceID].direction = null;
                 return {brightness: store[deviceID].value, action: `${store[deviceID].direction}-hold-release`};
             }
         },
