@@ -494,16 +494,21 @@ const devices = [
         fromZigbee: [fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
+            const ep1 = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
             ];
 
-            execute(device, actions, (result) => {
+            execute(ep1, actions, (result) => {
                 if (result) {
-                    const device = shepherd.find(ieeeAddr, 2);
-                    execute(device, [(cb) => device.bind('genPowerCfg', coordinator, cb)], callback);
+                    const ep2 = shepherd.find(ieeeAddr, 2);
+                    const actions = [
+                        (cb) => ep2.bind('genPowerCfg', coordinator, cb),
+                        (cb) => ep2.report('genPowerCfg', 'batteryVoltage', 10, 1000, 1, cb),
+                    ];
+
+                    execute(ep2, actions, callback);
                 } else {
                     callback(result);
                 }

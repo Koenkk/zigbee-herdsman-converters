@@ -555,9 +555,14 @@ const converters = {
 
             if (store[deviceID]) {
                 holdUpdateBrightness324131092621(deviceID);
+                const payload = {
+                    brightness: store[deviceID].value,
+                    action: `${store[deviceID].direction}-hold-release`
+                };
+
                 store[deviceID].since = null;
                 store[deviceID].direction = null;
-                return {brightness: store[deviceID].value, action: `${store[deviceID].direction}-hold-release`};
+                return payload;
             }
         },
     },
