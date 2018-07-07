@@ -467,6 +467,24 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    {
+        zigbeeModel: ['LCT003'],
+        model: '8718696485880',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance GU10',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
+        zigbeeModel: ['LTW013'],
+        model: '8718696598283',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 
     // Belkin
     {
