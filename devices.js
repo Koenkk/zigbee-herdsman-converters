@@ -739,6 +739,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    { 
+        zigbeeModel: ['LIGHTIFY A19 RGBW'],
+        model: '73693',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED RGBW A19',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
 
     // GE
     {
