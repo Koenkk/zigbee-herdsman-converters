@@ -739,7 +739,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
-    { 
+    {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
