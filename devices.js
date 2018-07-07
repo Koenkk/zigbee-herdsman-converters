@@ -469,7 +469,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LCT003'],
-        model: 'TODO',
+        model: '8718696485880',
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
@@ -478,9 +478,9 @@ const devices = [
     },
     {
         zigbeeModel: ['LTW013'],
-        model: 'TODO',
+        model: '8718696598283',
         vendor: 'Philips',
-        description: 'Hue white GU10',
+        description: 'Hue white ambiance GU10',
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
