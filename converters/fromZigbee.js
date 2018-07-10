@@ -557,7 +557,7 @@ const converters = {
                 holdUpdateBrightness324131092621(deviceID);
                 const payload = {
                     brightness: store[deviceID].value,
-                    action: `${store[deviceID].direction}-hold-release`
+                    action: `${store[deviceID].direction}-hold-release`,
                 };
 
                 store[deviceID].since = null;
