@@ -833,6 +833,18 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+
+    // Nue in Wall-Ceiling Switch
+    {   
+        zigbeeModel: ['FB56+ZSW05HG1.2'],
+        model: 'FB56+ZSW05HG1.2',
+        vendor: 'FeiBit',
+        description: 'Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.feibit_devChange],
+        toZigbee: [tz.onoff],
+    },
+
 ];
 
 module.exports = devices;
