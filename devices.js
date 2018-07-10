@@ -489,7 +489,7 @@ const devices = [
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
-        description: 'Hue dimmer Switch',
+        description: 'Hue dimmer switch',
         supports: 'on/off',
         fromZigbee: [
             fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
