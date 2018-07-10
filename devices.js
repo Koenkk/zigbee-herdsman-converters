@@ -485,6 +485,39 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    {
+        zigbeeModel: ['RWL020', 'RWL021'],
+        model: '324131092621',
+        vendor: 'Philips',
+        description: 'Hue dimmer switch',
+        supports: 'on/off',
+        fromZigbee: [
+            fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
+            fz.ignore_power_change, fz._324131092621_power,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(ep1, actions, (result) => {
+                if (result) {
+                    const ep2 = shepherd.find(ieeeAddr, 2);
+                    const actions = [
+                        (cb) => ep2.bind('genPowerCfg', coordinator, cb),
+                        (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+                    ];
+
+                    execute(ep2, actions, callback);
+                } else {
+                    callback(result);
+                }
+            });
+        },
+    },
 
     // Belkin
     {
