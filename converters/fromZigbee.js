@@ -566,6 +566,13 @@ const converters = {
             }
         },
     },
+    _324131092621_power: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2)};
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
@@ -647,6 +654,11 @@ const converters = {
     },
     ignore_multistate_change: {
         cid: 'genMultistateInput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_power_change: {
+        cid: 'genPowerCfg',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
