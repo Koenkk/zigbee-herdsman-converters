@@ -491,7 +491,10 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue dimmer Switch',
         supports: 'on/off',
-        fromZigbee: [fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop],
+        fromZigbee: [
+            fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
+            fz.ignore_power_change, fz._324131092621_power,
+        ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep1 = shepherd.find(ieeeAddr, 1);
@@ -505,7 +508,7 @@ const devices = [
                     const ep2 = shepherd.find(ieeeAddr, 2);
                     const actions = [
                         (cb) => ep2.bind('genPowerCfg', coordinator, cb),
-                        (cb) => ep2.report('genPowerCfg', 'batteryVoltage', 10, 1000, 1, cb),
+                        (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
                     ];
 
                     execute(ep2, actions, callback);
