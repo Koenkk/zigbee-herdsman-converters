@@ -939,15 +939,12 @@ const devices = [
         fromZigbee: [fz.generic_state, fz.light_brightness],
         toZigbee: [tz.onoff, tz.light_brightness, tz.HBUniversalCFRemote_fan_mode],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            // const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
                 (cb) => device.bind('hvacFanCtrl', coordinator, cb),
-
-                // TODO: is this needed?
-                // (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
             ];
 
             execute(device, actions, callback);
