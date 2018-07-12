@@ -872,7 +872,7 @@ const devices = [
         zigbeeModel: ['GLEDOPTO'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
-        description: '2.4G Wireless RGB+CCT LED Controller - ZigBee Light Link Compatible',
+        description: 'Zigbee LED controller RGB + CCT',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
