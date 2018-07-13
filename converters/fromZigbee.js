@@ -97,6 +97,13 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    samsung_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 48 };
+        },
+    },
     xiaomi_battery_3v: {
         cid: 'genBasic',
         type: 'attReport',
