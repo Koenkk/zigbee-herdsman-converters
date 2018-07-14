@@ -580,6 +580,13 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
+    _99432_fan: {
+        cid: 'hvacFanCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            console.log('DATA', msg.data);
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
@@ -659,6 +666,11 @@ const converters = {
     },
     ignore_power_change: {
         cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_fan_change: {
+        cid: 'hvacFanCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
