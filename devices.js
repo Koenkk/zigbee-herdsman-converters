@@ -880,11 +880,11 @@ const devices = [
     
     // SmartThings
     {
-        zigbeeModel: ['PGC313'], 
-        model: 'STSS-MULT-001', 
-        vendor: 'SmartThings', 
-        description: 'SmartSense multi sensor', 
-        supports: 'contact', 
+        zigbeeModel: ['PGC313'],
+        model: 'STSS-MULT-001',
+        vendor: 'SmartThings',
+        description: 'SmartSense multi sensor',
+        supports: 'contact',
         fromZigbee: [fz.samsung_contact],
         toZigbee: [],
     },
