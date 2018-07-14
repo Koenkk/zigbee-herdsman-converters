@@ -97,7 +97,7 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
-    samsung_contact: {
+    smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
