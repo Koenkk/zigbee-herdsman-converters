@@ -877,6 +877,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+
+    // SmartThings
+    {
+        zigbeeModel: ['PGC313'],
+        model: 'STSS-MULT-001',
+        vendor: 'SmartThings',
+        description: 'SmartSense multi sensor',
+        supports: 'contact',
+        fromZigbee: [fz.smartthings_contact],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices;
