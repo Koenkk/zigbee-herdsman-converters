@@ -885,7 +885,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'SmartSense multi sensor',
         supports: 'contact',
-        fromZigbee: [fz.samsung_contact],
+        fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
     },
 ];
