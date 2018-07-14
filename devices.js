@@ -877,14 +877,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-        // Samsung SmartThings
+    
+    // SmartThings
     {
         zigbeeModel: ['PGC313'], 
         model: 'STSS-MULT-001', 
-        vendor: 'Samsung SmartThings', 
-        description: 'Door and Window contact sensor', 
+        vendor: 'SmartThings', 
+        description: 'SmartSense multi sensor', 
         supports: 'contact', 
-        fromZigbee: [fz.samsung_contact], // battery doesnt work yet 
+        fromZigbee: [fz.samsung_contact],
         toZigbee: [],
     },
 ];
