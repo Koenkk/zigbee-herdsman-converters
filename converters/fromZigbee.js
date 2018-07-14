@@ -101,7 +101,7 @@ const converters = {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.zoneStatus === 48 };
+            return {contact: msg.data.zoneStatus === 48};
         },
     },
     xiaomi_battery_3v: {
