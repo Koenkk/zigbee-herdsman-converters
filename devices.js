@@ -36,7 +36,7 @@ const generic = {
 
 const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
 
-const execute = (device, actions, callback) => {
+const execute = (device, actions, callback, delay=300) => {
     if (device) {
         actions = actions.reverse();
 
@@ -46,14 +46,16 @@ const execute = (device, actions, callback) => {
                 return;
             }
 
-            const action = actions.pop();
-            action((error) => {
-                if (error) {
-                    callback(false);
-                } else {
-                    next();
-                }
-            });
+            setTimeout(() => {
+                const action = actions.pop();
+                action((error) => {
+                    if (error) {
+                        callback(false);
+                    } else {
+                        next();
+                    }
+                });
+            }, delay);
         };
 
         next();
