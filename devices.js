@@ -459,7 +459,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT015'],
+        zigbeeModel: ['LCT010', 'LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
@@ -484,6 +484,39 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
+        zigbeeModel: ['RWL020', 'RWL021'],
+        model: '324131092621',
+        vendor: 'Philips',
+        description: 'Hue dimmer switch',
+        supports: 'on/off',
+        fromZigbee: [
+            fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
+            fz.ignore_power_change, fz._324131092621_power,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(ep1, actions, (result) => {
+                if (result) {
+                    const ep2 = shepherd.find(ieeeAddr, 2);
+                    const actions = [
+                        (cb) => ep2.bind('genPowerCfg', coordinator, cb),
+                        (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+                    ];
+
+                    execute(ep2, actions, callback);
+                } else {
+                    callback(result);
+                }
+            });
+        },
     },
 
     // Belkin
@@ -835,7 +868,7 @@ const devices = [
     },
 
     // Nue in Wall-Ceiling Switch
-    {   
+    {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
         vendor: 'FeiBit',
@@ -844,7 +877,28 @@ const devices = [
         fromZigbee: [fz.feibit_devChange],
         toZigbee: [tz.onoff],
     },
+ 
+    // Gledopto
+    {
+        zigbeeModel: ['GLEDOPTO'],
+        model: 'GL-C-008',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
 
+    // SmartThings
+    {
+        zigbeeModel: ['PGC313'],
+        model: 'STSS-MULT-001',
+        vendor: 'SmartThings',
+        description: 'SmartSense multi sensor',
+        supports: 'contact',
+        fromZigbee: [fz.smartthings_contact],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices;
