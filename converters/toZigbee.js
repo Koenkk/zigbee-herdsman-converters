@@ -16,7 +16,7 @@ const converters = {
         key: 'state',
         type: 'functional',
         attr: ['onOff'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'genOnOff',
                 cmd: value.toLowerCase(),
@@ -28,7 +28,7 @@ const converters = {
         key: 'brightness',
         type: 'functional',
         attr: ['currentLevel'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'genLevelCtrl',
                 cmd: 'moveToLevel',
@@ -43,7 +43,7 @@ const converters = {
         key: 'color_temp',
         type: 'functional',
         attr: ['colorTemperature'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColorTemp',
@@ -58,7 +58,7 @@ const converters = {
         key: 'color',
         type: 'functional',
         attr: ['currentX', 'currentY'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColor',
@@ -70,19 +70,12 @@ const converters = {
             };
         },
     },
-    HBUniversalCFRemote_fan_mode: {
+    fan_mode: {
         key: 'fan_mode',
         type: 'write',
         attr: ['fanMode'],
-        convert: (value, message) => {
-            const mapping = {
-                'off': 0,
-                'low': 1,
-                'medium': 2,
-                'medium-high': 3,
-                'high': 4,
-                'breeze': 6,
-            };
+        convert: (value, message, model) => {
+            const mapping = model.meta.fan_mode;
 
             if (mapping.hasOwnProperty(value)) {
                 return {
@@ -99,7 +92,7 @@ const converters = {
         key: 'transition',
         type: '',
         attr: [],
-        convert: (value, message) => null,
+        convert: (value, message, model) => null,
     },
 };
 

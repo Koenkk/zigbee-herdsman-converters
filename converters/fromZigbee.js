@@ -580,11 +580,13 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
-    _99432_fan: {
+    generic_fan_mode: {
         cid: 'hvacFanCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            console.log('DATA', msg.data);
+            const mapping = model.meta.fan_mode;
+            const key = getKey(mapping, msg.data.data.fanMode);
+            return {fan_mode: key};
         },
     },
     ICTC_G_1_move: {

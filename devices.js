@@ -936,8 +936,18 @@ const devices = [
         vendor: 'Hampton Bay',
         description: 'Universal wink enabled white ceiling fan premier remote control',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz._99432_fan],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.HBUniversalCFRemote_fan_mode],
+        fromZigbee: [fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.fan_mode],
+        meta: {
+            fan_mode: {
+                'off': 0,
+                'low': 1,
+                'medium': 2,
+                'medium-high': 3,
+                'high': 4,
+                'breeze': 6,
+            },
+        },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
