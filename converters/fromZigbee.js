@@ -577,7 +577,7 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2)};
+            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
     ICTC_G_1_move: {
