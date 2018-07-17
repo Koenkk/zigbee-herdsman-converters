@@ -461,6 +461,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LCT003'],
+        model: '8718696598283',
+        vendor: 'Philips',
+        description: 'Hue spot GU10',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LCT010', 'LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
