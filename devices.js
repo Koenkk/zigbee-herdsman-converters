@@ -334,7 +334,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E26 opal 1000lm'],
+        zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
