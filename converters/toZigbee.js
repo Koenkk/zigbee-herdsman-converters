@@ -4,11 +4,11 @@ const converters = {
     factory_reset: {
         key: 'reset',
         attr: [],
-	convert: (value, message) => {
-	    return {
-	        cid: 'genBasic',
-		cmd: 'resetFactDefault',
-	        zclData: {},
+        convert: (value, message) => {
+            return {
+                cid: 'genBasic',
+                cmd: 'resetFactDefault',
+                zclData: {},
             };
         },
     },
