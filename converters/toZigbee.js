@@ -1,6 +1,17 @@
 'use strict';
 
 const converters = {
+    factory_reset: {
+        key: 'reset',
+        attr: [],
+        convert: (value, message) => {
+            return {
+                cid: 'genBasic',
+                cmd: 'resetFactDefault',
+                zclData: {},
+            };
+        },
+    },
     onoff: {
         key: 'state',
         attr: ['onOff'],
