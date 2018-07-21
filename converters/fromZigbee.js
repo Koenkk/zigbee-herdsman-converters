@@ -602,6 +602,11 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
+    ignore_hvacThermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
