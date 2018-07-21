@@ -574,7 +574,7 @@ const devices = [
         vendor: 'ecozy',
         description: '',
         supports: '',
-        fromZigbee: [fz.ignore_ecozy_hvacThermostat_devChange, fz.ecozy_hvacThermostat_attReport,fz.ignore_basic_change],
+        fromZigbee: [fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport,fz.ignore_basic_change],
         toZigbee: [tz.factory_reset],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
