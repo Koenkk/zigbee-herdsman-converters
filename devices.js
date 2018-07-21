@@ -334,7 +334,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E26 opal 1000lm'],
+        zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
@@ -461,7 +461,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT010', 'LCT015'],
+        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
@@ -820,6 +820,15 @@ const devices = [
         model: 'E11-G13',
         vendor: 'Sengled',
         description: 'Element Classic (A19)',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
+        zigbeeModel: ['E11-G23'],
+        model: 'E11-G23',
+        vendor: 'Sengled',
+        description: 'Element Classic (A60)',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
