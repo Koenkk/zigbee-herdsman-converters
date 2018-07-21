@@ -567,6 +567,32 @@ const devices = [
         toZigbee: [tz.onoff],
     },
 
+    // eCozy 
+	{
+        zigbeeModel: ['Thermostat'],
+        model: 'ecozy Thermostat',
+        vendor: 'ecozy',
+        description: '',
+        supports: '',
+        fromZigbee: [fz.ignore_ecozy_hvacThermostat_devChange, fz.ecozy_hvacThermostat_attReport,fz.ignore_basic_change],
+        toZigbee: [tz.factory_reset],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+				(cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+				(cb) => device.bind('genPowerCfg', coordinator, cb),
+				(cb) => device.bind('genIdentify', coordinator, cb),
+				(cb) => device.bind('genTime', coordinator, cb),
+				(cb) => device.bind('genPollCtrl', coordinator, cb),
+				(cb) => device.report('hvacThermostat', 'localTemp', 0, 60, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+	},
+    
     // OSRAM
     {
         zigbeeModel: ['Classic A60 RGBW'],
