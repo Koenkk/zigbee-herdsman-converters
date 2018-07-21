@@ -600,7 +600,17 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
-
+    ecozy_hvacThermostat_attReport: {
+		cid: 'hvacThermostat',
+		type: 'attReport',
+		convert: (model, msg, publish, options) => {
+			return	{
+					localTemp: precisionRound(msg.data.data.localTemp,2)/100,
+					SetTemp: precisionRound(msg.data.data.occupiedHeatingSetpoint,2)/100,
+					ChangeValue: msg.data.data.setpointChangeAmount/100
+					};
+		},
+	},
     // Ignore converters (these message dont need parsing).
     ignore_hvacThermostat_change: {
         cid: 'hvacThermostat',
