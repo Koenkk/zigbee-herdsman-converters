@@ -1,5 +1,6 @@
 'use strict';
 
+const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
@@ -49,6 +50,7 @@ const execute = (device, actions, callback, delay=300) => {
             setTimeout(() => {
                 const action = actions.pop();
                 action((error) => {
+                    debug(`Configured '${action.toString()}' with result '${error ? error : 'OK'}'`);
                     if (error) {
                         callback(false);
                     } else {
