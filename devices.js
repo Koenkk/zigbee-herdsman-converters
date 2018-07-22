@@ -611,7 +611,7 @@ const devices = [
         zigbeeModel: ['Classic A60 W clear - LIGHTIFY'],
         model: 'AC03641',
         vendor: 'OSRAM',
-        description: 'Classic A60 W clear - LIGHTIFY',
+        description: 'LIGHTIFY LED Classic A60 clear',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
