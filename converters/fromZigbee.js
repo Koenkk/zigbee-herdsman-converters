@@ -604,13 +604,21 @@ const converters = {
 		cid: 'hvacThermostat',
 		type: 'attReport',
 		convert: (model, msg, publish, options) => {
+			const deviceID = msg.endpoints[0].device.ieeeAddr;
+			
+			if (!store[deviceID]) {
+                		store[deviceID] = {localTemp: null};
+            		}
+			if(!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
+				store[deviceID].localTemp = msg.data.data.localTemp;
+			}
 			return	{
-					localTemp: precisionRound(msg.data.data.localTemp,2)/100,
+					localTemp: precisionRound(store[deviceID].localTemp,2)/100,
 					SetTemp: precisionRound(msg.data.data.occupiedHeatingSetpoint,2)/100,
 					ChangeValue: msg.data.data.setpointChangeAmount/100
-					};
+				};
 		},
-	},
+    },
     // Ignore converters (these message dont need parsing).
     ignore_hvacThermostat_change: {
         cid: 'hvacThermostat',
