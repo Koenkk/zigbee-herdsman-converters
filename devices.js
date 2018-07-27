@@ -427,6 +427,15 @@ const devices = [
 
     // Philips
     {
+      zigbeeModel: ['LLC012'],
+      model: '7299760PH',
+      vendor: 'Philips',
+      description: 'Hue Bloom',
+      supports: generic.light_onoff_brightness_colorxy().supports,
+      fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
+      toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LLC020'],
         model: '7146060PH',
         vendor: 'Philips',
