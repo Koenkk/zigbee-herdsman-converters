@@ -952,7 +952,9 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
                 (cb) => device.bind('hvacFanCtrl', coordinator, cb),
                 (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
             ];
