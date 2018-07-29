@@ -867,17 +867,17 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
 
-    // Nue in Wall-Ceiling Switch
+    // Nue
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
-        vendor: 'FeiBit',
-        description: 'Switch',
+        vendor: 'Nue',
+        description: 'ZigBee one gang smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.feibit_devChange],
+        fromZigbee: [fz.generic_state],
         toZigbee: [tz.onoff],
     },
- 
+
     // Gledopto
     {
         zigbeeModel: ['GLEDOPTO'],
