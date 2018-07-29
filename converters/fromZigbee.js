@@ -600,13 +600,6 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
-    feibit_devChange: {
-        cid: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            return {contact: msg.data.data['onOff'] === 0};
-        },
-    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_change: {
