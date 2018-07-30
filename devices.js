@@ -812,6 +812,25 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    {
+        zigbeeModel: ['PLUG'],
+        model: '72922-A',
+        vendor: 'Sylvania',
+        description: 'SMART+ Smart Plug',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // GE
     {
