@@ -10,8 +10,8 @@ const clickLookup = {
 };
 
 const battery3V = {
-    min: 2800,
-    max: 3300,
+    min: 2700,
+    max: 3000,
 };
 
 const occupancyTimeout = 60; // In seconds
@@ -30,6 +30,16 @@ const toPercentage = (value, min, max) => {
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
+};
+
+const numberWithinRange = (number, min, max) => {
+    if (number > max) {
+        return max;
+    } else if (number < min) {
+        return min;
+    } else {
+        return number;
+    }
 };
 
 // get object property name (key) by it's value
@@ -76,8 +86,24 @@ const ictcg1 = (model, msg, publish, options, action) => {
     s.publish({brightness: s.value});
 };
 
+const holdUpdateBrightness324131092621 = (deviceID) => {
+    if (store[deviceID] && store[deviceID].since && store[deviceID].direction) {
+        const duration = Date.now() - store[deviceID].since;
+        const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
+        const newValue = store[deviceID].value + delta;
+        store[deviceID].value = numberWithinRange(newValue, 0, 255);
+    }
+};
+
 
 const converters = {
+    smartthings_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 48};
+        },
+    },
     xiaomi_battery_3v: {
         cid: 'genBasic',
         type: 'attReport',
@@ -226,7 +252,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = (options && options.occupancy_timeout) ? options.occupancy_timeout : occupancyTimeout;
+            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
+            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
             const deviceID = msg.endpoints[0].device.ieeeAddr;
 
             // Stop existing timer because motion is detected and set a new one.
@@ -235,10 +262,13 @@ const converters = {
                 store[deviceID] = null;
             }
 
-            store[deviceID] = setTimeout(() => {
-                publish({occupancy: false});
-                store[deviceID] = null;
-            }, timeout * 1000);
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
             return {occupancy: true};
         },
     },
@@ -247,6 +277,13 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
+        },
+    },
+    light_state: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
     light_brightness: {
@@ -371,7 +408,35 @@ const converters = {
             }
         },
     },
-    QBKG04LM_state: {
+    QBKG11LM_power: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    power: precisionRound(data['152'], 2),
+                    consumption: precisionRound(data['149'], 2),
+                    temperature: precisionRound(data['3'], 2),
+                };
+            }
+        },
+    },
+    QBKG12LM_power: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    power: precisionRound(data['152'], 2),
+                    consumption: precisionRound(data['149'], 2),
+                    temperature: precisionRound(data['3'], 2),
+                };
+            }
+        },
+    },
+    QBKG04LM_QBKG11LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -380,7 +445,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_state: {
+    QBKG03LM_QBKG12LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -436,6 +501,83 @@ const converters = {
                 type: data['inactiveText'],
                 rssi: data['presentValue'],
             };
+        },
+    },
+    Z809A_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['activePower'],
+                current: msg.data.data['rmsCurrent'],
+                voltage: msg.data.data['rmsVoltage'],
+                power_factor: msg.data.data['powerFactor'],
+            };
+        },
+    },
+    _324131092621_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    _324131092621_off: {
+        cid: 'genOnOff',
+        type: 'cmdOffWithEffect',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
+    _324131092621_step: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            const mode = msg.data.data.stepsize === 30 ? 'press' : 'hold';
+
+            // Initialize store
+            if (!store[deviceID]) {
+                store[deviceID] = {value: 255, since: null, direction: null};
+            }
+
+            if (mode === 'press') {
+                const newValue = store[deviceID].value + (direction === 'up' ? 50 : -50);
+                store[deviceID].value = numberWithinRange(newValue, 0, 255);
+            } else if (mode === 'hold') {
+                holdUpdateBrightness324131092621(deviceID);
+                store[deviceID].since = Date.now();
+                store[deviceID].direction = direction;
+            }
+
+            return {action: `${direction}-${mode}`, brightness: store[deviceID].value};
+        },
+    },
+    _324131092621_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            if (store[deviceID]) {
+                holdUpdateBrightness324131092621(deviceID);
+                const payload = {
+                    brightness: store[deviceID].value,
+                    action: `${store[deviceID].direction}-hold-release`,
+                };
+
+                store[deviceID].since = null;
+                store[deviceID].direction = null;
+                return payload;
+            }
+        },
+    },
+    _324131092621_power: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
     ICTC_G_1_move: {
@@ -500,13 +642,33 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_analog_report: {
+        cid: 'genAnalogInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_multistate_report: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_multistate_change: {
         cid: 'genMultistateInput',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_power_change: {
+        cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_metering_change: {
         cid: 'seMetering',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_electrical_change: {
+        cid: 'haElectricalMeasurement',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
