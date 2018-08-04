@@ -123,7 +123,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch',
         supports: 'on/off',
-        fromZigbee: [fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change],
+        fromZigbee: [
+            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.onoff],
         ep: {'': 2},
     },
@@ -145,7 +147,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
         supports: 'left and right on/off',
-        fromZigbee: [fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons],
+        fromZigbee: [
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.onoff],
         ep: {'left': 2, 'right': 3},
     },

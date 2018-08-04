@@ -612,6 +612,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_basic_report: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_illuminance_change: {
         cid: 'msIlluminanceMeasurement',
         type: 'devChange',
