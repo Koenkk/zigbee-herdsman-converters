@@ -146,7 +146,7 @@ const devices = [
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'left and right on/off',
+        supports: 'release/hold, on/off',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
@@ -158,7 +158,7 @@ const devices = [
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'left and right on/off, power measurement',
+        supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
@@ -586,7 +586,7 @@ const devices = [
         model: 'DNCKATSW002',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        supports: 'left and right on/off',
+        supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.onoff],
         ep: {'left': 1, 'right': 2},
@@ -596,7 +596,7 @@ const devices = [
         model: 'DNCKATSW003',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        supports: 'left, center and right on/off',
+        supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.onoff],
         ep: {'left': 1, 'center': 2, 'right': 3},
@@ -606,10 +606,10 @@ const devices = [
         model: 'DNCKATSW004',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        supports: 'top left, top right, bottom left and bottom right on/off',
+        supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.onoff],
-        ep: {'bot_left': 1, 'bot_right': 2, 'top_left': 3, 'top_right': 4},
+        ep: {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4},
     },
 
     // OSRAM
