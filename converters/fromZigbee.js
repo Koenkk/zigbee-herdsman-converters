@@ -517,21 +517,21 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-          const modelID = msg.endpoints[0].device.modelId;
-          const mapping = {1: 'left', 2: 'right'};
-          if (modelID === 'DNCKAT_S002') {
-            mapping = {1: 'left', 2: 'right'};
-          }else if (modelID === 'DNCKAT_S003') {
-            mapping = {1: 'left', 2: 'center', 3: 'right'};
-          }else if (modelID === 'DNCKAT_S004') {
-            mapping = {1: 'bot_left', 2: 'bot_right', 3: 'top_left', 4: 'top_right'};
-          }
-          const button = mapping[msg.endpoints[0].epId];
-          if (button) {
-            const payload = {};
-            payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
-            return payload;
-          }
+            const modelID = msg.endpoints[0].device.modelId;
+            let mapping = {1: 'left', 2: 'right'};
+            if (modelID === 'DNCKAT_S002') {
+                mapping = {1: 'left', 2: 'right'};
+            } else if (modelID === 'DNCKAT_S003') {
+                mapping = {1: 'left', 2: 'center', 3: 'right'};
+            } else if (modelID === 'DNCKAT_S004') {
+                mapping = {1: 'bot_left', 2: 'bot_right', 3: 'top_left', 4: 'top_right'};
+            }
+            const button = mapping[msg.endpoints[0].epId];
+            if (button) {
+                const payload = {};
+                payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+                return payload;
+            }
         },
     },
     Z809A_power: {
