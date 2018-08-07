@@ -1,5 +1,6 @@
 'use strict';
 
+const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
@@ -49,6 +50,7 @@ const execute = (device, actions, callback, delay=300) => {
             setTimeout(() => {
                 const action = actions.pop();
                 action((error) => {
+                    debug(`Configured '${action.toString()}' with result '${error ? error : 'OK'}'`);
                     if (error) {
                         callback(false);
                     } else {
@@ -121,7 +123,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch',
         supports: 'on/off',
-        fromZigbee: [fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change],
+        fromZigbee: [
+            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.onoff],
         ep: {'': 2},
     },
@@ -142,8 +146,10 @@ const devices = [
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'left and right on/off',
-        fromZigbee: [fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons],
+        supports: 'release/hold, on/off',
+        fromZigbee: [
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.onoff],
         ep: {'left': 2, 'right': 3},
     },
@@ -152,7 +158,7 @@ const devices = [
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'left and right on/off, power measurement',
+        supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
@@ -425,6 +431,15 @@ const devices = [
 
     // Philips
     {
+        zigbeeModel: ['LLC012'],
+        model: '7299760PH',
+        vendor: 'Philips',
+        description: 'Hue Bloom',
+        supports: generic.light_onoff_brightness_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LLC020'],
         model: '7146060PH',
         vendor: 'Philips',
@@ -561,10 +576,40 @@ const devices = [
         zigbeeModel: ['DNCKAT_S001'],
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT single key wired wall light switch](https://dzungpv.github.io/dnckatsw001/)',
+        description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'on/off',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
         toZigbee: [tz.onoff],
+    },
+    {
+        zigbeeModel: ['DNCKAT_S002'],
+        model: 'DNCKATSW002',
+        vendor: 'Custom devices (DiY)',
+        description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        supports: 'hold/release, on/off',
+        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        toZigbee: [tz.onoff],
+        ep: {'left': 1, 'right': 2},
+    },
+    {
+        zigbeeModel: ['DNCKAT_S003'],
+        model: 'DNCKATSW003',
+        vendor: 'Custom devices (DiY)',
+        description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        supports: 'hold/release, on/off',
+        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        toZigbee: [tz.onoff],
+        ep: {'left': 1, 'center': 2, 'right': 3},
+    },
+    {
+        zigbeeModel: ['DNCKAT_S004'],
+        model: 'DNCKATSW004',
+        vendor: 'Custom devices (DiY)',
+        description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        supports: 'hold/release, on/off',
+        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        toZigbee: [tz.onoff],
+        ep: {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4},
     },
 
     // OSRAM
@@ -576,6 +621,24 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
+        zigbeeModel: ['CLA60 RGBW OSRAM'],
+        model: 'AC03845',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED CLA60 E27 RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
+        zigbeeModel: ['CLA60 TW OSRAM'],
+        model: 'AC03642',
+        vendor: 'OSRAM',
+        description: 'SMART+ CLASSIC A 60 TW',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
         // AA70155 is model number of both bulbs.
@@ -604,6 +667,15 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
+        zigbeeModel: ['Classic A60 W clear - LIGHTIFY'],
+        model: 'AC03641',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED Classic A60 clear',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
         zigbeeModel: ['Plug 01'],
@@ -783,6 +855,25 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    {
+        zigbeeModel: ['PLUG'],
+        model: '72922-A',
+        vendor: 'Sylvania',
+        description: 'SMART+ Smart Plug',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // GE
     {
@@ -876,6 +967,17 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // Nue
+    {
+        zigbeeModel: ['FB56+ZSW05HG1.2'],
+        model: 'FB56+ZSW05HG1.2',
+        vendor: 'Nue',
+        description: 'ZigBee one gang smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state],
+        toZigbee: [tz.onoff],
     },
 
     // Gledopto

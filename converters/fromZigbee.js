@@ -503,6 +503,26 @@ const converters = {
             };
         },
     },
+    DNCKAT_S00X_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const payload = {};
+            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            return payload;
+        },
+    },
+    DNCKAT_S00X_buttons: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const key = `button_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const payload = {};
+            payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+            return payload;
+        },
+    },
     Z809A_power: {
         cid: 'haElectricalMeasurement',
         type: 'attReport',
@@ -610,6 +630,11 @@ const converters = {
     ignore_basic_change: {
         cid: 'genBasic',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_basic_report: {
+        cid: 'genBasic',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_illuminance_change: {
