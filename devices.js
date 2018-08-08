@@ -947,12 +947,6 @@ const devices = [
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
-/*
-                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'powerFactor', 10, 1000, 1, cb),*/
-
                 (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
             ];
 
@@ -1021,15 +1015,6 @@ const devices = [
         vendor: 'SmartThings',
         description: 'SmartSense multi sensor',
         supports: 'contact',
-        fromZigbee: [fz.smartthings_contact],
-        toZigbee: [],
-    },
-    {
-        zigbeeModel: ['motionv4'],
-        model: 'motionv4',
-        vendor: 'SmartThings',
-        description: 'SmartSense motion sensor',
-        supports: 'motion, tempreature, battery',
         fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
     },
