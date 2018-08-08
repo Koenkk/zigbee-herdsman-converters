@@ -39,6 +39,21 @@ const converters = {
             };
         },
     },
+    light_brightness_onoff: {
+        key: 'brightness',
+        type: 'functional',
+        attr: ['currentLevel'],
+        convert: (value, message, model) => {
+            return {
+                cid: 'genLevelCtrl',
+                cmd: 'moveToLevelWithOnOff',
+                zclData: {
+                    level: value,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 1,
+                },
+            };
+        },
+    },
     light_colortemp: {
         key: 'color_temp',
         type: 'functional',

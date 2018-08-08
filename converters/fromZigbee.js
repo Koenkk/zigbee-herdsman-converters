@@ -616,6 +616,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_level_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_basic_change: {
         cid: 'genBasic',
         type: 'devChange',
