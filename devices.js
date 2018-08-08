@@ -104,7 +104,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         supports: 'single click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_onoff_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
