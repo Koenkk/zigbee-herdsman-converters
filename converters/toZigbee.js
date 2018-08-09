@@ -49,7 +49,7 @@ const converters = {
                 cmd: 'moveToLevelWithOnOff',
                 zclData: {
                     level: value,
-                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 1,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 },
             };
         },
