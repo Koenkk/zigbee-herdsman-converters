@@ -1,5 +1,5 @@
 'use strict';
-
+const path = require('path');
 const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
