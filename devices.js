@@ -1,6 +1,6 @@
 'use strict';
 const path = require('path');
-const debug = require('debug')('zigbee-shepherd-converters:devices');
+const logger = require(path.join(__dirname, '../../', 'lib/util/logger'));
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
@@ -50,7 +50,7 @@ const execute = (device, actions, callback, delay=300) => {
             setTimeout(() => {
                 const action = actions.pop();
                 action((error) => {
-                    debug(`Configured '${action.toString()}' with result '${error ? error : 'OK'}'`);
+                    logger.debug(`Configured '${action.toString()}' with result '${error ? error : 'OK'}'`);
                     if (error) {
                         callback(false);
                     } else {
