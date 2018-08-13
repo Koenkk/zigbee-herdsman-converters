@@ -505,7 +505,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LTW010'],
-        model: 'todo',
+        model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E27',
         supports: generic.light_onoff_brightness_colortemp().supports,
@@ -708,7 +708,7 @@ const devices = [
     },
     {
         zigbeeModel: ['Flex RGBW'],
-        model: 'ToDo',
+        model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
