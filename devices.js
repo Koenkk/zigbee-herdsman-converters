@@ -37,8 +37,9 @@ const generic = {
 
 const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
 
-const execute = (device, actions, callback, delay=300) => {
+const execute = (device, actions, callback, delay) => {
     if (device) {
+        delay = delay || 300;
         actions = actions.reverse();
 
         const next = () => {
