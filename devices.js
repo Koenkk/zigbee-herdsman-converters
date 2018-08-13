@@ -1030,17 +1030,17 @@ const devices = [
         fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
     },
-    // Trust
-    { 
-        zigbeeModel: ['ZLL-DimmableLigh'], 
-        model: 'ZLED-2709', 
-        vendor: 'Trust', 
-        description: 'Smart Dimmable LED Bulb ', 
-        supports: 'generic.light_onoff_brightness().supports',
-        fromZigbee: generic.light_onoff_brightness().fromZigbee, 
-        toZigbee: generic.light_onoff_brightness().toZigbee, 
-    },
 
+    // Trust
+    {
+        zigbeeModel: ['ZLL-DimmableLigh'],
+        model: 'ZLED-2709',
+        vendor: 'Trust',
+        description: 'Smart Dimmable LED Bulb ',
+        supports: 'generic.light_onoff_brightness().supports',
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 ];
 
 module.exports = devices;
