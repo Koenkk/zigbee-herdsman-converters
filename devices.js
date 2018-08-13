@@ -504,6 +504,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['LTW010'],
+        model: '8718696548738',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
@@ -697,6 +706,16 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['Flex RGBW'],
+        model: '4052899926110',
+        vendor: 'OSRAM',
+        description: 'Flex RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+
 
     // Hive
     {
