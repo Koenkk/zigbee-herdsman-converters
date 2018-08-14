@@ -92,7 +92,9 @@ const converters = {
         convert: (value, message) => {
             // Check if we need to convert from RGB to XY.
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
-                value = {...value, ...rgbToXY(value.r, value.g, value.b)};
+                const xy = rgbToXY(value.r, value.g, value.b);
+                value.x = xy.x;
+                value.y = xy.y;
             }
 
             return {
