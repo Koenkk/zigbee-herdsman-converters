@@ -953,6 +953,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['Z01-CIA19NAE26'],
+        model: 'Z01-CIA19NAE26',
+        vendor: 'Sengled',
+        description: 'Element Touch (A19)',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // JIAWEN
     {
