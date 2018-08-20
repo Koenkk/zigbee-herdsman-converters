@@ -888,7 +888,7 @@ const devices = [
         zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM'],
         model: '74283',
         vendor: 'Sylvania',
-        description: 'LIGHTIFY A19 ON/OFF/DIM',
+        description: 'LIGHTIFY LED soft white dimmable A19',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
