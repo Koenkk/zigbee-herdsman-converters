@@ -620,8 +620,31 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
+    ecozy_hvacThermostat_attReport: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
 
+            if (!store[deviceID]) {
+                store[deviceID] = {localTemp: null};
+            }
+            if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
+                store[deviceID].localTemp = msg.data.data.localTemp;
+            }
+            return {
+                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
+                SetTemp: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2)/100,
+                ChangeValue: msg.data.data.setpointChangeAmount/100,
+            };
+        },
+    },
     // Ignore converters (these message dont need parsing).
+    ignore_hvacThermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
