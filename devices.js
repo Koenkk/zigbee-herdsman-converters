@@ -635,13 +635,19 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [
                 // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.bind('genBasic', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('genIdentify', coordinator, cb),
                 (cb) => device.bind('genTime', coordinator, cb),
                 (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 60, 1, cb),
                 (cb) => device.report('hvacThermostat', 'localTemp', 0, 60, 1, cb),
+                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 0, 60, 1, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 0, 60, 1, cb),
+                (cb) => device.report('hvacThermostat', 'systemMode', 0, 60, 1, cb),
             ];
 
             execute(device, actions, callback);
