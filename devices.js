@@ -935,19 +935,25 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-    // Hive Smart Plug
+     // Hive Smart Plug
     {
         zigbeeModel: ['SLP2b'],
         model: 'SLP2b',
         vendor: 'Hive',
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.Z809A_power],
+        fromZigbee: [fz.hiveInstantDemandMetering],
         toZigbee: [tz.onoff],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
+            const device = shepherd.find(ieeeAddr, 9);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const IODcfg = {direction: 0, attrId: 1024, dataType: 42, minRepIntval: 0, maxRepIntval: 1000, repChange: 0}; 
+
+
             const actions = [
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1,cb),
             ];
 
             execute(device, actions, callback);

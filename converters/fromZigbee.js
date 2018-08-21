@@ -535,6 +535,15 @@ const converters = {
             };
         },
     },
+    hiveInstantDemandMetering: {
+        cid: 'seMetering',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['instantaneousDemand'],
+            };
+        },
+    },
     _324131092621_on: {
         cid: 'genOnOff',
         type: 'cmdOn',
