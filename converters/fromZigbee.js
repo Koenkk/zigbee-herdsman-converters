@@ -27,6 +27,21 @@ const toPercentage = (value, min, max) => {
     return (normalised * 100).toFixed(2);
 };
 
+// Create a new JavaScript Date object based on the timestamp
+// multiplied by 1000 so that the argument is in milliseconds, not seconds.
+const toTime = (timestamp) => {
+    let date = new Date(timestamp*1000);
+    // Hours part from the timestamp
+    let hours = date.getHours();
+    // Minutes part from the timestamp
+    let minutes = '0' + date.getMinutes();
+    // Seconds part from the timestamp
+    let seconds = '0' + date.getSeconds();
+    // Will display time in 10:30:23 format
+    let formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return formattedTime;
+};
+
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
@@ -628,14 +643,34 @@ const converters = {
 
             if (!store[deviceID]) {
                 store[deviceID] = {localTemp: null};
+                store[deviceID] = {occupiedHeatingSetpoint: null};
+                store[deviceID] = {setpointChangeSource: null};
+                store[deviceID] = {setpointChangeAmount: null};
+                store[deviceID] = {setpointChangeSourceTimeStamp: null};
             }
             if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
                 store[deviceID].localTemp = msg.data.data.localTemp;
             }
+            if (!msg.data.data.occupiedHeatingSetpoint == null || !msg.data.data.occupiedHeatingSetpoint == '') {
+                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
+            }
+            if (!msg.data.data.setpointChangeSource == null || !msg.data.data.setpointChangeSource == '') {
+                store[deviceID].setpointChangeSource = msg.data.data.setpointChangeSource;
+            }
+            if (!msg.data.data.setpointChangeAmount == null || !msg.data.data.setpointChangeAmount == '') {
+                store[deviceID].setpointChangeAmount = msg.data.data.setpointChangeAmount;
+            }
+            if (!msg.data.data.setpointChangeSourceTimeStamp == null ||
+                !msg.data.data.setpointChangeSourceTimeStamp == '') {
+                store[deviceID].setpointChangeSourceTimeStamp = msg.data.data.setpointChangeSourceTimeStamp;
+            }
+
             return {
                 localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
-                SetTemp: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2)/100,
-                ChangeValue: msg.data.data.setpointChangeAmount/100,
+                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
+                setpointChangeSource: store[deviceID].setpointChangeSource,
+                setpointChangeAmount: store[deviceID].setpointChangeAmount/100,
+                setpointChangeSourceTimeStamp: toTime(store[deviceID].setpointChangeSourceTimeStamp),
             };
         },
     },
