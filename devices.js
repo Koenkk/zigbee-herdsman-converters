@@ -630,7 +630,7 @@ const devices = [
         description: '',
         supports: '',
         fromZigbee: [fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport, fz.ignore_basic_change],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [
@@ -643,11 +643,11 @@ const devices = [
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
 
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 60, 1, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 0, 60, 1, cb),
-                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 0, 60, 1, cb),
-                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 0, 60, 1, cb),
-                (cb) => device.report('hvacThermostat', 'systemMode', 0, 60, 1, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 600, 21600, 0x01, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 30, 0, 0x0064, cb),
+                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 300, 7200, 0x05, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 30, 0, 0x0064, cb),
+                (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 1, cb),
             ];
 
             execute(device, actions, callback);

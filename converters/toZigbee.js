@@ -108,7 +108,24 @@ const converters = {
             };
         },
     },
+    thermostat_occupiedHeatingSetpoint: {
+        key: 'temperature',
+        attr: ['occupiedHeatingSetpoint'],
+        convert: (value, message) => {
+            if (value.temperature != null) {
+                const degrees = hex(Math.round(value.temperature) * 100);
+            }
+            log.debug('setHeatingSetpoint(' + temp +')';
 
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'occupiedHeatingSetpoint',
+                zclData: {
+                    hex(degrees),
+                },
+            };
+        },
+    },
     // Ignore converters
     ignore_transition: {
         key: 'transition',
