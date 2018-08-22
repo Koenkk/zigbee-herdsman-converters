@@ -112,16 +112,12 @@ const converters = {
         key: 'temperature',
         attr: ['occupiedHeatingSetpoint'],
         convert: (value, message) => {
-            if (value.temperature != null) {
-                const degrees = hex(Math.round(value.temperature) * 100);
-            }
-            log.debug('setHeatingSetpoint(' + temp +')';
-
+            const degrees = (Math.round(value.temperature) * 100).toString(16);
             return {
                 cid: 'hvacThermostat',
                 cmd: 'occupiedHeatingSetpoint',
                 zclData: {
-                    hex(degrees),
+                    temperature: degrees,
                 },
             };
         },
