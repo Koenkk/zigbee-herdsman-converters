@@ -1024,8 +1024,6 @@ const devices = [
         fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
     },
-
-
 ];
 
 module.exports = devices;
