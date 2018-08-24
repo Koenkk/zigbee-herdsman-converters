@@ -468,6 +468,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['LWB014'],
+        model: '9290011369A',
+        vendor: 'Philips',
+        description: 'Hue White Single A19/E26 bulb',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
         zigbeeModel: ['LST002'],
         model: '915005106701',
         vendor: 'Philips',
@@ -477,10 +486,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT015'],
+        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT014', 'LCT015'],
         model: '9290012573A',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance E27',
+        description: 'Hue white and color ambiance E26/E27',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
