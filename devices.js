@@ -284,6 +284,15 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke, fz.ignore_basic_change],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['lumi.sensor_natgas'],
+        model: 'JTQJ-BF-01LM/BW',
+        vendor: 'Xiaomi',
+        description: 'MiJia gas leak detector ',
+        supports: 'gas',
+        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
+        toZigbee: [],
+    },
 
     // IKEA
     {
@@ -1058,17 +1067,6 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
-    },
-
-    // Xiaomi Gas leak sensor
-    {
-        zigbeeModel: ['lumi.sensor_natgas'],
-        model: 'JTQJ-BF-01LM/BW',
-        vendor: 'Xiaomi',
-        description: 'MiJia Gas Leek Sensor ',
-        supports: 'alarm_co',
-        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
-        toZigbee: [],
     },
 ];
 
