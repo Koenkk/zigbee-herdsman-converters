@@ -1061,7 +1061,7 @@ const devices = [
     },
 
     // Xiaomi Gas leak sensor
-    { 
+    {
         zigbeeModel: ['lumi.sensor_natgas'],
         model: 'JTQJ-BF-01LM/BW',
         vendor: 'Xiaomi',
