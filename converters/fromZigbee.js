@@ -477,6 +477,13 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    JTQJBF01LMBW_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {gas: msg.data.zoneStatus === 1};
+        },
+    },
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',

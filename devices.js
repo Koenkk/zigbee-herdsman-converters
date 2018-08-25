@@ -1059,6 +1059,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+
+    // Xiaomi Gas leak sensor
+    { 
+        zigbeeModel: ['lumi.sensor_natgas'],
+        model: 'JTQJ-BF-01LM/BW',
+        vendor: 'Xiaomi',
+        description: 'MiJia Gas Leek Sensor ',
+        supports: 'alarm_co',
+        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices;
