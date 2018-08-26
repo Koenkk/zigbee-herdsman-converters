@@ -49,8 +49,9 @@ const converters = {
     },
     onoff: {
         key: 'state',
+        type: 'functional',
         attr: ['onOff'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'genOnOff',
                 cmd: value.toLowerCase(),
@@ -60,8 +61,9 @@ const converters = {
     },
     light_brightness: {
         key: 'brightness',
+        type: 'functional',
         attr: ['currentLevel'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'genLevelCtrl',
                 cmd: 'moveToLevel',
@@ -72,10 +74,26 @@ const converters = {
             };
         },
     },
+    light_brightness_onoff: {
+        key: 'brightness',
+        type: 'functional',
+        attr: ['currentLevel'],
+        convert: (value, message, model) => {
+            return {
+                cid: 'genLevelCtrl',
+                cmd: 'moveToLevelWithOnOff',
+                zclData: {
+                    level: value,
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                },
+            };
+        },
+    },
     light_colortemp: {
         key: 'color_temp',
+        type: 'functional',
         attr: ['colorTemperature'],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColorTemp',
@@ -88,7 +106,9 @@ const converters = {
     },
     light_color: {
         key: 'color',
+        type: 'functional',
         attr: ['currentX', 'currentY'],
+<<<<<<< HEAD
         convert: (value, message) => {
             // Check if we need to convert from RGB to XY.
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
@@ -97,6 +117,9 @@ const converters = {
                 value.y = xy.y;
             }
 
+=======
+        convert: (value, message, model) => {
+>>>>>>> HBUniversalCFRemote
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColor',
@@ -110,23 +133,39 @@ const converters = {
     },
     thermostat_occupiedHeatingSetpoint: {
         key: 'temperature',
+        type: 'write',
         attr: ['occupiedHeatingSetpoint'],
         convert: (value, message) => {
             const degrees = (Math.round(value.temperature) * 100).toString(16);
             return {
                 cid: 'hvacThermostat',
-                cmd: 'occupiedHeatingSetpoint',
-                zclData: {
-                    temperature: degrees,
-                },
+                attrid: 'occupiedHeatingSetpoint',
+                data: "23",
             };
+        },
+    },
+    fan_mode: {
+        key: 'fan_mode',
+        type: 'write',
+        attr: ['fanMode'],
+        convert: (value, message, model) => {
+            const mapping = model.meta.fan_mode;
+
+            if (mapping.hasOwnProperty(value)) {
+                return {
+                    cid: 'hvacFanCtrl',
+                    attrid: 'fanMode',
+                    data: mapping[value],
+                };
+            }
         },
     },
     // Ignore converters
     ignore_transition: {
         key: 'transition',
+        type: '',
         attr: [],
-        convert: (value, message) => null,
+        convert: (value, message, model) => null,
     },
 };
 

@@ -615,6 +615,15 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
+    generic_fan_mode: {
+        cid: 'hvacFanCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const mapping = model.meta.fan_mode;
+            const key = getKey(mapping, msg.data.data.fanMode);
+            return {fan_mode: key};
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
@@ -685,6 +694,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_level_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_basic_change: {
         cid: 'genBasic',
         type: 'devChange',
@@ -742,6 +756,11 @@ const converters = {
     },
     ignore_power_change: {
         cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_fan_change: {
+        cid: 'hvacFanCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
