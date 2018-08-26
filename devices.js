@@ -1090,6 +1090,7 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // Hampton Bay
     {
