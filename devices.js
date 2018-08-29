@@ -563,7 +563,7 @@ const devices = [
         fromZigbee: [
             fz._324131092621_power, fz.xiaomi_occupancy, fz.xiaomi_temperature,
             fz.ignore_occupancy_change, fz.xiaomi_illuminance, fz.ignore_illuminance_change,
-            fz.ignore_temperature_change
+            fz.ignore_temperature_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
