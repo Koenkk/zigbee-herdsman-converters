@@ -554,6 +554,31 @@ const devices = [
             });
         },
     },
+    {
+        zigbeeModel: ['SML001'],
+        model: '9290012607',
+        vendor: 'Philips',
+        description: 'Philips Hue motion sensor',
+        supports: 'motion, light and temperature',
+        fromZigbee: [fz._324131092621_power,fz.xiaomi_occupancy,fz.xiaomi_temperature,fz.ignore_occupancy_change,fz.xiaomi_illuminance,fz.ignore_illuminance_change,fz.ignore_temperature_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        const device = shepherd.find(ieeeAddr, 2);
+        const actions = [
+        (cb) => device.bind('genPowerCfg', coordinator, cb),
+        (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb), // Need report!
+        (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+        (cb) => device.bind('msOccupancySensing', coordinator, cb),
+        (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+        (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
+        (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+        (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
+         ];
+        execute(device, actions, callback);
+        },
+    },
+    
+    
 
     // Belkin
     {
