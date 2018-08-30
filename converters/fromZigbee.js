@@ -161,7 +161,7 @@ const converters = {
             }
         },
     },
-    xiaomi_temperature: {
+    generic_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -246,7 +246,7 @@ const converters = {
             return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
         },
     },
-    xiaomi_occupancy: {
+    generic_occupancy: {
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -336,7 +336,7 @@ const converters = {
             }
         },
     },
-    xiaomi_illuminance: {
+    generic_illuminance: {
         cid: 'msIlluminanceMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -600,7 +600,7 @@ const converters = {
             }
         },
     },
-    _324131092621_power: {
+    generic_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {

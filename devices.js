@@ -173,7 +173,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia temperature & humidity sensor ',
         supports: 'temperature and humidity',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_temperature, fz.xiaomi_humidity, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -183,8 +183,9 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure, fz.ignore_basic_change,
-            fz.ignore_temperature_change, fz.ignore_humidity_change, fz.ignore_pressure_change,
+            fz.xiaomi_battery_3v, fz.generic_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
+            fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
+            fz.ignore_pressure_change,
         ],
         toZigbee: [],
     },
@@ -194,7 +195,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_occupancy, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -204,7 +205,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_occupancy, fz.xiaomi_illuminance, fz.ignore_basic_change,
+            fz.xiaomi_battery_3v, fz.generic_occupancy, fz.generic_illuminance, fz.ignore_basic_change,
             fz.ignore_illuminance_change, fz.ignore_occupancy_change,
         ],
         toZigbee: [],
@@ -529,7 +530,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [
             fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
-            fz.ignore_power_change, fz._324131092621_power,
+            fz.ignore_power_change, fz.generic_battery,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -559,18 +560,19 @@ const devices = [
         model: '9290012607',
         vendor: 'Philips',
         description: 'Hue motion sensor',
-        supports: 'motion, light and temperature',
+        supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz._324131092621_power, fz.xiaomi_occupancy, fz.xiaomi_temperature,
-            fz.ignore_occupancy_change, fz.xiaomi_illuminance, fz.ignore_illuminance_change,
+            fz.generic_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 2);
+
             const actions = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb), // Need report!
+                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.bind('msOccupancySensing', coordinator, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
@@ -578,6 +580,7 @@ const devices = [
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
                 (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
             ];
+
             execute(device, actions, callback);
         },
     },
