@@ -3,6 +3,7 @@
 const converters = {
     factory_reset: {
         key: 'reset',
+        type: 'functional',
         attr: [],
         convert: (value, message) => {
             return {
