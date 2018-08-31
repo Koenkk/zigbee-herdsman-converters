@@ -5,7 +5,7 @@ const converters = {
         key: 'reset',
         type: 'functional',
         attr: [],
-        convert: (value, message) => {
+        convert: (value, message, model) => {
             return {
                 cid: 'genBasic',
                 cmd: 'resetFactDefault',
