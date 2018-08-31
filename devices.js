@@ -629,8 +629,10 @@ const devices = [
         vendor: 'ecozy',
         description: '',
         supports: '',
-        fromZigbee: [fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport, fz.ignore_basic_change],
-        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint],
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport],
+        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint, tz.thermostat_setpointRaiseLower,
+                   tz.thermostat_setWeeklySchedule, tz.thermostat_getWeeklySchedule, tz.thermostat_clearWeeklySchedule,
+                   tz.thermostat_getRelayStatusLog, tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_getRelayStatusLogRsp],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [
@@ -643,14 +645,24 @@ const devices = [
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
 
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 600, 21600, 0x01, cb),
+                // (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 600, 21600, 0x01, cb),
                 (cb) => device.report('hvacThermostat', 'localTemp', 30, 0, 0x0064, cb),
                 (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 300, 7200, 0x05, cb),
                 (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 30, 0, 0x0064, cb),
                 (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 1, cb),
             ];
 
-            execute(device, actions, callback);
+            // execute(device, actions, callback);
+            execute(device, actions, (result) => {
+                if (result) {
+                    device.report('genPowerCfg', 'batteryPercentageRemaining', 300, 3600, 0, (err) => {
+                        console.log('genPowerCfg BatteryPercentageRemaining result', err);
+                        callback(!err);
+                    });
+                } else {
+                    callback(result);
+                }
+            });
         },
     },
 
