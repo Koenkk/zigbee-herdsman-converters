@@ -362,7 +362,7 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             let ep;
-            let lu; 
+            let lu;
             const value = msg.data.data['presentValue'];
             const lookupEp = {
                 1: 'left',
@@ -376,10 +376,10 @@ const converters = {
             };
             if ((ep = lookupEp[msg.endpoints[0].epId]) && (lu = lookup[value])) {
                 lu.click = ep + lu.click;
-                return lu; 
+                return lu;
             }
             return null;
-         },
+        },
     },
     WXKG03LM_click: {
         cid: 'genOnOff',
