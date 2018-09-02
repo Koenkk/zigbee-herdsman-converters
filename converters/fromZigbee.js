@@ -357,6 +357,30 @@ const converters = {
             return {click: getKey(model.ep, msg.endpoints[0].epId)};
         },
     },
+    WXKG02LM_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            let ep;
+            let lu; 
+            const value = msg.data.data['presentValue'];
+            const lookupEp = {
+                1: 'left',
+                2: 'right',
+                3: 'both',
+            };
+            const lookup = {
+                0: {click: ' long'}, // long click
+                1: {click: ''}, // single click
+                2: {click: ' double'}, // double click
+            };
+            if ((ep = lookupEp[msg.endpoints[0].epId]) && (lu = lookup[value])) {
+                lu.click = ep + lu.click;
+                return lu; 
+            }
+            return null;
+         },
+    },
     WXKG03LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
