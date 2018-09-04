@@ -136,28 +136,26 @@ const converters = {
 
             if (msg.data.data['65281']) {
                 voltage = msg.data.data['65281']['1'];
-                temperature =  parseFloat(msg.data.data['65281']['100']) / 100.0;
+                temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
                 humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
                 pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
-
             }
-
             if (pressure) {
                 return {
                     battery: toPercentage(voltage, battery3V.min, battery3V.max),
                     voltage: voltage,
-                    temperature : temperature,
-                    humidity : humidity,
-                    pressure : pressure
+                    temperature: temperature,
+                    humidity: humidity,
+                    pressure: pressure,
                 };
-              } else {
-                  return {
-                      battery: toPercentage(voltage, battery3V.min, battery3V.max),
-                      voltage: voltage,
-                      temperature : temperature,
-                      humidity : humidity
-                  };
-              }
+            } else {
+                return {
+                    battery: toPercentage(voltage, battery3V.min, battery3V.max),
+                    voltage: voltage,
+                    temperature: temperature,
+                    humidity: humidity,
+                };
+            }
         },
     },
     WXKG01LM_click: {
