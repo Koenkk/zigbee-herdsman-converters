@@ -1101,7 +1101,7 @@ const devices = [
     
     // Paulmann
     {
-        zigbeeModel: ['Dimmablelight'],
+        zigbeeModel: ['Dimmablelight '],
         model: '50045',
         vendor: 'Paulmann',
         description: 'Paulmann LED Stripes',
