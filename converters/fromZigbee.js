@@ -14,7 +14,7 @@ const battery3V = {
     max: 3000,
 };
 
-const occupancyTimeout = 60; // In seconds
+const occupancyTimeout = 90; // In seconds
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
