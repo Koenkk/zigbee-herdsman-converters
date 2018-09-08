@@ -1112,6 +1112,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    
+    // Iris
+    {
+        zigbeeModel: ['3210-L'],
+        model: '3210-L',
+        vendor: 'Iris',
+        description: 'Iris Smart Plug',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff],
+    },
 ];
 
 module.exports = devices;
