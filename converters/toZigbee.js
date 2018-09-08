@@ -108,6 +108,30 @@ const converters = {
             };
         },
     },
+    curtain_windowcoverings: {
+        key: 'state',
+        attr: ['windowcoverings_state'],
+        convert: (value, message) => {// value: 'upOpen','stop','downClose'
+            return {
+                cid: 'closuresWindowCovering',
+                cmd: value,
+                zclData: {},
+            };
+        },
+    },
+    curtain_dim: {
+        key: 'lift_percentage',
+        attr: ['dim'],
+        convert: (value, message) => {
+            return {
+                cid: 'closuresWindowCovering',
+                cmd: 'goToLiftPercentage',
+                zclData: {
+                    percentageliftvalue: value,
+                },
+            };
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
