@@ -1112,7 +1112,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
-    
+
     // Iris
     {
         zigbeeModel: ['3210-L'],
