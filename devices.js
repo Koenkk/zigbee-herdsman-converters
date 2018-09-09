@@ -1123,6 +1123,25 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff],
     },
+    // Bitron Home (Telecom Branding)
+    {
+        zigbeeModel: ['902010/22'],
+        model: 'Bitron AV2010/22',
+        vendor: 'Bitron Home',
+        description: 'IAS Infrared Sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.bitron_occupancy],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices;
