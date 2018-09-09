@@ -14,7 +14,7 @@ const battery3V = {
     max: 3000,
 };
 
-const occupancyTimeout = 60; // In seconds
+const occupancyTimeout = 90; // In seconds
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
@@ -161,7 +161,7 @@ const converters = {
             }
         },
     },
-    xiaomi_temperature: {
+    generic_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -246,7 +246,7 @@ const converters = {
             return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
         },
     },
-    xiaomi_occupancy: {
+    generic_occupancy: {
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -336,7 +336,7 @@ const converters = {
             }
         },
     },
-    xiaomi_illuminance: {
+    generic_illuminance: {
         cid: 'msIlluminanceMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -477,6 +477,13 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    JTQJBF01LMBW_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {gas: msg.data.zoneStatus === 1};
+        },
+    },
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -593,7 +600,7 @@ const converters = {
             }
         },
     },
-    _324131092621_power: {
+    generic_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
