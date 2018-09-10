@@ -1109,12 +1109,13 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
-    // Bitron Home (Telecom Branding)
+ 
+    // Bitron Home
     {
         zigbeeModel: ['902010/22'],
-        model: 'Bitron AV2010/22',
+        model: 'AV2010/22',
         vendor: 'Bitron Home',
-        description: 'IAS Infrared Sensor',
+        description: 'Wireless motion detector',
         supports: 'occupancy',
         fromZigbee: [fz.bitron_occupancy],
         toZigbee: [],
@@ -1125,6 +1126,7 @@ const devices = [
                 (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
             ];
+
             execute(device, actions, callback);
         },
     },
