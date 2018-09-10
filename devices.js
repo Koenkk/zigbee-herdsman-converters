@@ -109,25 +109,17 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1'],
-        model: 'WXKG02LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wireless wall switch',
-        supports: 'left, right and both click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change],
-        toZigbee: [],
-        ep: {'left': 1, 'right': 2, 'both': 3},
-    },
-    {
-        zigbeeModel: ['lumi.remote.b286acn01\u0000\u0000\u0000'],
+        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01\u0000\u0000\u0000'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right and both click',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WXKG02LM_click_multistate, fz.ignore_basic_change, fz.ignore_multistate_change,
+            fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change,
+            fz.WXKG02LM_click_multistate, fz.ignore_multistate_change,
         ],
         toZigbee: [],
+        ep: {'left': 1, 'right': 2, 'both': 3},
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral1'],
@@ -1105,6 +1097,17 @@ const devices = [
         model: 'ZLED-2709',
         vendor: 'Trust',
         description: 'Smart Dimmable LED Bulb',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // Paulmann
+    {
+        zigbeeModel: ['Dimmablelight '],
+        model: '50045',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee LED-stripe',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
