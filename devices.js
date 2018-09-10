@@ -1128,6 +1128,7 @@ const devices = [
             ];
 
             execute(device, actions, callback);
+        },
     },
 
     // Iris
