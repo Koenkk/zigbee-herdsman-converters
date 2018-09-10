@@ -97,6 +97,32 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    bitron_occupancy: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
+            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // Stop existing timer because motion is detected and set a new one.
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {occupancy: true};
+        },
+    },
     smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',

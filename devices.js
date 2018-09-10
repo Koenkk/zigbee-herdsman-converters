@@ -1110,6 +1110,27 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
 
+    // Bitron Home
+    {
+        zigbeeModel: ['902010/22'],
+        model: 'AV2010/22',
+        vendor: 'Bitron Home',
+        description: 'Wireless motion detector',
+        supports: 'occupancy',
+        fromZigbee: [fz.bitron_occupancy],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
     // Iris
     {
         zigbeeModel: ['3210-L'],
