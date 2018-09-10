@@ -361,24 +361,20 @@ const converters = {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            let ep;
-            let lu;
+            const button = getKey(model.ep, msg.endpoints[0].epId);
             const value = msg.data.data['presentValue'];
-            const lookupEp = {
-                1: 'left',
-                2: 'right',
-                3: 'both',
+
+            const actionLookup = {
+                0: 'long',
+                1: null, // single click is handled by WXKG02LM_click
+                2: 'double',
             };
-            const lookup = {
-                0: {click: ' long'}, // long click
-                1: {click: ''}, // single click
-                2: {click: ' double'}, // double click
-            };
-            if ((ep = lookupEp[msg.endpoints[0].epId]) && (lu = lookup[value])) {
-                lu.click = ep + lu.click;
-                return lu;
+
+            const action = actionLookup[value];
+
+            if (button && action) {
+                return {click: `${button}_${action}`};
             }
-            return null;
         },
     },
     WXKG03LM_click: {
