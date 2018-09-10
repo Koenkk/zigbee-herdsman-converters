@@ -1101,17 +1101,6 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
-
-    // Paulmann
-    {
-        zigbeeModel: ['Dimmablelight '],
-        model: '50045',
-        vendor: 'Paulmann',
-        description: 'SmartHome Zigbee LED-stripe',
-        supports: generic.light_onoff_brightness().supports,
-        fromZigbee: generic.light_onoff_brightness().fromZigbee,
-        toZigbee: generic.light_onoff_brightness().toZigbee,
-    },
 ];
 
 module.exports = devices;
