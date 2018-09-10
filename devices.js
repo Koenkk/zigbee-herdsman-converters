@@ -1118,7 +1118,7 @@ const devices = [
         zigbeeModel: ['3210-L'],
         model: '3210-L',
         vendor: 'Iris',
-        description: 'Iris Smart Plug',
+        description: 'Smart plug',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.onoff],
