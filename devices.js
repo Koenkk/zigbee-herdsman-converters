@@ -1113,17 +1113,6 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
 
-    // Iris
-    {
-        zigbeeModel: ['3210-L'],
-        model: '3210-L',
-        vendor: 'Iris',
-        description: 'Smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff],
-    },
- 
     // Bitron Home
     {
         zigbeeModel: ['902010/22'],
