@@ -1109,7 +1109,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
- 
+
     // Bitron Home
     {
         zigbeeModel: ['902010/22'],
