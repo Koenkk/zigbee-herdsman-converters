@@ -43,6 +43,7 @@ const converters = {
             return {
                 cid: 'genBasic',
                 cmd: 'resetFactDefault',
+                type: 'functional',
                 zclData: {},
             };
         },
@@ -54,6 +55,7 @@ const converters = {
             return {
                 cid: 'genOnOff',
                 cmd: value.toLowerCase(),
+                type: 'functional',
                 zclData: {},
             };
         },
@@ -65,6 +67,7 @@ const converters = {
             return {
                 cid: 'genLevelCtrl',
                 cmd: 'moveToLevel',
+                type: 'functional',
                 zclData: {
                     level: value,
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
@@ -79,6 +82,7 @@ const converters = {
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColorTemp',
+                type: 'functional',
                 zclData: {
                     colortemp: value,
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
@@ -100,6 +104,7 @@ const converters = {
             return {
                 cid: 'lightingColorCtrl',
                 cmd: 'moveToColor',
+                type: 'functional',
                 zclData: {
                     colorx: value.x * 65535,
                     colory: value.y * 65535,
