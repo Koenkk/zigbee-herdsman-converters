@@ -174,7 +174,7 @@ const devices = [
         description: 'MiJia temperature & humidity sensor ',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_interval, fz.generic_temperature, fz.xiaomi_humidity,
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.generic_temperature, fz.xiaomi_humidity,
             fz.ignore_basic_change,
         ],
         toZigbee: [],
@@ -188,7 +188,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.generic_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
-            fz.ignore_pressure_change, fz.xiaomi_interval,
+            fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
         toZigbee: [],
     },
