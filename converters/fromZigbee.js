@@ -150,31 +150,22 @@ const converters = {
             }
         },
     },
-    // currently tested for WSDCGQ01LM/WSDCGQ11LM
-    xiaomi_interval: {
+    WSDCGQ01LM_WSDCGQ11LM_interval: {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            let humidity = null;
-            let temperature = null;
-            let pressure = null;
-
             if (msg.data.data['65281']) {
-                temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
-                humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
-                pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
-            }
-            if (pressure) {
-                return {
-                    temperature: temperature,
-                    humidity: humidity,
-                    pressure: pressure,
+                const result = {
+                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
+                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
                 };
-            } else {
-                return {
-                    temperature: temperature,
-                    humidity: humidity,
-                };
+
+                // Check if contains pressure (WSDCGQ11LM only)
+                if (msg.data.data['65281'].hasOwnProperty('102')) {
+                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                }
+
+                return result;
             }
         },
     },
