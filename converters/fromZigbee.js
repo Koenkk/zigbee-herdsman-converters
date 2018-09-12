@@ -150,6 +150,25 @@ const converters = {
             }
         },
     },
+    WSDCGQ01LM_WSDCGQ11LM_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const result = {
+                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
+                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
+                };
+
+                // Check if contains pressure (WSDCGQ11LM only)
+                if (msg.data.data['65281'].hasOwnProperty('102')) {
+                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                }
+
+                return result;
+            }
+        },
+    },
     WXKG01LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
