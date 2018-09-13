@@ -672,8 +672,41 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
+    curtain_genAnalogOutput_change: {
+        cid: 'genAnalogOutput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['61440']) {
+                return {currentPositionLiftPercentage: msg.data.data['presentValue']};
+            }
+            return {currentPositionLiftPercentage: msg.data.data['presentValue']};
+        },
+    },
+    curtain_closuresWindowCovering_change: {
+        cid: 'closuresWindowCovering',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['currentPositionLiftPercentage']) {
+                return {currentPositionLiftPercentage: msg.data.data['currentPositionLiftPercentage']};
+            }
+        },
+    },
+    curtain_genBasic_change: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                return {summaryReport: msg.data.data['65281']};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
+    ignore_analog_ouput_change: {
+        cid: 'genAnalogOutput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',

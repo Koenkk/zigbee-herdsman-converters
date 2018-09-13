@@ -297,7 +297,16 @@ const devices = [
         fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
         toZigbee: [],
     },
-
+    {
+        zigbeeModel: ['lumi.curtain'],
+        model: 'ZNCLDJ11LM',
+        description: 'Aqara Curtain',
+        supports: 'open, close, idle',
+        vendor: 'Xiaomi',
+        fromZigbee: [fz.curtain_closuresWindowCovering_change, fz.curtain_genAnalogOutput_change,
+            fz.curtain_genBasic_change, fz.ignore_basic_change, fz.ignore_analog_ouput_change],
+        toZigbee: [tz.curtain_windowcoverings, tz.curtain_dim],
+    },
     // IKEA
     {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm'],
