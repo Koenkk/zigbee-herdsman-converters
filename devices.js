@@ -297,6 +297,15 @@ const devices = [
         fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['lumi.lock.v1'],
+        model: 'A6121',
+        vendor: 'Xiaomi',
+        description: 'Xiaomi Vima Smart Lock',
+        supports: 'inserted, forgotten, key error',
+        fromZigbee: [fz.xiaomi_lock_report, fz.ignore_basic_change],
+        toZigbee: [],
+    },
 
     // IKEA
     {
