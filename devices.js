@@ -114,7 +114,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right and both click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change],
         toZigbee: [],
         ep: {'left': 1, 'right': 2, 'both': 3},
     },
@@ -173,7 +173,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia temperature & humidity sensor ',
         supports: 'temperature and humidity',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.generic_temperature, fz.xiaomi_humidity,
+            fz.ignore_basic_change,
+        ],
         toZigbee: [],
     },
     {
@@ -183,8 +186,9 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure, fz.ignore_basic_change,
-            fz.ignore_temperature_change, fz.ignore_humidity_change, fz.ignore_pressure_change,
+            fz.xiaomi_battery_3v, fz.generic_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
+            fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
+            fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
         toZigbee: [],
     },
@@ -194,7 +198,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_occupancy, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -204,7 +208,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_occupancy, fz.xiaomi_illuminance, fz.ignore_basic_change,
+            fz.xiaomi_battery_3v, fz.generic_occupancy, fz.generic_illuminance, fz.ignore_basic_change,
             fz.ignore_illuminance_change, fz.ignore_occupancy_change,
         ],
         toZigbee: [],
@@ -282,6 +286,15 @@ const devices = [
         supports: 'smoke',
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke, fz.ignore_basic_change],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.sensor_natgas'],
+        model: 'JTQJ-BF-01LM/BW',
+        vendor: 'Xiaomi',
+        description: 'MiJia gas leak detector ',
+        supports: 'gas',
+        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
         toZigbee: [],
     },
 
@@ -450,7 +463,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LWB006'],
+        zigbeeModel: ['LWB006', 'LWB014'],
         model: '9290011370',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
@@ -468,6 +481,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['LST001'],
+        model: '7299355PH',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LST002'],
         model: '915005106701',
         vendor: 'Philips',
@@ -477,10 +499,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT015'],
+        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT014', 'LCT015', 'LCT016'],
         model: '9290012573A',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance E27',
+        description: 'Hue white and color ambiance E26/E27',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
@@ -520,7 +542,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [
             fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
-            fz.ignore_power_change, fz._324131092621_power,
+            fz.ignore_power_change, fz.generic_battery,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -543,6 +565,35 @@ const devices = [
                     callback(result);
                 }
             });
+        },
+    },
+    {
+        zigbeeModel: ['SML001'],
+        model: '9290012607',
+        vendor: 'Philips',
+        description: 'Hue motion sensor',
+        supports: 'occupancy, temperature, illuminance',
+        fromZigbee: [
+            fz.generic_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
+            fz.ignore_temperature_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 2);
+
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msOccupancySensing', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+                (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
@@ -885,6 +936,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM'],
+        model: '74283',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white dimmable A19',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
         zigbeeModel: ['PLUG'],
         model: '72922-A',
         vendor: 'Sylvania',
@@ -949,6 +1009,15 @@ const devices = [
         model: 'E11-G23',
         vendor: 'Sengled',
         description: 'Element Classic (A60)',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
+        zigbeeModel: ['Z01-CIA19NAE26'],
+        model: 'Z01-CIA19NAE26',
+        vendor: 'Sengled',
+        description: 'Element Touch (A19)',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
@@ -1036,10 +1105,53 @@ const devices = [
         zigbeeModel: ['ZLL-DimmableLigh'],
         model: 'ZLED-2709',
         vendor: 'Trust',
-        description: 'Smart Dimmable LED Bulb ',
-        supports: 'generic.light_onoff_brightness().supports',
+        description: 'Smart Dimmable LED Bulb',
+        supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // Paulmann
+    {
+        zigbeeModel: ['Dimmablelight '],
+        model: '50045',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee LED-stripe',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // Bitron Home
+    {
+        zigbeeModel: ['902010/22'],
+        model: 'AV2010/22',
+        vendor: 'Bitron Home',
+        description: 'Wireless motion detector',
+        supports: 'occupancy',
+        fromZigbee: [fz.bitron_occupancy],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Iris
+    {
+        zigbeeModel: ['3210-L'],
+        model: '3210-L',
+        vendor: 'Iris',
+        description: 'Smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff],
     },
 ];
 

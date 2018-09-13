@@ -14,7 +14,7 @@ const battery3V = {
     max: 3000,
 };
 
-const occupancyTimeout = 60; // In seconds
+const occupancyTimeout = 90; // In seconds
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
@@ -97,6 +97,32 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    bitron_occupancy: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
+            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // Stop existing timer because motion is detected and set a new one.
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {occupancy: true};
+        },
+    },
     smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -121,6 +147,25 @@ const converters = {
                     battery: toPercentage(voltage, battery3V.min, battery3V.max),
                     voltage: voltage,
                 };
+            }
+        },
+    },
+    WSDCGQ01LM_WSDCGQ11LM_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const result = {
+                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
+                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
+                };
+
+                // Check if contains pressure (WSDCGQ11LM only)
+                if (msg.data.data['65281'].hasOwnProperty('102')) {
+                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                }
+
+                return result;
             }
         },
     },
@@ -161,7 +206,7 @@ const converters = {
             }
         },
     },
-    xiaomi_temperature: {
+    generic_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -246,7 +291,7 @@ const converters = {
             return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
         },
     },
-    xiaomi_occupancy: {
+    generic_occupancy: {
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -336,7 +381,7 @@ const converters = {
             }
         },
     },
-    xiaomi_illuminance: {
+    generic_illuminance: {
         cid: 'msIlluminanceMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -477,6 +522,13 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    JTQJBF01LMBW_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {gas: msg.data.zoneStatus === 1};
+        },
+    },
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -593,7 +645,7 @@ const converters = {
             }
         },
     },
-    _324131092621_power: {
+    generic_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
