@@ -515,6 +515,30 @@ const converters = {
             }
         },
     },
+    xiaomi_lock_report: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65328']) {
+                const data = msg.data.data['65328'];
+                const state = data.substr(2,2);
+                const action = data.substr(4,2);
+                const keynum = data.substr(6,2);
+                if (state == 11 && action == 7) {
+                    // wrong key or not success inserted
+                    return {keyerror: true};
+                }
+                if (state == 12) {
+                    if (action == 1) {
+                        return {inserted: keynum};
+                    }
+                    if (action == 11) {
+                        return {forgotten: keynum};
+                    }
+                }
+            }
+        },
+    },
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
