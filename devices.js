@@ -463,6 +463,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LWB004'],
+        model: '433714',
+        vendor: 'Philips',
+        description: 'Hue Lux A19 bulb E27',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
         zigbeeModel: ['LWB006', 'LWB014'],
         model: '9290011370',
         vendor: 'Philips',
