@@ -672,6 +672,13 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
+    iris_3210L_power: {
+        cid: 'haElectricalMeasurement',                                                                                           
+        type: 'attReport',                                                                                                        
+        convert: (model, msg, publish, options) => {                                                                              
+            return {power: msg.data.data['activePower'] / 10.0};                                                                  
+        },                                                                                                                        
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_change: {
