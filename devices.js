@@ -301,7 +301,7 @@ const devices = [
         zigbeeModel: ['lumi.lock.v1'],
         model: 'A6121',
         vendor: 'Xiaomi',
-        description: 'Xiaomi Vima Smart Lock',
+        description: 'Vima Smart Lock',
         supports: 'inserted, forgotten, key error',
         fromZigbee: [fz.xiaomi_lock_report, fz.ignore_basic_change],
         toZigbee: [],
