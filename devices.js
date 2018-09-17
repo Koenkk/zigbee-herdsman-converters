@@ -553,6 +553,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['LTC001'],
+        model: '3261030P7',
+        vendor: 'Philips',
+        description: 'Hue Being',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
