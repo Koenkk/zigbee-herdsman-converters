@@ -1162,12 +1162,12 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_change, fz.ignore_electrical_change, fz.generic_state, fz.iris_3210L_power],
         toZigbee: [tz.onoff],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);                                                                            
-            const actions = [                                                                                                     
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),                                 
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
             ];
-            
-            execute(device, actions, callback);                                                                                   
+
+            execute(device, actions, callback);
         },
     },
 ];
