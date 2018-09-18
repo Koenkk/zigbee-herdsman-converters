@@ -1049,6 +1049,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['E11-N1EA'],
+        model: 'E11-N1EA',
+        vendor: 'Sengled',
+        description: 'Element Plus Color (A19)',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
 
     // JIAWEN
     {
