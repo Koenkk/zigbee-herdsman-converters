@@ -45,6 +45,10 @@ const converters = {
                 cmd: 'resetFactDefault',
                 type: 'functional',
                 zclData: {},
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
             };
         },
     },
@@ -57,6 +61,10 @@ const converters = {
                 cmd: value.toLowerCase(),
                 type: 'functional',
                 zclData: {},
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
             };
         },
     },
@@ -72,6 +80,10 @@ const converters = {
                     level: value,
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
             };
         },
     },
@@ -86,6 +98,10 @@ const converters = {
                 zclData: {
                     colortemp: value,
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
                 },
             };
         },
@@ -109,6 +125,10 @@ const converters = {
                     colorx: value.x * 65535,
                     colory: value.y * 65535,
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
                 },
             };
         },
