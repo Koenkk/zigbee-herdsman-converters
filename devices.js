@@ -306,6 +306,17 @@ const devices = [
         fromZigbee: [fz.xiaomi_lock_report, fz.ignore_basic_change],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['lumi.vibration.aq1'],
+        model: 'DJT11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara vibration sensor',
+        supports: 'drop, tilt and touch',
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.RTCGQ01LM_vibration, fz.ignore_basic_change, fz.ignore_closures_doorLock_change,
+        ],
+        toZigbee: [tz.RTCGQ01LM_vibration_sensitivity],
+    },
 
     // IKEA
     {

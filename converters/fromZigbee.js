@@ -9,6 +9,12 @@ const clickLookup = {
     4: 'quadruple',
 };
 
+const vibrationLookup = {
+    1: 'vibration',
+    2: 'tilt',
+    3: 'drop',
+};
+
 const battery3V = {
     min: 2700,
     max: 3000,
@@ -553,6 +559,57 @@ const converters = {
             return {gas: msg.data.zoneStatus === 1};
         },
     },
+    RTCGQ01LM_vibration: {
+        cid: 'closuresDoorLock',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data['85']) {
+                const data = msg.data.data['85'];
+                result.event = vibrationLookup[data];
+            }
+            if (msg.data.data['1283']) {
+                const data = msg.data.data['1283'];
+
+                result.rotationAngle = data;
+            }
+            if (msg.data.data['1285']) {
+                const data = msg.data.data['1285'];
+
+                result.unknownData = data;
+            }
+
+            if (msg.data.data['1288']) {
+                const data = msg.data.data['1288'];
+
+                let x; let y; let z;
+
+                // array interpretation:
+                // 12 bit two's complement sign extended integer
+                // data[1][bit0..bit15] : x
+                // data[1][bit16..bit31]: y
+                // data[0][bit0..bit15] : z
+                // left shift first to preserve sign extension for 'x'
+                x = ((data['1'] << 16) >> 16);
+                y = (data['1'] >> 16);
+                // left shift first to preserve sign extension for 'z'
+                z = ((data['0'] << 16) >> 16);
+
+                // calculate angle
+                result.xAngle = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
+                result.yAngle = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
+                result.zAngle = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
+
+                // calculate absolulte angle
+                let R = Math.sqrt(x * x + y * y + z * z);
+                result.aX = Math.round((Math.acos(x / R)) * 180 / Math.PI);
+                result.aY = Math.round((Math.acos(y / R)) * 180 / Math.PI);
+            }
+
+            return result;
+        },
+    },
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -705,6 +762,11 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
+    ignore_closures_doorLock_change: {
+        cid: 'closuresDoorLock',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
