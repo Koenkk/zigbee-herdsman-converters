@@ -9,23 +9,73 @@ const clickLookup = {
     4: 'quadruple',
 };
 
-const battery3V = {
-    min: 2700,
-    max: 3000,
-};
-
 const occupancyTimeout = 90; // In seconds
 
-const toPercentage = (value, min, max) => {
-    if (value > max) {
-        value = max;
-    } else if (value < min) {
-        value = min;
-    }
-
-    const normalised = (value - min) / (max - min);
-    return (normalised * 100).toFixed(2);
-};
+const voltageMap = new Map([
+    [2000, 0],
+    [2186, 1],
+    [2373, 2],
+    [2563, 3],
+    [2626, 4],
+    [2675, 5],
+    [2717, 6],
+    [2753, 7],
+    [2784, 8],
+    [2813, 9],
+    [2838, 10],
+    [2859, 11],
+    [2875, 12],
+    [2891, 13],
+    [2905, 14],
+    [2915, 15],
+    [2921, 16],
+    [2926, 17],
+    [2931, 18],
+    [2936, 19],
+    [2939, 20],
+    [2942, 21],
+    [2945, 22],
+    [2949, 23],
+    [2951, 24],
+    [2953, 25],
+    [2955, 26],
+    [2957, 27],
+    [2959, 28],
+    [2961, 29],
+    [2964, 30],
+    [2966, 31],
+    [2968, 32],
+    [2969, 33],
+    [2971, 34],
+    [2973, 35],
+    [2974, 36],
+    [2976, 37],
+    [2978, 38],
+    [2980, 39],
+    [2982, 40],
+    [2984, 41],
+    [2986, 42],
+    [2988, 43],
+    [2990, 44],
+    [2991, 46],
+    [2992, 48],
+    [2993, 49],
+    [2994, 51],
+    [2995, 53],
+    [2996, 55],
+    [2997, 57],
+    [2998, 59],
+    [2999, 61],
+    [3000, 64],
+    [3001, 66],
+    [3002, 69],
+    [3003, 77],
+    [3004, 90],
+    [3005, 98],
+    [3028, 99],
+    [3211, 100],
+    [Infinity, 100]
+]);
 
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
@@ -143,10 +193,14 @@ const converters = {
             }
 
             if (voltage) {
-                return {
-                    battery: toPercentage(voltage, battery3V.min, battery3V.max),
-                    voltage: voltage,
-                };
+                for (var i of voltageMap) {
+                    if (i[0] > voltage) {
+                        return {
+                            battery: i[1].toFixed(2),
+                            voltage: voltage,
+                        };
+                    }
+                }
             }
         },
     },
