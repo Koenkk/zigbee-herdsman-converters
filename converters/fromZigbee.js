@@ -9,12 +9,6 @@ const clickLookup = {
     4: 'quadruple',
 };
 
-const vibrationLookup = {
-    1: 'vibration',
-    2: 'tilt',
-    3: 'drop',
-};
-
 const battery3V = {
     min: 2700,
     max: 3000,
@@ -559,25 +553,28 @@ const converters = {
             return {gas: msg.data.zoneStatus === 1};
         },
     },
-    RTCGQ01LM_vibration: {
+    DJT11LM_vibration: {
         cid: 'closuresDoorLock',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const result = {};
+            const vibrationLookup = {
+                1: 'vibration',
+                2: 'tilt',
+                3: 'drop',
+            };
 
             if (msg.data.data['85']) {
                 const data = msg.data.data['85'];
-                result.event = vibrationLookup[data];
+                result.action = vibrationLookup[data];
             }
             if (msg.data.data['1283']) {
                 const data = msg.data.data['1283'];
-
-                result.rotationAngle = data;
+                result.angle = data;
             }
             if (msg.data.data['1285']) {
                 const data = msg.data.data['1285'];
-
-                result.unknownData = data;
+                result.unknown_data = data;
             }
 
             if (msg.data.data['1288']) {
@@ -597,14 +594,14 @@ const converters = {
                 z = ((data['0'] << 16) >> 16);
 
                 // calculate angle
-                result.xAngle = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
-                result.yAngle = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
-                result.zAngle = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
+                result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
+                result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
+                result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
                 // calculate absolulte angle
                 let R = Math.sqrt(x * x + y * y + z * z);
-                result.aX = Math.round((Math.acos(x / R)) * 180 / Math.PI);
-                result.aY = Math.round((Math.acos(y / R)) * 180 / Math.PI);
+                result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
+                result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
             }
 
             return result;
@@ -762,7 +759,7 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
-    ignore_closures_doorLock_change: {
+    ignore_doorlock_change: {
         cid: 'closuresDoorLock',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,

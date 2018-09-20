@@ -313,9 +313,9 @@ const devices = [
         description: 'Aqara vibration sensor',
         supports: 'drop, tilt and touch',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.RTCGQ01LM_vibration, fz.ignore_basic_change, fz.ignore_closures_doorLock_change,
+            fz.xiaomi_battery_3v, fz.DJT11LM_vibration, fz.ignore_basic_change, fz.ignore_doorlock_change,
         ],
-        toZigbee: [tz.RTCGQ01LM_vibration_sensitivity],
+        toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
 
     // IKEA

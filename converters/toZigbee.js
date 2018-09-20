@@ -114,26 +114,24 @@ const converters = {
         },
     },
     /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
-    RTCGQ01LM_vibration_sensitivity: {
+    DJT11LM_vibration_sensitivity: {
         key: 'sensitivity',
         attr: ['level'],
         convert: (value, message) => {
-            let param;
-            if (value==='low') {
-                param = 0x15;
-            } else if (value==='medium') {
-                param = 0x0B;
-            } else if (value==='high') {
-                param = 0x01;
-            }
+            const lookup = {
+                'low': 0x15,
+                'medium': 0x0B,
+                'high': 0x01,
+            };
+
             return {
                 cid: 'genBasic',
                 cmd: 'write',
                 type: 'foundation',
                 zclData: {
                     attrId: 0xFF0D,
-                    dataType: 0x20, // dataType
-                    attrData: param,
+                    dataType: 0x20,
+                    attrData: lookup[value],
                 },
                 cfg: {
                     manufSpec: 1,
