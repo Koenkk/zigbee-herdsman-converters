@@ -1031,6 +1031,25 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['45857'],
+        model: '45857GE',
+        vendor: 'GE',
+        description: 'ZigBee in-wall smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Sengled
     {
