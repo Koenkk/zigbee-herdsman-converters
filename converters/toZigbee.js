@@ -133,6 +133,34 @@ const converters = {
             };
         },
     },
+    /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
+    DJT11LM_vibration_sensitivity: {
+        key: 'sensitivity',
+        attr: ['level'],
+        convert: (value, message) => {
+            const lookup = {
+                'low': 0x15,
+                'medium': 0x0B,
+                'high': 0x01,
+            };
+
+            return {
+                cid: 'genBasic',
+                cmd: 'write',
+                type: 'foundation',
+                zclData: {
+                    attrId: 0xFF0D,
+                    dataType: 0x20,
+                    attrData: lookup[value],
+                },
+                cfg: {
+                    manufSpec: 1,
+                    disDefaultRsp: 1,
+                    manufCode: 0x115F,
+                },
+            };
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
