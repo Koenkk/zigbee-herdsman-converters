@@ -757,8 +757,51 @@ const converters = {
             return {power: msg.data.data['activePower'] / 10.0};
         },
     },
+    ecozy_hvacThermostat_attReport: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
 
+            if (!store[deviceID]) {
+                store[deviceID] = {localTemp: null};
+                store[deviceID] = {occupiedHeatingSetpoint: null};
+                store[deviceID] = {setpointChangeSource: null};
+                store[deviceID] = {setpointChangeAmount: null};
+                store[deviceID] = {setpointChangeSourceTimeStamp: null};
+            }
+            if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
+                store[deviceID].localTemp = msg.data.data.localTemp;
+            }
+            if (!msg.data.data.occupiedHeatingSetpoint == null || !msg.data.data.occupiedHeatingSetpoint == '') {
+                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
+            }
+            if (!msg.data.data.setpointChangeSource == null || !msg.data.data.setpointChangeSource == '') {
+                store[deviceID].setpointChangeSource = msg.data.data.setpointChangeSource;
+            }
+            if (!msg.data.data.setpointChangeAmount == null || !msg.data.data.setpointChangeAmount == '') {
+                store[deviceID].setpointChangeAmount = msg.data.data.setpointChangeAmount;
+            }
+            if (!msg.data.data.setpointChangeSourceTimeStamp == null ||
+                !msg.data.data.setpointChangeSourceTimeStamp == '') {
+                store[deviceID].setpointChangeSourceTimeStamp = msg.data.data.setpointChangeSourceTimeStamp;
+            }
+
+            return {
+                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
+                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
+                setpointChangeSource: store[deviceID].setpointChangeSource,
+                setpointChangeAmount: store[deviceID].setpointChangeAmount/100,
+                setpointChangeSourceTimeStamp: store[deviceID].setpointChangeSourceTimeStamp,
+            };
+        },
+    },
     // Ignore converters (these message dont need parsing).
+    ignore_hvacThermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
         type: 'devChange',

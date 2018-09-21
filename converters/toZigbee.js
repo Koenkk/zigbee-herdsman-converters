@@ -133,6 +133,143 @@ const converters = {
             };
         },
     },
+    thermostat_occupiedHeatingSetpoint: {
+        key: 'occupiedHeatingSetpoint',
+        attr: ['occupiedHeatingSetpoint'],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                attrid: 'occupiedHeatingSetpoint',
+                data: Math.round(value) * 100,
+            };
+        },
+    },
+    thermostat_setHeatingSetpoint: {
+    // zigbee.writeAttribute(0x201, 0x12, 0x29, zigbeeTemp) +
+    // zigbee.readAttribute(0x201, 0x12) + // Read Heat Setpoint
+    // zigbee.readAttribute(0x201, 0x08) // Read PI Heat demand
+        key: 'setHeatingSetpoint',
+        attr: [], // Read Heat Setpoint and PI Heat demand
+        convert: (value, message) => {
+            return {
+                cid: 'hvacThermostat',
+                type: 'foundation',
+                cmd: 'write',
+                zclData: {
+                    attrId: 0x12, // occupiedHeatingSetpoint
+                    dataType: 0x29, // dataType
+                    attrData: Math.round(value) * 100,
+                },
+            };
+        },
+    },
+    thermostat_setpointRaiseLower: {
+        key: 'setpointRaiseLower',
+        attr: ['occupiedHeatingSetpoint'],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'setpointRaiseLower',
+                type: 'functional',
+                zclData: {
+                    mode: value.mode,
+                    amount: Math.round(value.amount) * 100,
+                },
+            };
+        },
+    },
+    thermostat_setWeeklySchedule: {
+        key: 'setWeeklySchedule',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'setWeeklySchedule',
+                type: 'functional',
+                zclData: {
+                    numoftrans: value.numoftrans,
+                    dayofweek: value.dayofweek,
+                    mode: value.mode,
+                    thermoseqmode: value.thermoseqmode,
+                },
+            };
+        },
+    },
+    thermostat_getWeeklySchedule: {
+        key: 'getWeeklySchedule',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getWeeklySchedule',
+                type: 'functional',
+                zclData: {
+                    daystoreturn: value.daystoreturn,
+                    modetoreturn: value.modetoreturn,
+                },
+            };
+        },
+    },
+    thermostat_clearWeeklySchedule: {
+        key: 'clearWeeklySchedule',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'clearWeeklySchedule',
+                type: 'functional',
+                zclData: {},
+            };
+        },
+    },
+    thermostat_getRelayStatusLog: {
+        key: 'getRelayStatusLog',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getRelayStatusLog',
+                type: 'functional',
+                zclData: {},
+            };
+        },
+    },
+    thermostat_getWeeklyScheduleRsp: {
+        key: 'getWeeklyScheduleRsp',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getWeeklyScheduleRsp',
+                type: 'functional',
+                zclData: {
+                    numoftrans: value.numoftrans,
+                    dayofweek: value.dayofweek,
+                    mode: value.mode,
+                    thermoseqmode: value.thermoseqmode,
+                },
+            };
+        },
+    },
+    thermostat_getRelayStatusLogRsp: {
+        key: 'getRelayStatusLogRsp',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getRelayStatusLogRsp',
+                type: 'functional',
+                zclData: {
+                    timeofday: value.timeofday,
+                    relaystatus: value.relaystatus,
+                    localtemp: value.localtemp,
+                    humidity: value.humidity,
+                    setpoint: value.setpoint,
+                    unreadentries: value.unreadentries,
+                },
+            };
+        },
+    },
     /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
     DJT11LM_vibration_sensitivity: {
         key: 'sensitivity',
