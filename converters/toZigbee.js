@@ -161,6 +161,72 @@ const converters = {
             };
         },
     },
+    ZNCLDJ11LM_curtain_windowcoverings: {
+        key: 'state',
+        attr: ['coverings_state', 'onOff'],
+        convert: (value, message) => {// value: 'upOpen','stop','downClose','on','off'
+            if (value.toLowerCase()==='on'||value.toLowerCase()==='off') {
+                return {
+                    cid: 'genOnOff',
+                    cmd: value.toLowerCase(), // on: open, off: close, use because it will report a readable status
+                    type: 'functional',
+                    zclData: {},
+                    cfg: {
+                        manufSpec: 0,
+                        disDefaultRsp: 0,
+                    },
+                };
+            }
+            return {
+                cid: 'closuresWindowCovering',
+                cmd: value, // 'upOpen' ~ 'on', 'stop': pause the motor, 'downClose'~'off'
+                type: 'functional',
+                zclData: {},
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
+            };
+        },
+    },
+    ZNCLDJ11LM_curtain_lift: { // not tested on the track
+        key: 'lift_percentage',
+        attr: ['percentage'],
+        convert: (value, message) => {
+            return {
+                cid: 'closuresWindowCovering',
+                cmd: 'goToLiftPercentage',
+                type: 'functional',
+                zclData: {
+                    percentageliftvalue: value,
+                },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
+            };
+        },
+    },
+    ZNCLDJ11LM_curtain_dim: {
+        key: 'dim',
+        attr: ['percentage'],
+        convert: (value, message) => {
+            return {
+                cid: 'genAnalogOutput',
+                cmd: 'write',
+                type: 'foundation',
+                zclData: {
+                    attrId: 0x0055, // presentValue
+                    dataType: 0x39, // dataType
+                    attrData: value, // 1 to 100 percent
+                },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
+            };
+        },
+    },
 
     // Ignore converters
     ignore_transition: {

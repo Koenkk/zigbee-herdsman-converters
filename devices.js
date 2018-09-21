@@ -317,6 +317,26 @@ const devices = [
         ],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
+    {
+        zigbeeModel: ['lumi.curtain'],
+        model: 'ZNCLDJ11LM',
+        description: 'Aqara Curtain',
+        supports: 'open, close, partly open, idle',
+        vendor: 'Xiaomi',
+        fromZigbee: [fz.ZNCLDJ11LM_curtain_closuresWindowCovering_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_change,
+            fz.ZNCLDJ11LM_curtain_genBasic_change, fz.ignore_basic_change, fz.ignore_analog_ouput_change],
+        toZigbee: [tz.ZNCLDJ11LM_curtain_windowcoverings, tz.ZNCLDJ11LM_curtain_lift, tz.ZNCLDJ11LM_curtain_dim],
+    },
+    {
+        zigbeeModel: ['lumi.lock.acn02'],
+        model: 'ZNMS12LM',
+        description: 'Aqara S2 Lock',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [fz.ZNMS12LM_closuresDoorLock_change, fz.ZNMS12LM_genBasic_change,
+            fz.ignore_doorlock_change, fz.ignore_basic_change],
+        toZigbee: [],
+    },
 
     // IKEA
     {
