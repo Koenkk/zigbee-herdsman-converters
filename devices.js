@@ -296,7 +296,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.JTQJBF01LMBW_gas, fz.JTQJBF01LMBW_gas_sensitivity, fz.ignore_basic_change],
         toZigbee: [
-            tz.JTQJBF01LMBW_get_sensitivity, tz.JTQJBF01LMBW_set_sensitivity, tz.JTQJBF01LMBW_selfest
+            tz.JTQJBF01LMBW_get_sensitivity, tz.JTQJBF01LMBW_set_sensitivity, tz.JTQJBF01LMBW_selfest,
         ],
     },
     {

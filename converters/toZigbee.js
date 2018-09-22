@@ -35,11 +35,11 @@ function rgbToXY(red, green, blue) {
     return {x: Number.parseFloat(x), y: Number.parseFloat(y)};
 }
 
-const sensor_natgas_zcl_config = {
-                    manufSpec: 1,
-                    disDefaultRsp: 1,
-                    manufCode: 0x115F
-                }
+const sensorNatgasZclConfig = {
+    manufSpec: 1,
+    disDefaultRsp: 1,
+    manufCode: 0x115F,
+};
 
 const converters = {
     factory_reset: {
@@ -167,7 +167,6 @@ const converters = {
             };
         },
     },
-
     JTQJBF01LMBW_get_sensitivity: {
         key: 'get_sensitivity',
         attr: ['sensitivity'],
@@ -180,26 +179,25 @@ const converters = {
                     attrId: 0xFFF0, // presentValue
                     dataType: 0x39, // dataType
                 },
-                cfg: sensor_natgas_zcl_config
+                cfg: sensorNatgasZclConfig,
             };
         },
     },
-
     JTQJBF01LMBW_set_sensitivity: {
         key: 'set_sensitivity',
         attr: ['sensitivity'],
         convert: (value, message) => {
-            var zclValue = 0x04010000
-            switch(value) {
-              case 'low':
-                  zclValue = 0x04010000;
-                  break;
-              case 'medium':
-                  zclValue = 0x04020000;
-                  break;
-              case 'high':
-                  zclValue = 0x04030000;
-                  break;
+            let zclValue = 0x04030000;
+            switch (value) {
+            case 'low':
+                zclValue = 0x04010000;
+                break;
+            case 'medium':
+                zclValue = 0x04020000;
+                break;
+            case 'high':
+                zclValue = 0x04030000;
+                break;
             }
             return {
                 cid: 'ssIasZone',
@@ -208,13 +206,12 @@ const converters = {
                 zclData: {
                     attrId: 0xFFF1, // presentValue
                     dataType: 0x23, // dataType
-                    attrData: zclValue
+                    attrData: zclValue,
                 },
-                cfg: sensor_natgas_zcl_config
+                cfg: sensorNatgasZclConfig,
             };
         },
     },
-
     JTQJBF01LMBW_selfest: {
         key: 'selftest',
         attr: [0xFFF1],
@@ -226,13 +223,12 @@ const converters = {
                 zclData: {
                     attrId: 0xFFF1, // presentValue
                     dataType: 0x23, // dataType
-                    attrData: 0x03010000
+                    attrData: 0x03010000,
                 },
-                cfg: sensor_natgas_zcl_config
+                cfg: sensorNatgasZclConfig,
             };
-	},
+        },
     },
-
     // Ignore converters
     ignore_transition: {
         key: 'transition',

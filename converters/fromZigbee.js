@@ -559,25 +559,25 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             if (data && data.hasOwnProperty('65520')) {
-                const zbValue = data['65520']
-                if (zbValue && zbValue.startsWith("0x020")) {
+                const zbValue = data['65520'];
+                if (zbValue && zbValue.startsWith('0x020')) {
                     const zbSensitivity = zbValue.charAt(5);
-                    var sensitivityValue = 'unknown'
-                    switch(zbSensitivity) {
-                        case '1':
-                            sensitivityValue = 'low';
-                            break;
-                        case '2':
-                            sensitivityValue = 'medium';
-                            break;
-                        case '3':
-                            sensitivityValue = 'high';
-                            break;
+                    let sensitivityValue = 'unknown';
+                    switch (zbSensitivity) {
+                    case '1':
+                        sensitivityValue = 'low';
+                        break;
+                    case '2':
+                        sensitivityValue = 'medium';
+                        break;
+                    case '3':
+                        sensitivityValue = 'high';
+                        break;
                     }
-                    return { sensitivity: sensitivityValue};
+                    return {sensitivity: sensitivityValue};
                 }
             }
-	}
+        },
     },
     DJT11LM_vibration: {
         cid: 'closuresDoorLock',
