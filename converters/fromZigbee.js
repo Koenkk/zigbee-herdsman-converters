@@ -366,14 +366,14 @@ const converters = {
 
             const actionLookup = {
                 0: 'long',
-                1: null, // single click is handled by WXKG02LM_click
+                1: null,
                 2: 'double',
             };
 
             const action = actionLookup[value];
 
-            if (button && action) {
-                return {click: `${button}_${action}`};
+            if (button) {
+                return {click: button + (action ? `_${action}` : '')};
             }
         },
     },
