@@ -74,7 +74,7 @@ const converters = {
         convert: (value, message) => {
             return {
                 cid: 'genLevelCtrl',
-                cmd: 'moveToLevel',
+                cmd: 'moveToLevelWithOnOff',
                 type: 'functional',
                 zclData: {
                     level: value,
