@@ -161,25 +161,25 @@ const converters = {
             };
         },
     },
-    ZNCLDJ11LM_curtain_windowcoverings: {
+    ZNCLDJ11LM_control: {
         key: 'state',
         attr: ['coverings_state', 'onOff'],
-        convert: (value, message) => {// value: 'upOpen','stop','downClose','on','off'
-            if (value.toLowerCase()==='on'||value.toLowerCase()==='off') {
-                return {
-                    cid: 'genOnOff',
-                    cmd: value.toLowerCase(), // on: open, off: close, use because it will report a readable status
-                    type: 'functional',
-                    zclData: {},
-                    cfg: {
-                        manufSpec: 0,
-                        disDefaultRsp: 0,
-                    },
-                };
-            }
+        convert: (value, message) => {
+            const lookup = {
+                'open': 'on',
+                'close': 'off',
+                'stop': 'stop',
+                'on': 'on',
+                'off': 'off',
+            };
+
+            value = lookup.hasOwnProperty(value.toLowerCase) ? lookup[value] : value;
+
+            // TODO: what does upOpen and downClose mean? What is the difference with on/off?
+            // Possible value: 'upOpen','stop','downClose','on','off'
             return {
                 cid: 'closuresWindowCovering',
-                cmd: value, // 'upOpen' ~ 'on', 'stop': pause the motor, 'downClose'~'off'
+                cmd: value,
                 type: 'functional',
                 zclData: {},
                 cfg: {
@@ -189,6 +189,7 @@ const converters = {
             };
         },
     },
+    // TODO: What does this? what is the difference with ZNCLDJ11LM_control_percentage?
     ZNCLDJ11LM_curtain_lift: { // not tested on the track
         key: 'lift_percentage',
         attr: ['percentage'],
@@ -207,8 +208,8 @@ const converters = {
             };
         },
     },
-    ZNCLDJ11LM_curtain_dim: {
-        key: 'dim',
+    ZNCLDJ11LM_control_percentage: {
+        key: 'percentage',
         attr: ['percentage'],
         convert: (value, message) => {
             return {
@@ -216,8 +217,8 @@ const converters = {
                 cmd: 'write',
                 type: 'foundation',
                 zclData: {
-                    attrId: 0x0055, // presentValue
-                    dataType: 0x39, // dataType
+                    attrId: 0x0055,
+                    dataType: 0x39,
                     attrData: value, // 1 to 100 percent
                 },
                 cfg: {

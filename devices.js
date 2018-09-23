@@ -138,7 +138,8 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
-            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.ignore_analog_report,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analogInput_change,
+            fz.ignore_analog_report,
         ],
         toZigbee: [tz.onoff],
     },
@@ -161,7 +162,7 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analogInput_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
         ],
         toZigbee: [tz.onoff],
@@ -251,7 +252,7 @@ const devices = [
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
-            fz.ignore_analog_change, fz.ignore_multistate_change, fz.ignore_basic_change,
+            fz.ignore_analogInput_change, fz.ignore_multistate_change, fz.ignore_basic_change,
         ],
         toZigbee: [],
     },
@@ -263,7 +264,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
-            fz.ignore_basic_change, fz.ignore_analog_change,
+            fz.ignore_basic_change, fz.ignore_analogInput_change,
         ],
         toZigbee: [tz.onoff],
     },
@@ -275,7 +276,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
-            fz.ignore_basic_change, fz.ignore_analog_change,
+            fz.ignore_basic_change, fz.ignore_analogInput_change,
         ],
         toZigbee: [tz.onoff],
     },
@@ -320,21 +321,25 @@ const devices = [
     {
         zigbeeModel: ['lumi.curtain'],
         model: 'ZNCLDJ11LM',
-        description: 'Aqara Curtain',
+        description: 'Aqara curtain motor',
         supports: 'open, close, partly open, idle',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.ZNCLDJ11LM_curtain_closuresWindowCovering_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_change,
-            fz.ZNCLDJ11LM_curtain_genBasic_change, fz.ignore_basic_change, fz.ignore_analog_ouput_change],
-        toZigbee: [tz.ZNCLDJ11LM_curtain_windowcoverings, tz.ZNCLDJ11LM_curtain_lift, tz.ZNCLDJ11LM_curtain_dim],
+        fromZigbee: [
+            fz.ZNCLDJ11LM_curtain_closuresWindowCovering_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_change,
+            fz.ZNCLDJ11LM_genBasic_change, fz.ignore_basic_change, fz.ignore_analogOutput_change,
+        ],
+        toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_curtain_lift, tz.ZNCLDJ11LM_control_percentage],
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
         model: 'ZNMS12LM',
-        description: 'Aqara S2 Lock',
-        supports: 'report: open, close, operation',
+        description: 'Aqara S2 door lock',
+        supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.ZNMS12LM_closuresDoorLock_change, fz.ZNMS12LM_genBasic_change,
-            fz.ignore_doorlock_change, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.ZNMS12LM_closuresDoorLock_change, fz.ZNMS12LM_genBasic_change,
+            fz.ignore_doorlock_change, fz.ignore_basic_change,
+        ],
         toZigbee: [],
     },
 
