@@ -109,12 +109,15 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1'],
+        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01\u0000\u0000\u0000'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right and both click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change,
+            fz.WXKG02LM_click_multistate, fz.ignore_multistate_change,
+        ],
         toZigbee: [],
         ep: {'left': 1, 'right': 2, 'both': 3},
     },
