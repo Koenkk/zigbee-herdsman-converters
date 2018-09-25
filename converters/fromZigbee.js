@@ -402,6 +402,26 @@ const converters = {
             return {click: getKey(model.ep, msg.endpoints[0].epId)};
         },
     },
+    WXKG02LM_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const value = msg.data.data['presentValue'];
+
+            const actionLookup = {
+                0: 'long',
+                1: null,
+                2: 'double',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
+                return {click: button + (action ? `_${action}` : '')};
+            }
+        },
+    },
     WXKG03LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
