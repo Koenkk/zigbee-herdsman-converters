@@ -70,7 +70,7 @@ const converters = {
     },
     light_brightness: {
         key: 'brightness',
-        attr: ['currentLevel'],
+        attr: ['currentLevel', 'onOff'],
         convert: (value, message) => {
             return {
                 cid: 'genLevelCtrl',
