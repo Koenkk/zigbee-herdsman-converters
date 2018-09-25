@@ -465,7 +465,7 @@ const devices = [
 
     // Philips
     {
-        zigbeeModel: ['LLC012'],
+        zigbeeModel: ['LLC012', 'LLC011'],
         model: '7299760PH',
         vendor: 'Philips',
         description: 'Hue Bloom',
@@ -564,17 +564,8 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['LTW010'],
+        zigbeeModel: ['LTW010', 'LTW001'],
         model: '8718696548738',
-        vendor: 'Philips',
-        description: 'Hue white ambiance E27',
-        supports: generic.light_onoff_brightness_colortemp().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
-    },
-    {
-        zigbeeModel: ['LTW001'],
-        model: '9290012001',
         vendor: 'Philips',
         description: 'Hue white ambiance E27',
         supports: generic.light_onoff_brightness_colortemp().supports,
