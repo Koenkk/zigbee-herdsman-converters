@@ -558,7 +558,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['LTW010', 'LTW001'],
+        zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E27',
