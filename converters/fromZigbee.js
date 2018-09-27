@@ -573,6 +573,27 @@ const converters = {
             return {gas: msg.data.zoneStatus === 1};
         },
     },
+    JTQJBF01LMBW_sensitivity: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const data = msg.data.data;
+            const lookup = {
+                '1': 'low',
+                '2': 'medium',
+                '3': 'high',
+            };
+
+            if (data && data.hasOwnProperty('65520')) {
+                const value = data['65520'];
+                if (value && value.startsWith('0x020')) {
+                    return {
+                        sensitivity: lookup[value.charAt(5)],
+                    };
+                }
+            }
+        },
+    },
     DJT11LM_vibration: {
         cid: 'closuresDoorLock',
         type: 'attReport',

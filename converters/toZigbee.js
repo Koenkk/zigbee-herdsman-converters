@@ -35,6 +35,12 @@ function rgbToXY(red, green, blue) {
     return {x: Number.parseFloat(x), y: Number.parseFloat(y)};
 }
 
+const JTQJBF01LMBWConfig = {
+    manufSpec: 1,
+    disDefaultRsp: 1,
+    manufCode: 0x115F,
+};
+
 const converters = {
     factory_reset: {
         key: 'reset',
@@ -161,7 +167,59 @@ const converters = {
             };
         },
     },
+    JTQJBF01LMBW_sensitivity: {
+        key: 'sensitivity',
+        attr: ['sensitivity'],
+        convert: (value, message) => {
+            if (value === 'read') {
+                return {
+                    cid: 'ssIasZone',
+                    cmd: 'read',
+                    type: 'foundation',
+                    zclData: {
+                        attrId: 0xFFF0, // presentValue
+                        dataType: 0x39, // dataType
+                    },
+                    cfg: JTQJBF01LMBWConfig,
+                };
+            } else {
+                const lookup = {
+                    'low': 0x04010000,
+                    'medium': 0x04020000,
+                    'high': 0x04030000,
+                };
 
+                return {
+                    cid: 'ssIasZone',
+                    cmd: 'write',
+                    type: 'foundation',
+                    zclData: {
+                        attrId: 0xFFF1, // presentValue
+                        dataType: 0x23, // dataType
+                        attrData: lookup[value],
+                    },
+                    cfg: JTQJBF01LMBWConfig,
+                };
+            }
+        },
+    },
+    JTQJBF01LMBW_selfest: {
+        key: 'selftest',
+        attr: [0xFFF1],
+        convert: (value, message) => {
+            return {
+                cid: 'ssIasZone',
+                cmd: 'write',
+                type: 'foundation',
+                zclData: {
+                    attrId: 0xFFF1, // presentValue
+                    dataType: 0x23, // dataType
+                    attrData: 0x03010000,
+                },
+                cfg: JTQJBF01LMBWConfig,
+            };
+        },
+    },
     // Ignore converters
     ignore_transition: {
         key: 'transition',
