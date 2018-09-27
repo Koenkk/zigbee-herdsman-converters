@@ -995,6 +995,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['A19 W 10 year'],
+        model: '74696',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white dimmable A19',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
         zigbeeModel: ['PLUG'],
         model: '72922-A',
         vendor: 'Sylvania',
