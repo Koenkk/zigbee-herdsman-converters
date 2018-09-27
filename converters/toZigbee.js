@@ -35,7 +35,7 @@ function rgbToXY(red, green, blue) {
     return {x: Number.parseFloat(x), y: Number.parseFloat(y)};
 }
 
-const sensorNatgasZclConfig = {
+const JTQJBF01LMBWConfig = {
     manufSpec: 1,
     disDefaultRsp: 1,
     manufCode: 0x115F,
@@ -167,49 +167,40 @@ const converters = {
             };
         },
     },
-    JTQJBF01LMBW_get_sensitivity: {
-        key: 'get_sensitivity',
+    JTQJBF01LMBW_sensitivity: {
+        key: 'sensitivity',
         attr: ['sensitivity'],
         convert: (value, message) => {
-            return {
-                cid: 'ssIasZone',
-                cmd: 'read',
-                type: 'foundation',
-                zclData: {
-                    attrId: 0xFFF0, // presentValue
-                    dataType: 0x39, // dataType
-                },
-                cfg: sensorNatgasZclConfig,
-            };
-        },
-    },
-    JTQJBF01LMBW_set_sensitivity: {
-        key: 'set_sensitivity',
-        attr: ['sensitivity'],
-        convert: (value, message) => {
-            let zclValue = 0x04030000;
-            switch (value) {
-            case 'low':
-                zclValue = 0x04010000;
-                break;
-            case 'medium':
-                zclValue = 0x04020000;
-                break;
-            case 'high':
-                zclValue = 0x04030000;
-                break;
+            if (value === 'read') {
+                return {
+                    cid: 'ssIasZone',
+                    cmd: 'read',
+                    type: 'foundation',
+                    zclData: {
+                        attrId: 0xFFF0, // presentValue
+                        dataType: 0x39, // dataType
+                    },
+                    cfg: JTQJBF01LMBWConfig,
+                };
+            } else {
+                const lookup = {
+                    'low': 0x04010000,
+                    'medium': 0x04020000,
+                    'high': 0x04030000,
+                };
+
+                return {
+                    cid: 'ssIasZone',
+                    cmd: 'write',
+                    type: 'foundation',
+                    zclData: {
+                        attrId: 0xFFF1, // presentValue
+                        dataType: 0x23, // dataType
+                        attrData: lookup[value],
+                    },
+                    cfg: JTQJBF01LMBWConfig,
+                };
             }
-            return {
-                cid: 'ssIasZone',
-                cmd: 'write',
-                type: 'foundation',
-                zclData: {
-                    attrId: 0xFFF1, // presentValue
-                    dataType: 0x23, // dataType
-                    attrData: zclValue,
-                },
-                cfg: sensorNatgasZclConfig,
-            };
         },
     },
     JTQJBF01LMBW_selfest: {
@@ -225,7 +216,7 @@ const converters = {
                     dataType: 0x23, // dataType
                     attrData: 0x03010000,
                 },
-                cfg: sensorNatgasZclConfig,
+                cfg: JTQJBF01LMBWConfig,
             };
         },
     },
@@ -238,4 +229,3 @@ const converters = {
 };
 
 module.exports = converters;
-
