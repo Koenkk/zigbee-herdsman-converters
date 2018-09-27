@@ -247,7 +247,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_cube'],
+        zigbeeModel: ['lumi.sensor_cube', '0x656275635f726f736e65732e696d756c'],
         model: 'MFKZQ01LM',
         vendor: 'Xiaomi',
         description: 'Mi smart home cube',
