@@ -11,7 +11,7 @@ const clickLookup = {
 
 const occupancyTimeout = 90; // In seconds
 
-const voltageMap = new Map([
+const voltageMap = [
     [2000, 0],
     [2186, 1],
     [2373, 2],
@@ -75,7 +75,7 @@ const voltageMap = new Map([
     [3028, 99],
     [3211, 100],
     [Infinity, 100]
-]);
+];
 
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
@@ -193,10 +193,10 @@ const converters = {
             }
 
             if (voltage) {
-                for (var i of voltageMap) {
-                    if (i[0] > voltage) {
+                for (let i = 0; i < voltageMap.length; i++) {
+                    if (voltageMap[i][0] > voltage) {
                         return {
-                            battery: i[1].toFixed(2),
+                            battery: voltageMap[i][1].toFixed(2),
                             voltage: voltage,
                         };
                     }
