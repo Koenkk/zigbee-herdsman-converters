@@ -74,7 +74,7 @@ const voltageMap = [
     [3005, 98],
     [3028, 99],
     [3211, 100],
-    [Infinity, 100]
+    [Infinity, 100],
 ];
 
 const precisionRound = (number, precision) => {
