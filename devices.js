@@ -550,10 +550,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT014', 'LCT015', 'LCT016'],
+        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016'],
         model: '9290012573A',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance E26/E27',
+        description: 'Hue white and color ambiance E26/E27/E14',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
