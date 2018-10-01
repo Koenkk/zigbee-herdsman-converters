@@ -790,6 +790,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['MR16 TW'],
+        model: '74282',
+        vendor: 'OSRAM',
+        description: 'Sylvania Smart Home MR16 LED Bulb',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
         model: 'AB32840',
         vendor: 'OSRAM',
