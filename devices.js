@@ -100,6 +100,18 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: 'WXKG11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless switch',
+        supports: 'single, double, hold, release',
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG11LM_action_click_multistate, fz.ignore_onoff_change,
+            fz.ignore_basic_change, fz.ignore_multistate_change
+        ],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['lumi.sensor_86sw1\u0000lu'],
         model: 'WXKG03LM',
         vendor: 'Xiaomi',

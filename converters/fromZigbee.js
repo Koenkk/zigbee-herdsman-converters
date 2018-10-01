@@ -284,6 +284,21 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    WXKG11LM_action_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['presentValue'];
+            const lookup = {
+                1: {click: 'single'}, // single click
+                2: {click: 'double'}, // double click
+                0: {action: 'hold'}, // hold for more than 400ms
+                255: {action: 'release'}, // release after hold for more than 400ms
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
         type: 'attReport',
