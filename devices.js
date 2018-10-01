@@ -1059,6 +1059,15 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['MR16 TW'],
+        model: '74282',
+        vendor: 'Sylvania',
+        description: 'Smart Home adjustable white MR16 LED bulb',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 
     // GE
     {
