@@ -753,7 +753,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['CLA60 RGBW OSRAM'],
+        zigbeeModel: ['CLA60 RGBW OSRAM', '0x57424752203036412063697373616c43'],
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
