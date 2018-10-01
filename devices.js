@@ -109,12 +109,15 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1'],
+        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01\u0000\u0000\u0000'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right and both click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG02LM_click, fz.ignore_basic_change,
+            fz.WXKG02LM_click_multistate, fz.ignore_multistate_change,
+        ],
         toZigbee: [],
         ep: {'left': 1, 'right': 2, 'both': 3},
     },
@@ -294,8 +297,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia gas leak detector ',
         supports: 'gas',
-        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.ignore_basic_change],
-        toZigbee: [],
+        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.JTQJBF01LMBW_sensitivity, fz.ignore_basic_change],
+        toZigbee: [tz.JTQJBF01LMBW_sensitivity, tz.JTQJBF01LMBW_selfest],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],
@@ -462,10 +465,29 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    {
+        zigbeeModel: ['TRADFRI control outlet'],
+        model: 'E1603',
+        description: 'TRADFRI control outlet',
+        supports: 'on/off',
+        vendor: 'IKEA',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.onoff],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Philips
     {
-        zigbeeModel: ['LLC012'],
+        zigbeeModel: ['LLC012', 'LLC011'],
         model: '7299760PH',
         vendor: 'Philips',
         description: 'Hue Bloom',
@@ -514,9 +536,9 @@ const devices = [
         model: '7299355PH',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip',
-        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+        supports: generic.light_onoff_brightness_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
     },
     {
         zigbeeModel: ['LST002'],
@@ -528,10 +550,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT014', 'LCT015', 'LCT016'],
+        zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016'],
         model: '9290012573A',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance E26/E27',
+        description: 'Hue white and color ambiance E26/E27/E14',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
@@ -555,7 +577,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
-        zigbeeModel: ['LTW010'],
+        zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E27',
@@ -571,6 +593,15 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
+        zigbeeModel: ['LLC010'],
+        model: '7199960PH',
+        vendor: 'Philips',
+        description: 'Hue Iris',
+        supports: generic.light_onoff_brightness_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
     },
     {
         zigbeeModel: ['RWL020', 'RWL021'],
@@ -768,7 +799,7 @@ const devices = [
     },
     {
         zigbeeModel: ['CLA60 RGBW OSRAM'],
-        model: 'AC03845',
+        model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
@@ -822,6 +853,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['Surface Light TW'],
+        model: 'AB401130055',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY Surface Light LED Tunable White',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['Plug 01'],
         model: 'AB3257001NJ',
         description: 'Smart+ plug',
@@ -841,10 +881,19 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Flex RGBW'],
+        zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
+        zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
+        model: 'AB35996',
+        vendor: 'OSRAM',
+        description: 'Smart+ Spot GU10 Multicolor',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
@@ -1021,6 +1070,15 @@ const devices = [
     {
         zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM'],
         model: '74283',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white dimmable A19',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
+        zigbeeModel: ['A19 W 10 year'],
+        model: '74696',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED soft white dimmable A19',
         supports: generic.light_onoff_brightness().supports,
