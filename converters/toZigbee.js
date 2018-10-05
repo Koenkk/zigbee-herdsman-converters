@@ -189,17 +189,19 @@ const converters = {
                     'high': 0x04030000,
                 };
 
-                return {
-                    cid: 'ssIasZone',
-                    cmd: 'write',
-                    type: 'foundation',
-                    zclData: {
-                        attrId: 0xFFF1, // presentValue
-                        dataType: 0x23, // dataType
-                        attrData: lookup[value],
-                    },
-                    cfg: JTQJBF01LMBWConfig,
-                };
+                if (lookup.hasOwnProperty(value)) {
+                    return {
+                        cid: 'ssIasZone',
+                        cmd: 'write',
+                        type: 'foundation',
+                        zclData: {
+                            attrId: 0xFFF1, // presentValue
+                            dataType: 0x23, // dataType
+                            attrData: lookup[value],
+                        },
+                        cfg: JTQJBF01LMBWConfig,
+                    };
+                }
             }
         },
     },
