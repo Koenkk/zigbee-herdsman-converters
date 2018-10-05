@@ -79,12 +79,15 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_switch.aq2'],
+        zigbeeModel: ['lumi.sensor_switch.aq2', 'lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'WXKG11LM',
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
-        supports: 'single, double, triple, quadruple click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change],
+        supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change,
+            fz.WXKG11LM_action_click_multistate, fz.ignore_multistate_change,
+        ],
         toZigbee: [],
     },
     {
