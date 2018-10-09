@@ -750,7 +750,7 @@ const devices = [
         zigbeeModel: ['Outdoor Lantern W RGBW OSRAM'],
         model: '4058075816718',
         vendor: 'OSRAM',
-        description: 'Outdoor Lantern W RGBW OSRAM',
+        description: 'SMART+ outdoor wall lantern RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
