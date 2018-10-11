@@ -103,12 +103,12 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw1\u0000lu'],
+        zigbeeModel: ['lumi.sensor_86sw1\u0000lu', 'lumi.remote.b186acn01\u0000\u0000\u0000'],
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         supports: 'single click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change, fz.WXKG11LM_action_click_multistate, fz.ignore_multistate_change],
         toZigbee: [],
     },
     {
