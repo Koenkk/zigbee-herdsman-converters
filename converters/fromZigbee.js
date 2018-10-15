@@ -338,7 +338,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    WXKG11LM_action_click_multistate: {
+    xiaomi_action_click_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
