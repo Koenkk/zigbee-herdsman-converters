@@ -86,7 +86,7 @@ const devices = [
         supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.ignore_onoff_change, fz.ignore_basic_change,
-            fz.WXKG11LM_action_click_multistate, fz.ignore_multistate_change,
+            fz.xiaomi_action_click_multistate, fz.ignore_multistate_change,
         ],
         toZigbee: [],
     },
@@ -108,7 +108,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         supports: 'single click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change, fz.WXKG11LM_action_click_multistate, fz.ignore_multistate_change],
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change,
+            fz.xiaomi_action_click_multistate, fz.ignore_multistate_change,
+        ],
         toZigbee: [],
     },
     {
