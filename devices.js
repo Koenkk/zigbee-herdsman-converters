@@ -919,6 +919,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['RS 128 T'],
+        model: 'RS 128 T',
+        vendor: 'Innr',
+        description: 'GU10 Spot 350 lm, dimmable, white spectrum',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    }, 
+    {
         zigbeeModel: ['RB 145'],
         model: 'RB 145',
         vendor: 'Innr',
