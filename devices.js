@@ -574,6 +574,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LTW012'],
+        model: '8718696695203',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E14',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['LTW013'],
         model: '8718696598283',
         vendor: 'Philips',
