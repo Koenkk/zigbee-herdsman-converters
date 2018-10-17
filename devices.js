@@ -937,7 +937,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['BY 165'],
+        zigbeeModel: ['BY 165', 'BY 265'],
         model: 'BY 165',
         vendor: 'Innr',
         description: 'B22 Bulb dimmable',
