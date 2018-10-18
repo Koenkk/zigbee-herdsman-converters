@@ -851,7 +851,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW', 'Gardenpole RGBW-Lightify'],
+        zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
@@ -859,6 +859,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    
+    {
+        zigbeeModel: ['Gardenpole RGBW-Lightify'],
+        model: 'to do',
+        vendor: 'OSRAM',
+        description: 'Gardenpole RGBW-Lightify Stripe',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    
     {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
         model: 'AB35996',
