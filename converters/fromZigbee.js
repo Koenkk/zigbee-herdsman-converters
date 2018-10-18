@@ -9,23 +9,73 @@ const clickLookup = {
     4: 'quadruple',
 };
 
-const battery3V = {
-    min: 2700,
-    max: 3000,
-};
-
 const occupancyTimeout = 90; // In seconds
 
-const toPercentage = (value, min, max) => {
-    if (value > max) {
-        value = max;
-    } else if (value < min) {
-        value = min;
-    }
-
-    const normalised = (value - min) / (max - min);
-    return (normalised * 100).toFixed(2);
-};
+const voltageMap = [
+    [2000, 0],
+    [2186, 1],
+    [2373, 2],
+    [2563, 3],
+    [2626, 4],
+    [2675, 5],
+    [2717, 6],
+    [2753, 7],
+    [2784, 8],
+    [2813, 9],
+    [2838, 10],
+    [2859, 11],
+    [2875, 12],
+    [2891, 13],
+    [2905, 14],
+    [2915, 15],
+    [2921, 16],
+    [2926, 17],
+    [2931, 18],
+    [2936, 19],
+    [2939, 20],
+    [2942, 21],
+    [2945, 22],
+    [2949, 23],
+    [2951, 24],
+    [2953, 25],
+    [2955, 26],
+    [2957, 27],
+    [2959, 28],
+    [2961, 29],
+    [2964, 30],
+    [2966, 31],
+    [2968, 32],
+    [2969, 33],
+    [2971, 34],
+    [2973, 35],
+    [2974, 36],
+    [2976, 37],
+    [2978, 38],
+    [2980, 39],
+    [2982, 40],
+    [2984, 41],
+    [2986, 42],
+    [2988, 43],
+    [2990, 44],
+    [2991, 46],
+    [2992, 48],
+    [2993, 49],
+    [2994, 51],
+    [2995, 53],
+    [2996, 55],
+    [2997, 57],
+    [2998, 59],
+    [2999, 61],
+    [3000, 64],
+    [3001, 66],
+    [3002, 69],
+    [3003, 77],
+    [3004, 90],
+    [3005, 98],
+    [3028, 99],
+    [3211, 100],
+    [Infinity, 100],
+];
 
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
@@ -143,10 +193,14 @@ const converters = {
             }
 
             if (voltage) {
-                return {
-                    battery: toPercentage(voltage, battery3V.min, battery3V.max),
-                    voltage: voltage,
-                };
+                for (let i = 0; i < voltageMap.length; i++) {
+                    if (voltageMap[i][0] > voltage) {
+                        return {
+                            battery: voltageMap[i][1].toFixed(2),
+                            voltage: voltage,
+                        };
+                    }
+                }
             }
         },
     },
@@ -284,6 +338,21 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    xiaomi_action_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['presentValue'];
+            const lookup = {
+                1: {click: 'single'}, // single click
+                2: {click: 'double'}, // double click
+                0: {action: 'hold'}, // hold for more than 400ms
+                255: {action: 'release'}, // release after hold for more than 400ms
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
         type: 'attReport',
@@ -295,6 +364,12 @@ const converters = {
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            if (msg.data.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
@@ -400,6 +475,26 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {click: getKey(model.ep, msg.endpoints[0].epId)};
+        },
+    },
+    WXKG02LM_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const value = msg.data.data['presentValue'];
+
+            const actionLookup = {
+                0: 'long',
+                1: null,
+                2: 'double',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
+                return {click: button + (action ? `_${action}` : '')};
+            }
         },
     },
     WXKG03LM_click: {
@@ -521,9 +616,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65328']) {
                 const data = msg.data.data['65328'];
-                const state = data.substr(2,2);
-                const action = data.substr(4,2);
-                const keynum = data.substr(6,2);
+                const state = data.substr(2, 2);
+                const action = data.substr(4, 2);
+                const keynum = data.substr(6, 2);
                 if (state == 11 && action == 7) {
                     // wrong key or not success inserted
                     return {keyerror: true};
@@ -551,6 +646,81 @@ const converters = {
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             return {gas: msg.data.zoneStatus === 1};
+        },
+    },
+    JTQJBF01LMBW_sensitivity: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const data = msg.data.data;
+            const lookup = {
+                '1': 'low',
+                '2': 'medium',
+                '3': 'high',
+            };
+
+            if (data && data.hasOwnProperty('65520')) {
+                const value = data['65520'];
+                if (value && value.startsWith('0x020')) {
+                    return {
+                        sensitivity: lookup[value.charAt(5)],
+                    };
+                }
+            }
+        },
+    },
+    DJT11LM_vibration: {
+        cid: 'closuresDoorLock',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const vibrationLookup = {
+                1: 'vibration',
+                2: 'tilt',
+                3: 'drop',
+            };
+
+            if (msg.data.data['85']) {
+                const data = msg.data.data['85'];
+                result.action = vibrationLookup[data];
+            }
+            if (msg.data.data['1283']) {
+                const data = msg.data.data['1283'];
+                result.angle = data;
+            }
+            if (msg.data.data['1285']) {
+                const data = msg.data.data['1285'];
+                result.unknown_data = data;
+            }
+
+            if (msg.data.data['1288']) {
+                const data = msg.data.data['1288'];
+
+                let x; let y; let z;
+
+                // array interpretation:
+                // 12 bit two's complement sign extended integer
+                // data[1][bit0..bit15] : x
+                // data[1][bit16..bit31]: y
+                // data[0][bit0..bit15] : z
+                // left shift first to preserve sign extension for 'x'
+                x = ((data['1'] << 16) >> 16);
+                y = (data['1'] >> 16);
+                // left shift first to preserve sign extension for 'z'
+                z = ((data['0'] << 16) >> 16);
+
+                // calculate angle
+                result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
+                result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
+                result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
+
+                // calculate absolulte angle
+                let R = Math.sqrt(x * x + y * y + z * z);
+                result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
+                result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
+            }
+
+            return result;
         },
     },
     EDP_power: {
@@ -696,8 +866,20 @@ const converters = {
         cmd: 'moveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
+    iris_3210L_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {power: msg.data.data['activePower'] / 10.0};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
+    ignore_doorlock_change: {
+        cid: 'closuresDoorLock',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
