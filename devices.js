@@ -1327,6 +1327,17 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Commercial Electric
+    {
+        zigbeeModel: ['Zigbee CCT Downlight'],
+        model: '53170161',
+        vendor: 'Commercial Electric',
+        description: 'Matte White Recessed Retrofit Smart Led Downlight - 4 Inch',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 ];
 
 module.exports = devices;
