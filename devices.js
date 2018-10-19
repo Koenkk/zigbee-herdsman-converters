@@ -869,6 +869,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['Gardenpole RGBW-Lightify'],
+        model: '4058075036147',
+        vendor: 'OSRAM',
+        description: 'Smart+ Gardenpole RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
         model: 'AB35996',
         vendor: 'OSRAM',
@@ -1326,6 +1335,18 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+
+    // ksentry
+    {
+        zigbeeModel: ['Lamp_01'],
+        model: 'KS-SM001',
+        vendor: 'Ksentry Electronics',
+        description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
+                     '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state],
+        toZigbee: [tz.onoff],
     },
 
     // Commercial Electric
