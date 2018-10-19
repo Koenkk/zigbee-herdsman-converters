@@ -781,6 +781,28 @@ const converters = {
             };
         },
     },
+    F_ARR_US_2_presence: {
+        cid: 'genBinaryInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            // After 100 seconds of no report, publish presence: false
+            const timeout = 100 * 10000;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // Stop existing timer because presence is detected and set a new one.
+            if (store.hasOwnProperty(deviceID)) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            store[deviceID] = setTimeout(() => {
+                publish({presence: false});
+                store[deviceID] = null;
+            }, timeout);
+
+            return {presence: true};
+        },
+    },
     _324131092621_on: {
         cid: 'genOnOff',
         type: 'cmdOn',

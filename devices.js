@@ -1327,6 +1327,25 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Samsung
+    {
+        zigbeeModel: ['tagv4'],
+        model: 'F-ARR-US-2',
+        vendor: 'Samsung',
+        description: 'SmartThings arrival sensor',
+        supports: 'presence',
+        fromZigbee: [fz.F_ARR_US_2_presence],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('genBinaryInput', 'presentValue', 10, 30, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices;
