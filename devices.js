@@ -1260,7 +1260,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
         toZigbee: [tz.onoff],
-        ep: {'left': 12, 'right': 11}     
+        ep: {'left': 12, 'right': 11},
     },
 
     // Gledopto
