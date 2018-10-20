@@ -1252,6 +1252,16 @@ const devices = [
         fromZigbee: [fz.generic_state],
         toZigbee: [tz.onoff],
     },
+    {
+        zigbeeModel: ['0x342e3147484431544b532d3635424e46'],
+        model: 'MG-AUWS01',
+        vendor: 'Nue',
+        description: 'ZigBee double power point',
+        supports: 'on/off',
+        fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff],
+        ep: {'left': 12, 'right': 11}     
+    },
 
     // Gledopto
     {
