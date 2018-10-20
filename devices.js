@@ -1256,7 +1256,7 @@ const devices = [
         zigbeeModel: ['0x342e3147484431544b532d3635424e46'],
         model: 'MG-AUWS01',
         vendor: 'Nue',
-        description: 'ZigBee double power point',
+        description: 'ZigBee Double GPO',
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
         toZigbee: [tz.onoff],
