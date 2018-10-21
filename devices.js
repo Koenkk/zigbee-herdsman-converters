@@ -392,10 +392,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm'],
+        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 600 lumen, dimmable, color, opal white',
+        description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
         supports: generic.light_onoff_brightness_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
