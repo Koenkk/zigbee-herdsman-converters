@@ -781,7 +781,7 @@ const converters = {
             };
         },
     },
-    F_ARR_US_2_presence: {
+    STS_PRS_251_presence: {
         cid: 'genBinaryInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
