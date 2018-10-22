@@ -1253,7 +1253,7 @@ const devices = [
         toZigbee: [tz.onoff],
     },
     {
-        zigbeeModel: ['0x342e3147484431544b532d3635424e46'],
+        zigbeeModel: ['FNB56-SKT1DHG1.4'],
         model: 'MG-AUWS01',
         vendor: 'Nue',
         description: 'ZigBee Double GPO',
