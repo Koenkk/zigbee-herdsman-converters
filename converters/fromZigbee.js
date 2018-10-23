@@ -403,7 +403,7 @@ const converters = {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-           return {contact: msg.data.data['65281']['100'] === 0};
+            return {contact: msg.data.data['65281']['100'] === 0};
         },
     },
     light_state: {
