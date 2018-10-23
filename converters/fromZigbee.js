@@ -398,6 +398,11 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
         },
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+           return {contact: msg.data.data['65281']['100'] === 0};
+        },
     },
     light_state: {
         cid: 'genOnOff',
