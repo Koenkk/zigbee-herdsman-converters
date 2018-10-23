@@ -228,7 +228,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change,
+                     fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -237,7 +238,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change,
+                     fz.ignore_basic_change],
         toZigbee: [],
     },
     {
