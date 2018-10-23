@@ -230,7 +230,7 @@ const devices = [
         supports: 'contact',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change,
-            fz.ignore_basic_change
+            fz.ignore_basic_change,
         ],
         toZigbee: [],
     },
@@ -242,7 +242,7 @@ const devices = [
         supports: 'contact',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_basic, fz.ignore_onoff_change,
-            fz.ignore_basic_change
+            fz.ignore_basic_change,
         ],
         toZigbee: [],
     },
