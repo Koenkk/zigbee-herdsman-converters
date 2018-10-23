@@ -398,6 +398,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
         },
+    },
+    xiaomi_contact_basic: {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
