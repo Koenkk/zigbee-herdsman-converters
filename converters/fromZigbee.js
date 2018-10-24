@@ -399,7 +399,7 @@ const converters = {
             return {contact: msg.data.data['onOff'] === 0};
         },
     },
-    xiaomi_contact_basic: {
+    xiaomi_contact_interval: {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
