@@ -399,6 +399,13 @@ const converters = {
             return {contact: msg.data.data['onOff'] === 0};
         },
     },
+    xiaomi_contact_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.data['65281']['100'] === 0};
+        },
+    },
     light_state: {
         cid: 'genOnOff',
         type: 'devChange',
