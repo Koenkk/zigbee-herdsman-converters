@@ -392,10 +392,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm'],
+        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 600 lumen, dimmable, color, opal white',
+        description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
         supports: generic.light_onoff_brightness_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
@@ -575,7 +575,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LTW012'],
-        model: 'to do ',
+        model: '8718696695203',
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
         supports: generic.light_onoff_brightness_colortemp().supports,
@@ -937,6 +937,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['RS 128 T'],
+        model: 'RS 128 T',
+        vendor: 'Innr',
+        description: 'GU10 Spot 350 lm, dimmable, white spectrum',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['RB 145'],
         model: 'RB 145',
         vendor: 'Innr',
@@ -946,7 +955,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['BY 165'],
+        zigbeeModel: ['BY 165', 'BY 265'],
         model: 'BY 165',
         vendor: 'Innr',
         description: 'B22 Bulb dimmable',
@@ -1243,6 +1252,16 @@ const devices = [
         fromZigbee: [fz.generic_state],
         toZigbee: [tz.onoff],
     },
+    {
+        zigbeeModel: ['FNB56-SKT1DHG1.4'],
+        model: 'MG-AUWS01',
+        vendor: 'Nue',
+        description: 'ZigBee Double GPO',
+        supports: 'on/off',
+        fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff],
+        ep: {'left': 12, 'right': 11},
+    },
 
     // Gledopto
     {
@@ -1326,6 +1345,29 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+
+    // ksentry
+    {
+        zigbeeModel: ['Lamp_01'],
+        model: 'KS-SM001',
+        vendor: 'Ksentry Electronics',
+        description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
+                     '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state],
+        toZigbee: [tz.onoff],
+    },
+
+    // Commercial Electric
+    {
+        zigbeeModel: ['Zigbee CCT Downlight'],
+        model: '53170161',
+        vendor: 'Commercial Electric',
+        description: 'Matte White Recessed Retrofit Smart Led Downlight - 4 Inch',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
 ];
 

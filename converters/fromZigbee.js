@@ -873,6 +873,18 @@ const converters = {
             return {power: msg.data.data['activePower'] / 10.0};
         },
     },
+    nue_power_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.ep, msg.endpoints[0].epId);
+            if (button) {
+                const payload = {};
+                payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                return payload;
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
