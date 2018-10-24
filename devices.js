@@ -1252,6 +1252,16 @@ const devices = [
         fromZigbee: [fz.generic_state],
         toZigbee: [tz.onoff],
     },
+    {
+        zigbeeModel: ['FNB56-SKT1DHG1.4'],
+        model: 'MG-AUWS01',
+        vendor: 'Nue',
+        description: 'ZigBee Double GPO',
+        supports: 'on/off',
+        fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
+        toZigbee: [tz.onoff],
+        ep: {'left': 12, 'right': 11},
+    },
 
     // Gledopto
     {
