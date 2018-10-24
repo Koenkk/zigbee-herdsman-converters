@@ -877,11 +877,10 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const mapping = {12: 'left', 11: 'right'};
-            const whichButton = mapping[msg.endpoints[0].epId];
-            if (whichButton) {
+            const button = getKey(model.ep, msg.endpoints[0].epId)
+            if (button) {
                 const payload = {};
-                payload[`state_${whichButton}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             }
         },
