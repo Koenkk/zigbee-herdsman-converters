@@ -247,7 +247,7 @@ const devices = [
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_basic, fz.SJCGQ11LM_water_leak_iaszone,
+            fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone,
             fz.ignore_basic_change,
         ],
         toZigbee: [],
