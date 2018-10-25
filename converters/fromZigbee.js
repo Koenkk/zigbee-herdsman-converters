@@ -785,8 +785,8 @@ const converters = {
         cid: 'genBinaryInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            // After 100 seconds of no report, publish presence: false
-            const timeout = 100 * 10000;
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
             const deviceID = msg.endpoints[0].device.ieeeAddr;
 
             // Stop existing timer because presence is detected and set a new one.
@@ -798,9 +798,25 @@ const converters = {
             store[deviceID] = setTimeout(() => {
                 publish({presence: false});
                 store[deviceID] = null;
-            }, timeout);
+            }, timeout * 1000);
 
             return {presence: true};
+        },
+    },
+    STS_PRS_251_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const voltage = msg.data.data['batteryVoltage'] * 100;
+
+            for (let i = 0; i < voltageMap.length; i++) {
+                if (voltageMap[i][0] > voltage) {
+                    return {
+                        battery: voltageMap[i][1].toFixed(2),
+                        voltage: voltage,
+                    };
+                }
+            }
         },
     },
     _324131092621_on: {

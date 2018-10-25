@@ -1271,13 +1271,13 @@ const devices = [
         vendor: 'SmartThings',
         description: 'SmartThings arrival sensor',
         supports: 'presence',
-        fromZigbee: [fz.STS_PRS_251_presence],
-        toZigbee: [],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.STS_PRS_251_battery],
+        toZigbee: [tz.STS_PRS_251_beep],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.report('genBinaryInput', 'presentValue', 10, 30, 1, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 10, 3600),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600),
             ];
 
             execute(device, actions, callback);
