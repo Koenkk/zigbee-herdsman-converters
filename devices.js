@@ -1113,6 +1113,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    {
+        zigbeeModel: ['A19 W 10 year'],
+        model: '74696',
+        vendor: 'Sylvania',
+        description: 'Smart+ A19 dimmable soft white bulb',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // GE
     {
