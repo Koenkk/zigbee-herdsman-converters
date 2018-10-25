@@ -511,13 +511,6 @@ const converters = {
             return {click: 'single'};
         },
     },
-    SJCGQ11LM_water_leak_basic: {
-        cid: 'genBasic',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            return {water_leak: msg.data.data['65281']['100'] === 1};
-        },
-    },
     SJCGQ11LM_water_leak_iaszone: {
         cid: 'ssIasZone',
         type: 'statusChange',
