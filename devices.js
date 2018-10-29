@@ -1372,10 +1372,10 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
-    
+
     // Centralite Swiss Plug
     {
-        zigbeeModel: ['4256251-RZHAC'], 
+        zigbeeModel: ['4256251-RZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
