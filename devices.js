@@ -1183,8 +1183,8 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['E11-G23'],
-        model: 'E11-G23',
+        zigbeeModel: ['E11-G23', 'E11-G33'],
+        model: 'E11-G23/E11-G33',
         vendor: 'Sengled',
         description: 'Element Classic (A60)',
         supports: generic.light_onoff_brightness().supports,
