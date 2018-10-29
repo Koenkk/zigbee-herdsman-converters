@@ -885,6 +885,17 @@ const converters = {
             }
         },
     },
+    RZHAC_4256251_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['activePower'],
+                current: msg.data.data['rmsCurrent'],
+                voltage: msg.data.data['rmsVoltage'],
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
