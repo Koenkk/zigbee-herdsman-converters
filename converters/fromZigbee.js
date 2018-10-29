@@ -885,7 +885,7 @@ const converters = {
             }
         },
     },
-    4256251_RZHAC_power: {
+    RZHAC_4256251_power: {
         cid: 'haElectricalMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
