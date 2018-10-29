@@ -82,6 +82,16 @@ const precisionRound = (number, precision) => {
     return Math.round(number * factor) / factor;
 };
 
+const toPercentage = (value, min, max) => {
+    if (value > max) {
+        value = max;
+    } else if (value < min) {
+        value = min;
+    }
+     const normalised = (value - min) / (max - min);
+    return (normalised * 100).toFixed(2);
+};
+
 const numberWithinRange = (number, min, max) => {
     if (number > max) {
         return max;
@@ -807,16 +817,19 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            const battery = {max: 3000, min: 2500};
             const voltage = msg.data.data['batteryVoltage'] * 100;
-
-            for (let i = 0; i < voltageMap.length; i++) {
-                if (voltageMap[i][0] > voltage) {
-                    return {
-                        battery: voltageMap[i][1].toFixed(2),
-                        voltage: voltage,
-                    };
-                }
-            }
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage,
+            };
+        },
+    },
+    STS_PRS_251_beeping: {
+        cid: 'genIdentify',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {action: 'beeping'}
         },
     },
     _324131092621_on: {
