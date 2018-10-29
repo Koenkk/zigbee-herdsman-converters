@@ -885,7 +885,7 @@ const converters = {
             }
         },
     },
-    CentraLite_4256251_power: {
+    4256251_RZHAC_power: {
         cid: 'haElectricalMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
