@@ -1296,6 +1296,24 @@ const devices = [
         fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['tagv4'],
+        model: 'STS-PRS-251',
+        vendor: 'SmartThings',
+        description: 'SmartThings arrival sensor',
+        supports: 'presence',
+        fromZigbee: [fz.STS_PRS_251_presence, fz.STS_PRS_251_battery, fz.ignore_power_change, fz.STS_PRS_251_beeping],
+        toZigbee: [tz.STS_PRS_251_beep],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('genBinaryInput', 'presentValue', 10, 30, 1, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Trust
     {

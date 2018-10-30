@@ -222,6 +222,24 @@ const converters = {
             };
         },
     },
+    STS_PRS_251_beep: {
+        key: 'beep',
+        attr: ['identifyTime'],
+        convert: (value, message) => {
+            return {
+                cid: 'genIdentify',
+                cmd: 'identify',
+                type: 'functional',
+                zclData: {
+                    identifytime: value,
+                },
+                cfg: {
+                    manufSpec: 0,
+                    disDefaultRsp: 0,
+                },
+            };
+        },
+    },
     // Ignore converters
     ignore_transition: {
         key: 'transition',
