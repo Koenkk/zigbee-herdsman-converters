@@ -88,7 +88,8 @@ const toPercentage = (value, min, max) => {
     } else if (value < min) {
         value = min;
     }
-     const normalised = (value - min) / (max - min);
+    
+    const normalised = (value - min) / (max - min);
     return (normalised * 100).toFixed(2);
 };
 
@@ -829,7 +830,7 @@ const converters = {
         cid: 'genIdentify',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            return {action: 'beeping'}
+            return {action: 'beeping'};
         },
     },
     _324131092621_on: {
