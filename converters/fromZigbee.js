@@ -88,7 +88,7 @@ const toPercentage = (value, min, max) => {
     } else if (value < min) {
         value = min;
     }
-    
+
     const normalised = (value - min) / (max - min);
     return (normalised * 100).toFixed(2);
 };
