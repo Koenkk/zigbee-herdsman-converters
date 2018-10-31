@@ -207,7 +207,7 @@ const converters = {
                 for (let i = 0; i < voltageMap.length; i++) {
                     if (voltageMap[i][0] > voltage) {
                         return {
-                            battery: voltageMap[i][1].toFixed(2),
+                            battery: parseFloat(voltageMap[i][1].toFixed(2)),
                             voltage: voltage,
                         };
                     }
