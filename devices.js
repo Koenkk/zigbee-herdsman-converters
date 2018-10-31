@@ -332,7 +332,10 @@ const devices = [
 
     // IKEA
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm',
+            'TRADFRI bulb E27 WS\uFFFDopal 980lm',
+        ],
         model: 'LED1545G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
