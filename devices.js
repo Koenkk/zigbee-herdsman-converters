@@ -847,6 +847,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['Surface Light W �C LIGHTIFY'],
+        model: 'todo',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY Surface',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },    
+    {
         zigbeeModel: ['Surface Light TW'],
         model: 'AB401130055',
         vendor: 'OSRAM',
