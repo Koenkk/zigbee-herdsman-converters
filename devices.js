@@ -837,6 +837,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+     {
+        zigbeeModel: ['Surface Light W �C LIGHTIFY'],
+        model: 'todo',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY Surface Light LED',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },    
     {
         zigbeeModel: ['Plug 01'],
         model: 'AB3257001NJ',
@@ -1069,7 +1078,7 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
-    },
+    },    
     {
         zigbeeModel: ['A19 W 10 year'],
         model: '74696',
