@@ -887,7 +887,7 @@ const devices = [
         zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW', 'LIGHTIFY Outdoor Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
-        description: 'Flex RGBW Indoor',
+        description: 'Flex RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
