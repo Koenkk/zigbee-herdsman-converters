@@ -402,9 +402,9 @@ const devices = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
-        supports: generic.light_onoff_brightness_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm'],
