@@ -1348,6 +1348,16 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['RGBW Light'],
+        model: '50049',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee Controller',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
 
     // Bitron Home
     {
