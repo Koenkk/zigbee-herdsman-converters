@@ -380,7 +380,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm', 'TRADFRI bulb E12 W op/ch 400lm'],
         model: 'LED1536G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
@@ -414,15 +414,6 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
-    },
-    {
-        zigbeeModel: ['TRADFRI bulb E12 W op/ch 400lm'],
-        model: 'LED1536G5',
-        vendor: 'IKEA',
-        description: 'LED bulb E12 400 lumen, wireless dimmable, white spectrum opal',
-        supports: generic.light_onoff_brightness_colortemp().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
         zigbeeModel: ['TRADFRI wireless dimmer'],
