@@ -9,28 +9,28 @@ const generic = {
         return {
             supports: 'on/off, brightness',
             fromZigbee: [fz.light_brightness, fz.light_state],
-            toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+            toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         };
     },
     light_onoff_brightness_colortemp: () => {
         return {
             supports: 'on/off, brightness, color temperature',
             fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
-            toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
+            toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.ignore_transition],
         };
     },
     light_onoff_brightness_colorxy: () => {
         return {
             supports: 'on/off, brightness, color xy',
             fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
-            toZigbee: [tz.onoff, tz.light_brightness, tz.light_color, tz.ignore_transition],
+            toZigbee: [tz.on_off, tz.light_brightness, tz.light_color, tz.ignore_transition],
         };
     },
     light_onoff_brightness_colortemp_colorxy: () => {
         return {
             supports: 'on/off, brightness, color temperature, color xy',
             fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
-            toZigbee: [tz.onoff, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
+            toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition],
         };
     },
 };
@@ -136,7 +136,7 @@ const devices = [
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'': 2},
     },
     {
@@ -149,7 +149,7 @@ const devices = [
             fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.ignore_analog_report,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -160,7 +160,7 @@ const devices = [
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'left': 2, 'right': 3},
     },
     {
@@ -173,7 +173,7 @@ const devices = [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'left': 1, 'right': 2},
     },
     {
@@ -277,7 +277,7 @@ const devices = [
             fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
@@ -289,7 +289,7 @@ const devices = [
             fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -484,7 +484,7 @@ const devices = [
         supports: 'on/off',
         vendor: 'IKEA',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -715,7 +715,7 @@ const devices = [
         description: 're:dy plug',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
             execute(device, [(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb)], callback);
@@ -739,7 +739,7 @@ const devices = [
         description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'on/off',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['DNCKAT_S002'],
@@ -748,7 +748,7 @@ const devices = [
         description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'left': 1, 'right': 2},
     },
     {
@@ -758,7 +758,7 @@ const devices = [
         description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'left': 1, 'center': 2, 'right': 3},
     },
     {
@@ -768,7 +768,7 @@ const devices = [
         description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4},
     },
 
@@ -862,7 +862,7 @@ const devices = [
         supports: 'on/off',
         vendor: 'OSRAM',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1104,7 +1104,7 @@ const devices = [
         description: 'SMART+ Smart Plug',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1143,7 +1143,7 @@ const devices = [
         description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -1162,7 +1162,7 @@ const devices = [
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
-        toZigbee: [tz.onoff, tz.light_brightness, tz.ignore_transition],
+        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -1232,7 +1232,7 @@ const devices = [
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.Z809A_power],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
@@ -1265,7 +1265,7 @@ const devices = [
         description: 'ZigBee one gang smart switch',
         supports: 'on/off',
         fromZigbee: [fz.generic_state],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
@@ -1274,7 +1274,7 @@ const devices = [
         description: 'ZigBee Double GPO',
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         ep: {'left': 12, 'right': 11},
     },
 
@@ -1369,7 +1369,7 @@ const devices = [
         description: 'Smart plug',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.ignore_electrical_change, fz.generic_state, fz.iris_3210L_power],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
@@ -1389,7 +1389,7 @@ const devices = [
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
         fromZigbee: [fz.generic_state],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
     },
 
     // Commercial Electric
@@ -1411,7 +1411,7 @@ const devices = [
         description: 'White Swiss power outlet switch with power meter',
         supports: 'switch and power meter',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state, fz.ignore_electrical_change, fz.RZHAC_4256251_power],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
