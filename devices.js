@@ -1362,9 +1362,9 @@ const devices = [
         model: '50049',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Controller',
-        supports: generic.light_onoff_brightness().supports,
-        fromZigbee: generic.light_onoff_brightness().fromZigbee,
-        toZigbee: generic.light_onoff_brightness().toZigbee,
+        supports: generic.light_onoff_brightness_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colorxy().toZigbee,
     },
 
 
