@@ -105,7 +105,7 @@ const numberWithinRange = (number, min, max) => {
 
 // get object property name (key) by it's value
 const getKey = (object, value) => {
-    for (let key in object) {
+    for (const key in object) {
         if (object[key]==value) return key;
     }
 };
@@ -707,18 +707,16 @@ const converters = {
             if (msg.data.data['1288']) {
                 const data = msg.data.data['1288'];
 
-                let x; let y; let z;
-
                 // array interpretation:
                 // 12 bit two's complement sign extended integer
                 // data[1][bit0..bit15] : x
                 // data[1][bit16..bit31]: y
                 // data[0][bit0..bit15] : z
                 // left shift first to preserve sign extension for 'x'
-                x = ((data['1'] << 16) >> 16);
-                y = (data['1'] >> 16);
+                const x = ((data['1'] << 16) >> 16);
+                const y = (data['1'] >> 16);
                 // left shift first to preserve sign extension for 'z'
-                z = ((data['0'] << 16) >> 16);
+                const z = ((data['0'] << 16) >> 16);
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
@@ -726,7 +724,7 @@ const converters = {
                 result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
                 // calculate absolulte angle
-                let R = Math.sqrt(x * x + y * y + z * z);
+                const R = Math.sqrt(x * x + y * y + z * z);
                 result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
                 result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
             }
