@@ -589,6 +589,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['LCT024'],
+        model: '915005733701',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Play Lightbar',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['LTW012'],
         model: '8718696695203',
         vendor: 'Philips',
