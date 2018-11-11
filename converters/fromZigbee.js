@@ -536,6 +536,13 @@ const converters = {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
+    generic_state_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
     xiaomi_power: {
         cid: 'genAnalogInput',
         type: 'attReport',
