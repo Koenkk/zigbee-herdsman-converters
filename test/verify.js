@@ -41,12 +41,12 @@ devices.forEach((device) => {
         const converter = device.toZigbee[converterKey];
 
         verifyKeys(
-            ['key', 'convert', 'attr'],
+            ['key', 'convert'],
             Object.keys(converter),
             converterKey,
         );
 
-        assert.strictEqual(2, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
+        assert.strictEqual(3, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
 
     // Check for duplicate zigbee model ids

@@ -82,6 +82,17 @@ const precisionRound = (number, precision) => {
     return Math.round(number * factor) / factor;
 };
 
+const toPercentage = (value, min, max) => {
+    if (value > max) {
+        value = max;
+    } else if (value < min) {
+        value = min;
+    }
+
+    const normalised = (value - min) / (max - min);
+    return (normalised * 100).toFixed(2);
+};
+
 const numberWithinRange = (number, min, max) => {
     if (number > max) {
         return max;
@@ -94,7 +105,7 @@ const numberWithinRange = (number, min, max) => {
 
 // get object property name (key) by it's value
 const getKey = (object, value) => {
-    for (let key in object) {
+    for (const key in object) {
         if (object[key]==value) return key;
     }
 };
@@ -196,7 +207,7 @@ const converters = {
                 for (let i = 0; i < voltageMap.length; i++) {
                     if (voltageMap[i][0] > voltage) {
                         return {
-                            battery: voltageMap[i][1].toFixed(2),
+                            battery: parseFloat(voltageMap[i][1].toFixed(2)),
                             voltage: voltage,
                         };
                     }
@@ -338,6 +349,21 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    xiaomi_action_click_multistate: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['presentValue'];
+            const lookup = {
+                1: {click: 'single'}, // single click
+                2: {click: 'double'}, // double click
+                0: {action: 'hold'}, // hold for more than 400ms
+                255: {action: 'release'}, // release after hold for more than 400ms
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
         type: 'attReport',
@@ -349,6 +375,12 @@ const converters = {
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            if (msg.data.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
@@ -376,6 +408,13 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
+        },
+    },
+    xiaomi_contact_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.data['65281']['100'] === 0};
         },
     },
     light_state: {
@@ -481,13 +520,6 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {click: 'single'};
-        },
-    },
-    SJCGQ11LM_water_leak_basic: {
-        cid: 'genBasic',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            return {water_leak: msg.data.data['65281']['100'] === 1};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
@@ -675,18 +707,16 @@ const converters = {
             if (msg.data.data['1288']) {
                 const data = msg.data.data['1288'];
 
-                let x; let y; let z;
-
                 // array interpretation:
                 // 12 bit two's complement sign extended integer
                 // data[1][bit0..bit15] : x
                 // data[1][bit16..bit31]: y
                 // data[0][bit0..bit15] : z
                 // left shift first to preserve sign extension for 'x'
-                x = ((data['1'] << 16) >> 16);
-                y = (data['1'] >> 16);
+                const x = ((data['1'] << 16) >> 16);
+                const y = (data['1'] >> 16);
                 // left shift first to preserve sign extension for 'z'
-                z = ((data['0'] << 16) >> 16);
+                const z = ((data['0'] << 16) >> 16);
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
@@ -694,7 +724,7 @@ const converters = {
                 result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
                 // calculate absolulte angle
-                let R = Math.sqrt(x * x + y * y + z * z);
+                const R = Math.sqrt(x * x + y * y + z * z);
                 result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
                 result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
             }
@@ -758,6 +788,47 @@ const converters = {
                 voltage: msg.data.data['rmsVoltage'],
                 power_factor: msg.data.data['powerFactor'],
             };
+        },
+    },
+    STS_PRS_251_presence: {
+        cid: 'genBinaryInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // Stop existing timer because presence is detected and set a new one.
+            if (store.hasOwnProperty(deviceID)) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            store[deviceID] = setTimeout(() => {
+                publish({presence: false});
+                store[deviceID] = null;
+            }, timeout * 1000);
+
+            return {presence: true};
+        },
+    },
+    STS_PRS_251_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const battery = {max: 3000, min: 2500};
+            const voltage = msg.data.data['batteryVoltage'] * 100;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage,
+            };
+        },
+    },
+    STS_PRS_251_beeping: {
+        cid: 'genIdentify',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {action: 'beeping'};
         },
     },
     _324131092621_on: {
@@ -825,6 +896,14 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
+    generic_battery_voltage: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+			// batteryVoltage 
+            return {battery: msg.data.data['batteryVoltage'] / 100};
+        },
+    },
     ICTC_G_1_move: {
         cmd: 'move',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
@@ -852,6 +931,29 @@ const converters = {
             return {power: msg.data.data['activePower'] / 10.0};
         },
     },
+    nue_power_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.ep, msg.endpoints[0].epId);
+            if (button) {
+                const payload = {};
+                payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                return payload;
+            }
+        },
+    },
+    RZHAC_4256251_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['activePower'],
+                current: msg.data.data['rmsCurrent'],
+                voltage: msg.data.data['rmsVoltage'],
+            };
+        },
+    },
     ecozy_hvacThermostat_attReport: {
         cid: 'hvacThermostat',
         type: 'attReport',
@@ -867,6 +969,7 @@ const converters = {
             }
             if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
                 store[deviceID].localTemp = msg.data.data.localTemp;
+                console.log('localTemp: ', msg.data.data.localTemp); // Do not commit like this!
             }
             if (!msg.data.data.occupiedHeatingSetpoint == null || !msg.data.data.occupiedHeatingSetpoint == '') {
                 store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
@@ -881,7 +984,6 @@ const converters = {
                 !msg.data.data.setpointChangeSourceTimeStamp == '') {
                 store[deviceID].setpointChangeSourceTimeStamp = msg.data.data.setpointChangeSourceTimeStamp;
             }
-
             return {
                 localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
                 occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
