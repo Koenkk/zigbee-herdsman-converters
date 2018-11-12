@@ -633,6 +633,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    {     
+        zigbeeModel: ['LTC015'],
+        model: '3216331P5',                   
+        vendor: 'Philips',
+        description: 'Philips Hue White ambiance Aurelle Rectangle Panel Light',
+        supports: generic.light_onoff_brightness_colortemp().supports,                  
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,                  
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
     {
         zigbeeModel: ['LLC010'],
         model: '7199960PH',
