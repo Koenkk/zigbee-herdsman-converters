@@ -1467,7 +1467,7 @@ const devices = [
     },
   // Commercial Electric
     {
-        zigbeeModel: ['FLS-PP3'],
+        zigbeeModel: ['FLS-PP3 '],
         model: 'to do ',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
