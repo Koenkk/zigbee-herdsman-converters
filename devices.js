@@ -946,7 +946,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-
+    {
+        zigbeeModel: ['B40 DIM Z3'],
+        model: 'AC08562',
+        vendor: 'OSRAM',
+        description: 'SMART+ Candle E14 Dimmable White',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // Hive
     {
