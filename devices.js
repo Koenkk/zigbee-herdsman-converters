@@ -1468,7 +1468,7 @@ const devices = [
   // Commercial Electric
     {
         zigbeeModel: ['FLS-PP3 '],
-        model: 'to do ',
+        model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
