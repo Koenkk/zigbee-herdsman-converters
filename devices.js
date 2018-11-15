@@ -954,6 +954,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini\u0000'],
+        model: 'AC0251100NJ',
+        vendor: 'OSRAM',
+        description: 'Smart+ Mini Switch',
+        supports: '',
+        fromZigbee: [fz.AC0251100NJ_off, fz.AC0251100NJ_on],
+        toZigbee: [],
+    },
 
     // Hive
     {
