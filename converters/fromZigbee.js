@@ -896,6 +896,20 @@ const converters = {
             }
         },
     },
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
     generic_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
