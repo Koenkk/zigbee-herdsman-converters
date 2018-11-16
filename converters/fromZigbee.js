@@ -536,6 +536,13 @@ const converters = {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
+    generic_state_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
     xiaomi_power: {
         cid: 'genAnalogInput',
         type: 'attReport',
@@ -900,7 +907,7 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-			// batteryVoltage 
+            // batteryVoltage
             return {battery: msg.data.data['batteryVoltage'] / 100};
         },
     },
@@ -969,7 +976,6 @@ const converters = {
             }
             if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
                 store[deviceID].localTemp = msg.data.data.localTemp;
-                console.log('localTemp: ', msg.data.data.localTemp); // Do not commit like this!
             }
             if (!msg.data.data.occupiedHeatingSetpoint == null || !msg.data.data.occupiedHeatingSetpoint == '') {
                 store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;

@@ -149,51 +149,34 @@ const converters = {
             }
         },
     },
-    get_xiaomi_contact: {
-        key: 'getXiaomiContact',
-        attr: [],
-        convert: (value, message) => {
-            return {
-                cid: 'genOnOff',
-                type: 'foundation',
-                cmd: 'read',
-                zclData: {
-                    attrId: 0x00, // OnOff
-                },
-            };
+    thermostat_occupiedHeatingSetpoint: { // testing
+        key: 'occupiedHeatingSetpoint',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'occupiedHeatingSetpoint';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: {
+                        dataType: 0x29, // dataType
+                        attrData: Math.round(value) * 100,
+                    },
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') { // MAC transaction expired.
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
         },
     },
-    thermostat_getOccupiedHeatingSetpoint: {
-        key: 'getOccupiedHeatingSetpoint',
-        attr: [],
-        convert: (value, message) => {
-            return {
-                cid: 'hvacThermostat',
-                type: 'foundation',
-                cmd: 'read',
-                zclData: {
-                    attrId: 0x12, // occupiedHeatingSetpoint
-                },
-            };
-        },
-    },
-    thermostat_setOccupiedHeatingSetpoint: {
-        key: 'setOccupiedHeatingSetpoint',
-        attr: [0x12, 0x08], // Read Heat Setpoint and PI Heat demand
-        convert: (value, message) => {
-            return {
-                cid: 'hvacThermostat',
-                type: 'foundation',
-                cmd: 'write',
-                zclData: {
-                    attrId: 0x12, // occupiedHeatingSetpoint
-                    dataType: 0x29, // dataType
-                    attrData: Math.round(value) * 100,
-                },
-            };
-        },
-    },
-    thermostat_setpointRaiseLower: {
+    thermostat_setpointRaiseLower: { // testing
         key: 'setpointRaiseLower',
         attr: ['occupiedHeatingSetpoint'],
         convert: (value, message, model) => {
@@ -208,7 +191,7 @@ const converters = {
             };
         },
     },
-    thermostat_setWeeklySchedule: {
+    thermostat_setWeeklySchedule: { // not tested
         key: 'setWeeklySchedule',
         attr: [],
         convert: (value, message, model) => {
@@ -225,7 +208,7 @@ const converters = {
             };
         },
     },
-    thermostat_getWeeklySchedule: {
+    thermostat_getWeeklySchedule: { // not tested
         key: 'getWeeklySchedule',
         attr: [],
         convert: (value, message, model) => {
@@ -240,7 +223,7 @@ const converters = {
             };
         },
     },
-    thermostat_clearWeeklySchedule: {
+    thermostat_clearWeeklySchedule: { // not tested
         key: 'clearWeeklySchedule',
         attr: [],
         convert: (value, message, model) => {
@@ -252,7 +235,7 @@ const converters = {
             };
         },
     },
-    thermostat_getRelayStatusLog: {
+    thermostat_getRelayStatusLog: { // not tested
         key: 'getRelayStatusLog',
         attr: [],
         convert: (value, message, model) => {
@@ -264,7 +247,7 @@ const converters = {
             };
         },
     },
-    thermostat_getWeeklyScheduleRsp: {
+    thermostat_getWeeklyScheduleRsp: { // not tested
         key: 'getWeeklyScheduleRsp',
         attr: [],
         convert: (value, message, model) => {
@@ -281,7 +264,7 @@ const converters = {
             };
         },
     },
-    thermostat_getRelayStatusLogRsp: {
+    thermostat_getRelayStatusLogRsp: { // not tested
         key: 'getRelayStatusLogRsp',
         attr: [],
         convert: (value, message, model) => {

@@ -407,10 +407,10 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm'],
+        zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm'],
         model: 'LED1649C5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 400 lumen, dimmable warm white, chandelier opal',
+        description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable warm white, chandelier opal',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
@@ -634,6 +634,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
+        zigbeeModel: ['LTC015'],
+        model: '3216331P5',
+        vendor: 'Philips',
+        description: 'Philips Hue White ambiance Aurelle Rectangle Panel Light',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['LLC010'],
         model: '7199960PH',
         vendor: 'Philips',
@@ -788,12 +797,12 @@ const devices = [
         vendor: 'ecozy',
         description: '',
         supports: '',
-        fromZigbee: [fz.ignore_basic_change, fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport, 
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport,
             fz.generic_battery_voltage],
         toZigbee: [tz.factory_reset, tz.thermostat_setOccupiedHeatingSetpoint, tz.thermostat_getOccupiedHeatingSetpoint,
-            tz.thermostat_setpointRaiseLower,tz.thermostat_setWeeklySchedule, tz.thermostat_getWeeklySchedule, 
-            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_clearWeeklySchedule, tz.thermostat_getRelayStatusLog, 
-            tz.thermostat_getRelayStatusLogRsp ],
+            tz.thermostat_setpointRaiseLower, tz.thermostat_setWeeklySchedule, tz.thermostat_getWeeklySchedule,
+            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_clearWeeklySchedule, tz.thermostat_getRelayStatusLog,
+            tz.thermostat_getRelayStatusLogRsp],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [
@@ -807,8 +816,8 @@ const devices = [
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
 
                 // report(cId, attrId, minInt, maxInt, repChange, callback) {
-                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 50, cb),
-                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 5, 30, 5, cb), //Times out after 30000ms
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+                // (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 5, 30, 5, cb), // Times out after 30000ms
             ];
             execute(device, actions, callback);
         },
@@ -970,7 +979,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-
+    {
+        zigbeeModel: ['B40 DIM Z3'],
+        model: 'AC08562',
+        vendor: 'OSRAM',
+        description: 'SMART+ Candle E14 Dimmable White',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // Hive
     {
@@ -987,6 +1004,15 @@ const devices = [
     {
         zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
+        vendor: 'Innr',
+        description: 'E27 Bulb RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
+        zigbeeModel: ['RB 285 C'],
+        model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 Bulb RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
@@ -1466,7 +1492,7 @@ const devices = [
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state],
+        fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
 
