@@ -799,7 +799,7 @@ const devices = [
         supports: '',
         fromZigbee: [fz.ignore_basic_change, fz.ignore_hvacThermostat_change, fz.ecozy_hvacThermostat_attReport,
             fz.generic_battery_voltage],
-        toZigbee: [tz.factory_reset, tz.thermostat_setOccupiedHeatingSetpoint, tz.thermostat_getOccupiedHeatingSetpoint,
+        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint,
             tz.thermostat_setpointRaiseLower, tz.thermostat_setWeeklySchedule, tz.thermostat_getWeeklySchedule,
             tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_clearWeeklySchedule, tz.thermostat_getRelayStatusLog,
             tz.thermostat_getRelayStatusLogRsp],
