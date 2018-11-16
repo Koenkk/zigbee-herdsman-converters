@@ -423,10 +423,9 @@ const devices = [
         supports: 'brightness [0-255], quick rotate for instant 0/255',
         fromZigbee: [
             fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff, fz.ICTC_G_1_stop, fz.ICTC_G_1_stopWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff, fz.ignore_cmd_readRsp, fz.ignore_cmd_discoverRsp,
+            fz.ICTC_G_1_moveToLevelWithOnOff,
         ],
         toZigbee: [],
-        onAfIncomingMsg: [1],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             execute(device, [(cb) => device.bind('genLevelCtrl', coordinator, cb)], callback);
