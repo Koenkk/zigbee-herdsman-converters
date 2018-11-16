@@ -416,6 +416,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E12 W op/ch 400lm'],
+        model: 'LED1649C5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI wireless dimmer'],
         model: 'ICTC-G-1',
         vendor: 'IKEA',
