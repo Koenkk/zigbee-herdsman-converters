@@ -739,6 +739,26 @@ const devices = [
         },
     },
 
+    //Heiman
+    {
+        zigbeeModel: ['DoorSensor-N'],
+        model: 'DoorSensor-N',
+        vendor: 'Heiman',
+        description: 'DoorSensor-N',
+        supports: 'status',
+        fromZigbee:  [fz.Heiman_iaszone],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['WaterSensor-N'],
+        model: 'WaterSensor-N',
+        vendor: 'Heiman',
+        description: 'WaterSensor-N',
+        supports: 'status',
+        fromZigbee:  [fz.Heiman_iaszone],
+        toZigbee: [],
+    },
+
     // Custom devices (DiY)
     {
         zigbeeModel: ['lumi.router'],
