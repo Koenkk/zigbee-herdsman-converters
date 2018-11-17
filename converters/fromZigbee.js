@@ -739,18 +739,20 @@ const converters = {
             return result;
         },
     },
-     Heiman_iaszone: {
+
+    Heiman_iaszone: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
-	    var stat = msg.data.zoneStatus & 1;
-	    var tamp = ((msg.data.zoneStatus >> 2)) & 1;
+            const stat = msg.data.zoneStatus & 1;
+            const tamp = ((msg.data.zoneStatus >> 2)) & 1;
 
-	    return {
-		status: stat, tampered: tamp
-	    };
-	},
+            return {
+                status: stat, tampered: tamp
+            };
+        },
     },
+
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
