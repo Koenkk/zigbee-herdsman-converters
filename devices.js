@@ -739,14 +739,14 @@ const devices = [
         },
     },
 
-    //Heiman
+    // Heiman
     {
         zigbeeModel: ['DoorSensor-N'],
         model: 'DoorSensor-N',
         vendor: 'Heiman',
         description: 'DoorSensor-N',
         supports: 'status',
-        fromZigbee:  [fz.Heiman_iaszone],
+        fromZigbee: [fz.Heiman_iaszone],
         toZigbee: [],
     },
     {
@@ -755,7 +755,7 @@ const devices = [
         vendor: 'Heiman',
         description: 'WaterSensor-N',
         supports: 'status',
-        fromZigbee:  [fz.Heiman_iaszone],
+        fromZigbee: [fz.Heiman_iaszone],
         toZigbee: [],
     },
 
