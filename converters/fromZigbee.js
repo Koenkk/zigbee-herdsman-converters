@@ -748,7 +748,7 @@ const converters = {
             const tamp = ((msg.data.zoneStatus >> 2)) & 1;
 
             return {
-                status: stat, tampered: tamp
+                status: stat, tampered: tamp,
             };
         },
     },
