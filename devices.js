@@ -1430,6 +1430,34 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    { 
+        zigbeeModel: ['902010/32'],
+        model: 'AV2010/32',
+        vendor: 'Bitron Home',
+        description: 'Wall thermostat with relay',
+        supports: 'temperature, heating/cooling system control',
+        fromZigbee: [
+            fz.bitron_genPowerCfg_attReport, fz.bitron_hvacThermostat_attReport, 
+            fz.bitron_hvacThermostat_devChange, fz.ignore_power_change
+        ],
+        toZigbee: [
+            tz.thermostat_setHeatingSetpoint, tz.thermostat_setTemperatureCalibration
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator,cb),
+                (cb) => device.bind('hvacThermostat', coordinator,cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+                (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 1, 0, 1, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 43200, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 0, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Iris
     {
