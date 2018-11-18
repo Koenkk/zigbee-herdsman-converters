@@ -201,7 +201,7 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
-             if (!store[deviceID]) {
+            if (!store[deviceID]) {
                 store[deviceID] = {localTemp: null};
                 store[deviceID] = {occupiedHeatingSetpoint: null};
                 store[deviceID] = {runningState: null};
@@ -228,7 +228,7 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
-             if (!store[deviceID]) {
+            if (!store[deviceID]) {
                 store[deviceID] = {localTemp: null};
                 store[deviceID] = {occupiedHeatingSetpoint: null};
                 store[deviceID] = {runningState: null};
