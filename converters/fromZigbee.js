@@ -643,10 +643,12 @@ const converters = {
                 }
                 if (state == 12) {
                     if (action == 1) {
-                        return {inserted: keynum};
+                        // successful unlock, sets everything to neutral state
+                        return {inserted: keynum, keyerror: false, forgotten: false};
                     }
                     if (action == 11) {
-                        return {forgotten: keynum};
+                        // forgot the key in the lock
+                        return {forgotten: keynum, keyerror: false};
                     }
                 }
             }
