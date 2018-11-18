@@ -1438,7 +1438,7 @@ const devices = [
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
             fz.bitron_genPowerCfg_attReport, fz.bitron_hvacThermostat_attReport,
-            fz.bitron_hvacThermostat_devChange, fz.ignore_power_change
+            fz.bitron_hvacThermostat_devChange, fz.ignore_power_change,
         ],
         toZigbee: [tz.thermostat_setHeatingSetpoint, tz.thermostat_setTemperatureCalibration],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
