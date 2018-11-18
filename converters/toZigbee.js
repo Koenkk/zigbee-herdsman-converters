@@ -271,6 +271,48 @@ const converters = {
             }
         },
     },
+    thermostat_setHeatingSetpoint: {
+        key: 'setHeatingSetpoint',
+        attr: [],
+        convert: (value, message) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x12;
+
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    type: 'foundation',
+                    cmd: 'write',
+                    zclData: {
+                        attrId: attrId, // occupiedHeatingSetpoint
+                        dataType: 0x29, // dataType int16
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    },
+                };
+            }
+        },
+    },
+    thermostat_setTemperatureCalibration: {
+        key: 'setTemperatureCalibration',
+        attr: [],
+        convert: (value, message) => {
+            const cid =  'hvacThermostat';
+            const attrId = 0x10;
+
+             if (type === 'set') {
+                return {
+                    cid: cid,
+                    type: 'foundation',
+                    cmd: 'write',
+                    zclData: {
+                        attrId: attrId, // localTemperatureCalibration 0x10
+                        dataType: 0x28, // dataType int8
+                        attrData: Math.round(value * 10),
+                    },
+                };
+            }
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
