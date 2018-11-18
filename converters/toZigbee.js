@@ -274,7 +274,7 @@ const converters = {
     thermostat_setHeatingSetpoint: {
         key: 'setHeatingSetpoint',
         attr: [],
-        convert: (value, message) => {
+        convert: (value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 0x12;
 
@@ -295,11 +295,11 @@ const converters = {
     thermostat_setTemperatureCalibration: {
         key: 'setTemperatureCalibration',
         attr: [],
-        convert: (value, message) => {
-            const cid =  'hvacThermostat';
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
             const attrId = 0x10;
 
-             if (type === 'set') {
+            if (type === 'set') {
                 return {
                     cid: cid,
                     type: 'foundation',
