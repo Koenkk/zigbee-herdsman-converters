@@ -105,7 +105,7 @@ const numberWithinRange = (number, min, max) => {
 
 // get object property name (key) by it's value
 const getKey = (object, value) => {
-    for (let key in object) {
+    for (const key in object) {
         if (object[key]==value) return key;
     }
 };
@@ -134,10 +134,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
     if (action === 'move') {
         s.since = Date.now();
-        s.direction = msg.data.payload.movemode === 1 ? 'left' : 'right';
+        s.direction = msg.data.data.movemode === 1 ? 'left' : 'right';
     } else if (action === 'stop' || action === 'level') {
         if (action === 'level') {
-            s.value = msg.data.payload.level;
+            s.value = msg.data.data.level;
         }
 
         s.since = false;
@@ -536,6 +536,13 @@ const converters = {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
+    generic_state_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
     xiaomi_power: {
         cid: 'genAnalogInput',
         type: 'attReport',
@@ -707,18 +714,16 @@ const converters = {
             if (msg.data.data['1288']) {
                 const data = msg.data.data['1288'];
 
-                let x; let y; let z;
-
                 // array interpretation:
                 // 12 bit two's complement sign extended integer
                 // data[1][bit0..bit15] : x
                 // data[1][bit16..bit31]: y
                 // data[0][bit0..bit15] : z
                 // left shift first to preserve sign extension for 'x'
-                x = ((data['1'] << 16) >> 16);
-                y = (data['1'] >> 16);
+                const x = ((data['1'] << 16) >> 16);
+                const y = (data['1'] >> 16);
                 // left shift first to preserve sign extension for 'z'
-                z = ((data['0'] << 16) >> 16);
+                const z = ((data['0'] << 16) >> 16);
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
@@ -726,7 +731,7 @@ const converters = {
                 result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
                 // calculate absolulte angle
-                let R = Math.sqrt(x * x + y * y + z * z);
+                const R = Math.sqrt(x * x + y * y + z * z);
                 result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
                 result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
             }
@@ -899,23 +904,28 @@ const converters = {
         },
     },
     ICTC_G_1_move: {
-        cmd: 'move',
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_moveWithOnOff: {
-        cmd: 'moveWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_stop: {
-        cmd: 'stop',
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_stopWithOnOff: {
-        cmd: 'stopWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_moveToLevelWithOnOff: {
-        cmd: 'moveToLevelWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
     iris_3210L_power: {
@@ -1028,14 +1038,6 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_readRsp: {
-        cmd: 'readRsp',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_discoverRsp: {
-        cmd: 'discoverRsp',
         convert: (model, msg, publish, options) => null,
     },
 };
