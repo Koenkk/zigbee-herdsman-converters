@@ -1465,7 +1465,8 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
-  // Commercial Electric
+
+    // Dresden Elektronik
     {
         zigbeeModel: ['FLS-PP3 '],
         model: 'Mega23M12',
@@ -1474,7 +1475,7 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
-    },    
+    },
 
     // Centralite Swiss Plug
     {
