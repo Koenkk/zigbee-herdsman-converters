@@ -1465,10 +1465,20 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+    // ilux
+    {
+        zigbeeModel: ['LEColorLight'],
+        model: '900008-WW',
+        vendor: 'ilux',
+        description: 'Dimmable A60 E27 LED Bulb',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },    
 
     // Dresden Elektronik
     {
-        zigbeeModel: ['FLS-PP3 '],
+        zigbeeModel: ['FLS-PP3'],
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
@@ -1476,6 +1486,8 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
+    
+    
 
     // Centralite Swiss Plug
     {
