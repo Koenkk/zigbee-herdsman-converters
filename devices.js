@@ -1465,6 +1465,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
+
     // ilux
     {
         zigbeeModel: ['LEColorLight'],
@@ -1474,7 +1475,7 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
-    },    
+    },
 
     // Centralite Swiss Plug
     {
