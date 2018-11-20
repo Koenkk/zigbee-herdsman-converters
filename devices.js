@@ -408,8 +408,8 @@ const devices = [
     },
     {
         zigbeeModel: [
-          'TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm',
-          'TRADFRI bulb E17 W op/ch 400lm'
+            'TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm',
+            'TRADFRI bulb E17 W op/ch 400lm',
         ],
         model: 'LED1649C5',
         vendor: 'IKEA',
