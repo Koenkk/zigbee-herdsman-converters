@@ -134,10 +134,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
     if (action === 'move') {
         s.since = Date.now();
-        s.direction = msg.data.payload.movemode === 1 ? 'left' : 'right';
+        s.direction = msg.data.data.movemode === 1 ? 'left' : 'right';
     } else if (action === 'stop' || action === 'level') {
         if (action === 'level') {
-            s.value = msg.data.payload.level;
+            s.value = msg.data.data.level;
         }
 
         s.since = false;
@@ -904,23 +904,28 @@ const converters = {
         },
     },
     ICTC_G_1_move: {
-        cmd: 'move',
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_moveWithOnOff: {
-        cmd: 'moveWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_stop: {
-        cmd: 'stop',
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_stopWithOnOff: {
-        cmd: 'stopWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_moveToLevelWithOnOff: {
-        cmd: 'moveToLevelWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
     iris_3210L_power: {
@@ -1033,14 +1038,6 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_readRsp: {
-        cmd: 'readRsp',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_discoverRsp: {
-        cmd: 'discoverRsp',
         convert: (model, msg, publish, options) => null,
     },
 };

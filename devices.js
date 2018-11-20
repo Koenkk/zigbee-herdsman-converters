@@ -407,10 +407,13 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm',
+            'TRADFRI bulb E17 W op/ch 400lm',
+        ],
         model: 'LED1649C5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 400 lumen, dimmable warm white, chandelier opal',
+        description: 'TRADFRI LED bulb E12/E14/E17 400 lumen, dimmable warm white, chandelier opal',
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
@@ -423,10 +426,9 @@ const devices = [
         supports: 'brightness [0-255], quick rotate for instant 0/255',
         fromZigbee: [
             fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff, fz.ICTC_G_1_stop, fz.ICTC_G_1_stopWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff, fz.ignore_cmd_readRsp, fz.ignore_cmd_discoverRsp,
+            fz.ICTC_G_1_moveToLevelWithOnOff,
         ],
         toZigbee: [],
-        onAfIncomingMsg: [1],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             execute(device, [(cb) => device.bind('genLevelCtrl', coordinator, cb)], callback);
@@ -946,7 +948,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
-
+    {
+        zigbeeModel: ['B40 DIM Z3'],
+        model: 'AC08562',
+        vendor: 'OSRAM',
+        description: 'SMART+ Candle E14 Dimmable White',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // Hive
     {
@@ -1475,6 +1485,17 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // Dresden Elektronik
+    {
+        zigbeeModel: ['FLS-PP3 '],
+        model: 'Mega23M12',
+        vendor: 'Dresden Elektronik',
+        description: 'ZigBee Light Link wireless electronic ballast',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
 
     // Centralite Swiss Plug
