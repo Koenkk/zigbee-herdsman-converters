@@ -1489,7 +1489,7 @@ const devices = [
 
     // Dresden Elektronik
     {
-        zigbeeModel: ['FLS-PP3 '],
+        zigbeeModel: ['FLS-PP3\u0000'],
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
