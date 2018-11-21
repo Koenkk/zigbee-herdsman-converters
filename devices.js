@@ -1486,16 +1486,6 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
-// ilux
-    {
-        zigbeeModel: ['LEColorLight'],
-        model: '900008-WW',
-        vendor: 'iLux',
-        description: 'Dimmable A60 E27 LED Bulb',
-        supports: generic.light_onoff_brightness().supports,
-        fromZigbee: generic.light_onoff_brightness().fromZigbee,
-        toZigbee: generic.light_onoff_brightness().toZigbee,
-    },
 
     // Dresden Elektronik
     {
