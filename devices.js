@@ -256,10 +256,10 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_cube'],
+        zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
         model: 'MFKZQ01LM',
         vendor: 'Xiaomi',
-        description: 'Mi smart home cube',
+        description: 'Mi/Aqara smart home cube',
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
