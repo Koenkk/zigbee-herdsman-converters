@@ -125,7 +125,9 @@ const devices = [
             fz.WXKG02LM_click_multistate, fz.ignore_multistate_change,
         ],
         toZigbee: [],
-        ep: {'left': 1, 'right': 2, 'both': 3},
+        ep: (device) => {
+            return {'left': 1, 'right': 2, 'both': 3};
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral1'],
@@ -137,7 +139,9 @@ const devices = [
             fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off],
-        ep: {'': 2},
+        ep: (device) => {
+            return {'': 2};
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1'],
@@ -161,7 +165,9 @@ const devices = [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off],
-        ep: {'left': 2, 'right': 3},
+        ep: (device) => {
+            return {'left': 2, 'right': 3};
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1'],
@@ -174,7 +180,9 @@ const devices = [
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
         ],
         toZigbee: [tz.on_off],
-        ep: {'left': 1, 'right': 2},
+        ep: (device) => {
+            return {'left': 1, 'right': 2};
+        },
     },
     {
         zigbeeModel: ['lumi.sens'],
@@ -769,7 +777,9 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: {'left': 1, 'right': 2},
+        ep: (device) => {
+            return {'left': 1, 'right': 2};
+        },
     },
     {
         zigbeeModel: ['DNCKAT_S003'],
@@ -779,7 +789,9 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: {'left': 1, 'center': 2, 'right': 3},
+        ep: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
     },
     {
         zigbeeModel: ['DNCKAT_S004'],
@@ -789,7 +801,9 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4},
+        ep: (device) => {
+            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
+        },
     },
 
     // OSRAM
@@ -1339,7 +1353,9 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: {'left': 12, 'right': 11},
+        ep: (device) => {
+            return {'left': 12, 'right': 11};
+        },
     },
 
     // Gledopto
@@ -1351,6 +1367,13 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            }
+
+            return {};
+        },
     },
 
     // SmartThings
