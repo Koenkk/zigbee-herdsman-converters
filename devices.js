@@ -1363,16 +1363,18 @@ const devices = [
         zigbeeModel: ['GLEDOPTO'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT',
+        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
+            } else if (device.epList.toString() === '10,11,13') {
+                return {'': 11};
+            } else {
+                return {};
             }
-
-            return {};
         },
     },
 
