@@ -492,7 +492,7 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0];
+            const device = msg.endpoints[0].device;
             return {click: getKey(model.ep(device), device.epId)};
         },
     },
@@ -500,7 +500,7 @@ const converters = {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0];
+            const device = msg.endpoints[0].device;
             const button = getKey(model.ep(device), device.epId);
             const value = msg.data.data['presentValue'];
 
@@ -610,7 +610,7 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
-                const device = msg.endpoints[0];
+                const device = msg.endpoints[0].device;
                 const key = `state_${getKey(model.ep(device), device.epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -772,7 +772,7 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0];
+            const device = msg.endpoints[0].device;
             const key = `state_${getKey(model.ep(device), device.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -783,7 +783,7 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0];
+            const device = msg.endpoints[0].device;
             const key = `button_${getKey(model.ep(device), device.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
@@ -944,7 +944,7 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0];
+            const device = msg.endpoints[0].device;
             const button = getKey(model.ep(device), device.epId);
             if (button) {
                 const payload = {};
