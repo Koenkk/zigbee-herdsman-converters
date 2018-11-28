@@ -492,16 +492,16 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0].device;
-            return {click: getKey(model.ep(device), device.epId)};
+            const ep = msg.endpoints[0];
+            return {click: getKey(model.ep(ep.device), ep.epId)};
         },
     },
     WXKG02LM_click_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0].device;
-            const button = getKey(model.ep(device), device.epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             const value = msg.data.data['presentValue'];
 
             const actionLookup = {
@@ -610,8 +610,8 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
-                const device = msg.endpoints[0].device;
-                const key = `state_${getKey(model.ep(device), device.epId)}`;
+                const ep = msg.endpoints[0];
+                const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
@@ -772,8 +772,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0].device;
-            const key = `state_${getKey(model.ep(device), device.epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
@@ -783,8 +783,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0].device;
-            const key = `button_${getKey(model.ep(device), device.epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `button_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
             return payload;
@@ -944,8 +944,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const device = msg.endpoints[0].device;
-            const button = getKey(model.ep(device), device.epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             if (button) {
                 const payload = {};
                 payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
