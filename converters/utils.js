@@ -1,3 +1,4 @@
+'use strict';
 /**
  * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
  * Converts RGB color space to CIE color space
