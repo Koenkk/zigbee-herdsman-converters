@@ -134,10 +134,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
     if (action === 'move') {
         s.since = Date.now();
-        s.direction = msg.data.payload.movemode === 1 ? 'left' : 'right';
+        s.direction = msg.data.data.movemode === 1 ? 'left' : 'right';
     } else if (action === 'stop' || action === 'level') {
         if (action === 'level') {
-            s.value = msg.data.payload.level;
+            s.value = msg.data.data.level;
         }
 
         s.since = false;
@@ -492,14 +492,16 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {click: getKey(model.ep, msg.endpoints[0].epId)};
+            const device = msg.endpoints[0];
+            return {click: getKey(model.ep(device), device.epId)};
         },
     },
     WXKG02LM_click_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const device = msg.endpoints[0];
+            const button = getKey(model.ep(device), device.epId);
             const value = msg.data.data['presentValue'];
 
             const actionLookup = {
@@ -532,6 +534,13 @@ const converters = {
     generic_state: {
         cid: 'genOnOff',
         type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
+    generic_state_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
@@ -601,7 +610,8 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
-                const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+                const device = msg.endpoints[0];
+                const key = `state_${getKey(model.ep(device), device.epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
@@ -762,7 +772,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const device = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(device), device.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
@@ -772,7 +783,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const key = `button_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const device = msg.endpoints[0];
+            const key = `button_${getKey(model.ep(device), device.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
             return payload;
@@ -897,23 +909,28 @@ const converters = {
         },
     },
     ICTC_G_1_move: {
-        cmd: 'move',
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_moveWithOnOff: {
-        cmd: 'moveWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
     ICTC_G_1_stop: {
-        cmd: 'stop',
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_stopWithOnOff: {
-        cmd: 'stopWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
     ICTC_G_1_moveToLevelWithOnOff: {
-        cmd: 'moveToLevelWithOnOff',
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
     },
     iris_3210L_power: {
@@ -927,7 +944,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const device = msg.endpoints[0];
+            const button = getKey(model.ep(device), device.epId);
             if (button) {
                 const payload = {};
                 payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -1026,14 +1044,6 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_readRsp: {
-        cmd: 'readRsp',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_cmd_discoverRsp: {
-        cmd: 'discoverRsp',
         convert: (model, msg, publish, options) => null,
     },
 };
