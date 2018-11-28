@@ -62,7 +62,7 @@ const converters = {
             const attrId = 'currentLevel';
 
             if (type === 'set') {
-                if (value.includes('%')) {
+                if (typeof value === 'string' && value.includes('%')) {
                     value = Math.round(Number(value.replace('%', '')) * 2.55).toString();
                 }
 
@@ -94,7 +94,7 @@ const converters = {
             const attrId = 'colorTemperature';
 
             if (type === 'set') {
-                if (value.includes('%')) {
+                if (typeof value === 'string' && value.includes('%')) {
                     value = Number(value.replace('%', '')) * 3.46;
                     value = Math.round(value + 154).toString();
                 }
