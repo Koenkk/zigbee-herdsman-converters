@@ -281,13 +281,13 @@ const converters = {
             if (type === 'set') {
                 return {
                     cid: cid,
-                    type: 'foundation',
                     cmd: 'write',
-                    zclData: {
+                    cmdType: 'foundation',
+                    zclData: [{
                         attrId: attrId, // occupiedHeatingSetpoint
                         dataType: 0x29, // dataType int16
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
-                    },
+                    }],
                 };
             }
         },
@@ -302,13 +302,13 @@ const converters = {
             if (type === 'set') {
                 return {
                     cid: cid,
-                    type: 'foundation',
                     cmd: 'write',
-                    zclData: {
+                    cmdType: 'foundation',
+                    zclData: [{
                         attrId: attrId, // localTemperatureCalibration 0x10
                         dataType: 0x28, // dataType int8
                         attrData: Math.round(value * 10),
-                    },
+                    }],
                 };
             }
         },
