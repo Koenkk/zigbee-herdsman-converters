@@ -131,6 +131,11 @@ const converters = {
                     const xy = utils.rgbToXY(value.r, value.g, value.b);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('rgb')) {
+                    const rgb = value.rgb.split(',').map((i) => parseInt(i));
+                    const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
+                    value.x = xy.x;
+                    value.y = xy.y;
                 }
 
                 return {
@@ -138,8 +143,8 @@ const converters = {
                     cmd: 'moveToColor',
                     cmdType: 'functional',
                     zclData: {
-                        colorx: value.x * 65535,
-                        colory: value.y * 65535,
+                        colorx: Math.round(value.x * 65535),
+                        colory: Math.round(value.y * 65535),
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
