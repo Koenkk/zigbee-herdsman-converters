@@ -1546,6 +1546,17 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Climax
+    {
+        zigbeeModel: ['PSS_00.00.00.15TC'],
+        model: 'PSS-23ZBS',
+        vendor: 'Climax',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_change],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices;
