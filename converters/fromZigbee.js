@@ -662,6 +662,13 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    HS1SA_smoke: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {smoke: msg.data.zoneStatus === 33};
+        },
+    },
     JTQJBF01LMBW_gas: {
         cid: 'ssIasZone',
         type: 'statusChange',

@@ -1566,6 +1566,26 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+
+    // HEIMAN
+    {
+        zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931'],
+        model: 'HS1SA',
+        vendor: 'HEIMAN',
+        description: 'Smoke detector',
+        supports: 'smoke',
+        fromZigbee: [fz.HS1SA_smoke],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
 ];
 
 module.exports = devices;
