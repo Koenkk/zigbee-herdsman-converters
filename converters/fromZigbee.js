@@ -975,27 +975,27 @@ const converters = {
         cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            //console.log(msg);
+            // console.log(msg);
             if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
                 const zoneStatus = msg.data.data.zoneStatus;
                 return {
-                    occupancy:   (zoneStatus & 1<<1) > 0,  // Bit 1 = Alarm 2: Presence Indication
-                    tamper:      (zoneStatus & 1<<2) > 0,  // Bit 2 = Tamper status
-                    battery_low: (zoneStatus & 1<<3) > 0,  // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                    occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                    tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                    battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
                 };
             }
         },
     },
-   ias_zone_motion_status_change: {
+    ias_zone_motion_status_change: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
-            //console.log(msg);
+            // console.log(msg);
             const zoneStatus = msg.data.zoneStatus;
             return {
-                occupancy:   (zoneStatus & 1<<1) > 0,  // Bit 1 = Alarm 2: Presence Indication
-                tamper:      (zoneStatus & 1<<2) > 0,  // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0,  // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
             };
         },
     },
