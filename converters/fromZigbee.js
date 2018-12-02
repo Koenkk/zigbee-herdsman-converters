@@ -676,6 +676,19 @@ const converters = {
             return {gas: msg.data.zoneStatus === 1};
         },
     },
+    JTQJBF01LMBW_gas_density: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const data = msg.data.data;
+            if (data && data['65281']) {
+                const basicAttrs = data['65281'];
+                if (basicAttrs.hasOwnProperty('100')) {
+                    return {density: basicAttrs['100']};
+                }
+            }
+        },
+    },
     JTQJBF01LMBW_sensitivity: {
         cid: 'ssIasZone',
         type: 'devChange',
