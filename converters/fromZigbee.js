@@ -440,7 +440,7 @@ const converters = {
             if (msg.data.data['colorTemperature']) {
                 result.color_temp = msg.data.data['colorTemperature'];
             }
-            
+
             if (msg.data.data['colorMode']) {
                 result.color_mode = msg.data.data['colorMode'];
             }
