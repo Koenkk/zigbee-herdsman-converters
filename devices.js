@@ -978,8 +978,8 @@ const devices = [
         description: 'SMART+ Motion Sensor',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change, 
-            fz.ias_zone_motion_status_change
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
+            fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
