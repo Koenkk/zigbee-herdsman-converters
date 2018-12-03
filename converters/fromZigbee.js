@@ -975,7 +975,6 @@ const converters = {
         cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            // console.log(msg);
             if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
                 const zoneStatus = msg.data.data.zoneStatus;
                 return {
@@ -990,7 +989,6 @@ const converters = {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
-            // console.log(msg);
             const zoneStatus = msg.data.zoneStatus;
             return {
                 occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
