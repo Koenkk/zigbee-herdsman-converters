@@ -975,7 +975,7 @@ const devices = [
         zigbeeModel: ['Motion Sensor-A'],
         model: 'AC01353010G',
         vendor: 'OSRAM',
-        description: 'SMART+ Motion Sensor ',
+        description: 'SMART+ Motion Sensor',
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change, 
