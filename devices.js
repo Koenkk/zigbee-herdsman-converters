@@ -971,6 +971,28 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['Motion Sensor-A'],
+        model: 'AC01353010G',
+        vendor: 'OSRAM',
+        description: 'SMART+ Motion Sensor ',
+        supports: 'occupancy and temperature',
+        fromZigbee: [fz.generic_temperature, fz.ignore_temperature_change,
+            fz.ias_zone_motion_dev_change, fz.ias_zone_motion_status_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Hive
     {
@@ -1584,30 +1606,6 @@ const devices = [
             ];
 
             execute(device, actions, callback, 1000);
-        },
-    },
-
-    // OSRAM Smart, Motion Sensor
-    {
-        zigbeeModel: ['Motion Sensor-A'],
-        model: 'AC01353010G',
-        vendor: 'OSRAM LEDVANCE',
-        description: 'SMART+ Motion Sensor ',
-        supports: 'occupancy and temperature',
-        fromZigbee: [fz.generic_temperature, fz.ignore_temperature_change,
-            fz.ias_zone_motion_dev_change, fz.ias_zone_motion_status_change],
-        toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
         },
     },
 ];
