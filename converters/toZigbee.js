@@ -163,6 +163,29 @@ const converters = {
             }
         },
     },
+    light_alert: {
+        key: 'alert',
+        convert: (value, message, type) => {
+            const cid = 'genIdentify';
+            if (type === 'set') {
+                const lookup = {
+                    'select': 0x00,
+                    'lselect': 0x01,
+                    'none': 0xFF,
+                };
+                return {
+                    cid: cid,
+                    cmd: 'triggerEffect',
+                    cmdType: 'functional',
+                    zclData: {
+                        effectid: lookup[value.toLowerCase()],
+                        effectvariant: 0x01,
+                    },
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
     DJT11LM_vibration_sensitivity: {
         key: 'sensitivity',
