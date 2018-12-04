@@ -1396,7 +1396,7 @@ const devices = [
 
     // Gledopto
     {
-        zigbeeModel: ['GLEDOPTO'],
+        zigbeeModel: ['GLEDOPTO', 'GL-C-008'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
