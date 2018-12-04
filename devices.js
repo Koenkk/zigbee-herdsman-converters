@@ -1485,8 +1485,25 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },    
+      
+    {                                      
+        zigbeeModel: ['3320-L'],
+        model: '3320-L',                             
+        vendor: 'Iris',                                                                 
+        description: 'Door and window contact sensor',                                       
+        supports: 'contact',
+        fromZigbee: [fz.iris_3320L_contact],
+        toZigbee: [],                                
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);                  
+            const actions = [                                                           
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),           
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+             execute(device, actions, callback, 1000);
+        },
     },
-    
                                                                                                                      
     {                                                                                                            
         zigbeeModel: ['3326-L'],                                                                                 
