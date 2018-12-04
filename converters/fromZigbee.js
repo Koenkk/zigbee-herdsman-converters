@@ -946,6 +946,13 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {power: msg.data.data['activePower'] / 10.0};
         },
+    },        
+    iris_3320L_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 36};
+        },     
     },
     nue_power_state: {
         cid: 'genOnOff',
