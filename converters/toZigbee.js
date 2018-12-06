@@ -17,8 +17,8 @@ const cfg = {
 
 const converters = {
     factory_reset: {
-        key: 'reset',
-        convert: (value, message, type) => {
+        key: ['reset'],
+        convert: (key, value, message, type) => {
             if (type === 'set') {
                 return {
                     cid: 'genBasic',
@@ -31,8 +31,8 @@ const converters = {
         },
     },
     on_off: {
-        key: 'state',
-        convert: (value, message, type) => {
+        key: ['state'],
+        convert: (key, value, message, type) => {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
@@ -56,14 +56,14 @@ const converters = {
         },
     },
     light_brightness: {
-        key: 'brightness',
-        convert: (value, message, type) => {
+        key: ['brightness', 'brightness_percent'],
+        convert: (key, value, message, type) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
 
             if (type === 'set') {
-                if (typeof value === 'string' && value.includes('%')) {
-                    value = Math.round(Number(value.replace('%', '')) * 2.55).toString();
+                if (key === 'brightness_percent') {
+                    value = Math.round(Number(value) * 2.55).toString();
                 }
 
                 return {
@@ -88,14 +88,14 @@ const converters = {
         },
     },
     light_colortemp: {
-        key: 'color_temp',
-        convert: (value, message, type) => {
+        key: ['color_temp', 'color_temp_percent'],
+        convert: (key, value, message, type) => {
             const cid = 'lightingColorCtrl';
             const attrId = 'colorTemperature';
 
             if (type === 'set') {
-                if (typeof value === 'string' && value.includes('%')) {
-                    value = Number(value.replace('%', '')) * 3.46;
+                if (key === 'color_temp_percent') {
+                    value = Number(value) * 3.46;
                     value = Math.round(value + 154).toString();
                 }
 
@@ -121,8 +121,8 @@ const converters = {
         },
     },
     light_color: {
-        key: 'color',
-        convert: (value, message, type) => {
+        key: ['color'],
+        convert: (key, value, message, type) => {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
@@ -164,8 +164,8 @@ const converters = {
         },
     },
     light_alert: {
-        key: 'alert',
-        convert: (value, message, type) => {
+        key: ['alert'],
+        convert: (key, value, message, type) => {
             const cid = 'genIdentify';
             if (type === 'set') {
                 const lookup = {
@@ -188,8 +188,8 @@ const converters = {
     },
     /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
     DJT11LM_vibration_sensitivity: {
-        key: 'sensitivity',
-        convert: (value, message, type) => {
+        key: ['sensitivity'],
+        convert: (key, value, message, type) => {
             const cid = 'genBasic';
             const attrId = 0xFF0D;
 
@@ -225,8 +225,8 @@ const converters = {
         },
     },
     JTQJBF01LMBW_sensitivity: {
-        key: 'sensitivity',
-        convert: (value, message, type) => {
+        key: ['sensitivity'],
+        convert: (key, value, message, type) => {
             const cid = 'ssIasZone';
 
             if (type === 'set') {
@@ -264,8 +264,8 @@ const converters = {
         },
     },
     JTQJBF01LMBW_selfest: {
-        key: 'selftest',
-        convert: (value, message, type) => {
+        key: ['selftest'],
+        convert: (key, value, message, type) => {
             if (type === 'set') {
                 return {
                     cid: 'ssIasZone',
@@ -282,8 +282,8 @@ const converters = {
         },
     },
     STS_PRS_251_beep: {
-        key: 'beep',
-        convert: (value, message, type) => {
+        key: ['beep'],
+        convert: (key, value, message, type) => {
             const cid = 'genIdentify';
             const attrId = 'identifyTime';
 
@@ -311,9 +311,9 @@ const converters = {
 
     // Ignore converters
     ignore_transition: {
-        key: 'transition',
+        key: ['transition'],
         attr: [],
-        convert: (value, message, type) => null,
+        convert: (key, value, message, type) => null,
     },
 };
 
