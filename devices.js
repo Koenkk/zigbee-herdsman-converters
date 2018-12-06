@@ -1654,6 +1654,17 @@ const devices = [
             execute(device, actions, callback, 1000);
         },
     },
+
+    // Calex
+    {
+        zigbeeModel: ['EC-Z3.0-CCT '],
+        model: '421786',
+        vendor: 'Calex',
+        description: 'LED A60 Zigbee GLS-lamp',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 ];
 
 module.exports = devices;
