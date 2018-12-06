@@ -147,7 +147,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['lumi.ctrl_ln1.aq1'],
+        zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
         model: 'QBKG11LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch',
