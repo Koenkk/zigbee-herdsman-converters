@@ -644,9 +644,15 @@ const converters = {
                 const state = data.substr(2, 2);
                 const action = data.substr(4, 2);
                 const keynum = data.substr(6, 2);
-                if (state == 11 && action == 7) {
-                    // wrong key or not success inserted
-                    return {keyerror: true};
+                if (state == 11) {
+                    if (action == 1) {
+                        // unknown key
+                        return {keyerror: true, inserted: 'unknown'};
+                    }
+                    if (action == 3) {
+                        // explicitly disabled key (e.g.: reported lost)
+                        return {keyerror: true, inserted: keynum};
+                    }
                 }
                 if (state == 12) {
                     if (action == 1) {
