@@ -682,7 +682,7 @@ const converters = {
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
             };
-        };
+        },
     },
     Heiman_water: {
         cid: 'ssIasZone',
@@ -694,7 +694,7 @@ const converters = {
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
             };
-        };
+        },
     },
     Heiman_contact: {
         cid: 'ssIasZone',
@@ -706,7 +706,7 @@ const converters = {
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator 
             };
-        };
+        },
     },
     JTQJBF01LMBW_gas: {
         cid: 'ssIasZone',

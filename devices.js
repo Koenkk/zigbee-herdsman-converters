@@ -1681,7 +1681,6 @@ const devices = [
             execute(device, actions, callback, 1000);
         },
     },
-	
     {
         zigbeeModel: ['DoorSensor-N'],
         model: 'DoorSensor-N',
