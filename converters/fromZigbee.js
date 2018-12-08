@@ -441,6 +441,10 @@ const converters = {
                 result.color_temp = msg.data.data['colorTemperature'];
             }
 
+            if (msg.data.data['colorMode']) {
+                result.color_mode = msg.data.data['colorMode'];
+            }
+
             if (msg.data.data['currentX'] || msg.data.data['currentY']) {
                 result.color = {};
 
@@ -492,14 +496,16 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {click: getKey(model.ep, msg.endpoints[0].epId)};
+            const ep = msg.endpoints[0];
+            return {click: getKey(model.ep(ep.device), ep.epId)};
         },
     },
     WXKG02LM_click_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             const value = msg.data.data['presentValue'];
 
             const actionLookup = {
@@ -608,7 +614,8 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
-                const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+                const ep = msg.endpoints[0];
+                const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
@@ -637,9 +644,15 @@ const converters = {
                 const state = data.substr(2, 2);
                 const action = data.substr(4, 2);
                 const keynum = data.substr(6, 2);
-                if (state == 11 && action == 7) {
-                    // wrong key or not success inserted
-                    return {keyerror: true};
+                if (state == 11) {
+                    if (action == 1) {
+                        // unknown key
+                        return {keyerror: true, inserted: 'unknown'};
+                    }
+                    if (action == 3) {
+                        // explicitly disabled key (e.g.: reported lost)
+                        return {keyerror: true, inserted: keynum};
+                    }
                 }
                 if (state == 12) {
                     if (action == 1) {
@@ -657,6 +670,13 @@ const converters = {
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             return {smoke: msg.data.zoneStatus === 1};
+        },
+    },
+    HS1SA_smoke: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {smoke: msg.data.zoneStatus === 33};
         },
     },
     JTQJBF01LMBW_gas: {
@@ -783,7 +803,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
@@ -793,7 +814,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const key = `button_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `button_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
             return payload;
@@ -949,11 +971,19 @@ const converters = {
             return {power: msg.data.data['activePower'] / 10.0};
         },
     },
+    iris_3320L_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 36};
+        },
+    },
     nue_power_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             if (button) {
                 const payload = {};
                 payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -969,6 +999,32 @@ const converters = {
                 power: msg.data.data['activePower'],
                 current: msg.data.data['rmsCurrent'],
                 voltage: msg.data.data['rmsVoltage'],
+            };
+        },
+    },
+    ias_zone_motion_dev_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
+                const zoneStatus = msg.data.data.zoneStatus;
+                return {
+                    occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                    tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                    battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                };
+            }
+        },
+    },
+    ias_zone_motion_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
             };
         },
     },
