@@ -753,26 +753,6 @@ const devices = [
         },
     },
 
-    // Heiman
-    {
-        zigbeeModel: ['DoorSensor-N'],
-        model: 'DoorSensor-N',
-        vendor: 'Heiman',
-        description: 'DoorSensor-N',
-        supports: 'status',
-        fromZigbee: [fz.Heiman_iaszone],
-        toZigbee: [],
-    },
-    {
-        zigbeeModel: ['WaterSensor-N'],
-        model: 'WaterSensor-N',
-        vendor: 'Heiman',
-        description: 'WaterSensor-N',
-        supports: 'status',
-        fromZigbee: [fz.Heiman_iaszone],
-        toZigbee: [],
-    },
-
     // Custom devices (DiY)
     {
         zigbeeModel: ['lumi.router'],
@@ -1671,7 +1651,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.HS1SA_smoke],
+        fromZigbee: [fz.Heiman_smoke],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1683,7 +1663,43 @@ const devices = [
             execute(device, actions, callback, 1000);
         },
     },
+    {
+        zigbeeModel: ['SmokeSensor-N'],
+        model: 'HS3SA',
+        vendor: 'HEIMAN',
+        description: 'Smoke detector',
+        supports: 'smoke',
+        fromZigbee: [fz.Heiman_smoke],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
 
+            execute(device, actions, callback, 1000);
+        },
+    },
+	
+    {
+        zigbeeModel: ['DoorSensor-N'],
+        model: 'DoorSensor-N',
+        vendor: 'Heiman',
+        description: 'DoorSensor-N',
+        supports: 'status',
+        fromZigbee: [fz.Heiman_contact],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['WaterSensor-N'],
+        model: 'WaterSensor-N',
+        vendor: 'Heiman',
+        description: 'WaterSensor-N',
+        supports: 'status',
+        fromZigbee: [fz.Heiman_water],
+        toZigbee: [],
+    },
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
