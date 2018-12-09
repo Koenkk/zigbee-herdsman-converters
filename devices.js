@@ -1651,7 +1651,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.HS1SA_smoke],
+        fromZigbee: [fz.heiman_smoke],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1662,6 +1662,42 @@ const devices = [
 
             execute(device, actions, callback, 1000);
         },
+    },
+    {
+        zigbeeModel: ['SmokeSensor-N'],
+        model: 'HS3SA',
+        vendor: 'HEIMAN',
+        description: 'Smoke detector',
+        supports: 'smoke',
+        fromZigbee: [fz.heiman_smoke],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['DoorSensor-N'],
+        model: 'HS1DS',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.heiman_contact],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['WaterSensor-N'],
+        model: 'HS1WL',
+        vendor: 'HEIMAN',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.heiman_water_leak],
+        toZigbee: [],
     },
 
     // Calex
