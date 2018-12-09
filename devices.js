@@ -1021,6 +1021,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
+        zigbeeModel: ['BY 185 C'],
+        model: 'BY 185 C',
+        vendor: 'Innr',
+        description: 'B22 Bulb RGBW',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',
