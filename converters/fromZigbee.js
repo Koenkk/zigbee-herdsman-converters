@@ -672,7 +672,7 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
-    Heiman_smoke: {
+    heiman_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
@@ -684,7 +684,7 @@ const converters = {
             };
         },
     },
-    Heiman_water: {
+    heiman_water_leak: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
@@ -696,7 +696,7 @@ const converters = {
             };
         },
     },
-    Heiman_contact: {
+    heiman_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
@@ -788,8 +788,6 @@ const converters = {
             return result;
         },
     },
-
-
     EDP_power: {
         cid: 'seMetering',
         type: 'attReport',
