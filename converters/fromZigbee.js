@@ -672,11 +672,40 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
-    HS1SA_smoke: {
+    heiman_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
-            return {smoke: msg.data.zoneStatus === 33};
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                smoke: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Smoke
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
+    heiman_water_leak: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Water leak
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
+    heiman_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Contact detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+            };
         },
     },
     JTQJBF01LMBW_gas: {
