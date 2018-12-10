@@ -678,8 +678,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                smoke: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Smoke
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
             };
         },
@@ -690,8 +690,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                water_leak: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Water leak
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
             };
         },
@@ -702,8 +702,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                contact: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm: Contact detection
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
             };
         },
