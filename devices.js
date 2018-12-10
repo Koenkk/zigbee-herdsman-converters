@@ -33,33 +33,36 @@ const generic = {
 const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
 
 const execute = (device, actions, callback, delay) => {
-    if (device) {
-        delay = delay || 300;
-        actions = actions.reverse();
-
-        const next = () => {
-            if (actions.length === 0) {
-                callback(true);
-                return;
-            }
-
-            setTimeout(() => {
-                const action = actions.pop();
-                action((error) => {
-                    debug(`Configured '${action.toString()}' with result '${error ? error : 'OK'}'`);
-                    if (error) {
-                        callback(false);
-                    } else {
-                        next();
-                    }
-                });
-            }, delay);
-        };
-
-        next();
-    } else {
+    if (!device) {
         callback(false);
+        return;
     }
+    delay || (delay = 300);
+    const len = actions.length;
+    let nextActionIndex = 0;
+
+    const next = () => {
+        if (nextActionIndex === len) {
+            callback(true);
+            return;
+        }
+
+        const nextAction = actions[nextActionIndex++];
+
+        setTimeout(nextAction,
+            delay,
+            (error) => {
+                debug(`Configured '${nextAction.toString()}' with result '${error ? error : 'OK'}'`);
+                if (error) {
+                    callback(false);
+                    return;
+                }
+                next();
+            }
+        );
+    };
+
+    next();
 };
 
 const devices = [
