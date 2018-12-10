@@ -1459,7 +1459,7 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.report('genBinaryInput', 'presentValue', 10, 30, 1, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600, cb),
             ];
 
             execute(device, actions, callback);
