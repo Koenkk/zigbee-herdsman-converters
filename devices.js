@@ -317,7 +317,12 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia gas leak detector ',
         supports: 'gas',
-        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.JTQJBF01LMBW_gas,
+            fz.JTQJBF01LMBW_sensitivity,
+            fz.JTQJBF01LMBW_gas_density,
+            fz.ignore_basic_change
+        ],
         toZigbee: [tz.JTQJBF01LMBW_sensitivity, tz.JTQJBF01LMBW_selfest],
     },
     {
