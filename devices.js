@@ -1024,7 +1024,7 @@ const devices = [
         zigbeeModel: ['BY 185 C'],
         model: 'BY 185 C',
         vendor: 'Innr',
-        description: 'E27 Bulb RGBW',
+        description: 'B22 Bulb RGBW',
         supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
