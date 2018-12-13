@@ -679,7 +679,7 @@ const converters = {
             const zoneStatus = msg.data.zoneStatus;
             return {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -691,7 +691,7 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -703,7 +703,7 @@ const converters = {
             return {
                 contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
