@@ -847,6 +847,27 @@ const converters = {
             };
         },
     },
+    SP120_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = msg.data.data['activePower'];
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data.data['rmsCurrent'] / 1000;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data.data['rmsVoltage'];
+            }
+
+            return result;
+        },
+    },
     STS_PRS_251_presence: {
         cid: 'genBinaryInput',
         type: 'attReport',
