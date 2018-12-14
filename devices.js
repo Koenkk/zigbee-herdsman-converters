@@ -1173,6 +1173,40 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['SP 120'],
+        model: 'SP 120',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.ignore_electrical_change, fz.SP120_power, fz.generic_state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const activePower = {
+                direction: 0, attrId: 1291, dataType: 41, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
+            };
+
+            const rmsCurrent = {
+                direction: 0, attrId: 1288, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 100,
+            };
+
+            const rmsVoltage = {
+                direction: 0, attrId: 1285, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
+            };
+
+            const electricalCfg = [rmsCurrent, rmsVoltage, activePower];
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
+                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Sylvania
     {
