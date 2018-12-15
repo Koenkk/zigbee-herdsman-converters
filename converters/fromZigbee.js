@@ -77,6 +77,19 @@ const voltageMap = [
     [Infinity, 100],
 ];
 
+const defaultPrecision = {
+    temperature: 2,
+    humidity: 2,
+    pressure: 1,
+};
+
+const precisionRoundOptions = (number, options, type) => {
+    const key = `${type}_precision`;
+    const defaultValue = defaultPrecision[type];
+    const precision = options && options.hasOwnProperty(key) ? options[key] : defaultValue;
+    return precisionRound(number, precision);
+};
+
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
@@ -220,14 +233,17 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
+                const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
+                const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
                 const result = {
-                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
-                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
+                    temperature: precisionRoundOptions(temperature, options, 'temperature'),
+                    humidity: precisionRoundOptions(humidity, options, 'humidity'),
                 };
 
                 // Check if contains pressure (WSDCGQ11LM only)
                 if (msg.data.data['65281'].hasOwnProperty('102')) {
-                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    const pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    result.pressure = precisionRoundOptions(pressure, options, 'pressure');
                 }
 
                 return result;
@@ -275,7 +291,8 @@ const converters = {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {temperature: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     MFKZQ01LM_action_multistate: {
@@ -368,7 +385,8 @@ const converters = {
         cid: 'msRelativeHumidity',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
         },
     },
     generic_occupancy: {
@@ -489,7 +507,8 @@ const converters = {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {pressure: msg.data.data['measuredValue']};
+            const pressure = parseFloat(msg.data.data['measuredValue']);
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     WXKG02LM_click: {
@@ -567,7 +586,7 @@ const converters = {
                     power: precisionRound(data['152'], 2),
                     voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -581,7 +600,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -595,7 +614,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
