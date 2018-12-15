@@ -1063,6 +1063,26 @@ const converters = {
             };
         },
     },
+    ias_contact_dev_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
+            };
+        },
+    },
+    ias_contact_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
