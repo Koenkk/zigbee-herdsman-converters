@@ -154,7 +154,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
-            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.ignore_analog_report,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off],
     },
@@ -180,7 +180,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
-            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off],
         ep: (device) => {
