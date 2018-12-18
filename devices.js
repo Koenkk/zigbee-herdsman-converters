@@ -81,7 +81,7 @@ const devices = [
         fromZigbee: [
             fz.light_brightness, fz.light_color_colortemp, fz.generic_state, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
-            fz.ignore_basic_change
+            fz.ignore_basic_change,
         ],
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
