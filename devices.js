@@ -73,6 +73,19 @@ const execute = (device, actions, callback, delay) => {
 const devices = [
     // Xiaomi
     {
+        zigbeeModel: ['lumi.light.aqcn02'],
+        model: 'ZNLDP12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart LED bulb',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: [
+            fz.light_brightness, fz.light_color_colortemp, fz.generic_state, fz.xiaomi_bulb_interval,
+            fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
+            fz.ignore_basic_change
+        ],
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
