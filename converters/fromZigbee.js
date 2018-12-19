@@ -591,6 +591,20 @@ const converters = {
             }
         },
     },
+    xiaomi_bulb_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    state: data['100'] === 1 ? 'ON' : 'OFF',
+                    brightness: data['101'],
+                    color_temp: data['102'],
+                };
+            }
+        },
+    },
     QBKG11LM_power: {
         cid: 'genBasic',
         type: 'attReport',
@@ -1182,6 +1196,16 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_brightness_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_color_colortemp_report: {
+        cid: 'lightingColorCtrl',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
 };
