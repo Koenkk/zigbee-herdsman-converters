@@ -698,6 +698,44 @@ const converters = {
             }
         },
     },
+    ZNCLDJ11LM_curtain_genAnalogOutput_change: {
+        cid: 'genAnalogOutput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+            if (msg.data.data['61440']) {
+                if ((msg.data.data['61440'].toString()).startsWith('117440')
+            ||(msg.data.data['61440'].toString()).startsWith('591')) {
+                    running = true;
+                } else if (msg.data.data['61440']===0) {
+                    running = false;
+                }
+
+                return {presentValue: precisionRound(msg.data.data['presentValue'], 2), running: running};
+            }
+            return {presentValue: precisionRound(msg.data.data['presentValue'], 2),
+                running: running};
+        },
+    },
+    ZNCLDJ11LM_curtain_closuresWindowCovering_change: {
+        cid: 'closuresWindowCovering',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['currentPositionLiftPercentage']) {
+                const lift = precisionRound(msg.data.data['currentPositionLiftPercentage'], 2);
+                return {currentPositionLiftPercentage: lift};
+            }
+        },
+    },
+    ZNCLDJ11LM_genBasic_change: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                return {summaryReport: msg.data.data['65281']};
+            }
+        },
+    },
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -1165,6 +1203,11 @@ const converters = {
     },
     ignore_analog_change: {
         cid: 'genAnalogInput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_analogOutput_change: {
+        cid: 'genAnalogOutput',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },

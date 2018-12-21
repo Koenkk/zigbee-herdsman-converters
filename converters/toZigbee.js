@@ -308,6 +308,46 @@ const converters = {
             }
         },
     },
+    ZNCLDJ11LM_control: {
+        key: 'state',
+        convert: (key, value, message, type) => {
+            const lookup = {
+                'open': 'upOpen',
+                'close': 'downClose',
+                'stop': 'stop',
+                'on': 'upOpen',
+                'off': 'downClose',
+            };
+
+            if (lookup[value]) {
+                value = lookup[value];
+            }
+
+            return {
+                cid: 'closuresWindowCovering',
+                cmd: value,
+                cmdType: 'functional',
+                zclData: {},
+                cfg: cfg.default,
+            };
+        },
+    },
+    ZNCLDJ11LM_control_percentage: {
+        key: 'percentage',
+        convert: (key, value, message, type) => {
+            return {
+                cid: 'genAnalogOutput',
+                cmd: 'write',
+                cmdType: 'foundation',
+                zclData: [{
+                    attrId: 0x0055,
+                    dataType: 0x39,
+                    attrData: value,
+                }],
+                cfg: cfg.default,
+            };
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
