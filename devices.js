@@ -1250,7 +1250,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM'],
+        zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM 10 Year'],
         model: '74283',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED soft white dimmable A19',
