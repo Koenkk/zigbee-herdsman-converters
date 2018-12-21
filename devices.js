@@ -1801,6 +1801,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+ 
+    {
+        zigbeeModel: ['FNB56-ZCW25FB1.9'],
+        model: 'XY12S-15',
+        vendor: 'Unknown',
+        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+    },
+    
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
