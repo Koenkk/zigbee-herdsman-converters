@@ -77,6 +77,19 @@ const voltageMap = [
     [Infinity, 100],
 ];
 
+const defaultPrecision = {
+    temperature: 2,
+    humidity: 2,
+    pressure: 1,
+};
+
+const precisionRoundOptions = (number, options, type) => {
+    const key = `${type}_precision`;
+    const defaultValue = defaultPrecision[type];
+    const precision = options && options.hasOwnProperty(key) ? options[key] : defaultValue;
+    return precisionRound(number, precision);
+};
+
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
@@ -286,14 +299,17 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
+                const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
+                const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
                 const result = {
-                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
-                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
+                    temperature: precisionRoundOptions(temperature, options, 'temperature'),
+                    humidity: precisionRoundOptions(humidity, options, 'humidity'),
                 };
 
                 // Check if contains pressure (WSDCGQ11LM only)
                 if (msg.data.data['65281'].hasOwnProperty('102')) {
-                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    const pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    result.pressure = precisionRoundOptions(pressure, options, 'pressure');
                 }
 
                 return result;
@@ -341,7 +357,8 @@ const converters = {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {temperature: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     MFKZQ01LM_action_multistate: {
@@ -434,7 +451,8 @@ const converters = {
         cid: 'msRelativeHumidity',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
         },
     },
     generic_occupancy: {
@@ -507,6 +525,10 @@ const converters = {
                 result.color_temp = msg.data.data['colorTemperature'];
             }
 
+            if (msg.data.data['colorMode']) {
+                result.color_mode = msg.data.data['colorMode'];
+            }
+
             if (msg.data.data['currentX'] || msg.data.data['currentY']) {
                 result.color = {};
 
@@ -551,21 +573,24 @@ const converters = {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {pressure: msg.data.data['measuredValue']};
+            const pressure = parseFloat(msg.data.data['measuredValue']);
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     WXKG02LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {click: getKey(model.ep, msg.endpoints[0].epId)};
+            const ep = msg.endpoints[0];
+            return {click: getKey(model.ep(ep.device), ep.epId)};
         },
     },
     WXKG02LM_click_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             const value = msg.data.data['presentValue'];
 
             const actionLookup = {
@@ -627,7 +652,21 @@ const converters = {
                     power: precisionRound(data['152'], 2),
                     voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
+                };
+            }
+        },
+    },
+    xiaomi_bulb_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    state: data['100'] === 1 ? 'ON' : 'OFF',
+                    brightness: data['101'],
+                    color_temp: data['102'],
                 };
             }
         },
@@ -641,7 +680,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -655,7 +694,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -674,7 +713,8 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
-                const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+                const ep = msg.endpoints[0];
+                const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
@@ -703,9 +743,15 @@ const converters = {
                 const state = data.substr(2, 2);
                 const action = data.substr(4, 2);
                 const keynum = data.substr(6, 2);
-                if (state == 11 && action == 7) {
-                    // wrong key or not success inserted
-                    return {keyerror: true};
+                if (state == 11) {
+                    if (action == 1) {
+                        // unknown key
+                        return {keyerror: true, inserted: 'unknown'};
+                    }
+                    if (action == 3) {
+                        // explicitly disabled key (e.g.: reported lost)
+                        return {keyerror: true, inserted: keynum};
+                    }
                 }
                 if (state == 12) {
                     if (action == 1) {
@@ -723,6 +769,41 @@ const converters = {
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             return {smoke: msg.data.zoneStatus === 1};
+        },
+    },
+    heiman_smoke: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
+    heiman_water_leak: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
+    heiman_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
         },
     },
     JTQJBF01LMBW_gas: {
@@ -835,7 +916,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const key = `state_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
@@ -845,7 +927,8 @@ const converters = {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const key = `button_${getKey(model.ep, msg.endpoints[0].epId)}`;
+            const ep = msg.endpoints[0];
+            const key = `button_${getKey(model.ep(ep.device), ep.epId)}`;
             const payload = {};
             payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
             return payload;
@@ -861,6 +944,27 @@ const converters = {
                 voltage: msg.data.data['rmsVoltage'],
                 power_factor: msg.data.data['powerFactor'],
             };
+        },
+    },
+    SP120_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = msg.data.data['activePower'];
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data.data['rmsCurrent'] / 1000;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data.data['rmsVoltage'];
+            }
+
+            return result;
         },
     },
     STS_PRS_251_presence: {
@@ -1001,11 +1105,19 @@ const converters = {
             return {power: msg.data.data['activePower'] / 10.0};
         },
     },
+    iris_3320L_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 36};
+        },
+    },
     nue_power_state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const button = getKey(model.ep, msg.endpoints[0].epId);
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
             if (button) {
                 const payload = {};
                 payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -1021,6 +1133,52 @@ const converters = {
                 power: msg.data.data['activePower'],
                 current: msg.data.data['rmsCurrent'],
                 voltage: msg.data.data['rmsVoltage'],
+            };
+        },
+    },
+    ias_zone_motion_dev_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
+                const zoneStatus = msg.data.data.zoneStatus;
+                return {
+                    occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                    tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                    battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                };
+            }
+        },
+    },
+    ias_zone_motion_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+            };
+        },
+    },
+    ias_contact_dev_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
+            };
+        },
+    },
+    ias_contact_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
             };
         },
     },
@@ -1104,6 +1262,16 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_brightness_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_color_colortemp_report: {
+        cid: 'lightingColorCtrl',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
 };
