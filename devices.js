@@ -1791,7 +1791,16 @@ const devices = [
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
     },
-
+    
+    {
+        zigbeeModel: ['HOMA2023'],
+        model: 'ZB-CC-40',
+        vendor: 'HUEUC',
+        description: 'LED Zigbee LED Driver',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
