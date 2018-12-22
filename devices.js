@@ -1803,7 +1803,7 @@ const devices = [
     },
  
     {
-        zigbeeModel: ['FNB56-ZCW25FB1.9'],
+        zigbeeModel: ['FNB56-ZCW25FB1.9', 'XY12S-15'],
         model: 'XY12S-15',
         vendor: 'Unknown',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
