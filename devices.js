@@ -1011,6 +1011,15 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['MR16 TW OSRAM'],
+        model: 'AC03648',
+        vendor: 'OSRAM',
+        description: 'SMART+ spot GU5.3 tunable white',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 
     // Hive
     {
