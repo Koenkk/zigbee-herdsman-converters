@@ -1471,7 +1471,7 @@ const devices = [
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
-            } else if (device.epList.toString() === '10,11,13') {
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
                 return {'': 11};
             } else {
                 return {};
