@@ -73,6 +73,19 @@ const execute = (device, actions, callback, delay) => {
 const devices = [
     // Xiaomi
     {
+        zigbeeModel: ['lumi.light.aqcn02'],
+        model: 'ZNLDP12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart LED bulb',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: [
+            fz.light_brightness, fz.light_color_colortemp, fz.generic_state, fz.xiaomi_bulb_interval,
+            fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
+            fz.ignore_basic_change,
+        ],
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
+    {
         zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
@@ -154,7 +167,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
-            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.ignore_analog_report,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off],
     },
@@ -180,7 +193,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
-            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.ignore_analog_report,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off],
         ep: (device) => {
@@ -1003,6 +1016,15 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['MR16 TW OSRAM'],
+        model: 'AC03648',
+        vendor: 'OSRAM',
+        description: 'SMART+ spot GU5.3 tunable white',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
 
     // Hive
     {
@@ -1178,6 +1200,40 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
+    {
+        zigbeeModel: ['SP 120'],
+        model: 'SP 120',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.ignore_electrical_change, fz.SP120_power, fz.generic_state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const activePower = {
+                direction: 0, attrId: 1291, dataType: 41, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
+            };
+
+            const rmsCurrent = {
+                direction: 0, attrId: 1288, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 100,
+            };
+
+            const rmsVoltage = {
+                direction: 0, attrId: 1285, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
+            };
+
+            const electricalCfg = [rmsCurrent, rmsVoltage, activePower];
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
+                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Sylvania
     {
@@ -1208,7 +1264,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
     {
-        zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM'],
+        zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM', 'LIGHTIFY A19 ON/OFF/DIM 10 Year'],
         model: '74283',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED soft white dimmable A19',
@@ -1429,7 +1485,7 @@ const devices = [
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
-            } else if (device.epList.toString() === '10,11,13') {
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
                 return {'': 11};
             } else {
                 return {};
@@ -1475,6 +1531,42 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+    {
+        zigbeeModel: ['VMS_ADUROLIGHT'],
+        model: 'ZPIR-8000',
+        vendor: 'Trust',
+        description: 'Motion Sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_zone_motion_dev_change, fz.ias_zone_motion_status_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['CSW_ADUROLIGHT'],
+        model: 'ZCTS-808',
+        vendor: 'Trust',
+        description: 'Wireless contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 
     // Paulmann
@@ -1723,6 +1815,17 @@ const devices = [
         supports: generic.light_onoff_brightness().supports,
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+
+    // EcoSmart
+    {
+        zigbeeModel: ['zhaRGBW'],
+        model: 'D1821',
+        vendor: 'EcoSmart',
+        description: 'A19 RGB bulb',
+        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
     },
 ];
 

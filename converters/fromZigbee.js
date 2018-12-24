@@ -77,6 +77,19 @@ const voltageMap = [
     [Infinity, 100],
 ];
 
+const defaultPrecision = {
+    temperature: 2,
+    humidity: 2,
+    pressure: 1,
+};
+
+const precisionRoundOptions = (number, options, type) => {
+    const key = `${type}_precision`;
+    const defaultValue = defaultPrecision[type];
+    const precision = options && options.hasOwnProperty(key) ? options[key] : defaultValue;
+    return precisionRound(number, precision);
+};
+
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
@@ -220,14 +233,17 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
+                const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
+                const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
                 const result = {
-                    temperature: parseFloat(msg.data.data['65281']['100']) / 100.0,
-                    humidity: parseFloat(msg.data.data['65281']['101']) / 100.0,
+                    temperature: precisionRoundOptions(temperature, options, 'temperature'),
+                    humidity: precisionRoundOptions(humidity, options, 'humidity'),
                 };
 
                 // Check if contains pressure (WSDCGQ11LM only)
                 if (msg.data.data['65281'].hasOwnProperty('102')) {
-                    result.pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    const pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                    result.pressure = precisionRoundOptions(pressure, options, 'pressure');
                 }
 
                 return result;
@@ -275,7 +291,8 @@ const converters = {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {temperature: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     MFKZQ01LM_action_multistate: {
@@ -368,7 +385,8 @@ const converters = {
         cid: 'msRelativeHumidity',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {humidity: parseFloat(msg.data.data['measuredValue']) / 100.0};
+            const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
         },
     },
     generic_occupancy: {
@@ -489,7 +507,8 @@ const converters = {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {pressure: msg.data.data['measuredValue']};
+            const pressure = parseFloat(msg.data.data['measuredValue']);
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     WXKG02LM_click: {
@@ -567,7 +586,21 @@ const converters = {
                     power: precisionRound(data['152'], 2),
                     voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
+                };
+            }
+        },
+    },
+    xiaomi_bulb_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                const data = msg.data.data['65281'];
+                return {
+                    state: data['100'] === 1 ? 'ON' : 'OFF',
+                    brightness: data['101'],
+                    color_temp: data['102'],
                 };
             }
         },
@@ -581,7 +614,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -595,7 +628,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRound(data['3'], 2),
+                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -679,8 +712,7 @@ const converters = {
             const zoneStatus = msg.data.zoneStatus;
             return {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -692,7 +724,7 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -704,7 +736,7 @@ const converters = {
             return {
                 contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<4) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -859,6 +891,27 @@ const converters = {
                 voltage: msg.data.data['rmsVoltage'],
                 power_factor: msg.data.data['powerFactor'],
             };
+        },
+    },
+    SP120_power: {
+        cid: 'haElectricalMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = msg.data.data['activePower'];
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data.data['rmsCurrent'] / 1000;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data.data['rmsVoltage'];
+            }
+
+            return result;
         },
     },
     STS_PRS_251_presence: {
@@ -1056,6 +1109,26 @@ const converters = {
             };
         },
     },
+    ias_contact_dev_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
+            };
+        },
+    },
+    ias_contact_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: (zoneStatus & 1) > 0,
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
@@ -1136,6 +1209,16 @@ const converters = {
     ignore_electrical_change: {
         cid: 'haElectricalMeasurement',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_brightness_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_light_color_colortemp_report: {
+        cid: 'lightingColorCtrl',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
 };
