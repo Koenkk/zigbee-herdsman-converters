@@ -72,13 +72,13 @@ const devices = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        supports: generic.light_onoff_brightness_colortemp().supports,
+        supports: generic.light_onoff_brightness_colortemp.supports,
         fromZigbee: [
             fz.light_brightness, fz.light_color_colortemp, fz.generic_state, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
             fz.ignore_basic_change,
         ],
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
@@ -1016,9 +1016,9 @@ const devices = [
         model: 'AC03648',
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
-        supports: generic.light_onoff_brightness_colortemp().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
 
     // Hive
@@ -1818,9 +1818,9 @@ const devices = [
         model: 'D1821',
         vendor: 'EcoSmart',
         description: 'A19 RGB bulb',
-        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
     },
 ];
 
