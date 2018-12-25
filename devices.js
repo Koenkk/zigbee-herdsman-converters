@@ -1070,6 +1070,16 @@ const devices = [
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
     {
+        zigbeeModel: ['RB 178 T'],
+        model: 'RB 178 T',
+        vendor: 'Innr',
+        description: 'E27 Bulb warm dimming',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
+   
+    {
         zigbeeModel: ['RS 125'],
         model: 'RS 125',
         vendor: 'Innr',
@@ -1801,17 +1811,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness().fromZigbee,
         toZigbee: generic.light_onoff_brightness().toZigbee,
     },
- 
-    {
-        zigbeeModel: ['FNB56-ZCW25FB1.9', 'XY12S-15'],
-        model: 'XY12S-15',
-        vendor: 'Unknown',
-        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
-    },
-    
+
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
