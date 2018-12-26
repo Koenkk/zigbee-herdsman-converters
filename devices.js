@@ -360,7 +360,7 @@ const devices = [
         supports: 'open, close, stop, position',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, 
+            fz.ZNCLDJ11LM_curtain_genAnalogOutput_change,
             fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
             fz.ignore_basic_report, fz.ignore_basic_change, fz.ignore_analogOutput_change,
         ],

@@ -704,12 +704,12 @@ const converters = {
         convert: (model, msg, publish, options) => {
             let running = false;
 
-            let runningData = msg.data.data['61440'];
+            const runningData = msg.data.data['61440'];
             if (runningData) {
                 running = runningData.toString().startsWith('117440') || runningData.toString().startsWith('591');
             }
 
-            let position = precisionRound(msg.data.data['presentValue'], 2);
+            const position = precisionRound(msg.data.data['presentValue'], 2);
 
             return {position: position, running: running};
         },
