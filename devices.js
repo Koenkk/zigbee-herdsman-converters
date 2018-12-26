@@ -1493,7 +1493,7 @@ const devices = [
         zigbeeModel: ['PGC313'],
         model: 'STSS-MULT-001',
         vendor: 'SmartThings',
-        description: 'SmartSense multi sensor',
+        description: 'Multipurpose sensor',
         supports: 'contact',
         fromZigbee: [fz.smartthings_contact],
         toZigbee: [],
@@ -1502,7 +1502,7 @@ const devices = [
         zigbeeModel: ['tagv4'],
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
-        description: 'SmartThings arrival sensor',
+        description: 'Arrival sensor',
         supports: 'presence',
         fromZigbee: [fz.STS_PRS_251_presence, fz.STS_PRS_251_battery, fz.ignore_power_change, fz.STS_PRS_251_beeping],
         toZigbee: [tz.STS_PRS_251_beep],
@@ -1513,6 +1513,30 @@ const devices = [
                 (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600),
             ];
 
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3325-S'],
+        model: '3325-S',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2015 model)',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
+            fz.ias_zone_motion_status_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+            ];
             execute(device, actions, callback);
         },
     },
@@ -1712,7 +1736,7 @@ const devices = [
 
     // Centralite Swiss Plug
     {
-        zigbeeModel: ['4256251-RZHAC'],
+        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
