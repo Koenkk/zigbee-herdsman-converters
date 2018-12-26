@@ -700,17 +700,29 @@ const converters = {
     },
     ZNCLDJ11LM_curtain_genAnalogOutput_change: {
         cid: 'genAnalogOutput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
+            }
+
+            const position = precisionRound(msg.data.data['presentValue'], 2);
+            return {position: position, running: running};
+        },
+    },
+    ZNCLDJ11LM_curtain_genAnalogOutput_report: {
+        cid: 'genAnalogOutput',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             let running = false;
 
-            const runningData = msg.data.data['61440'];
-            if (runningData) {
-                running = runningData.toString().startsWith('117440') || runningData.toString().startsWith('591');
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
             }
 
             const position = precisionRound(msg.data.data['presentValue'], 2);
-
             return {position: position, running: running};
         },
     },
@@ -1181,11 +1193,6 @@ const converters = {
     },
     ignore_analog_change: {
         cid: 'genAnalogInput',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_analogOutput_change: {
-        cid: 'genAnalogOutput',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
