@@ -332,8 +332,8 @@ const converters = {
             };
         },
     },
-    ZNCLDJ11LM_control_percentage: {
-        key: 'percentage',
+    ZNCLDJ11LM_control_position: {
+        key: 'position',
         convert: (key, value, message, type) => {
             return {
                 cid: 'genAnalogOutput',

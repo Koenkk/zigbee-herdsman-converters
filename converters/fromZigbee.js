@@ -703,37 +703,15 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             let running = false;
-            if (msg.data.data['61440']) {
-                if ((msg.data.data['61440'].toString()).startsWith('117440')
-            ||(msg.data.data['61440'].toString()).startsWith('591')) {
-                    running = true;
-                } else if (msg.data.data['61440']===0) {
-                    running = false;
-                }
 
-                return {presentValue: precisionRound(msg.data.data['presentValue'], 2), running: running};
+            let runningData = msg.data.data['61440'];
+            if (runningData) {
+                running = runningData.toString().startsWith('117440') || runningData.toString().startsWith('591');
             }
-            return {presentValue: precisionRound(msg.data.data['presentValue'], 2),
-                running: running};
-        },
-    },
-    ZNCLDJ11LM_curtain_closuresWindowCovering_change: {
-        cid: 'closuresWindowCovering',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data['currentPositionLiftPercentage']) {
-                const lift = precisionRound(msg.data.data['currentPositionLiftPercentage'], 2);
-                return {currentPositionLiftPercentage: lift};
-            }
-        },
-    },
-    ZNCLDJ11LM_genBasic_change: {
-        cid: 'genBasic',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                return {summaryReport: msg.data.data['65281']};
-            }
+
+            let position = precisionRound(msg.data.data['presentValue'], 2);
+
+            return {position: position, running: running};
         },
     },
     JTYJGD01LMBW_smoke: {
@@ -1248,6 +1226,16 @@ const converters = {
     },
     ignore_light_color_colortemp_report: {
         cid: 'lightingColorCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_change: {
+        cid: 'closuresWindowCovering',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_report: {
+        cid: 'closuresWindowCovering',
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
