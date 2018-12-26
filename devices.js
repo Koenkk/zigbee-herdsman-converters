@@ -1304,6 +1304,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
+    {
+        zigbeeModel: ['LIGHTIFY Gardenspot RGB'],
+        model: 'LTFY004',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED gardenspot mini RGB',
+        supports: generic.light_onoff_brightness_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colorxy.toZigbee,
+    },
 
     // GE
     {
