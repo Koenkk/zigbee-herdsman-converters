@@ -828,10 +828,6 @@ const converters = {
                 const data = msg.data.data['1283'];
                 result.angle = data;
             }
-            if (msg.data.data['1285']) {
-                const data = msg.data.data['1285'];
-                result.unknown_data = data;
-            }
 
             if (msg.data.data['1288']) {
                 const data = msg.data.data['1288'];
