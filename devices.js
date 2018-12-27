@@ -1886,6 +1886,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
     },
+
+    // Airam
+    {
+        zigbeeModel: ['ZBT-DimmableLight'],
+        model: '4713407',
+        vendor: 'Airam',
+        description: 'LED OP A60 ZB 9W/827 E27',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 ];
 
 module.exports = devices;
