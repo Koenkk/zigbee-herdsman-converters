@@ -318,7 +318,8 @@ const converters = {
                 'on': 'upOpen',
                 'off': 'downClose',
             };
-
+            
+            value = value.toLowerCase();
             if (lookup[value]) {
                 value = lookup[value];
             }
