@@ -1497,10 +1497,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GLEDOPTO', 'GL-S-007Z'],
-        model: 'GL-C-008',
+        zigbeeModel: ['GL-S-007Z'],
+        model: 'GL-S-007Z',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
+        description: 'Smart RGBW GU10',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
