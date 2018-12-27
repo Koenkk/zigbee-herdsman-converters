@@ -353,6 +353,19 @@ const devices = [
         ],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
+    {
+        zigbeeModel: ['lumi.curtain'],
+        model: 'ZNCLDJ11LM',
+        description: 'Aqara curtain motor',
+        supports: 'open, close, stop, position',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_report,
+            fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
+            fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
+        toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
+    },
 
     // IKEA
     {
