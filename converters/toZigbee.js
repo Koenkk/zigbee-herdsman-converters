@@ -318,9 +318,9 @@ const converters = {
                 'on': 'upOpen',
                 'off': 'downClose',
             };
-            
+
             value = value.toLowerCase();
-            if (lookup[value]) {               
+            if (lookup[value]) {  
                 return {
                     cid: 'closuresWindowCovering',
                     cmd: lookup[value],
