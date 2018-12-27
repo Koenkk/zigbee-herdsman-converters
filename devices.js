@@ -356,7 +356,7 @@ const devices = [
     {
         zigbeeModel: ['lumi.curtain'],
         model: 'ZNCLDJ11LM',
-        description: 'Aqara smart curtain',
+        description: 'Aqara curtain motor',
         supports: 'open, close, stop, position',
         vendor: 'Xiaomi',
         fromZigbee: [
