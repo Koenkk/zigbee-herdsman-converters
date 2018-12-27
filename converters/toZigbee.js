@@ -320,17 +320,15 @@ const converters = {
             };
             
             value = value.toLowerCase();
-            if (lookup[value]) {
-                value = lookup[value];
+            if (lookup[value]) {               
+                return {
+                    cid: 'closuresWindowCovering',
+                    cmd: lookup[value],
+                    cmdType: 'functional',
+                    zclData: {},
+                    cfg: cfg.default,
+                };
             }
-
-            return {
-                cid: 'closuresWindowCovering',
-                cmd: value,
-                cmdType: 'functional',
-                zclData: {},
-                cfg: cfg.default,
-            };
         },
     },
     ZNCLDJ11LM_control_position: {
