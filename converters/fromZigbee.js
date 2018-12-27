@@ -698,6 +698,34 @@ const converters = {
             }
         },
     },
+    ZNCLDJ11LM_curtain_genAnalogOutput_change: {
+        cid: 'genAnalogOutput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
+            }
+
+            const position = precisionRound(msg.data.data['presentValue'], 2);
+            return {position: position, running: running};
+        },
+    },
+    ZNCLDJ11LM_curtain_genAnalogOutput_report: {
+        cid: 'genAnalogOutput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
+            }
+
+            const position = precisionRound(msg.data.data['presentValue'], 2);
+            return {position: position, running: running};
+        },
+    },
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -1218,6 +1246,16 @@ const converters = {
     },
     ignore_light_color_colortemp_report: {
         cid: 'lightingColorCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_change: {
+        cid: 'closuresWindowCovering',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_report: {
+        cid: 'closuresWindowCovering',
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
