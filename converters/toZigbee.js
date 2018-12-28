@@ -191,13 +191,49 @@ const converters = {
         convert: (value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemp';
-            if (type === 'get') { // MAC transaction expired.
+            if (type === 'get') {
                 return {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: zclId.attr(cid, attrId).value}],
                     cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_occupancy: {
+        key: 'occupancy',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'occupancy';
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_temperatureCalibration: {
+        key: 'setTemperatureCalibration',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x10;
+
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId, // localTemperatureCalibration 0x10
+                        dataType: 0x28, // dataType int8
+                        attrData: Math.round(value * 10),
+                    }],
                 };
             }
         },
@@ -214,12 +250,96 @@ const converters = {
                     cmdType: 'foundation',
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value) * 100,
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_unoccupiedHeatingSetpoint: { // testing
+        key: 'unoccupiedHeatingSetpoint',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'unoccupiedHeatingSetpoint';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
                         dataType: 0x29,
                         attrData: Math.round(value) * 100,
                     }],
                     cfg: cfg.default,
                 };
-            } else if (type === 'get') { // MAC transaction expired.
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_ctrlSeqeOfOper: { // testing
+        key: 'ctrlSeqeOfOper',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'ctrlSeqeOfOper';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: 0x29,
+                        attrData: Math.round(value) * 100,
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_systemMode: { // testing
+        key: 'systemMode',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'systemMode';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value) * 100,
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
                 return {
                     cid: cid,
                     cmd: 'read',

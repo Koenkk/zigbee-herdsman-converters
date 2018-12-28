@@ -828,12 +828,13 @@ const devices = [
         vendor: 'ecozy',
         description: '',
         supports: '',
-        fromZigbee: [fz.ignore_basic_change, fz.ecozy_hvacThermostat_attReport,
-            fz.generic_battery_voltage, fz.thermostat_localTemp], // fz.ignore_hvacThermostat_change
-        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint,
-            tz.thermostat_setpointRaiseLower, tz.thermostat_weeklySchedule, tz.thermostat_localTemp,
-            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_clearWeeklySchedule, tz.thermostat_getRelayStatusLog,
-            tz.thermostat_getRelayStatusLogRsp],
+        fromZigbee: [fz.ignore_basic_change, fz.generic_battery_voltage,
+            fz.thermostat_attReport, fz.thermostat_devChange], // fz.ignore_hvacThermostat_change
+        toZigbee: [tz.factory_reset, tz.thermostat_localTemp, tz.thermostat_occupancy,
+            tz.thermostat_temperatureCalibration, tz.thermostat_occupiedHeatingSetpoint,
+            tz.thermostat_unoccupiedHeatingSetpoint, tz.thermostat_ctrlSeqeOfOper, tz.thermostat_systemMode,
+            tz.thermostat_setpointRaiseLower, tz.thermostat_weeklySchedule, tz.thermostat_clearWeeklySchedule,
+            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_getRelayStatusLog, tz.thermostat_getRelayStatusLogRsp],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [

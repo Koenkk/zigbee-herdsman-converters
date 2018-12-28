@@ -1129,7 +1129,7 @@ const converters = {
             };
         },
     },
-    thermostat_localTemp: {
+    thermostat_devChange: {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -1140,7 +1140,7 @@ const converters = {
             };
         },
     },
-    ecozy_hvacThermostat_attReport: {
+    thermostat_attReport: {
         cid: 'hvacThermostat',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
