@@ -1133,21 +1133,10 @@ const converters = {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            /*
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-
-            if (!store[deviceID]) {
-                store[deviceID] = {localTemp: null};
-            }
-
-            if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
-                store[deviceID].localTemp = msg.data.data.localTemp;
-            }
-            */
             return {
                 type: 'devChange',
                 data: msg.data.data,
-                // localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
+                // localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
             };
         },
     },
@@ -1156,23 +1145,11 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {
-                if (!msg.data.data.localTemp == null || !msg.data.data.localTemp == '') {
-                    localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
-                }
-                if (!msg.data.data.occupiedHeatingSetpoint == null || !msg.data.data.occupiedHeatingSetpoint ==
-                    '') {
-                    occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
-                }
-                if (!msg.data.data.setpointChangeSource == null || !msg.data.data.setpointChangeSource == '') {
-                    setpointChangeSource: msg.data.data.setpointChangeSource,
-                }
-                if (!msg.data.data.setpointChangeAmount == null || !msg.data.data.setpointChangeAmount == '') {
-                    setpointChangeAmount: msg.data.data.setpointChangeAmount / 100,
-                }
-                if (!msg.data.data.setpointChangeSourceTimeStamp == null ||
-                    !msg.data.data.setpointChangeSourceTimeStamp == '') {
-                    setpointChangeSourceTimeStamp: msg.data.data.setpointChangeSourceTimeStamp,
-                }
+                localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
+                occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
+                setpointChangeSource: msg.data.data.setpointChangeSource,
+                setpointChangeAmount: msg.data.data.setpointChangeAmount / 100,
+                setpointChangeSourceTimeStamp: msg.data.data.setpointChangeSourceTimeStamp,
             };
         },
     },
