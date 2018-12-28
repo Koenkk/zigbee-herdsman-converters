@@ -821,7 +821,38 @@ const devices = [
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
         },
     },
+    // eCozy
+    {
+        zigbeeModel: ['Thermostat'],
+        model: 'ecozy Thermostat',
+        vendor: 'ecozy',
+        description: '',
+        supports: '',
+        fromZigbee: [fz.ignore_basic_change, fz.ecozy_hvacThermostat_attReport,
+            fz.generic_battery_voltage, fz.thermostat_localTemp], // fz.ignore_hvacThermostat_change
+        toZigbee: [tz.factory_reset, tz.thermostat_occupiedHeatingSetpoint,
+            tz.thermostat_setpointRaiseLower, tz.thermostat_weeklySchedule, tz.thermostat_localTemp,
+            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_clearWeeklySchedule, tz.thermostat_getRelayStatusLog,
+            tz.thermostat_getRelayStatusLogRsp],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
 
+                // report(cId, attrId, minInt, maxInt, repChange, callback) {
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+                // (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 5, 30, 5, cb), // Times out after 30000ms
+            ];
+            execute(device, actions, callback);
+        },
+    },
     // OSRAM
     {
         zigbeeModel: ['Outdoor Lantern W RGBW OSRAM'],

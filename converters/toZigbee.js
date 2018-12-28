@@ -186,6 +186,174 @@ const converters = {
             }
         },
     },
+    thermostat_localTemp: {
+        key: 'localTemp',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'localTemp';
+            if (type === 'get') { // MAC transaction expired.
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_occupiedHeatingSetpoint: { // testing
+        key: 'occupiedHeatingSetpoint',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'occupiedHeatingSetpoint';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: 0x29,
+                        attrData: Math.round(value) * 100,
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') { // MAC transaction expired.
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_setpointRaiseLower: { // testing
+        key: 'setpointRaiseLower',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'setpointRaiseLower';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'setpointRaiseLower',
+                    cmdType: 'functional',
+                    zclData: {
+                        dataType: 0x29, // dataType
+                        attrData: Math.round(value) * 100,
+                        mode: value.mode,
+                        amount: Math.round(value.amount) * 100,
+                    },
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') { // MAC transaction expired.
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_weeklySchedule: { // not tested
+        key: 'weeklySchedule',
+        convert: (value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'weeklySchedule';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'setWeeklySchedule',
+                    cmdType: 'functional',
+                    zclData: {
+                        dataType: 0x29, // dataType
+                        attrData: Math.round(value) * 100,
+                        numoftrans: value.numoftrans,
+                        dayofweek: value.dayofweek,
+                        mode: value.mode,
+                        thermoseqmode: value.thermoseqmode,
+                    },
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') { // MAC transaction expired.
+                return {
+                    cid: cid,
+                    cmd: 'getWeeklySchedule',
+                    cmdType: 'functional',
+                    zclData: [
+                        {attrId: zclId.attr(cid, attrId).value},
+                        // {daystoreturn: value.daystoreturn},
+                        // {modetoreturn: value.modetoreturn},
+                    ],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_clearWeeklySchedule: { // not tested
+        key: 'clearWeeklySchedule',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'clearWeeklySchedule',
+                type: 'functional',
+                zclData: {},
+            };
+        },
+    },
+    thermostat_getRelayStatusLog: { // not tested
+        key: 'getRelayStatusLog',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getRelayStatusLog',
+                type: 'functional',
+                zclData: {},
+            };
+        },
+    },
+    thermostat_getWeeklyScheduleRsp: { // not tested
+        key: 'getWeeklyScheduleRsp',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getWeeklyScheduleRsp',
+                type: 'functional',
+                zclData: {
+                    numoftrans: value.numoftrans,
+                    dayofweek: value.dayofweek,
+                    mode: value.mode,
+                    thermoseqmode: value.thermoseqmode,
+                },
+            };
+        },
+    },
+    thermostat_getRelayStatusLogRsp: { // not tested
+        key: 'getRelayStatusLogRsp',
+        attr: [],
+        convert: (value, message, model) => {
+            return {
+                cid: 'hvacThermostat',
+                cmd: 'getRelayStatusLogRsp',
+                type: 'functional',
+                zclData: {
+                    timeofday: value.timeofday,
+                    relaystatus: value.relaystatus,
+                    localtemp: value.localtemp,
+                    humidity: value.humidity,
+                    setpoint: value.setpoint,
+                    unreadentries: value.unreadentries,
+                },
+            };
+        },
+    },
     /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
