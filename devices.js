@@ -1532,9 +1532,9 @@ const devices = [
         model: 'GL-B-008Z',
         vendor: 'GLEDOPTO',
         description: 'Smart 12W E27 RGB / CW LED bulb',
-        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
