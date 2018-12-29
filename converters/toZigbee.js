@@ -136,6 +136,10 @@ const converters = {
                     const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('hex')) {
+                    const xy = utils.hexToXY(value.hex);
+                    value.x = xy.x;
+                    value.y = xy.y;
                 }
 
                 return {
