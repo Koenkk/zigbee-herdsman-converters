@@ -40,6 +40,7 @@ function hexToXY(hex) {
 }
 
 function hexToRgb(hex) {
+    hex = hex.replace('#', '');
     const bigint = parseInt(hex, 16);
     const r = (bigint >> 16) & 255;
     const g = (bigint >> 8) & 255;
