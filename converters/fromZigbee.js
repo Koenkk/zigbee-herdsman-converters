@@ -1135,8 +1135,11 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 type: 'devChange',
-                data: msg.data.data,
-                // localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
+                localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
+                occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
+                setpointChangeSource: msg.data.data.setpointChangeSource,
+                setpointChangeAmount: msg.data.data.setpointChangeAmount / 100,
+                setpointChangeSourceTimeStamp: msg.data.data.setpointChangeSourceTimeStamp,
             };
         },
     },
@@ -1145,6 +1148,7 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {
+                type: 'attReport',
                 localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
                 occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
                 setpointChangeSource: msg.data.data.setpointChangeSource,
