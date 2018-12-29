@@ -824,9 +824,9 @@ const devices = [
     // eCozy
     {
         zigbeeModel: ['Thermostat'],
-        model: 'ecozy Thermostat',
+        model: 'ecozy Smart Thermostat',
         vendor: 'ecozy',
-        description: 'ecozy Smatrt Thermostat',
+        description: 'Smart Thermostat',
         supports: '',
         fromZigbee: [fz.ignore_basic_change, fz.generic_battery_voltage,
             fz.thermostat_attReport, fz.thermostat_devChange], // fz.ignore_hvacThermostat_change
@@ -844,7 +844,7 @@ const devices = [
                 // (cb) => device.bind('genIdentify', coordinator, cb),
                 // (cb) => device.bind('genTime', coordinator, cb),
                 // (cb) => device.bind('genPollCtrl', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                // (cb) => device.bind('hvacThermostat', coordinator, cb),
                 // (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
 
                 // report(cId, attrId, minInt, maxInt, repChange, callback) {
