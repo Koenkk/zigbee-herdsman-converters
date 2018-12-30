@@ -1134,7 +1134,6 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {
-                type: 'devChange',
                 localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
                 occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
                 setpointChangeSource: msg.data.data.setpointChangeSource,
@@ -1148,7 +1147,6 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {
-                type: 'attReport',
                 localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
                 occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
                 setpointChangeSource: msg.data.data.setpointChangeSource,
