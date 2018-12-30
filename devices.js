@@ -231,7 +231,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -241,7 +241,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.generic_occupancy, fz.generic_illuminance, fz.ignore_basic_change,
+            fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.generic_illuminance, fz.ignore_basic_change,
             fz.ignore_illuminance_change, fz.ignore_occupancy_change,
         ],
         toZigbee: [],
@@ -730,8 +730,14 @@ const devices = [
                 (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.bind('msOccupancySensing', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),    
+                // Device should report at least short before occupancyTimeout.
+                // Warning: in case options occupancy_timeout is used instead of default 
+                // occupancyTimeout, max reporting intervall needs to be set to an interval
+                // shorter than occupancy_timeout. Else our timer may timeout before
+                // device reports its status. (important in case of continous motion)
+                (cb) => device.report('msOccupancySensing', 'occupancy', 
+                		0, Math.round(fz.occupancyTimeout * 0.9), null, cb),
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
                 (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
             ];

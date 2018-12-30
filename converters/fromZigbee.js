@@ -390,6 +390,24 @@ const converters = {
         },
     },
     generic_occupancy: {
+        // This is for occupancy sensor that send motion start AND stop messages
+    	// Note: options.occupancy_timeout not available yet, to implement it will be
+    	// needed to update device report intervall as well, see devices.js
+        cid: 'msOccupancySensing',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+        	if (msg.data.data.occupancy === 0) {
+	        	return {occupancy: false};
+	        }
+        	else if (msg.data.data.occupancy === 1) {
+	        	return {occupancy: true};
+	        }
+        },
+    },
+    generic_occupancy_no_off_msg: {
+    	// This is for occupancy sensor that only send a message when motion detected,
+    	// but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
         cid: 'msOccupancySensing',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
