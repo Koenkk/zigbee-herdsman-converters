@@ -1694,13 +1694,13 @@ const devices = [
         supports: 'on/off, power measurement, router',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
         toZigbee: [tz.on_off],
-	configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
-		(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-		(cb) => device.bind('genOnOff', coordinator, cb),
-	    ];
-	    execute(device, actions, callback);
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
         },
     },
 
