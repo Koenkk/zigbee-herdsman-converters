@@ -106,10 +106,10 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 const converters = {
     bitron_power: {
-	cid: 'seMetering',
-	type: 'attReport',
-	convert: (model, msg, publish, options) => {
-	    return {power: parseFloat(msg.data.data['instantaneousDemand']) / 10.0};
+        cid: 'seMetering',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {power: parseFloat(msg.data.data['instantaneousDemand']) / 10.0};
 	},
     },
     bitron_occupancy: {
