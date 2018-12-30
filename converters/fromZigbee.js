@@ -110,7 +110,7 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {power: parseFloat(msg.data.data['instantaneousDemand']) / 10.0};
-	},
+        },
     },
     bitron_occupancy: {
         cid: 'ssIasZone',
