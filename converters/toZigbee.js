@@ -70,9 +70,10 @@ const converters = {
                       zclData: [{     
                     	    attrId: attrId,
                       		dataType: 33, // uint16
-                      		// hue_sml001: 	in seconds, minimum 10 seconds, 
-                      		// 				<10 values result in 10 seconds delay
-                      		//				make sure you write to second endpoint!
+                      		// hue_sml001:
+                      		// in seconds, minimum 10 seconds, <10 values result
+                            // in 10 seconds delay
+                      		// make sure you write to second endpoint!
                       		attrData: value,
                       }],
                       cfg: cfg.default,
