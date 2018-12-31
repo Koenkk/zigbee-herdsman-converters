@@ -1020,6 +1020,14 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
+    generic_battery_voltage: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            // batteryVoltage
+            return {battery: msg.data.data['batteryVoltage'] / 100};
+        },
+    },
     ICTC_G_1_move: {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
