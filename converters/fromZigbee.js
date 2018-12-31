@@ -1142,11 +1142,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {
-                localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
-                occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
-                setpointChangeSource: msg.data.data.setpointChangeSource,
-                setpointChangeAmount: msg.data.data.setpointChangeAmount / 100,
-                setpointChangeSourceTimeStamp: msg.data.data.setpointChangeSourceTimeStamp,
+                localTemp: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                occupiedHeatingSetpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                setpointChangeSource: msg.data.data['setpointChangeSource'],
+                setpointChangeAmount: msg.data.data['setpointChangeAmount'] / 100,
+                setpointChangeSourceTimeStamp: msg.data.data['setpointChangeSourceTimeStamp'],
             };
         },
     },
@@ -1155,11 +1155,11 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {
-                localTemp: precisionRound(msg.data.data.localTemp, 2) / 100,
-                occupiedHeatingSetpoint: precisionRound(msg.data.data.occupiedHeatingSetpoint, 2) / 100,
-                setpointChangeSource: msg.data.data.setpointChangeSource,
-                setpointChangeAmount: msg.data.data.setpointChangeAmount / 100,
-                setpointChangeSourceTimeStamp: msg.data.data.setpointChangeSourceTimeStamp,
+                localTemp: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                occupiedHeatingSetpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                setpointChangeSource: msg.data.data['setpointChangeSource'],
+                setpointChangeAmount: msg.data.data['setpointChangeAmount'] / 100,
+                setpointChangeSourceTimeStamp: msg.data.data['setpointChangeSourceTimeStamp'],
             };
         },
     },
