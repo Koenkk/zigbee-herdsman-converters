@@ -734,7 +734,13 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [],
+        toZigbee: [tz.generic_occupancy_pirOToUDelay,],
+        ep: (device) => {
+            return {
+            	'ep1': 1, 
+            	'ep2': 2,	// e.g. for write to msOccupancySensing
+            };
+        },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 2);
 
