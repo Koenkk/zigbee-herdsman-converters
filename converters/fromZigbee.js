@@ -327,10 +327,10 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             if (msg.data.data.occupancy === 0) {
-	        	return {occupancy: false};
+                return {occupancy: false};
             }
             else if (msg.data.data.occupancy === 1) {
-	            return {occupancy: true};
+                return {occupancy: true};
             }
         },
     },
