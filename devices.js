@@ -353,6 +353,19 @@ const devices = [
         ],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
+    {
+        zigbeeModel: ['lumi.curtain'],
+        model: 'ZNCLDJ11LM',
+        description: 'Aqara curtain motor',
+        supports: 'open, close, stop, position',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_report,
+            fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
+            fz.ignore_basic_change, fz.ignore_basic_report,
+        ],
+        toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
+    },
 
     // IKEA
     {
@@ -1528,6 +1541,42 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['GL-S-007Z'],
+        model: 'GL-S-007Z',
+        vendor: 'Gledopto',
+        description: 'Smart RGBW GU10',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['GL-B-008Z'],
+        model: 'GL-B-008Z',
+        vendor: 'GLEDOPTO',
+        description: 'Smart 12W E27 RGB / CW LED bulb',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
 
     // SmartThings
     {
@@ -1886,6 +1935,17 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+    },
+
+    // Airam
+    {
+        zigbeeModel: ['ZBT-DimmableLight'],
+        model: '4713407',
+        vendor: 'Airam',
+        description: 'LED OP A60 ZB 9W/827 E27',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 ];
 

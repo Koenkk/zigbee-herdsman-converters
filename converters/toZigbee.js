@@ -136,6 +136,10 @@ const converters = {
                     const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('hex')) {
+                    const xy = utils.hexToXY(value.hex);
+                    value.x = xy.x;
+                    value.y = xy.y;
                 }
 
                 return {
@@ -594,6 +598,45 @@ const converters = {
                     cfg: cfg.default,
                 };
             }
+        },
+    },
+    ZNCLDJ11LM_control: {
+        key: 'state',
+        convert: (key, value, message, type) => {
+            const lookup = {
+                'open': 'upOpen',
+                'close': 'downClose',
+                'stop': 'stop',
+                'on': 'upOpen',
+                'off': 'downClose',
+            };
+
+            value = value.toLowerCase();
+            if (lookup[value]) {
+                return {
+                    cid: 'closuresWindowCovering',
+                    cmd: lookup[value],
+                    cmdType: 'functional',
+                    zclData: {},
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    ZNCLDJ11LM_control_position: {
+        key: 'position',
+        convert: (key, value, message, type) => {
+            return {
+                cid: 'genAnalogOutput',
+                cmd: 'write',
+                cmdType: 'foundation',
+                zclData: [{
+                    attrId: 0x0055,
+                    dataType: 0x39,
+                    attrData: value,
+                }],
+                cfg: cfg.default,
+            };
         },
     },
 

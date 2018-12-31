@@ -11,72 +11,6 @@ const clickLookup = {
 
 const occupancyTimeout = 90; // In seconds
 
-const voltageMap = [
-    [2000, 0],
-    [2186, 1],
-    [2373, 2],
-    [2563, 3],
-    [2626, 4],
-    [2675, 5],
-    [2717, 6],
-    [2753, 7],
-    [2784, 8],
-    [2813, 9],
-    [2838, 10],
-    [2859, 11],
-    [2875, 12],
-    [2891, 13],
-    [2905, 14],
-    [2915, 15],
-    [2921, 16],
-    [2926, 17],
-    [2931, 18],
-    [2936, 19],
-    [2939, 20],
-    [2942, 21],
-    [2945, 22],
-    [2949, 23],
-    [2951, 24],
-    [2953, 25],
-    [2955, 26],
-    [2957, 27],
-    [2959, 28],
-    [2961, 29],
-    [2964, 30],
-    [2966, 31],
-    [2968, 32],
-    [2969, 33],
-    [2971, 34],
-    [2973, 35],
-    [2974, 36],
-    [2976, 37],
-    [2978, 38],
-    [2980, 39],
-    [2982, 40],
-    [2984, 41],
-    [2986, 42],
-    [2988, 43],
-    [2990, 44],
-    [2991, 46],
-    [2992, 48],
-    [2993, 49],
-    [2994, 51],
-    [2995, 53],
-    [2996, 55],
-    [2997, 57],
-    [2998, 59],
-    [2999, 61],
-    [3000, 64],
-    [3001, 66],
-    [3002, 69],
-    [3003, 77],
-    [3004, 90],
-    [3005, 98],
-    [3028, 99],
-    [3211, 100],
-    [Infinity, 100],
-];
-
 const defaultPrecision = {
     temperature: 2,
     humidity: 2,
@@ -217,14 +151,10 @@ const converters = {
             }
 
             if (voltage) {
-                for (let i = 0; i < voltageMap.length; i++) {
-                    if (voltageMap[i][0] > voltage) {
-                        return {
-                            battery: parseFloat(voltageMap[i][1].toFixed(2)),
-                            voltage: voltage,
-                        };
-                    }
-                }
+                return {
+                    battery: parseFloat(toPercentage(voltage, 2700, 3000)),
+                    voltage: voltage,
+                };
             }
         },
     },
@@ -698,6 +628,34 @@ const converters = {
             }
         },
     },
+    ZNCLDJ11LM_curtain_genAnalogOutput_change: {
+        cid: 'genAnalogOutput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
+            }
+
+            const position = precisionRound(msg.data.data['presentValue'], 2);
+            return {position: position, running: running};
+        },
+    },
+    ZNCLDJ11LM_curtain_genAnalogOutput_report: {
+        cid: 'genAnalogOutput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            let running = false;
+
+            if (msg.data.data['61440']) {
+                running = msg.data.data['61440'] !== 0;
+            }
+
+            const position = precisionRound(msg.data.data['presentValue'], 2);
+            return {position: position, running: running};
+        },
+    },
     JTYJGD01LMBW_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -799,10 +757,6 @@ const converters = {
             if (msg.data.data['1283']) {
                 const data = msg.data.data['1283'];
                 result.angle = data;
-            }
-            if (msg.data.data['1285']) {
-                const data = msg.data.data['1285'];
-                result.unknown_data = data;
             }
 
             if (msg.data.data['1288']) {
@@ -1256,6 +1210,16 @@ const converters = {
     },
     ignore_light_color_colortemp_report: {
         cid: 'lightingColorCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_change: {
+        cid: 'closuresWindowCovering',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_closuresWindowCovering_report: {
+        cid: 'closuresWindowCovering',
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
