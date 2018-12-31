@@ -640,7 +640,7 @@ const devices = [
         zigbeeModel: ['LTW011'],
         model: '4374300',
         vendor: 'Philips',
-        description: 'Hue With Ambiance BR30',
+        description: 'Hue White Ambiance BR30 Flood Light',
         supports: generic.light_onoff_brightness_colortemp().supports,
         fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
