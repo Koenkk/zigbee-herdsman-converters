@@ -192,7 +192,7 @@ const converters = {
     },
     thermostat_localTemp: {
         key: 'localTemp',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemp';
             if (type === 'get') {
@@ -208,7 +208,7 @@ const converters = {
     },
     thermostat_occupancy: {
         key: 'occupancy',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'occupancy';
             if (type === 'get') {
@@ -244,7 +244,7 @@ const converters = {
     },
     thermostat_occupiedHeatingSetpoint: { // testing
         key: 'occupiedHeatingSetpoint',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'occupiedHeatingSetpoint';
             if (type === 'set') {
@@ -272,7 +272,7 @@ const converters = {
     },
     thermostat_unoccupiedHeatingSetpoint: { // testing
         key: 'unoccupiedHeatingSetpoint',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'unoccupiedHeatingSetpoint';
             if (type === 'set') {
@@ -300,7 +300,7 @@ const converters = {
     },
     thermostat_ctrlSeqeOfOper: { // testing
         key: 'ctrlSeqeOfOper',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'ctrlSeqeOfOper';
             if (type === 'set') {
@@ -328,7 +328,7 @@ const converters = {
     },
     thermostat_systemMode: { // testing
         key: 'systemMode',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'systemMode';
             if (type === 'set') {
@@ -356,7 +356,7 @@ const converters = {
     },
     thermostat_setpointRaiseLower: { // testing
         key: 'setpointRaiseLower',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'setpointRaiseLower';
             if (type === 'set') {
@@ -385,7 +385,7 @@ const converters = {
     },
     thermostat_weeklySchedule: { // not tested
         key: 'weeklySchedule',
-        convert: (value, message, type) => {
+        convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'weeklySchedule';
             if (type === 'set') {
@@ -421,7 +421,7 @@ const converters = {
     thermostat_clearWeeklySchedule: { // not tested
         key: 'clearWeeklySchedule',
         attr: [],
-        convert: (value, message, model) => {
+        convert: (key, value, message, type) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'clearWeeklySchedule',
@@ -433,7 +433,7 @@ const converters = {
     thermostat_getRelayStatusLog: { // not tested
         key: 'getRelayStatusLog',
         attr: [],
-        convert: (value, message, model) => {
+        convert: (key, value, message, type) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLog',
@@ -445,7 +445,7 @@ const converters = {
     thermostat_getWeeklyScheduleRsp: { // not tested
         key: 'getWeeklyScheduleRsp',
         attr: [],
-        convert: (value, message, model) => {
+        convert: (key, value, message, type) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getWeeklyScheduleRsp',
@@ -462,7 +462,7 @@ const converters = {
     thermostat_getRelayStatusLogRsp: { // not tested
         key: 'getRelayStatusLogRsp',
         attr: [],
-        convert: (value, message, model) => {
+        convert: (key, value, message, type) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLogRsp',
