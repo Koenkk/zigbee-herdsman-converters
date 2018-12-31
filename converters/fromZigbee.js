@@ -328,8 +328,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.data.occupancy === 0) {
                 return {occupancy: false};
-            }
-            else if (msg.data.data.occupancy === 1) {
+            } else if (msg.data.data.occupancy === 1) {
                 return {occupancy: true};
             }
         },

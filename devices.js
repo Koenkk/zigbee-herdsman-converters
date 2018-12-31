@@ -750,7 +750,7 @@ const devices = [
                 // shorter than occupancy_timeout. Else our timer may timeout before
                 // device reports its status. (important in case of continous motion)
                 (cb) => device.report('msOccupancySensing', 'occupancy',
-                        0, Math.round(fz.occupancyTimeout * 0.9), null, cb),
+                    0, Math.round(fz.occupancyTimeout * 0.9), null, cb),
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
                 (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
             ];
