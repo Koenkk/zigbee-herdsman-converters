@@ -178,10 +178,12 @@ const converters = {
                     'none': 0xFF,
                 };
                 if (key === 'flash') {
-                    if (value === 2)
-                        value = "select";
-                    else if (value === 10)
-                        value = "lselect";
+                    if (value === 2) {
+                        value = 'select';
+                    }
+                    else if (value === 10) {
+                        value = 'lselect';
+                    }
                 }
                 return {
                     cid: cid,
