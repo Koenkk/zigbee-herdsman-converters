@@ -1666,11 +1666,11 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colorxy.toZigbee,
     },
 
-    // Bitron Home
+    // Bitron
     {
         zigbeeModel: ['902010/22'],
         model: 'AV2010/22',
-        vendor: 'Bitron Home',
+        vendor: 'Bitron',
         description: 'Wireless motion detector',
         supports: 'occupancy',
         fromZigbee: [fz.bitron_occupancy],
@@ -1689,8 +1689,8 @@ const devices = [
     {
         zigbeeModel: ['902010/25'],
         model: 'AV2010/25',
-        vendor: 'Bitron Home',
-        description: 'Wireless socket',
+        vendor: 'Bitron',
+        description: 'Video wireless socket',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
         toZigbee: [tz.on_off],
