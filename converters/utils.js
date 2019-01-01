@@ -34,6 +34,23 @@ function rgbToXY(red, green, blue) {
     return {x: Number.parseFloat(x), y: Number.parseFloat(y)};
 }
 
+function hexToXY(hex) {
+    const rgb = hexToRgb(hex);
+    return rgbToXY(rgb.r, rgb.g, rgb.b);
+}
+
+function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return {r: r, g: g, b: b};
+}
+
 module.exports = {
     rgbToXY: rgbToXY,
+    hexToXY: hexToXY,
+    hexToRgb: hexToRgb,
 };
