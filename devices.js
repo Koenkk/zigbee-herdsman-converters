@@ -1695,6 +1695,15 @@ const devices = [
         description: 'Element downlight smart LED bulb',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['E12-N14'],
+        model: 'E12-N14',
+        vendor: 'Sengled',
+        description: 'Element Classic (BR30)',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // JIAWEN
     {
