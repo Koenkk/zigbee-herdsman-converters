@@ -180,8 +180,7 @@ const converters = {
                 if (key === 'flash') {
                     if (value === 2) {
                         value = 'select';
-                    }
-                    else if (value === 10) {
+                    } else if (value === 10) {
                         value = 'lselect';
                     }
                 }
