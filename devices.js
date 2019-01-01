@@ -226,7 +226,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -236,7 +236,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.generic_occupancy, fz.generic_illuminance, fz.ignore_basic_change,
+            fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.generic_illuminance, fz.ignore_basic_change,
             fz.ignore_illuminance_change, fz.ignore_occupancy_change,
         ],
         toZigbee: [],
