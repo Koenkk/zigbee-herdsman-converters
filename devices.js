@@ -1096,9 +1096,9 @@ const devices = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'E27 Bulb warm dimming',
-        supports: generic.light_onoff_brightness().supports,
-        fromZigbee: generic.light_onoff_brightness().fromZigbee,
-        toZigbee: generic.light_onoff_brightness().toZigbee,
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
    
     {
@@ -1561,9 +1561,9 @@ const devices = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        supports: generic.light_onoff_brightness_colortemp_colorxy().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1917,9 +1917,9 @@ const devices = [
         model: 'ZB-CC-40',
         vendor: 'HUEUC',
         description: 'LED Zigbee LED Driver',
-        supports: generic.light_onoff_brightness().supports,
-        fromZigbee: generic.light_onoff_brightness().fromZigbee,
-        toZigbee: generic.light_onoff_brightness().toZigbee,
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // Calex
