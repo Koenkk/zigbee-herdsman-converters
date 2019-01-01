@@ -204,7 +204,7 @@ const converters = {
         },
     },
     light_alert: {
-        key: ['alert'],
+        key: ['alert', 'flash'],
         convert: (key, value, message, type) => {
             const cid = 'genIdentify';
             if (type === 'set') {
@@ -213,6 +213,13 @@ const converters = {
                     'lselect': 0x01,
                     'none': 0xFF,
                 };
+                if (key === 'flash') {
+                    if (value === 2) {
+                        value = 'select';
+                    } else if (value === 10) {
+                        value = 'lselect';
+                    }
+                }
                 return {
                     cid: cid,
                     cmd: 'triggerEffect',
