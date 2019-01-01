@@ -1557,7 +1557,7 @@ const devices = [
     {
         zigbeeModel: ['GL-B-008Z'],
         model: 'GL-B-008Z',
-        vendor: 'GLEDOPTO',
+        vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
