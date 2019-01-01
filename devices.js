@@ -704,9 +704,9 @@ const devices = [
         model: '3216431P5',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
-        supports: generic.light_onoff_brightness_colortemp().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
         zigbeeModel: ['LLC010'],
