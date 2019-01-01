@@ -1554,12 +1554,11 @@ const devices = [
             }
         },
     },
-    
     {
         zigbeeModel: ['GL-D-003Z'], 
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
+        description: 'LED RGB + CCT downlight ',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
