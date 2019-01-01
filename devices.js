@@ -1095,7 +1095,7 @@ const devices = [
         zigbeeModel: ['RB 178 T'],
         model: 'RB 178 T',
         vendor: 'Innr',
-        description: 'E27 Bulb warm dimming',
+        description: 'Smart bulb tunable white E27',
         supports: generic.light_onoff_brightness_colortemp.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
