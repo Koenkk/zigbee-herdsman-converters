@@ -1689,9 +1689,9 @@ const devices = [
     {
         zigbeeModel: ['902010/25'],
         model: 'AV2010/25',
-        vendor: 'Bitron Video',
-        description: 'Bitron Video Plug with metering',
-        supports: 'on/off, power measurement, router',
+        vendor: 'Bitron Home',
+        description: 'Wireless socket',
+        supports: 'on/off, power measurement',
         fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
