@@ -55,28 +55,28 @@ const converters = {
             }
         },
     },
-    generic_occupancy_pirOToUDelay: {
-    	// set delay after motion detector changes from occupied to unoccupied
-        key: ['occupancy_pirOToUDelay'],
+    generic_occupancy_timeout: {
+        // set delay after motion detector changes from occupied to unoccupied
+        key: ['occupancy_timeout'],
         convert: (key, value, message, type) => {
-        	const cid = 'msOccupancySensing'; // 1030
-        	const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
-            
+            const cid = 'msOccupancySensing'; // 1030
+            const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
+
             if (type === 'set') {
                 return {
-                	  cid: cid,
-                      cmd: 'write',
-                      cmdType: 'foundation',
-                      zclData: [{     
-                    	    attrId: attrId,
-                      		dataType: 33, // uint16
-                      		// hue_sml001:
-                      		// in seconds, minimum 10 seconds, <10 values result
-                            // in 10 seconds delay
-                      		// make sure you write to second endpoint!
-                      		attrData: value,
-                      }],
-                      cfg: cfg.default,
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 33, // uint16
+                        // hue_sml001:
+                        // in seconds, minimum 10 seconds, <10 values result
+                        // in 10 seconds delay
+                        // make sure you write to second endpoint!
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
                 };
             } else if (type === 'get') {
                 return {
@@ -84,7 +84,7 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{
-                    	attrId: attrId,
+                        attrId: attrId,
                     }],
                     cfg: cfg.default,
                 };
@@ -233,7 +233,10 @@ const converters = {
             }
         },
     },
-    /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
+    /*
+     * Note when send the command to set sensitivity, press button on the device
+     * to make it wakeup
+     */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
         convert: (key, value, message, type) => {
