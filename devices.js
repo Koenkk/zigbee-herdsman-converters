@@ -226,7 +226,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy, fz.ignore_basic_change],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.ignore_basic_change],
         toZigbee: [],
     },
     {
@@ -236,7 +236,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.generic_occupancy, fz.generic_illuminance, fz.ignore_basic_change,
+            fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.generic_illuminance, fz.ignore_basic_change,
             fz.ignore_illuminance_change, fz.ignore_occupancy_change,
         ],
         toZigbee: [],
@@ -637,6 +637,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
     },
     {
+        zigbeeModel: ['LTW011'],
+        model: '464800',
+        vendor: 'Philips',
+        description: 'Hue white ambiance BR30 flood light',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['LTW012'],
         model: '8718696695203',
         vendor: 'Philips',
@@ -676,7 +685,16 @@ const devices = [
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
-        description: 'Philips Hue White ambiance Aurelle Rectangle Panel Light',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
+        zigbeeModel: ['LTC016'],
+        model: '3216431P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle round panel light',
         supports: generic.light_onoff_brightness_colortemp.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
@@ -1666,11 +1684,11 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colorxy.toZigbee,
     },
 
-    // Bitron Home
+    // Bitron
     {
         zigbeeModel: ['902010/22'],
         model: 'AV2010/22',
-        vendor: 'Bitron Home',
+        vendor: 'Bitron',
         description: 'Wireless motion detector',
         supports: 'occupancy',
         fromZigbee: [fz.bitron_occupancy],
@@ -1683,6 +1701,23 @@ const devices = [
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
             ];
 
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['902010/25'],
+        model: 'AV2010/25',
+        vendor: 'Bitron',
+        description: 'Video wireless socket',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
             execute(device, actions, callback);
         },
     },
