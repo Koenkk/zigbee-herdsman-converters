@@ -1100,7 +1100,6 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
-   
     {
         zigbeeModel: ['RS 125'],
         model: 'RS 125',
