@@ -1096,9 +1096,9 @@ const devices = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'E27 Bulb warm dimming',
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: generic.light_onoff_brightness.toZigbee,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
    
     {
