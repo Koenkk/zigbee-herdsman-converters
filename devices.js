@@ -1119,6 +1119,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness.toZigbee,
     },
     {
+        zigbeeModel: ['RB 178 T'],
+        model: 'RB 178 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['RS 125'],
         model: 'RS 125',
         vendor: 'Innr',
@@ -1528,7 +1537,7 @@ const devices = [
 
     // Gledopto
     {
-        zigbeeModel: ['GLEDOPTO', 'GL-C-008'],
+        zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
@@ -1580,6 +1589,33 @@ const devices = [
                 return {};
             }
         },
+    },
+    {
+        zigbeeModel: ['GL-D-003Z'],
+        model: 'GL-D-003Z',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight ',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['HOMA2023'],
+        model: 'GD-CZ-006',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED Driver',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // SmartThings
