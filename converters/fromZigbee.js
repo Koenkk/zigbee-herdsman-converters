@@ -1130,11 +1130,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
-                // Signed difference in 0.01 degrees Celsius between the previous temperature setpoint and the new
-                // temperature setpoint.
                 local_temperature_calibration: precisionRound(msg.data.data['localTemp'], 2) / 10,
-                // Specifies whether the heated/cooled space is occupied or not.
-                // If bit 0 = 1, the space is occupied, else it is unoccupied
                 occupancy: msg.data.data['occupancy'],
                 occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
                 unoccupied_heating_setpoint: precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100,
@@ -1145,6 +1141,7 @@ const converters = {
                 remote_sensing: msg.data.data['remoteSensing'],
                 control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
                 system_mode: msg.data.data['systemMode'],
+                running_state: msg.data.data['runningState'],
             };
         },
     },
