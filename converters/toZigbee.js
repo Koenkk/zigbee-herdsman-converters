@@ -237,7 +237,7 @@ const converters = {
         key: 'occupancy',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
-            const attrId = 'occupancy';
+            const attrId = 'ocupancy';
             if (type === 'get') {
                 return {
                     cid: cid,
