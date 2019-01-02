@@ -42,19 +42,19 @@ const toPercentage = (value, min, max) => {
 
 const toPercentageCR2032 = (voltage) => {
     let Percentage = null;
-    
-    if (voltage >= 3000) {
-		Percentage = 100;
-    } else if (voltage < 3000) {
-        Percentage = 100 - ((3000 - voltage) * 58) / 100;
-    } else if (voltage < 2900) {
-        Percentage = 42 - ((2900 - voltage) * 24) / 160;
-    } else if (voltage < 2740) {
-        Percentage = 18 - ((2740 - voltage) * 12) / 300;
+
+    if (voltage < 2100) {
+        Percentage = 0;
     } else if (voltage < 2440) {
         Percentage = 6 - ((2440 - voltage) * 6) / 340;
-    } else if (voltage < 2100) {
-        Percentage = 0;
+    } else if (voltage < 2740) {
+        Percentage = 18 - ((2740 - voltage) * 12) / 300;
+    } else if (voltage < 2900) {
+        Percentage = 42 - ((2900 - voltage) * 24) / 160;
+    } else if (voltage < 3000) {
+        Percentage = 100 - ((3000 - voltage) * 58) / 100;
+	} else if (voltage >= 3000) {
+	    Percentage = 100;
     };
 
     return (Percentage).toFixed(2);
