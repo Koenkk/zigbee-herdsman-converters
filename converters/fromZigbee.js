@@ -57,7 +57,7 @@ const toPercentageCR2032 = (voltage) => {
         percentage = 100;
     }
 
-    return (percentage).toFixed(2);
+    return Math.round(percentage);
 };
 
 const numberWithinRange = (number, min, max) => {
