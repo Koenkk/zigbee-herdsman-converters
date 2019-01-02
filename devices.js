@@ -1572,6 +1572,15 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['HOMA2023'],
+        model: 'GD-CZ-006',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED Driver',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // SmartThings
     {
@@ -1908,16 +1917,6 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
-    },
-    
-    {
-        zigbeeModel: ['HOMA2023'],
-        model: 'ZB-CC-40',
-        vendor: 'HUEUC',
-        description: 'LED Zigbee LED Driver',
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // Calex
