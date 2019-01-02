@@ -843,11 +843,11 @@ const devices = [
         supports: '',
         fromZigbee: [fz.ignore_basic_change, fz.generic_battery_voltage,
             fz.thermostat_attReport, fz.thermostat_devChange], // fz.ignore_hvacThermostat_change
-        toZigbee: [tz.factory_reset, tz.thermostat_localTemp, tz.thermostat_occupancy,
-            tz.thermostat_temperatureCalibration, tz.thermostat_occupiedHeatingSetpoint,
-            tz.thermostat_unoccupiedHeatingSetpoint, tz.thermostat_ctrlSeqeOfOper, tz.thermostat_systemMode,
-            tz.thermostat_setpointRaiseLower, tz.thermostat_weeklySchedule, tz.thermostat_clearWeeklySchedule,
-            tz.thermostat_getWeeklyScheduleRsp, tz.thermostat_getRelayStatusLog, tz.thermostat_getRelayStatusLogRsp],
+        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_occupancy,
+            tz.thermostat_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_ctrl_seqe_of_oper, tz.thermostat_system_mode,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_weekly_schedule_rsp, tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [

@@ -1091,38 +1091,33 @@ const converters = {
             };
         },
     },
-    thermostat_devChange: {
+    thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {
-                localTemp: precisionRound(msg.data.data['localTemp'], 2) / 100,
-                occupiedHeatingSetpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
-                setpointChangeSource: msg.data.data['setpointChangeSource'],
-                setpointChangeAmount: msg.data.data['setpointChangeAmount'] / 100,
-                setpointChangeSourceTimeStamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                setpoint_change_source: msg.data.data['setpointChangeSource'],
+                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
             };
         },
     },
-    thermostat_attReport: {
+    thermostat_att_report: {
         cid: 'hvacThermostat',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {
-                localTemp: precisionRound(msg.data.data['localTemp'], 2) / 100,
-                occupiedHeatingSetpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
-                setpointChangeSource: msg.data.data['setpointChangeSource'],
-                setpointChangeAmount: msg.data.data['setpointChangeAmount'] / 100,
-                setpointChangeSourceTimeStamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                setpoint_change_source: msg.data.data['setpointChangeSource'],
+                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
             };
         },
     },
     // Ignore converters (these message dont need parsing).
-    // ignore_hvacThermostat_change: {
-    //     cid: 'hvacThermostat',
-    //     type: 'devChange',
-    //     convert: (model, msg, publish, options) => null,
-    // },
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
         type: 'devChange',

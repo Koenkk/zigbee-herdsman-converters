@@ -190,12 +190,39 @@ const converters = {
             }
         },
     },
-    thermostat_localTemp: {
-        key: 'localTemp',
+    thermostat_local_temperature: {
+        key: 'local_temperature',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemp';
             if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_temperature_calibration: {
+        key: 'temperature_calibration',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'localTemperatureCalibration';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value * 10),
+                    }],
+                };
+            } else if (type === 'get') {
                 return {
                     cid: cid,
                     cmd: 'read',
@@ -222,28 +249,8 @@ const converters = {
             }
         },
     },
-    thermostat_temperatureCalibration: {
-        key: 'setTemperatureCalibration',
-        convert: (key, value, message, type) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x10;
-
-            if (type === 'set') {
-                return {
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId, // localTemperatureCalibration 0x10
-                        dataType: 0x28, // dataType int8
-                        attrData: Math.round(value * 10),
-                    }],
-                };
-            }
-        },
-    },
-    thermostat_occupiedHeatingSetpoint: { // testing
-        key: 'occupiedHeatingSetpoint',
+    thermostat_occupied_heating_setpoint: {
+        key: 'occupied_heating_setpoint',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'occupiedHeatingSetpoint';
@@ -270,8 +277,8 @@ const converters = {
             }
         },
     },
-    thermostat_unoccupiedHeatingSetpoint: { // testing
-        key: 'unoccupiedHeatingSetpoint',
+    thermostat_unoccupied_heating_setpoint: {
+        key: 'unoccupied_heating_setpoint',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'unoccupiedHeatingSetpoint';
@@ -282,8 +289,8 @@ const converters = {
                     cmdType: 'foundation',
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
-                        dataType: 0x29,
-                        attrData: Math.round(value) * 100,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
                     }],
                     cfg: cfg.default,
                 };
@@ -298,8 +305,8 @@ const converters = {
             }
         },
     },
-    thermostat_ctrlSeqeOfOper: { // testing
-        key: 'ctrlSeqeOfOper',
+    thermostat_ctrl_seqe_of_oper: {
+        key: 'ctrl_seqe_of_oper',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'ctrlSeqeOfOper';
@@ -310,8 +317,8 @@ const converters = {
                     cmdType: 'foundation',
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
-                        dataType: 0x29,
-                        attrData: Math.round(value) * 100,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
                     }],
                     cfg: cfg.default,
                 };
@@ -326,8 +333,8 @@ const converters = {
             }
         },
     },
-    thermostat_systemMode: { // testing
-        key: 'systemMode',
+    thermostat_system_mode: {
+        key: 'system_mode',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'systemMode';
@@ -339,7 +346,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100,
+                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
                     }],
                     cfg: cfg.default,
                 };
@@ -354,8 +361,8 @@ const converters = {
             }
         },
     },
-    thermostat_setpointRaiseLower: { // testing
-        key: 'setpointRaiseLower',
+    thermostat_setpoint_raise_lower: {
+        key: 'setpoint_raise_lower',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'setpointRaiseLower';
@@ -365,14 +372,14 @@ const converters = {
                     cmd: 'setpointRaiseLower',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: 0x29, // dataType
-                        attrData: Math.round(value) * 100,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
                         mode: value.mode,
                         amount: Math.round(value.amount) * 100,
                     },
                     cfg: cfg.default,
                 };
-            } else if (type === 'get') { // MAC transaction expired.
+            } else if (type === 'get') {
                 return {
                     cid: cid,
                     cmd: 'read',
@@ -383,8 +390,8 @@ const converters = {
             }
         },
     },
-    thermostat_weeklySchedule: { // not tested
-        key: 'weeklySchedule',
+    thermostat_weekly_schedule: {
+        key: 'weekly_schedule',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'weeklySchedule';
@@ -396,20 +403,20 @@ const converters = {
                     zclData: {
                         dataType: 0x29, // dataType
                         attrData: Math.round(value) * 100,
-                        numoftrans: value.numoftrans,
+                        numoftrans: value.numoftrans, // TODO: Lookup in Zigbee documentation
                         dayofweek: value.dayofweek,
                         mode: value.mode,
                         thermoseqmode: value.thermoseqmode,
                     },
                     cfg: cfg.default,
                 };
-            } else if (type === 'get') { // MAC transaction expired.
+            } else if (type === 'get') {
                 return {
                     cid: cid,
                     cmd: 'getWeeklySchedule',
                     cmdType: 'functional',
                     zclData: [
-                        {attrId: zclId.attr(cid, attrId).value},
+                        {attrId: zclId.attr(cid, attrId).value}, // TODO: Lookup in Zigbee documentation
                         // {daystoreturn: value.daystoreturn},
                         // {modetoreturn: value.modetoreturn},
                     ],
@@ -418,8 +425,8 @@ const converters = {
             }
         },
     },
-    thermostat_clearWeeklySchedule: { // not tested
-        key: 'clearWeeklySchedule',
+    thermostat_clear_weekly_schedule: {
+        key: 'clear_weekly_schedule',
         attr: [],
         convert: (key, value, message, type) => {
             return {
@@ -430,8 +437,8 @@ const converters = {
             };
         },
     },
-    thermostat_getRelayStatusLog: { // not tested
-        key: 'getRelayStatusLog',
+    thermostat_relay_status_log: {
+        key: 'relay_status_log',
         attr: [],
         convert: (key, value, message, type) => {
             return {
@@ -442,8 +449,8 @@ const converters = {
             };
         },
     },
-    thermostat_getWeeklyScheduleRsp: { // not tested
-        key: 'getWeeklyScheduleRsp',
+    thermostat_weekly_schedule_rsp: {
+        key: 'weekly_schedule_rsp',
         attr: [],
         convert: (key, value, message, type) => {
             return {
@@ -451,7 +458,7 @@ const converters = {
                 cmd: 'getWeeklyScheduleRsp',
                 type: 'functional',
                 zclData: {
-                    numoftrans: value.numoftrans,
+                    numoftrans: value.numoftrans, // TODO: Lookup in Zigbee documentation
                     dayofweek: value.dayofweek,
                     mode: value.mode,
                     thermoseqmode: value.thermoseqmode,
@@ -459,8 +466,8 @@ const converters = {
             };
         },
     },
-    thermostat_getRelayStatusLogRsp: { // not tested
-        key: 'getRelayStatusLogRsp',
+    thermostat_relay_status_log_rsp: {
+        key: 'relay_status_log_rsp',
         attr: [],
         convert: (key, value, message, type) => {
             return {
@@ -468,7 +475,7 @@ const converters = {
                 cmd: 'getRelayStatusLogRsp',
                 type: 'functional',
                 zclData: {
-                    timeofday: value.timeofday,
+                    timeofday: value.timeofday, // TODO: Lookup in Zigbee documentation
                     relaystatus: value.relaystatus,
                     localtemp: value.localtemp,
                     humidity: value.humidity,
@@ -639,7 +646,6 @@ const converters = {
             };
         },
     },
-
     // Ignore converters
     ignore_transition: {
         key: ['transition'],
