@@ -43,7 +43,7 @@ const toPercentage = (value, min, max) => {
 const toPercentageCR2032 = (voltage) => {
     let Percentage = null;
     
-  	if (voltage >= 3000) {
+    if (voltage >= 3000) {
 		Percentage = 100;
     } else if (voltage < 3000) {
         Percentage = 100 - ((3000 - voltage) * 58) / 100;
