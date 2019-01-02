@@ -842,7 +842,7 @@ const devices = [
         description: 'Smart Thermostat',
         supports: 'temperature, occupancy, un-/occupied heating, schedule',
         fromZigbee: [fz.ignore_basic_change, fz.generic_battery_voltage,
-            fz.thermostat_attReport, fz.thermostat_devChange], // fz.ignore_hvacThermostat_change
+            fz.thermostat_att_report, fz.thermostat_dev_change], // fz.ignore_hvacThermostat_change
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
