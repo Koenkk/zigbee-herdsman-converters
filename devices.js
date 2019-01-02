@@ -840,14 +840,15 @@ const devices = [
         model: 'ecozy Smart Thermostat',
         vendor: 'ecozy',
         description: 'Smart Thermostat',
-        supports: '',
+        supports: 'temperature, occupancy, un-/occupied heating, schedule',
         fromZigbee: [fz.ignore_basic_change, fz.generic_battery_voltage,
             fz.thermostat_attReport, fz.thermostat_devChange], // fz.ignore_hvacThermostat_change
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_occupancy,
-            tz.thermostat_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_ctrl_seqe_of_oper, tz.thermostat_system_mode,
-            tz.thermostat_setpoint_raise_lower, tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_weekly_schedule_rsp, tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp],
+        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
+            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
             const actions = [

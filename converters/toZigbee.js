@@ -206,8 +206,8 @@ const converters = {
             }
         },
     },
-    thermostat_temperature_calibration: {
-        key: 'temperature_calibration',
+    thermostat_local_temperature_calibration: {
+        key: 'local_temperature_calibration',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemperatureCalibration';
@@ -305,8 +305,42 @@ const converters = {
             }
         },
     },
-    thermostat_ctrl_seqe_of_oper: {
-        key: 'ctrl_seqe_of_oper',
+    thermostat_remote_sensing: {
+        key: 'remote_sensing',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'remoteSensing';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // Bit 0 = 0 – local temperature sensed internally
+                        // Bit 0 = 1 – local temperature sensed remotely
+                        // Bit 1 = 0 – outdoor temperature sensed internally
+                        // Bit 1 = 1 – outdoor temperature sensed remotely
+                        // Bit 2 = 0 – occupancy sensed internally
+                        // Bit 2 = 1 – occupancy sensed remotely
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value, // TODO: Lookup in Zigbee documentation
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_control_sequence_of_operation: {
+        key: 'control_sequence_of_operation',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 'ctrlSeqeOfOper';
@@ -316,9 +350,15 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
+                        // 0x00 Cooling Only Heat and Emergency are not possible
+                        // 0x01 Cooling With Reheat Heat and Emergency are not possible
+                        // 0x02 Heating Only Cool and precooling are not possible
+                        // 0x03 Heating With Reheat Cool and precooling are not possible
+                        // 0x04 Cooling and Heating 4-pipes: All modes are possible
+                        // 0x05 Cooling and Heating 4-pipes with Reheat: All modes are possible
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
+                        attrData: value,
                     }],
                     cfg: cfg.default,
                 };
@@ -344,9 +384,18 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
+                        // 0x00 Off
+                        // 0x01 Auto
+                        // 0x03 Cool
+                        // 0x04 Heat
+                        // 0x05 Emergency heating
+                        // 0x06 Precooling
+                        // 0x07 Fan only
+                        // 0x08 Dry
+                        // 0x09 Sleep
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
+                        attrData: value,
                     }],
                     cfg: cfg.default,
                 };
@@ -373,7 +422,7 @@ const converters = {
                     cmdType: 'functional',
                     zclData: {
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
+                        attrData: Math.round(value) * 100, // TODO: Combine mode and amount in attrData?
                         mode: value.mode,
                         amount: Math.round(value.amount) * 100,
                     },
@@ -401,12 +450,12 @@ const converters = {
                     cmd: 'setWeeklySchedule',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: 0x29, // dataType
-                        attrData: Math.round(value) * 100,
-                        numoftrans: value.numoftrans, // TODO: Lookup in Zigbee documentation
-                        dayofweek: value.dayofweek,
-                        mode: value.mode,
-                        thermoseqmode: value.thermoseqmode,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value, // TODO: Combine attributes in attrData?
+                        temperature_setpoint_hold: value.temperature_setpoint_hold,
+                        temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
+                        thermostat_programming_operation_mode: value.thermostat_programming_operation_mode,
+                        thermostat_running_state: value.thermostat_running_state,
                     },
                     cfg: cfg.default,
                 };
@@ -415,11 +464,7 @@ const converters = {
                     cid: cid,
                     cmd: 'getWeeklySchedule',
                     cmdType: 'functional',
-                    zclData: [
-                        {attrId: zclId.attr(cid, attrId).value}, // TODO: Lookup in Zigbee documentation
-                        // {daystoreturn: value.daystoreturn},
-                        // {modetoreturn: value.modetoreturn},
-                    ],
+                    zclData: {},
                     cfg: cfg.default,
                 };
             }
@@ -458,8 +503,8 @@ const converters = {
                 cmd: 'getWeeklyScheduleRsp',
                 type: 'functional',
                 zclData: {
-                    numoftrans: value.numoftrans, // TODO: Lookup in Zigbee documentation
-                    dayofweek: value.dayofweek,
+                    number_of_transitions: value.numoftrans, // TODO: Lookup in Zigbee documentation
+                    day_of_week: value.dayofweek,
                     mode: value.mode,
                     thermoseqmode: value.thermoseqmode,
                 },
@@ -475,12 +520,12 @@ const converters = {
                 cmd: 'getRelayStatusLogRsp',
                 type: 'functional',
                 zclData: {
-                    timeofday: value.timeofday, // TODO: Lookup in Zigbee documentation
-                    relaystatus: value.relaystatus,
-                    localtemp: value.localtemp,
+                    time_of_day: value.timeofday, // TODO: Lookup in Zigbee documentation
+                    relay_status: value.relaystatus,
+                    local_temperature: value.localtemp,
                     humidity: value.humidity,
                     setpoint: value.setpoint,
-                    unreadentries: value.unreadentries,
+                    unread_entries: value.unreadentries,
                 },
             };
         },
