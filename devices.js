@@ -755,8 +755,8 @@ const devices = [
         toZigbee: [tz.generic_occupancy_timeout],
         ep: (device) => {
             return {
-                'ep1': 1, 
-                'ep2': 2,	// e.g. for write to msOccupancySensing
+                'ep1': 1,
+                'ep2': 2, // e.g. for write to msOccupancySensing
             };
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
