@@ -682,6 +682,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['LTC003'],
+        model: '3261331P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Still',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
@@ -804,7 +813,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
         supports: 'state, description, type, rssi',
-        fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta],
+        fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta, fz.ignore_onoff_change],
         toZigbee: [],
     },
     {
@@ -1108,6 +1117,15 @@ const devices = [
         supports: generic.light_onoff_brightness.supports,
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
+    {
+        zigbeeModel: ['RB 178 T'],
+        model: 'RB 178 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
         zigbeeModel: ['RS 125'],
@@ -1440,6 +1458,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
     },
+    {
+        zigbeeModel: ['E12-N14'],
+        model: 'E12-N14',
+        vendor: 'Sengled',
+        description: 'Element Classic (BR30)',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // JIAWEN
     {
@@ -1510,7 +1537,7 @@ const devices = [
 
     // Gledopto
     {
-        zigbeeModel: ['GLEDOPTO', 'GL-C-008'],
+        zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
@@ -1548,7 +1575,7 @@ const devices = [
     {
         zigbeeModel: ['GL-B-008Z'],
         model: 'GL-B-008Z',
-        vendor: 'GLEDOPTO',
+        vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
@@ -1562,6 +1589,33 @@ const devices = [
                 return {};
             }
         },
+    },
+    {
+        zigbeeModel: ['GL-D-003Z'],
+        model: 'GL-D-003Z',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight ',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['HOMA2023'],
+        model: 'GD-CZ-006',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED Driver',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // SmartThings
