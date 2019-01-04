@@ -1078,6 +1078,15 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
     },
+    {
+        zigbeeModel: ['FWBulb02UK'],
+        model: 'HALIGHTDIMWWB22',
+        vendor: 'Hive',
+        description: 'Active light dimmable',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // Innr
     {
