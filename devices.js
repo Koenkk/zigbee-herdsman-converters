@@ -517,6 +517,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['SURTE door WS 38x64'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'L1531', // Vendor model number, look on the device for a model number
+        vendor: 'IKEA', // Vendor of the device (only used for documentation and startup logging)
+        description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603',
         description: 'TRADFRI control outlet',
