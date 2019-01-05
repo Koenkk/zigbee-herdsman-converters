@@ -1127,6 +1127,22 @@ const converters = {
             };
         },
     },
+    airam_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
+    },
+    airam_brightness: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                brightness: msg.data.data['currentLevel']
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
