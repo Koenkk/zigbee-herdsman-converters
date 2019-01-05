@@ -1134,6 +1134,17 @@ const converters = {
             };
         },
     },
+    smartsense_multi: {
+        cid: 'ssIasZone',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                contact: !(zoneStatus & 1), // Bit 1 = Contact
+                // Bit 5 = Currently always set?
+            };
+        },
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
@@ -1188,6 +1199,7 @@ const converters = {
             };
         },
     },
+
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
