@@ -1022,8 +1022,7 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            // batteryVoltage
-            return {battery: msg.data.data['batteryVoltage'] / 100};
+            return {voltage: msg.data.data['batteryVoltage'] / 100};
         },
     },
     ICTC_G_1_move: {
