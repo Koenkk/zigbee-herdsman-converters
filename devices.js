@@ -517,6 +517,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['SURTE door WS 38x64'],
+        model: 'L1531',
+        vendor: 'IKEA',
+        description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603',
         description: 'TRADFRI control outlet',
@@ -761,7 +770,14 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [],
+        toZigbee: [tz.generic_occupancy_timeout],
+        ep: (device) => {
+            return {
+                '': 2, // default
+                'ep1': 1,
+                'ep2': 2, // e.g. for write to msOccupancySensing
+            };
+        },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 2);
 
@@ -859,6 +875,43 @@ const devices = [
         toZigbee: [tz.on_off],
         ep: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
+        },
+    },
+
+    // eCozy
+    {
+        zigbeeModel: ['Thermostat'],
+        model: '1TST-EU',
+        vendor: 'eCozy',
+        description: 'Smart heating thermostat',
+        supports: 'temperature, occupancy, un-/occupied heating, schedule',
+        fromZigbee: [
+            fz.ignore_basic_change, fz.generic_battery_voltage,
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
+            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
@@ -1117,6 +1170,15 @@ const devices = [
         supports: generic.light_onoff_brightness.supports,
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
+    {
+        zigbeeModel: ['RB 178 T'],
+        model: 'RB 178 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
         zigbeeModel: ['RS 125'],
@@ -1528,7 +1590,7 @@ const devices = [
 
     // Gledopto
     {
-        zigbeeModel: ['GLEDOPTO', 'GL-C-008'],
+        zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
@@ -1580,6 +1642,33 @@ const devices = [
                 return {};
             }
         },
+    },
+    {
+        zigbeeModel: ['GL-D-003Z'],
+        model: 'GL-D-003Z',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight ',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['HOMA2023'],
+        model: 'GD-CZ-006',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED Driver',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // SmartThings

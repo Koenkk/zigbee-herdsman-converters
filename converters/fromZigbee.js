@@ -40,6 +40,26 @@ const toPercentage = (value, min, max) => {
     return (normalised * 100).toFixed(2);
 };
 
+const toPercentageCR2032 = (voltage) => {
+    let percentage = null;
+
+    if (voltage < 2100) {
+        percentage = 0;
+    } else if (voltage < 2440) {
+        percentage = 6 - ((2440 - voltage) * 6) / 340;
+    } else if (voltage < 2740) {
+        percentage = 18 - ((2740 - voltage) * 12) / 300;
+    } else if (voltage < 2900) {
+        percentage = 42 - ((2900 - voltage) * 24) / 160;
+    } else if (voltage < 3000) {
+        percentage = 100 - ((3000 - voltage) * 58) / 100;
+    } else if (voltage >= 3000) {
+        percentage = 100;
+    }
+
+    return Math.round(percentage);
+};
+
 const numberWithinRange = (number, min, max) => {
     if (number > max) {
         return max;
@@ -159,7 +179,7 @@ const converters = {
 
             if (voltage) {
                 return {
-                    battery: parseFloat(toPercentage(voltage, 2700, 3000)),
+                    battery: parseFloat(toPercentageCR2032(voltage)),
                     voltage: voltage,
                 };
             }
@@ -998,6 +1018,13 @@ const converters = {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
+    generic_battery_voltage: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {voltage: msg.data.data['batteryVoltage'] / 100};
+        },
+    },
     ICTC_G_1_move: {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
@@ -1115,6 +1142,60 @@ const converters = {
             return {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
+            };
+        },
+    },
+    thermostat_dev_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                // Signed difference in 0.01 degrees Celsius between the previous temperature setpoint and the new
+                // temperature setpoint.
+                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
+                // Specifies whether the heated/cooled space is occupied or not.
+                // If bit 0 = 1, the space is occupied, else it is unoccupied
+                occupancy: msg.data.data['occupancy'],
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                unoccupied_heating_setpoint: precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100,
+                // start_of_week: value.start_of_week, // 0x00 = Sunday to 0x06 = Saturday
+                // number_of_daily_transitions: value.number_of_daily_transitions,
+                // number_of_weeky_transitions: value.number_of_weeky_transitions,
+                weekly_schedule: msg.data.data['weeklySchedule'],
+                // The signed difference in 0.01 degrees Celsius between the previous temperature setpoint and
+                // the new temperature setpoint.
+                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
+                // 0x00 Manual, user-initiated setpoint change via the thermostat
+                // 0x01 Schedule/internal programming-initiated setpoint change
+                // 0x02 Externally-initiated setpoint change (e.g., DRLC cluster command, attribute write)
+                setpoint_change_source: msg.data.data['setpointChangeSource'],
+                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                remote_sensing: msg.data.data['remoteSensing'],
+                control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+                system_mode: msg.data.data['systemMode'],
+                running_state: msg.data.data['runningState'],
+            };
+        },
+    },
+    thermostat_att_report: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
+                occupancy: msg.data.data['occupancy'],
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                unoccupied_heating_setpoint: precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100,
+                weekly_schedule: msg.data.data['weeklySchedule'],
+                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
+                setpoint_change_source: msg.data.data['setpointChangeSource'],
+                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
+                remote_sensing: msg.data.data['remoteSensing'],
+                control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+                system_mode: msg.data.data['systemMode'],
+                running_state: msg.data.data['runningState'],
             };
         },
     },
