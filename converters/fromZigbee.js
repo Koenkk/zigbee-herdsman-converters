@@ -174,26 +174,12 @@ const converters = {
         cid: 'hvacThermostat',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {localTemp: null};
-                store[deviceID] = {occupiedHeatingSetpoint: null};
-                store[deviceID] = {runningState: null};
-            }
-            if (typeof msg.data.data.localTemp == 'number') {
-                store[deviceID].localTemp = msg.data.data.localTemp;
-            }
-            if ( typeof msg.data.data.occupiedHeatingSetpoint == 'number') {
-                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
-            }
-            if (typeof msg.data.data.runningState == 'number') {
-                store[deviceID].runningState = msg.data.data.runningState;
-            }
             return {
-                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
-                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
-                runningState: store[deviceID].runningState === 1 ? 'ON' : 'OFF',
-                batteryAlarmState: msg.data.data.batteryAlarmState === 1 ? 'ON' : 'OFF',
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                running_state: msg.data.data['runningState'] === 1 ? 'ON' : 'OFF',
+                battery_alarm_state: msg.data.data['batteryAlarmState'] === 1 ? 'ON' : 'OFF',
             };
         },
     },
@@ -201,26 +187,12 @@ const converters = {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {localTemp: null};
-                store[deviceID] = {occupiedHeatingSetpoint: null};
-                store[deviceID] = {runningState: null};
-            }
-            if (typeof msg.data.data.localTemp == 'number') {
-                store[deviceID].localTemp = msg.data.data.localTemp;
-            }
-            if (typeof msg.data.data.occupiedHeatingSetpoint == 'number') {
-                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
-            }
-            if (typeof msg.data.data.runningState == 'number') {
-                store[deviceID].runningState = msg.data.data.runningState;
-            }
             return {
-                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
-                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
-                runningState: store[deviceID].runningState === 1 ? 'ON' : 'OFF',
-                batteryAlarmState: msg.data.data.batteryAlarmState === 1 ? 'ON' : 'OFF',
+                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
+                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
+                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
+                running_state: msg.data.data['runningState'] === 1 ? 'ON' : 'OFF',
+                battery_alarm_state: msg.data.data['batteryAlarmState'] === 1 ? 'ON' : 'OFF',
             };
         },
     },
