@@ -737,6 +737,7 @@ const converters = {
             };
         },
     },
+
     // Ignore converters
     ignore_transition: {
         key: ['transition'],
