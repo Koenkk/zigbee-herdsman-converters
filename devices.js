@@ -517,6 +517,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['SURTE door WS 38x64'],
+        model: 'L1531',
+        vendor: 'IKEA',
+        description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603',
         description: 'TRADFRI control outlet',
