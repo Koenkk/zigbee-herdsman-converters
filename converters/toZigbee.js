@@ -55,6 +55,42 @@ const converters = {
             }
         },
     },
+    generic_occupancy_timeout: {
+        // set delay after motion detector changes from occupied to unoccupied
+        key: ['occupancy_timeout'],
+        convert: (key, value, message, type) => {
+            const cid = 'msOccupancySensing'; // 1030
+            const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
+
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 33, // uint16
+                        // hue_sml001:
+                        // in seconds, minimum 10 seconds, <10 values result
+                        // in 10 seconds delay
+                        // make sure you write to second endpoint!
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                    }],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
         convert: (key, value, message, type) => {
@@ -168,7 +204,7 @@ const converters = {
         },
     },
     light_alert: {
-        key: ['alert'],
+        key: ['alert', 'flash'],
         convert: (key, value, message, type) => {
             const cid = 'genIdentify';
             if (type === 'set') {
@@ -177,6 +213,13 @@ const converters = {
                     'lselect': 0x01,
                     'none': 0xFF,
                 };
+                if (key === 'flash') {
+                    if (value === 2) {
+                        value = 'select';
+                    } else if (value === 10) {
+                        value = 'lselect';
+                    }
+                }
                 return {
                     cid: cid,
                     cmd: 'triggerEffect',
@@ -530,7 +573,10 @@ const converters = {
             };
         },
     },
-    /* Note when send the command to set sensitivity, press button on the device to make it wakeup*/
+    /*
+     * Note when send the command to set sensitivity, press button on the device
+     * to make it wakeup
+     */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
         convert: (key, value, message, type) => {
