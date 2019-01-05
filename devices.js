@@ -1749,7 +1749,6 @@ const devices = [
         },
     },
 
-
     // Trust
     {
         zigbeeModel: ['ZLL-DimmableLigh'],
