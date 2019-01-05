@@ -158,6 +158,72 @@ const converters = {
             return {occupancy: true};
         },
     },
+    bitron_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const battery = {max: 3200, min: 2500};
+            const voltage = msg.data.data['batteryVoltage'] * 100;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage,
+            };
+        },
+    },
+    bitron_thermostat_att_report: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {localTemp: null};
+                store[deviceID] = {occupiedHeatingSetpoint: null};
+                store[deviceID] = {runningState: null};
+            }
+            if (typeof msg.data.data.localTemp == 'number') {
+                store[deviceID].localTemp = msg.data.data.localTemp;
+            }
+            if ( typeof msg.data.data.occupiedHeatingSetpoint == 'number') {
+                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
+            }
+            if (typeof msg.data.data.runningState == 'number') {
+                store[deviceID].runningState = msg.data.data.runningState;
+            }
+            return {
+                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
+                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
+                runningState: store[deviceID].runningState === 1 ? 'ON' : 'OFF',
+                batteryAlarmState: msg.data.data.batteryAlarmState === 1 ? 'ON' : 'OFF',
+            };
+        },
+    },
+    bitron_thermostat_dev_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {localTemp: null};
+                store[deviceID] = {occupiedHeatingSetpoint: null};
+                store[deviceID] = {runningState: null};
+            }
+            if (typeof msg.data.data.localTemp == 'number') {
+                store[deviceID].localTemp = msg.data.data.localTemp;
+            }
+            if (typeof msg.data.data.occupiedHeatingSetpoint == 'number') {
+                store[deviceID].occupiedHeatingSetpoint = msg.data.data.occupiedHeatingSetpoint;
+            }
+            if (typeof msg.data.data.runningState == 'number') {
+                store[deviceID].runningState = msg.data.data.runningState;
+            }
+            return {
+                localTemp: precisionRound(store[deviceID].localTemp, 2)/100,
+                occupiedHeatingSetpoint: precisionRound(store[deviceID].occupiedHeatingSetpoint, 2)/100,
+                runningState: store[deviceID].runningState === 1 ? 'ON' : 'OFF',
+                batteryAlarmState: msg.data.data.batteryAlarmState === 1 ? 'ON' : 'OFF',
+            };
+        },
+    },
     smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
