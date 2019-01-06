@@ -1458,7 +1458,7 @@ const devices = [
         zigbeeModel: ['45856'],
         model: '45856GE',
         vendor: 'GE',
-        description: 'ZigBee plug-in smart switch',
+        description: 'In-wall smart switch',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
         toZigbee: [tz.on_off, tz.ignore_transition],
