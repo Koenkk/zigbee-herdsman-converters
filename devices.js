@@ -1616,25 +1616,7 @@ const devices = [
         },
     },
 
-    // Gledopto
-    {
-        zigbeeModel: ['GL-B-008Z'],
-        model: 'GL-B-008Z',
-        vendor: 'Gledopto',
-        description: 'Zigbee LED Bulb RGB',
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
-        ep: (device) => {
-            if (device.epList.toString() === '11,12,13') {
-                return {'': 12};
-            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
-                return {'': 11};
-            } else {
-                return {};
-            }
-        },
-    },    
+    // Gledopto   
     {
         zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
         model: 'GL-C-008',
