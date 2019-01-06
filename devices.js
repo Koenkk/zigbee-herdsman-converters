@@ -1596,7 +1596,7 @@ const devices = [
             return {'left': 12, 'right': 11};
         },
     },
-    
+
     // Gledopto
     {
         zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
