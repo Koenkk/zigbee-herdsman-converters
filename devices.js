@@ -2110,6 +2110,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
     },
+
+    // Smart Home Pty
+    {
+        zigbeeModel: ['FNB56-SKT1EHG1.2'],
+        model: 'HGZB-20-DE',
+        vendor: 'Smart Home Pty',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_change],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices;
