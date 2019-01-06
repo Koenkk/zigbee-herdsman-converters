@@ -1455,6 +1455,25 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['45856'],
+        model: '45856GE',
+        vendor: 'GE',
+        description: 'ZigBee plug-in smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['45857'],
         model: '45857GE',
         vendor: 'GE',
