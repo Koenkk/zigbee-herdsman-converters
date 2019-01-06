@@ -174,42 +174,58 @@ const converters = {
         cid: 'hvacThermostat',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            const result = {};
+
             if (typeof msg.data.data['localTemp'] == 'number') {
-                return {local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100}; 
+                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100; 
             }
+
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                return {local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10};
+                result.local_temperature_calibration = precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
+
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                return {occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100};
+                result.occupied_heating_setpoint = precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
+
             if (typeof msg.data.data['runningState'] == 'number') {
-                return {running_state: msg.data.data['runningState']};
-            }            
+                result.running_state = msg.data.data['runningState'];
+            } 
+
             if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                return {battery_alarm_state: msg.data.data['batteryAlarmState']};           
+                result.battery_alarm_state = msg.data.data['batteryAlarmState'];           
             }
+
+            return result;
         },
     },
     bitron_thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
+            const result = {};
+
             if (typeof msg.data.data['localTemp'] == 'number') {
-                return {local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100}; 
+                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100; 
             }
+
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                return {local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10};
+                result.local_temperature_calibration = precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
+
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                return {occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100};
+                result.occupied_heating_setpoint = precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
+
             if (typeof msg.data.data['runningState'] == 'number') {
-                return {running_state: msg.data.data['runningState']};
-            }            
+                result.running_state = msg.data.data['runningState'];
+            } 
+
             if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                return {battery_alarm_state: msg.data.data['batteryAlarmState']};           
+                result.battery_alarm_state = msg.data.data['batteryAlarmState'];           
             }
+            
+            return result;
         },
     },
     smartthings_contact: {
