@@ -1616,7 +1616,7 @@ const devices = [
         },
     },
 
-    // Gledopto   
+    // Gledopto
     {
         zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
         model: 'GL-C-008',
@@ -2200,6 +2200,7 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     
+    // Smart Home Pty
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
         model: 'HGZB-20-DE',
