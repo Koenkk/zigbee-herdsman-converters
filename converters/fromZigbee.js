@@ -1127,14 +1127,7 @@ const converters = {
             };
         },
     },
-    airam_state: {
-        cid: 'genOnOff',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
-        },
-    },
-    airam_brightness: {
+    light_brightness_report: {
         cid: 'genLevelCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
