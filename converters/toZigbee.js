@@ -573,6 +573,44 @@ const converters = {
             };
         },
     },
+    thermostat_running_state: {
+        key: 'running_state',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'runningState';
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_temperature_display_mode: {
+        key: 'temperature_display_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'tempDisplayMode';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // 0x00 Temperature in °C
+                        // 0x01 Temperature in °F
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     /*
      * Note when send the command to set sensitivity, press button on the device
      * to make it wakeup
