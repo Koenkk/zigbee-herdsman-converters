@@ -175,27 +175,21 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const result = {};
-
             if (typeof msg.data.data['localTemp'] == 'number') {
                 result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100; 
             }
-
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration = precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
-
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
                 result.occupied_heating_setpoint = precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-
             if (typeof msg.data.data['runningState'] == 'number') {
                 result.running_state = msg.data.data['runningState'];
             } 
-
             if (typeof msg.data.data['batteryAlarmState'] == 'number') {
                 result.battery_alarm_state = msg.data.data['batteryAlarmState'];           
             }
-
             return result;
         },
     },
@@ -204,27 +198,21 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             const result = {};
-
             if (typeof msg.data.data['localTemp'] == 'number') {
                 result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100; 
             }
-
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration = precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
-
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
                 result.occupied_heating_setpoint = precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-
             if (typeof msg.data.data['runningState'] == 'number') {
                 result.running_state = msg.data.data['runningState'];
             } 
-
             if (typeof msg.data.data['batteryAlarmState'] == 'number') {
                 result.battery_alarm_state = msg.data.data['batteryAlarmState'];           
-            }
-            
+            }         
             return result;
         },
     },
