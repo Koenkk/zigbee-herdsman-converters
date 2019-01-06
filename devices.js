@@ -2008,8 +2008,8 @@ const devices = [
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
         supports: generic.light_onoff_brightness.supports,
-        fromZigbee: [fz.airam_state, fz.airam_brightness, fz.light_brightness, fz.light_state],
-        toZigbee: generic.light_onoff_brightness().toZigbee,
+        fromZigbee: [fz.light_state, fz.light_brightness_report, fz.light_brightness, fz.light_state],
+        toZigbee: generic.light_onoff_brightness.toZigbee,
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -2026,9 +2026,9 @@ const devices = [
     },
     {
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
-        model: 'AIRAM-CTR.U', // Did not find actual model number for the device so gave just some identifier
+        model: 'AIRAM-CTR.U',
         vendor: 'Airam',
-        description: 'Airam CTR.U Remote',
+        description: 'CTR.U remote (can only be used to control the Airam 4713407 bulb)',
         supports: 'on/off',
         fromZigbee: [],
         toZigbee: [],
