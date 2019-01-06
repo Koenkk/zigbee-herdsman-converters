@@ -34,7 +34,7 @@ const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
 
 const execute = (device, actions, callback, delay) => {
     if (!device) {
-        callback(false);
+        callback(false, 'No device');
         return;
     }
     delay || (delay = 300);
@@ -43,7 +43,7 @@ const execute = (device, actions, callback, delay) => {
 
     const next = () => {
         if (nextActionIndex === len) {
-            callback(true);
+            callback(true, '');
             return;
         }
 
@@ -54,7 +54,7 @@ const execute = (device, actions, callback, delay) => {
             (error) => {
                 debug(`Configured '${nextAction.toString()}' with result '${error ? error : 'OK'}'`);
                 if (error) {
-                    callback(false);
+                    callback(false, error);
                     return;
                 }
                 next();
