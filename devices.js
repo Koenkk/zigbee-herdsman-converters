@@ -2199,7 +2199,7 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
-    
+
     // Smart Home Pty
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
