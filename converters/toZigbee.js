@@ -305,7 +305,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
                 };
@@ -333,7 +333,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
                 };
