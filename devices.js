@@ -1874,7 +1874,8 @@ const devices = [
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature, tz.thermostat_running_state,
+            tz.thermostat_temperature_display_mode,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
