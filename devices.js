@@ -2131,7 +2131,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [],
         toZigbee: [],
-     },
+    },
 
     // Smart Home Pty
     {
