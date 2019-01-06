@@ -1134,6 +1134,15 @@ const converters = {
             };
         },
     },
+    light_brightness_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {
+                brightness: msg.data.data['currentLevel'],
+            };
+        },
+    },
     smartsense_multi: {
         cid: 'ssIasZone',
         type: 'attReport',
