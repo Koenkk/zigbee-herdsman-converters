@@ -517,6 +517,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['SURTE door WS 38x64'],
+        model: 'L1531',
+        vendor: 'IKEA',
+        description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603',
         description: 'TRADFRI control outlet',
@@ -869,6 +878,43 @@ const devices = [
         },
     },
 
+    // eCozy
+    {
+        zigbeeModel: ['Thermostat'],
+        model: '1TST-EU',
+        vendor: 'eCozy',
+        description: 'Smart heating thermostat',
+        supports: 'temperature, occupancy, un-/occupied heating, schedule',
+        fromZigbee: [
+            fz.ignore_basic_change, fz.generic_battery_voltage,
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
+            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
     // OSRAM
     {
         zigbeeModel: ['Outdoor Lantern W RGBW OSRAM'],
@@ -1073,7 +1119,16 @@ const devices = [
         zigbeeModel: ['FWBulb01'],
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
-        description: 'Active light dimmable',
+        description: 'Active smart bulb white LED (E27)',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
+    {
+        zigbeeModel: ['FWBulb02UK'],
+        model: 'HALIGHTDIMWWB22',
+        vendor: 'Hive',
+        description: 'Active smart bulb white LED (B22)',
         supports: generic.light_onoff_brightness.supports,
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
@@ -1400,6 +1455,25 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['45856'],
+        model: '45856GE',
+        vendor: 'GE',
+        description: 'In-wall smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['45857'],
         model: '45857GE',
         vendor: 'GE',
@@ -1673,6 +1747,31 @@ const devices = [
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3321-S'],
+        model: '3321-S',
+        vendor: 'SmartThings',
+        description: 'Multi Sensor (2015 model)',
+        supports: 'contact and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 23,
+                }, cb),
             ];
             execute(device, actions, callback);
         },
@@ -2034,6 +2133,16 @@ const devices = [
         toZigbee: [],
      },
 
+    // Smart Home Pty
+    {
+        zigbeeModel: ['FNB56-SKT1EHG1.2'],
+        model: 'HGZB-20-DE',
+        vendor: 'Smart Home Pty',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_change],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices;
