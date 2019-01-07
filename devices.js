@@ -2015,6 +2015,16 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        model: 'HGZB-07A',
+        vendor: 'Smart Home Pty',
+        description: 'RGBW Downlight',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+     },
+    
 ];
 
 module.exports = devices;
