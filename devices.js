@@ -2015,6 +2015,7 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+    
     {
         zigbeeModel: ['FB56-ZCW11HG1.2'],
         model: 'HGZB-07A',
