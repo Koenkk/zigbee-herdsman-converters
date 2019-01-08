@@ -2153,7 +2153,18 @@ const devices = [
         supports: generic.light_onoff_brightness.supports,                          
         fromZigbee: generic.light_onoff_brightness.fromZigbee,                                           
         toZigbee: generic.light_onoff_brightness.toZigbee,
-    },    
+    }, 
+    
+    // EcoSmart A19 Soft White                          
+    {                                                                               
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0012 �P\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1532',
+        vendor: 'Ecosmart',          
+        description: 'A19 soft white bulb',    
+        supports: generic.light_onoff_brightness.supports,                          
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,                                           
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },   
 ];
 
 module.exports = devices;
