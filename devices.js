@@ -2143,6 +2143,17 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+    
+    // EcoSmart A19 Bright White                          
+    {                                                                               
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1531',
+        vendor: 'Ecosmart',          
+        description: 'A19 bright white bulb',    
+        supports: generic.light_onoff_brightness.supports,                          
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,                                           
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },    
 ];
 
 module.exports = devices;
