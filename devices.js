@@ -2191,6 +2191,15 @@ const devices = [
 
     // Smart Home Pty
     {
+        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        model: 'HGZB-07A',
+        vendor: 'Smart Home Pty',
+        description: 'RGBW Downlight',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+    },
+    {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
         model: 'HGZB-20-DE',
         vendor: 'Smart Home Pty',
