@@ -2099,6 +2099,26 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
     },
+    {
+        // eslint-disable-next-line
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1531',
+        vendor: 'EcoSmart',
+        description: 'A19 bright white bulb',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
+    {
+        // eslint-disable-next-line
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0012 �P\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1532',
+        vendor: 'EcoSmart',
+        description: 'A19 soft white bulb',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // Airam
     {
