@@ -305,7 +305,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
                 };
@@ -333,7 +333,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Lookup in Zigbee documentation
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
                 };
@@ -571,6 +571,44 @@ const converters = {
                     unread_entries: value.unreadentries,
                 },
             };
+        },
+    },
+    thermostat_running_state: {
+        key: 'running_state',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'runningState';
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_temperature_display_mode: {
+        key: 'temperature_display_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'tempDisplayMode';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // 0x00 Temperature in °C
+                        // 0x01 Temperature in °F
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
+            }
         },
     },
     /*
