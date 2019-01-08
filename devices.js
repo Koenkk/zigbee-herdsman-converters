@@ -544,6 +544,22 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['TRADFRI remote control'],
+        model: 'E1524',
+        description: 'TRADFRI remote control',
+        supports:
+            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
+            '(**[requires additional setup!]' +
+            '(https://github.com/Koenkk/zigbee2mqtt/blob/dev/docs/getting_started/pairing_devices.md)**)',
+        vendor: 'IKEA',
+        fromZigbee: [
+            fz.E1524_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
+            fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
+            fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
+        ],
+        toZigbee: [],
+    },
 
     // Philips
     {

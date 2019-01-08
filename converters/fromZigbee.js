@@ -1290,6 +1290,83 @@ const converters = {
             };
         },
     },
+    E1524_toggle: {
+        cid: 'genOnOff',
+        type: 'cmdToggle',
+        convert: (model, msg, publish, options) => {
+            return {action: 'toggle'};
+        },
+    },
+    E1524_arrow_click: {
+        cid: 'genScenes',
+        type: 'cmdTradfriArrowSingle',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.value === 257 ? 'left' : 'right';
+            return {action: `arrow_${direction}_click`};
+        },
+    },
+    E1524_arrow_hold: {
+        cid: 'genScenes',
+        type: 'cmdTradfriArrowHold',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.value === 3329 ? 'left' : 'right';
+            store[msg.endpoints[0].device.ieeeAddr] = direction;
+            return {action: `arrow_${direction}_hold`};
+        },
+    },
+    E1524_arrow_release: {
+        cid: 'genScenes',
+        type: 'cmdTradfriArrowRelease',
+        convert: (model, msg, publish, options) => {
+            const direction = store[msg.endpoints[0].device.ieeeAddr];
+            if (direction) {
+                delete store[msg.endpoints[0].device.ieeeAddr];
+                return {action: `arrow_${direction}_release`, duration: msg.data.data.value / 1000};
+            }
+        },
+    },
+    E1524_brightness_up_click: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStepWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_up_click`};
+        },
+    },
+    E1524_brightness_down_click: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_down_click`};
+        },
+    },
+    E1524_brightness_up_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_up_hold`};
+        },
+    },
+    E1524_brightness_up_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_up_release`};
+        },
+    },
+    E1524_brightness_down_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_down_hold`};
+        },
+    },
+    E1524_brightness_down_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            return {action: `brightness_down_release`};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
