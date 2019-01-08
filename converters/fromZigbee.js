@@ -419,7 +419,13 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
-            return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, it should only publish message
+            // in the 0 - 100 range, don't produce messages beyond these values.
+            if (humidity >= 0 && humidity <= 100) {
+                return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
+            }
         },
     },
     generic_occupancy: {
