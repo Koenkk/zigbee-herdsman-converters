@@ -2198,7 +2198,7 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
-    },    
+    },
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
         model: 'HGZB-20-DE',
@@ -2208,7 +2208,6 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
-     
 ];
 
 module.exports = devices;
