@@ -1866,7 +1866,7 @@ const devices = [
         zigbeeModel: ['902010/32'],
         model: 'AV2010/32',
         vendor: 'Bitron',
-        description: 'Video wireless wall thermostat with relay',
+        description: 'Wireless wall thermostat with relay',
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
             fz.ignore_basic_change, fz.bitron_thermostat_att_report,
