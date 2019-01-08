@@ -314,6 +314,20 @@ const converters = {
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    xiaomi_temperature: {
+        cid: 'msTemperatureMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
+            // -20 till +60, don't produce messages beyond these values.
+            if (temperature > -25 && temperature < 65) {
+                return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+            }
+        },
+    },
     MFKZQ01LM_action_multistate: {
         cid: 'genMultistateInput',
         type: 'attReport',
