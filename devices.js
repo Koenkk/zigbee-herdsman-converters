@@ -2224,6 +2224,17 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+	
+	// Nue	
+	{
+		zigbeeModel: ['FNB56-ZSW23HG1.1'],
+        model: 'HGZB-01A',
+        vendor: 'Nue',
+        description: 'ZigBee Smart Light Controller',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+	},
 ];
 
 module.exports = devices;
