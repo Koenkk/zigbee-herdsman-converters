@@ -1631,6 +1631,15 @@ const devices = [
             return {'left': 12, 'right': 11};
         },
     },
+    {
+        zigbeeModel: ['FNB56-ZSW23HG1.1'],
+        model: 'HGZB-01A',
+        vendor: 'Nue',
+        description: 'ZigBee smart light controller',
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
+    },
 
     // Gledopto
     {
@@ -2223,17 +2232,6 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
-    },
-
-    // Nue
-    {
-        zigbeeModel: ['FNB56-ZSW23HG1.1'],
-        model: 'HGZB-01A',
-        vendor: 'Nue',
-        description: 'ZigBee Smart Light Controller',
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 ];
 
