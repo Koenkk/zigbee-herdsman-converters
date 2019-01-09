@@ -2225,7 +2225,7 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    //Nue
+    // Nue
     {
         zigbeeModel: ['FNB56-ZSW23HG1.1'],
         model: 'HGZB-01A',
