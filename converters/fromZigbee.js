@@ -247,6 +247,15 @@ const converters = {
             }
         },
     },
+    RTCGQ11LM_interval: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                return {illuminance: msg.data.data['65281']['11']};
+            }
+        },
+    },
     WSDCGQ01LM_WSDCGQ11LM_interval: {
         cid: 'genBasic',
         type: 'attReport',
