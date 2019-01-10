@@ -1106,6 +1106,15 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: msg.data.data['batteryPercentageRemaining']};
+            }
+        },
+    },
+    hue_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },

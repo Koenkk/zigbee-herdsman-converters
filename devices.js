@@ -4,6 +4,10 @@ const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
+const seconds = {
+    ONE_DAY: 86400,
+};
+
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
@@ -463,12 +467,17 @@ const devices = [
         supports: 'brightness [0-255], quick rotate for instant 0/255',
         fromZigbee: [
             fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff, fz.ICTC_G_1_stop, fz.ICTC_G_1_stopWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff,
+            fz.ICTC_G_1_moveToLevelWithOnOff, fz.generic_battery, fz.ignore_power_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-            execute(device, [(cb) => device.bind('genLevelCtrl', coordinator, cb)], callback);
+            const actions = [
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, seconds.ONE_DAY, 0, cb),
+            ];
+            execute(device, actions, callback);
         },
     },
     {
@@ -750,7 +759,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [
             fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
-            fz.ignore_power_change, fz.generic_battery,
+            fz.ignore_power_change, fz.hue_battery,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -782,7 +791,7 @@ const devices = [
         description: 'Hue motion sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.generic_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
