@@ -2260,6 +2260,17 @@ const devices = [
         fromZigbee: [fz.generic_state_change],
         toZigbee: [tz.on_off],
     },
+
+    // Paul Neuhaus
+    {
+        zigbeeModel: ['NLG-CCT light '],
+        model: '100.424.11',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-INIGO LED ceiling light',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
 ];
 
 module.exports = devices;
