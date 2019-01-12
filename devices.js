@@ -2271,6 +2271,17 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
+
+    // iCasa Zigbee 3.0 Dimmer
+    {
+      zigbeeModel: ['ICZB-IW11D'],
+      model: 'ICZB-IW11D',
+      vendor: 'iCasa',
+      description: 'iCasa Zigbee 3.0 Dimmer',
+      supports: generic.light_onoff_brightness().supports,
+      fromZigbee: generic.light_onoff_brightness().fromZigbee,
+      toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 ];
 
 module.exports = devices;
