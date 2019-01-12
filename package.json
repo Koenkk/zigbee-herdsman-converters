@@ -3,6 +3,10 @@
   "version": "7.0.14",
   "description": "Collection of device converters to be used with zigbee-shepherd",
   "main": "index.js",
+  "files": [
+    "/index.js",
+    "/converters"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Koenkk/zigbee-shepherd-converters.git"
