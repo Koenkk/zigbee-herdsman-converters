@@ -552,7 +552,7 @@ const devices = [
         model: '7146060PH',
         vendor: 'Philips',
         description: 'Hue Go',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LWB004'],
@@ -587,35 +587,35 @@ const devices = [
         model: '915005106701',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016'],
         model: '9290012573A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LCT002'],
         model: '9290002579A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LCT003'],
         model: '8718696485880',
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LCT024'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LTW011'],
@@ -873,21 +873,21 @@ const devices = [
         model: '4058075816718',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['CLA60 RGBW OSRAM'],
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['CLA60 TW OSRAM'],
@@ -970,28 +970,28 @@ const devices = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW'],
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['Gardenpole RGBW-Lightify'],
         model: '4058075036147',
         vendor: 'OSRAM',
         description: 'Smart+ Gardenpole RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
@@ -1054,21 +1054,21 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 Bulb RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['BY 185 C'],
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 Bulb RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 Bulb RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['RB 165'],
@@ -1237,7 +1237,7 @@ const devices = [
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM', 'LIGHTIFY A19 ON/OFF/DIM 10 Year'],
@@ -1387,7 +1387,7 @@ const devices = [
         model: 'E11-N1EA',
         vendor: 'Sengled',
         description: 'Element Plus Color (A19)',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['E12-N14'],
@@ -1403,7 +1403,7 @@ const devices = [
         model: 'K2RGBW01',
         vendor: 'JIAWEN',
         description: 'Wireless Bulb E27 9W RGBW',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Netvox
@@ -1473,7 +1473,7 @@ const devices = [
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1505,7 +1505,7 @@ const devices = [
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1521,7 +1521,7 @@ const devices = [
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1537,7 +1537,7 @@ const devices = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1865,7 +1865,7 @@ const devices = [
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Centralite Swiss Plug
@@ -1974,7 +1974,7 @@ const devices = [
         model: 'D1821',
         vendor: 'EcoSmart',
         description: 'A19 RGB bulb',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         // eslint-disable-next-line
@@ -2031,7 +2031,7 @@ const devices = [
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
         description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
@@ -2058,9 +2058,7 @@ const devices = [
         model: 'ICZB-IW11D',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Dimmer',
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: generic.light_onoff_brightness.toZigbee,
+        extend: generic.light_onoff_brightness,
     },
 ];
 
