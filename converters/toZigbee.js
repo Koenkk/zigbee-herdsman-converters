@@ -92,7 +92,7 @@ const converters = {
         },
     },
     hue_power_on_behavior: {
-        key: ['power_on_behavior'],
+        key: ['hue_power_on_behavior'],
         convert: (key, value, message, type) => {
             const lookup = {
                 'default': 0x01,
