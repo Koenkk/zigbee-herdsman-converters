@@ -1307,7 +1307,7 @@ const converters = {
                 running_state: msg.data.data['runningState'],
             };
         },
-},
+    },
     E1524_toggle: {
         cid: 'genOnOff',
         type: 'cmdToggle',
