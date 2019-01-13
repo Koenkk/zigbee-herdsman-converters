@@ -1281,7 +1281,7 @@ const converters = {
                 result.weekly_schedule = msg.data.data['weeklySchedule'];
             }
             if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100;
+                result.setpoint_change_amount = msg.data.data['setpointChangeAmount'] / 100;
             }
             if (typeof msg.data.data['setpointChangeSource'] == 'number') {
                 result.setpoint_change_source = msg.data.data['setpointChangeSource'];
