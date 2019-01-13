@@ -1263,7 +1263,8 @@ const converters = {
                 result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration = precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
+                result.local_temperature_calibration: 
+                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
             if (typeof msg.data.data['occupancy'] == 'number') {
                 result.occupancy: msg.data.data['occupancy'];
