@@ -1258,54 +1258,100 @@ const converters = {
         cid: 'hvacThermostat',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            return {
-                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
-                // Signed difference in 0.01 degrees Celsius between the previous temperature setpoint and the new
-                // temperature setpoint.
-                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
-                // Specifies whether the heated/cooled space is occupied or not.
-                // If bit 0 = 1, the space is occupied, else it is unoccupied
-                occupancy: msg.data.data['occupancy'],
-                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
-                unoccupied_heating_setpoint: precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100,
-                // start_of_week: value.start_of_week, // 0x00 = Sunday to 0x06 = Saturday
-                // number_of_daily_transitions: value.number_of_daily_transitions,
-                // number_of_weeky_transitions: value.number_of_weeky_transitions,
-                weekly_schedule: msg.data.data['weeklySchedule'],
-                // The signed difference in 0.01 degrees Celsius between the previous temperature setpoint and
-                // the new temperature setpoint.
-                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
-                // 0x00 Manual, user-initiated setpoint change via the thermostat
-                // 0x01 Schedule/internal programming-initiated setpoint change
-                // 0x02 Externally-initiated setpoint change (e.g., DRLC cluster command, attribute write)
-                setpoint_change_source: msg.data.data['setpointChangeSource'],
-                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
-                remote_sensing: msg.data.data['remoteSensing'],
-                control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
-                system_mode: msg.data.data['systemMode'],
-                running_state: msg.data.data['runningState'],
-            };
+            const result = {};
+            if (typeof msg.data.data['localTemp'] == 'number') {
+                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
+            }
+            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
+                result.local_temperature_calibration: 
+                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
+            }
+            if (typeof msg.data.data['occupancy'] == 'number') {
+                result.occupancy: msg.data.data['occupancy'];
+            }
+            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
+                result.occupied_heating_setpoint:
+                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
+                result.unoccupied_heating_setpoint:
+                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data.data['weeklySchedule'] == 'number') {
+                result.weekly_schedule: msg.data.data['weeklySchedule'];
+            }
+            if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
+                result.setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100;
+            }
+            if (typeof msg.data.data['setpointChangeSource'] == 'number') {
+                result.setpoint_change_source: msg.data.data['setpointChangeSource'];
+            }
+            if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
+                result.setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'];
+            }
+            if (typeof msg.data.data['remoteSensing'] == 'number') {
+                result.remote_sensing: msg.data.data['remoteSensing'];
+            }
+            if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
+                result.control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+            }
+            if (typeof msg.data.data['systemMode'] == 'number') {
+                result.system_mode: msg.data.data['systemMode'];
+            }
+            if (typeof msg.data.data['runningState'] == 'number') {
+                result.running_state: msg.data.data['runningState'];
+            }
+            return result;
         },
     },
     thermostat_att_report: {
         cid: 'hvacThermostat',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {
-                local_temperature: precisionRound(msg.data.data['localTemp'], 2) / 100,
-                local_temperature_calibration: precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10,
-                occupancy: msg.data.data['occupancy'],
-                occupied_heating_setpoint: precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100,
-                unoccupied_heating_setpoint: precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100,
-                weekly_schedule: msg.data.data['weeklySchedule'],
-                setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100,
-                setpoint_change_source: msg.data.data['setpointChangeSource'],
-                setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'],
-                remote_sensing: msg.data.data['remoteSensing'],
-                control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
-                system_mode: msg.data.data['systemMode'],
-                running_state: msg.data.data['runningState'],
-            };
+            const result = {};
+            if (typeof msg.data.data['localTemp'] == 'number') {
+                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
+            }
+            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
+                result.local_temperature_calibration: 
+                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
+            }
+            if (typeof msg.data.data['occupancy'] == 'number') {
+                result.occupancy: msg.data.data['occupancy'];
+            }
+            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
+                result.occupied_heating_setpoint:
+                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
+                result.unoccupied_heating_setpoint:
+                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data.data['weeklySchedule'] == 'number') {
+                result.weekly_schedule: msg.data.data['weeklySchedule'];
+            }
+            if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
+                result.setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100;
+            }
+            if (typeof msg.data.data['setpointChangeSource'] == 'number') {
+                result.setpoint_change_source: msg.data.data['setpointChangeSource'];
+            }
+            if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
+                result.setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'];
+            }
+            if (typeof msg.data.data['remoteSensing'] == 'number') {
+                result.remote_sensing: msg.data.data['remoteSensing'];
+            }
+            if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
+                result.control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+            }
+            if (typeof msg.data.data['systemMode'] == 'number') {
+                result.system_mode: msg.data.data['systemMode'];
+            }
+            if (typeof msg.data.data['runningState'] == 'number') {
+                result.running_state: msg.data.data['runningState'];
+            }
+            return result;
         },
     },
     E1524_toggle: {
