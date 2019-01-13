@@ -91,7 +91,7 @@ const converters = {
             }
         },
     },
-        hue_power_on_behavior: {
+    hue_power_on_behavior: {
         key: ['power_on_behavior'],
         convert: (key, value, message, type) => {
             const lookup = {
@@ -100,7 +100,7 @@ const converters = {
                 'off': 0x00,
                 'recover': 0xff,
             };
-
+            
             if (type === 'set') {
                 return {
                     cid: 'genOnOff',
