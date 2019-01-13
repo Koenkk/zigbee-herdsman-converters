@@ -1293,7 +1293,7 @@ const converters = {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
             if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'],
+                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'];
             }
             if (typeof msg.data.data['systemMode'] == 'number') {
                 result.system_mode = msg.data.data['systemMode'];
@@ -1343,7 +1343,7 @@ const converters = {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
             if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'],
+                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'];
             }
             if (typeof msg.data.data['systemMode'] == 'number') {
                 result.system_mode = msg.data.data['systemMode'];
