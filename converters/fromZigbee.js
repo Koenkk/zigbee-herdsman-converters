@@ -1263,43 +1263,43 @@ const converters = {
                 result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration: 
+                result.local_temperature_calibration = 
                     precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
             if (typeof msg.data.data['occupancy'] == 'number') {
-                result.occupancy: msg.data.data['occupancy'];
+                result.occupancy = msg.data.data['occupancy'];
             }
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint:
+                result.occupied_heating_setpoint =
                     precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint:
+                result.unoccupied_heating_setpoint =
                     precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule: msg.data.data['weeklySchedule'];
+                result.weekly_schedule = msg.data.data['weeklySchedule'];
             }
             if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
                 result.setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100;
             }
             if (typeof msg.data.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source: msg.data.data['setpointChangeSource'];
+                result.setpoint_change_source = msg.data.data['setpointChangeSource'];
             }
             if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'];
+                result.setpoint_change_source_timestamp = msg.data.data['setpointChangeSourceTimeStamp'];
             }
             if (typeof msg.data.data['remoteSensing'] == 'number') {
-                result.remote_sensing: msg.data.data['remoteSensing'];
+                result.remote_sensing = msg.data.data['remoteSensing'];
             }
             if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'],
             }
             if (typeof msg.data.data['systemMode'] == 'number') {
-                result.system_mode: msg.data.data['systemMode'];
+                result.system_mode = msg.data.data['systemMode'];
             }
             if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state: msg.data.data['runningState'];
+                result.running_state = msg.data.data['runningState'];
             }
             return result;
         },
@@ -1313,43 +1313,43 @@ const converters = {
                 result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration: 
+                result.local_temperature_calibration =  
                     precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
             }
             if (typeof msg.data.data['occupancy'] == 'number') {
-                result.occupancy: msg.data.data['occupancy'];
+                result.occupancy = msg.data.data['occupancy'];
             }
             if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint:
+                result.occupied_heating_setpoint =
                     precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint:
+                result.unoccupied_heating_setpoint =
                     precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule: msg.data.data['weeklySchedule'];
+                result.weekly_schedule = msg.data.data['weeklySchedule'];
             }
             if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount: msg.data.data['setpointChangeAmount'] / 100;
+                result.setpoint_change_amount = msg.data.data['setpointChangeAmount'] / 100;
             }
             if (typeof msg.data.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source: msg.data.data['setpointChangeSource'];
+                result.setpoint_change_source = msg.data.data['setpointChangeSource'];
             }
             if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp: msg.data.data['setpointChangeSourceTimeStamp'];
+                result.setpoint_change_source_timestamp = msg.data.data['setpointChangeSourceTimeStamp'];
             }
             if (typeof msg.data.data['remoteSensing'] == 'number') {
-                result.remote_sensing: msg.data.data['remoteSensing'];
+                result.remote_sensing = msg.data.data['remoteSensing'];
             }
             if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation: msg.data.data['ctrlSeqeOfOper'],
+                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'],
             }
             if (typeof msg.data.data['systemMode'] == 'number') {
-                result.system_mode: msg.data.data['systemMode'];
+                result.system_mode = msg.data.data['systemMode'];
             }
             if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state: msg.data.data['runningState'];
+                result.running_state = msg.data.data['runningState'];
             }
             return result;
         },
