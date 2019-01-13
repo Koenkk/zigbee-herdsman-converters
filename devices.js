@@ -37,22 +37,22 @@ const generic = {
 const tzHuePowerOnBehavior = [tz.hue_power_on_behavior, tz.hue_power_on_brightness, tz.hue_power_on_color_temperature];
 const hue = {
     light_onoff_brightness: {
-        supports: generic.light_onoff_brightness.supports + ', , power-on behavior',
+        supports: generic.light_onoff_brightness.supports + ', power-on behavior',
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colortemp: {
-        supports: generic.light_onoff_brightness_colortemp.supports + ', , power-on behavior',
+        supports: generic.light_onoff_brightness_colortemp.supports + ', power-on behavior',
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colorxy: {
-        supports: generic.light_onoff_brightness_colorxy.supports + ', , power-on behavior',
+        supports: generic.light_onoff_brightness_colorxy.supports + ', power-on behavior',
         fromZigbee: generic.light_onoff_brightness_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colorxy.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colortemp_colorxy: {
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports + ', , power-on behavior',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports + ', power-on behavior',
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat(tzHuePowerOnBehavior),
     },
