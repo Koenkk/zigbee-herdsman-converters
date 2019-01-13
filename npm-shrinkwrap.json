@@ -24,6 +24,15 @@
         "js-tokens": "^4.0.0"
       }
     },
+    "@zigbee/zcl-id": {
+      "version": "0.5.0-2",
+      "resolved": "https://registry.npmjs.org/@zigbee/zcl-id/-/zcl-id-0.5.0-2.tgz",
+      "integrity": "sha512-TwM+I9rOvVyI5r3TipAAGCBVDshdedlo9xYCY+WmBlKXeF3GQhaCV5vFkEEaIUa3O9oa2+gIFnFjLiccxl7EPg==",
+      "requires": {
+        "busyman": "^0.3.0",
+        "enum": "^2.5.0"
+      }
+    },
     "acorn": {
       "version": "6.0.4",
       "resolved": "https://registry.npmjs.org/acorn/-/acorn-6.0.4.tgz",
@@ -960,15 +969,6 @@
       "dev": true,
       "requires": {
         "mkdirp": "^0.5.1"
-      }
-    },
-    "zcl-id": {
-      "version": "0.4.0",
-      "resolved": "https://registry.npmjs.org/zcl-id/-/zcl-id-0.4.0.tgz",
-      "integrity": "sha512-XN7diHjvF/qQmrs78xURDEpZcw7Y5+R0ScuNwR3X+xfUfJo94Dj9UGkKniSzOATEZWlLZjg/P23y4GwKFRMptA==",
-      "requires": {
-        "busyman": "^0.3.0",
-        "enum": "^2.5.0"
       }
     }
   }
