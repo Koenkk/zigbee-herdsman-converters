@@ -95,12 +95,12 @@ const converters = {
         key: ['power_on_behavior'],
         convert: (key, value, message, type) => {
             const lookup = {
-            	'default': 0x01,
-            	'on': 0x01,
+                'default': 0x01,
+                'on': 0x01,
                 'off': 0x00,
                 'recover': 0xff,
             };
-            
+
             if (type === 'set') {
                 return {
                     cid: 'genOnOff',
@@ -120,9 +120,9 @@ const converters = {
         key: ['hue_power_on_brightness'],
         convert: (key, value, message, type) => {
             if (type === 'set') {
-            	if (value === 'default') {
-            		value = 255;
-            	};
+                if (value === 'default') {
+                    value = 255;
+                }
                 return {
                     cid: 'genLevelCtrl',
                     cmd: 'write',
@@ -141,9 +141,9 @@ const converters = {
         key: ['hue_power_on_color_temperature'],
         convert: (key, value, message, type) => {
             if (type === 'set') {
-            	if (value === 'default') {
-            		value = 366;
-            	};
+                if (value === 'default') {
+                    value = 366;
+                }
                 return {
                     cid: 'lightingColorCtrl',
                     cmd: 'write',
