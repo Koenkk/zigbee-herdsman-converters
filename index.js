@@ -17,7 +17,7 @@ module.exports = {
         let device = byZigbeeModel.get(model);
 
         if (!device) {
-            device = byZigbeeModel.get(model.replace(/\0.*$/g,'').trim());
+            device = byZigbeeModel.get(model.replace(/\0.*$/g, '').trim());
         }
 
         return device;
