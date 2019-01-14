@@ -1,7 +1,7 @@
 'use strict';
 
 const utils = require('./utils');
-const zclId = require('@zigbee/zcl-id');
+const zclId = require('zcl-id');
 
 const cfg = {
     default: {

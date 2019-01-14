@@ -22,7 +22,8 @@
   ],
   "scripts": {
     "verify": "node test/verify.js",
-    "eslint": "node_modules/.bin/eslint ."
+    "eslint": "node_modules/.bin/eslint .",
+    "test": "mocha --recursive"
   },
   "author": "Koen Kanters",
   "license": "MIT",
@@ -31,12 +32,14 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
   "dependencies": {
-    "@zigbee/zcl-id": "^0.5.0-2",
+    "zcl-id": "git+https://github.com/Koenkk/zcl-id.git#509f77ab620ece6ad8e83a008283457a5280c8db",
     "debounce": "*",
-    "debug": "3.2.6"
+    "debug": "3.2.6",
+    "chai": "*"
   },
   "devDependencies": {
     "eslint": "*",
-    "eslint-config-google": "*"
+    "eslint-config-google": "*",
+    "mocha": "*"
   }
 }
