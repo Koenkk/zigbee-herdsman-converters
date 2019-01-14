@@ -477,10 +477,14 @@ const devices = [
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: seconds.ONE_DAY, repChange: 0,
+            };
+
             const actions = [
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, seconds.ONE_DAY, 0, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
             execute(device, actions, callback);
         },
