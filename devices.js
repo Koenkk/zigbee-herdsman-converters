@@ -4,8 +4,8 @@ const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
-const seconds = {
-    ONE_DAY: 86400,
+const repInterval = {
+    MAX: 65535,
 };
 
 const generic = {
@@ -478,7 +478,7 @@ const devices = [
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: seconds.ONE_DAY, repChange: 0,
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
             };
 
             const actions = [
