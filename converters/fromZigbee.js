@@ -125,6 +125,27 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+  AC0251100NJ_test: {
+    cid: 'genOnOff',
+    type: 'attReport',
+    convert: (model, msg, publish, options) => {
+        console.log(msg.data)
+        },
+    },
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
     bitron_power: {
         cid: 'seMetering',
         type: 'attReport',

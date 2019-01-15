@@ -1059,6 +1059,28 @@ const devices = [
         description: 'SMART+ spot GU5.3 tunable white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    ,
+    {
+        zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini\u0000'],
+        model: 'AC0251100NJ',
+        vendor: 'OSRAM',
+        description: 'Smart+ Switch Mini',
+        supports: 'ToDo',
+        fromZigbee: [fz.AC0251100NJ_off, fz.AC0251100NJ_on,fz.ICTC_G_1_stop,fz.ICTC_G_1_move,fz.ICTC_G_1_moveWithOnOff,fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('lightingColorCtrl', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 300, 3600, 0, cb),
+            ];
+             execute(device, actions, callback);
+        },
+
+    },
 
     // Hive
     {
