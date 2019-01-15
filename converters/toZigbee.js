@@ -36,6 +36,10 @@ const converters = {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
+            if (typeof value !== 'string') {
+                return;
+            }
+
             if (type === 'set') {
                 return {
                     cid: cid,
