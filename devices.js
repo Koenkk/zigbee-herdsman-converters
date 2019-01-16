@@ -1424,6 +1424,15 @@ const devices = [
         description: 'Element Classic (BR30)',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['E1A-AC2'],
+        model: 'E1ACA4ABE38A',
+        vendor: 'Sengled',
+        description: 'Classic smart lighting downlight plus driver',
+        supports: generic.light_onoff_brightness().supports,
+        fromZigbee: generic.light_onoff_brightness().fromZigbee,
+        toZigbee: generic.light_onoff_brightness().toZigbee,
+    },
 
     // JIAWEN
     {
