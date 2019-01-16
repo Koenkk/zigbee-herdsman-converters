@@ -1424,6 +1424,13 @@ const devices = [
         description: 'Element Classic (BR30)',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['E1A-AC2'],
+        model: 'E1ACA4ABE38A',
+        vendor: 'Sengled',
+        description: 'Element downlight smart LED bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // JIAWEN
     {
