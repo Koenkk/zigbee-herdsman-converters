@@ -1120,7 +1120,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['RS 125'],
+        zigbeeModel: ['RS 125', 'RS 125\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'RS 125',
         vendor: 'Innr',
         description: 'GU10 Spot',
