@@ -125,28 +125,28 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
-  AC0251100NJ_on: {
-      cid: 'genOnOff',
-      type: 'cmdOn',
-      convert: (model, msg, publish, options) => {
-          return {click: 'on'};
-      },
-  },
-  AC0251100NJ_off: {
-      cid: 'genOnOff',
-      type: 'cmdOff',
-      convert: (model, msg, publish, options) => {
-          return {click: 'off'};
-      },
-  },
-  AC0251100NJ_long_middle: {
-      cid: 'lightingColorCtrl',
-      type: 'cmdMoveHue',
-      convert: (model, msg, publish, options) => {
-      //'cmdMoveHue' with data '{"cid":"lightingColorCtrl","data":{"movemode":0,"rate":0}}'
-          return {click: 'long_middle'};
-      },
-  },
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {click: 'on'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {click: 'off'};
+        },
+    },
+    AC0251100NJ_long_middle: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveHue',
+        convert: (model, msg, publish, options) => {
+        // 'cmdMoveHue' with data '{"cid":"lightingColorCtrl","data":{"movemode":0,"rate":0}}'
+            return {click: 'long_middle'};
+        },
+    },
     bitron_power: {
         cid: 'seMetering',
         type: 'attReport',

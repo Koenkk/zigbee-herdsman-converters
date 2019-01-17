@@ -1065,7 +1065,11 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ Switch Mini',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.AC0251100NJ_on, fz.AC0251100NJ_off,fz.AC0251100NJ_long_middle,fz.ICTC_G_1_stop,fz.ICTC_G_1_move,fz.ICTC_G_1_moveWithOnOff,fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery],
+        fromZigbee: [
+            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
+            fz.ICTC_G_1_stop, fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff,
+            fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery
+        ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1076,7 +1080,7 @@ const devices = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
             ];
-             execute(device, actions, callback);
+            execute(device, actions, callback);
         },
 
     },
