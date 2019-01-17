@@ -1068,7 +1068,7 @@ const devices = [
         fromZigbee: [
             fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
             fz.ICTC_G_1_stop, fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery, 
+            fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
