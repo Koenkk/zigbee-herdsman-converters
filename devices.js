@@ -1625,7 +1625,10 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Arrival sensor',
         supports: 'presence',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change, fz.STS_PRS_251_beeping],
+        fromZigbee: [
+            fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change, 
+            fz.STS_PRS_251_beeping,
+        ],
         toZigbee: [tz.STS_PRS_251_beep],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
