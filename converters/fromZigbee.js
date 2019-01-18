@@ -143,7 +143,6 @@ const converters = {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveHue',
         convert: (model, msg, publish, options) => {
-        // 'cmdMoveHue' with data '{"cid":"lightingColorCtrl","data":{"movemode":0,"rate":0}}'
             return {click: 'long_middle'};
         },
     },
