@@ -14,6 +14,10 @@ for (const device of devices) {
 module.exports = {
     devices,
     findByZigbeeModel: (model) => {
+        if (!model) {
+            return null;
+        }
+
         let device = byZigbeeModel.get(model);
 
         if (!device) {

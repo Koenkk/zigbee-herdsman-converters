@@ -16,4 +16,9 @@ describe('index.js', () => {
         const device = index.findByZigbeeModel('lumi.sensor_switch.aq2\u0000\u0000\u0000\u0000\u0000\u0000');
         chai.assert.strictEqual(device.model, 'WXKG11LM');
     });
+
+    it('Find device by model ID null', () => {
+        const device = index.findByZigbeeModel(null);
+        chai.assert.strictEqual(device, null);
+    });
 });
