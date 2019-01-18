@@ -471,8 +471,8 @@ const devices = [
         description: 'TRADFRI wireless dimmer',
         supports: 'brightness [0-255], quick rotate for instant 0/255',
         fromZigbee: [
-            fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff, fz.ICTC_G_1_stop, fz.ICTC_G_1_stopWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff, fz.generic_battery, fz.ignore_power_change,
+            fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
+            fz.cmd_move_to_level_with_onoff, fz.generic_battery, fz.ignore_power_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -1063,12 +1063,12 @@ const devices = [
         zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini\u0000'],
         model: 'AC0251100NJ',
         vendor: 'OSRAM',
-        description: 'Smart+ Switch Mini',
+        description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
         fromZigbee: [
             fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
-            fz.ICTC_G_1_stop, fz.ICTC_G_1_move, fz.ICTC_G_1_moveWithOnOff,
-            fz.ICTC_G_1_moveToLevelWithOnOff, fz.STS_PRS_251_battery,
+            fz.cmd_stop, fz.cmd_move, fz.cmd_move_with_onoff,
+            fz.cmd_move_to_level_with_onoff, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -1625,7 +1625,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Arrival sensor',
         supports: 'presence',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.STS_PRS_251_battery, fz.ignore_power_change, fz.STS_PRS_251_beeping],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change, fz.STS_PRS_251_beeping],
         toZigbee: [tz.STS_PRS_251_beep],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
