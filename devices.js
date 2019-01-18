@@ -1626,7 +1626,7 @@ const devices = [
         description: 'Arrival sensor',
         supports: 'presence',
         fromZigbee: [
-            fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change, 
+            fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change,
             fz.STS_PRS_251_beeping,
         ],
         toZigbee: [tz.STS_PRS_251_beep],
