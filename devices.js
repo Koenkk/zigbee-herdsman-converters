@@ -2035,7 +2035,7 @@ const devices = [
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
         extend: generic.light_onoff_brightness,
-        fromZigbee: [fz.light_state, fz.light_brightness_report, fz.light_brightness, fz.light_state],
+        fromZigbee: [fz.light_state, fz.light_brightness_report, fz.light_brightness, fz.generic_state],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
