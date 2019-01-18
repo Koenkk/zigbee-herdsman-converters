@@ -1220,7 +1220,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                contact: (zoneStatus & 1) > 0,
+                contact: !((zoneStatus & 1) > 0),
             };
         },
     },
@@ -1230,7 +1230,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                contact: (zoneStatus & 1) > 0,
+                contact: !((zoneStatus & 1) > 0),
             };
         },
     },
