@@ -125,6 +125,27 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {click: 'on'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {click: 'off'};
+        },
+    },
+    AC0251100NJ_long_middle: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveHue',
+        convert: (model, msg, publish, options) => {
+            return {click: 'long_middle'};
+        },
+    },
     bitron_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -1025,7 +1046,7 @@ const converters = {
             return {presence: true};
         },
     },
-    STS_PRS_251_battery: {
+    generic_batteryvoltage_3000_2500: {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -1125,27 +1146,27 @@ const converters = {
             return {voltage: msg.data.data['batteryVoltage'] / 100};
         },
     },
-    ICTC_G_1_move: {
+    cmd_move: {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
-    ICTC_G_1_moveWithOnOff: {
+    cmd_move_with_onoff: {
         cid: 'genLevelCtrl',
         type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'move'),
     },
-    ICTC_G_1_stop: {
+    cmd_stop: {
         cid: 'genLevelCtrl',
         type: 'cmdStop',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
-    ICTC_G_1_stopWithOnOff: {
+    cmd_stop_with_onoff: {
         cid: 'genLevelCtrl',
         type: 'cmdStopWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'stop'),
     },
-    ICTC_G_1_moveToLevelWithOnOff: {
+    cmd_move_to_level_with_onoff: {
         cid: 'genLevelCtrl',
         type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => ictcg1(model, msg, publish, options, 'level'),
