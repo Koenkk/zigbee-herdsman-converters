@@ -769,7 +769,7 @@ const converters = {
                         return {keyerror: true, inserted: 'unknown'};
                     }
                     if (action == 3) {
-                        // explicitly disabled key (e.g.: reported lost)
+                        // explicitly disabled key (i.e. reported lost)
                         return {keyerror: true, inserted: keynum};
                     }
                     if (action == 7) {
