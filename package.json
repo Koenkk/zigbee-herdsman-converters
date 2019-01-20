@@ -1,8 +1,13 @@
 {
   "name": "zigbee-shepherd-converters",
-  "version": "7.0.9",
+  "version": "7.0.22",
   "description": "Collection of device converters to be used with zigbee-shepherd",
   "main": "index.js",
+  "files": [
+    "/index.js",
+    "/converters",
+    "/devices.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Koenkk/zigbee-shepherd-converters.git"
@@ -17,7 +22,8 @@
   ],
   "scripts": {
     "verify": "node test/verify.js",
-    "eslint": "node_modules/.bin/eslint ."
+    "eslint": "node_modules/.bin/eslint .",
+    "test": "mocha --recursive"
   },
   "author": "Koen Kanters",
   "license": "MIT",
@@ -26,12 +32,14 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
   "dependencies": {
+    "zcl-id": "git+https://github.com/Koenkk/zcl-id.git#509f77ab620ece6ad8e83a008283457a5280c8db",
     "debounce": "*",
-    "zcl-id": "*",
-    "debug": "3.2.6"
+    "debug": "3.2.6",
+    "chai": "*"
   },
   "devDependencies": {
     "eslint": "*",
-    "eslint-config-google": "*"
+    "eslint-config-google": "*",
+    "mocha": "*"
   }
 }
