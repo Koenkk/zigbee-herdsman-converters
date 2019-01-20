@@ -772,6 +772,10 @@ const converters = {
                         // explicitly disabled key (e.g.: reported lost)
                         return {keyerror: true, inserted: keynum};
                     }
+                    if (action == 7) {
+                        // strange object introduced into the cylinder (e.g. a lock pick)
+                        return {keyerror: true, inserted: 'strange'};
+                    }
                 }
                 if (state == 12) {
                     if (action == 1) {
