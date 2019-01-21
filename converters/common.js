@@ -1,28 +1,28 @@
 'use strict';
 
 const thermostatControlSequenceOfOperations = {
-    0: 'Cooling only',
-    1: 'Cooling with reheat',
-    2: 'Heating only',
-    3: 'Heating with reheat',
-    4: 'Cooling and Heating 4-pipes',
-    5: 'Cooling and Heating 4-pipes with reheat',
+    0: 'cooling only',
+    1: 'cooling with reheat',
+    2: 'heating only',
+    3: 'heating with reheat',
+    4: 'cooling and Heating 4-pipes',
+    5: 'cooling and Heating 4-pipes with reheat',
 };
 const thermostatSystemModes = {
-    0: 'Off',
-    1: 'Auto',
-    3: 'Cool',
-    4: 'Heat',
-    5: 'Emergency heating',
-    6: 'Precooling',
-    7: 'Fan only',
-    8: 'Dry',
+    0: 'off',
+    1: 'auto',
+    3: 'cool',
+    4: 'heat',
+    5: 'emergency heating',
+    6: 'precooling',
+    7: 'fan only',
+    8: 'dry',
     9: 'Sleep',
 };
 const thermostatRunningModes = {
-    0: 'Off',
-    3: 'Cool',
-    4: 'Heat',
+    0: 'off',
+    3: 'cool',
+    4: 'heat',
 };
 
 module.exports = {
