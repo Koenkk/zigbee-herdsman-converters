@@ -1326,6 +1326,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['A19 TW 10 year'],
+        model: '71831',
+        vendor: 'Sylvania',
+        description: 'Smart Home adjustable white A19 LED bulb',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['MR16 TW'],
         model: '74282',
         vendor: 'Sylvania',
