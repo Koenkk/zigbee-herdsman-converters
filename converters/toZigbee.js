@@ -515,7 +515,7 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
-                    readAfterWriteTime: 50,
+                    readAfterWriteTime: 250,
                 };
             } else if (type === 'get') {
                 return {
