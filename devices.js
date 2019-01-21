@@ -2144,7 +2144,7 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-       extend: generic.light_onoff_brightness_colortemp,
+        extend: generic.light_onoff_brightness_colortemp,
     },
 ];
 
