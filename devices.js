@@ -2124,12 +2124,12 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // Mueller Licht tint
+    // Müller Licht
     {
         zigbeeModel: ['ZBT-ExtendedColor'],
         model: '404000/404005/404012',
-        vendor: 'MuellerLicht',
-        description: 'tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
+        vendor: 'Müller Licht',
+        description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 ];
