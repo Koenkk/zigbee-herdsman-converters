@@ -2,7 +2,6 @@
 
 const debounce = require('debounce');
 const common = require('./common');
-const utils = require('./utils');
 
 const clickLookup = {
     1: 'single',
