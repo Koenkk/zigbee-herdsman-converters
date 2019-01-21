@@ -2123,6 +2123,15 @@ const devices = [
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
     },
+
+    // Mueller Licht tint
+    {
+        zigbeeModel: ['ZBT-ExtendedColor'],
+        model: '404000/404005/404012',
+        vendor: 'MuellerLicht',
+        description: 'tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) =>
