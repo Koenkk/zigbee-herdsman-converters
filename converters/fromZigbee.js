@@ -1316,16 +1316,16 @@ const converters = {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
             const ctrl = msg.data.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && common.thermostat_control_sequence_of_operations.hasOwnProperty(ctrl)) {
-                result.control_sequence_of_operation = common.thermostat_control_sequence_of_operations[ctrl];
+            if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
+                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
             const mode = msg.data.data['systemMode'];
-            if (typeof mode == 'number' && common.thermostat_system_modes.hasOwnProperty(mode)) {
-                result.system_mode = common.thermostat_system_modes[mode];
+            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+                result.system_mode = common.thermostatSystemModes[mode];
             }
             const state = msg.data.data['runningState'];
-            if (typeof state == 'number' && common.thermostat_running_modes.hasOwnProperty(state)) {
-                result.running_state = common.thermostat_running_modes[state];
+            if (typeof state == 'number' && common.thermostatRunningModes.hasOwnProperty(state)) {
+                result.running_state = common.thermostatRunningModes[state];
             }
             return result;
         },
@@ -1369,16 +1369,16 @@ const converters = {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
             const ctrl = msg.data.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && common.thermostat_control_sequence_of_operations.hasOwnProperty(ctrl)) {
-                result.control_sequence_of_operation = common.thermostat_control_sequence_of_operations[ctrl];
+            if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
+                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
             const mode = msg.data.data['systemMode'];
-            if (typeof mode == 'number' && common.thermostat_system_modes.hasOwnProperty(mode)) {
-                result.system_mode = common.thermostat_system_modes[mode];
+            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+                result.system_mode = common.thermostatSystemModes[mode];
             }
             const state = msg.data.data['runningState'];
-            if (typeof state == 'number' && common.thermostat_running_modes.hasOwnProperty(state)) {
-                result.running_state = common.thermostat_running_modes[state];
+            if (typeof state == 'number' && common.thermostatRunningModes.hasOwnProperty(state)) {
+                result.running_state = common.thermostatRunningModes[state];
             }
             return result;
         },
