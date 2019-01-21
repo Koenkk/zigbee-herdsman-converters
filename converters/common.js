@@ -5,8 +5,8 @@ const thermostatControlSequenceOfOperations = {
     1: 'cooling with reheat',
     2: 'heating only',
     3: 'heating with reheat',
-    4: 'cooling and Heating 4-pipes',
-    5: 'cooling and Heating 4-pipes with reheat',
+    4: 'cooling and heating 4-pipes',
+    5: 'cooling and heating 4-pipes with reheat',
 };
 const thermostatSystemModes = {
     0: 'off',
