@@ -2087,7 +2087,17 @@ const devices = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
+    },    
+   // iCasa
+    {
+        zigbeeModel: ['ZBT-ExtendedColor'],
+        model: 'ZBT-ExtendedColor',
+        vendor: 'Aldi',
+        description: 'Aldi GU10',
+        extend: generic.light_onoff_brightness_colortemp,
     },
+    
+    
 ];
 
 module.exports = devices.map((device) =>
