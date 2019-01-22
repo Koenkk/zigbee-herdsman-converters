@@ -1,6 +1,7 @@
 'use strict';
 
 const utils = require('./utils');
+const common = require('./common');
 const zclId = require('zcl-id');
 
 const cfg = {
@@ -475,7 +476,7 @@ const converters = {
                         // 0x05 Cooling and Heating 4-pipes with Reheat: All modes are possible
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrData: utils.getKeyByValue(common.thermostat_control_sequence_of_operations, value, value),
                     }],
                     cfg: cfg.default,
                 };
@@ -512,7 +513,7 @@ const converters = {
                         // 0x09 Sleep
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrData: utils.getKeyByValue(common.thermostat_system_modes, value, value),
                     }],
                     cfg: cfg.default,
                     readAfterWriteTime: 250,
