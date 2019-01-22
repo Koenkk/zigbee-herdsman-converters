@@ -182,6 +182,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -215,6 +216,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -259,6 +261,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -512,6 +515,7 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
+                    readAfterWriteTime: 250,
                 };
             } else if (type === 'get') {
                 return {
