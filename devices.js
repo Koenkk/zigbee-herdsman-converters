@@ -1961,6 +1961,16 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    // Centralite Micro Door sensor
+    {
+        zigbeeModel: ['3323-D'],
+        model: '3323-D',
+        vendor: 'Centralite',
+        description: 'Micro Door sensor with temp and humidity',
+        supports: 'open/close,temperature and humidity',
+        fromZigbee: [],
+        toZigbee: [],
+},
 
     // Climax
     {
