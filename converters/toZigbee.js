@@ -4,7 +4,6 @@ const utils = require('./utils');
 const common = require('./common');
 const zclId = require('zcl-id');
 
-
 const cfg = {
     default: {
         manufSpec: 0,
