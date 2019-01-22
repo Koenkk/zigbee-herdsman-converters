@@ -1961,6 +1961,16 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    //Centralite Micro Door sensor
+    {
+    zigbeeModel: ['3323-D'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+    model: '3323-D', // Vendor model number, look on the device for a model number
+    vendor: 'Centralite', // Vendor of the device (only used for documentation and startup logging)
+    description: 'Micro Door sensor with temp and humidity', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+    supports: 'open/close,temperature and humidity', // Actions this device supports (only used for documentation)
+    fromZigbee: [], // We will add this later
+    toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
+},
 
     // Climax
     {
