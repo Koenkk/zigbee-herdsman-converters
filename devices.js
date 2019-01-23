@@ -2146,6 +2146,13 @@ const devices = [
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-ExtendedColor'],
+        model: 'ZBT-ExtendedColor',
+        vendor: 'Müller Licht',
+        description: 'Müller Licht GU10 dimmable temp color',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+},
 ];
 
 module.exports = devices.map((device) =>
