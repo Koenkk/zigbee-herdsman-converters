@@ -1322,13 +1322,13 @@ const converters = {
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
-            const mode = msg.data.data['systemMode'];
-            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+            const smode = msg.data.data['systemMode'];
+            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
                 result.system_mode = common.thermostatSystemModes[mode];
             }
-            const mode = msg.data.data['runningMode'];
-            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
-                result.system_mode = common.thermostatSystemModes[mode];
+            const rmode = msg.data.data['runningMode'];
+            if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+                result.running_mode = common.thermostatSystemModes[mode];
             }
             const state = msg.data.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
@@ -1379,13 +1379,13 @@ const converters = {
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
-            const mode = msg.data.data['systemMode'];
-            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+            const smode = msg.data.data['systemMode'];
+            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
                 result.system_mode = common.thermostatSystemModes[mode];
             }
-            const mode = msg.data.data['runningMode'];
-            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
-                result.system_mode = common.thermostatSystemModes[mode];
+            const rmode = msg.data.data['runningMode'];
+            if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(mode)) {
+                result.running_mode = common.thermostatSystemModes[mode];
             }
             const state = msg.data.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
