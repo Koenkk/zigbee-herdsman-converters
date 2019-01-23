@@ -468,12 +468,6 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Cooling Only Heat and Emergency are not possible
-                        // 0x01 Cooling With Reheat Heat and Emergency are not possible
-                        // 0x02 Heating Only Cool and precooling are not possible
-                        // 0x03 Heating With Reheat Cool and precooling are not possible
-                        // 0x04 Cooling and Heating 4-pipes: All modes are possible
-                        // 0x05 Cooling and Heating 4-pipes with Reheat: All modes are possible
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostat_control_sequence_of_operations, value, value),
@@ -502,15 +496,6 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Off
-                        // 0x01 Auto
-                        // 0x03 Cool
-                        // 0x04 Heat
-                        // 0x05 Emergency heating
-                        // 0x06 Precooling
-                        // 0x07 Fan only
-                        // 0x08 Dry
-                        // 0x09 Sleep
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostat_system_modes, value, value),
@@ -649,6 +634,22 @@ const converters = {
             };
         },
     },
+    thermostat_running_mode: {
+        key: 'running_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'runningMode';
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     thermostat_running_state: {
         key: 'running_state',
         convert: (key, value, message, type) => {
@@ -676,8 +677,6 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Temperature in °C
-                        // 0x01 Temperature in °F
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: value,
