@@ -1938,7 +1938,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
-    // Centralite Swiss Plug
+    // Centralite
     {
         zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
         model: '4256251-RZHAC',
@@ -1961,12 +1961,11 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    // Centralite Micro Door sensor
     {
         zigbeeModel: ['3323-D'],
         model: '3323-D',
         vendor: 'Centralite',
-        description: 'Micro Door sensor with temp and humidity',
+        description: 'Micro door sensor',
         supports: 'open/close,temperature and humidity',
         fromZigbee: [],
         toZigbee: [],
