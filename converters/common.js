@@ -19,14 +19,25 @@ const thermostatSystemModes = {
     8: 'dry',
     9: 'Sleep',
 };
-const thermostatRunningModes = {
-    0: 'off',
-    3: 'cool',
-    4: 'heat',
+const thermostatRunningStates = {
+    0: 'idle',
+    1: 'heat',
+    2: 'cool',
+    4: 'fan only',
+    5: 'heat',
+    6: 'cool',
+    8: 'heat',
+    9: 'heat',
+    A: 'heat',
+    D: 'heat',
+    10: 'cool',
+    12: 'cool',
+    14: 'cool',
+    15: 'cool',
 };
 
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
-    thermostatRunningModes,
+    thermostatRunningStates,
 };
