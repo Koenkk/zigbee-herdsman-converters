@@ -21,23 +21,23 @@ const thermostatSystemModes = {
 };
 const thermostatRunningStates = {
     0:'idle',
-    1:'heating',
-    2:'cooling',
+    1:'heat',
+    2:'cool',
     4:'fan only',
-    5:'heating',
-    6:'cooling',
-    8:'heating',
-    9:'heating',
-    A:'heating',
-    D:'heating',
-    10:'cooling',
-    12:'cooling',
-    14:'cooling',
-    15:'cooling',
+    5:'heat',
+    6:'cool',
+    8:'heat',
+    9:'heat',
+    A:'heat',
+    D:'heat',
+    10:'cool',
+    12:'cool',
+    14:'cool',
+    15:'cool',
 };
 
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
-    thermostatRunningModes,
+    thermostatRunningStates,
 };
