@@ -1323,7 +1323,7 @@ const converters = {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
             const smode = msg.data.data['systemMode'];
-            if (typeof mode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
+            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
                 result.system_mode = common.thermostatSystemModes[smode];
             }
             const rmode = msg.data.data['runningMode'];
