@@ -49,8 +49,8 @@ function hexToRgb(hex) {
     return {r: r, g: g, b: b};
 }
 
-function getKeyByValue(object, value, fallback = 0) {
-    return Number(Object.keys(object).find((k) => object[k] === value)) || fallback;
+function getKeyByValue(object, value, fallback) {
+    return Number(Object.keys(object).find((k) => object[k] === value)) || fallback || 0;
 }
 
 module.exports = {
