@@ -5,7 +5,7 @@ const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
 const repInterval = {
-    MAX: 65535,
+    MAX: 58000,
 };
 
 const generic = {
