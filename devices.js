@@ -2147,7 +2147,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
-    //SALUS
+    // SALUS
     {
         zigbeeModel: ['FC600'],
         model: 'FC600',
@@ -2155,15 +2155,14 @@ const devices = [
         description: 'Thermostat, fan control, heat/cool',
         supports:'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
         fromZigbee: [fz.ignore_basic_change, fz.FC600_thermostat_att_report,
-            fz.FC600_thermostat_dev_change,],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,],
+            fz.FC600_thermostat_dev_change, ],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
             const actions = [
                 (cb) => device.bind('genBasic', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
                 (cb) => device.bind('genPollCtrl', coordinator, cb),
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
@@ -2174,7 +2173,6 @@ const devices = [
             ];
             execute(device, actions, callback);
         },
- 
     },
 ];
 
