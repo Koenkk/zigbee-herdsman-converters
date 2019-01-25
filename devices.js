@@ -2146,6 +2146,36 @@ const devices = [
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+
+    //SALUS
+    {
+        zigbeeModel: ['FC600'],
+        model: 'FC600',
+        vendor: 'Salus',
+        description: 'Thermostat, fan control, heat/cool',
+        supports:'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
+        fromZigbee: [fz.ignore_basic_change, fz.FC600_thermostat_att_report,
+            fz.FC600_thermostat_dev_change,],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 9);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 60, 3600, 0, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 1, 0, 1, cb),
+                (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
+                (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 1, cb),                
+            ];
+            execute(device, actions, callback);
+        },
+ 
+    },
 ];
 
 module.exports = devices.map((device) =>
