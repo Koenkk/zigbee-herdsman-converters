@@ -1616,6 +1616,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-S-003Z'],
+        model: 'GL-S-003Z',
+        vendor: 'Gledopto',
+        description: 'Smart RGBW GU10 ',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['HOMA2023'],
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
