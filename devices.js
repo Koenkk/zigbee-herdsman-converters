@@ -1615,7 +1615,7 @@ const devices = [
             }
         },
     },
-	{
+    {
         zigbeeModel: ['GL-S-003Z'],
         model: 'GL-S-003Z',
         vendor: 'Gledopto',
