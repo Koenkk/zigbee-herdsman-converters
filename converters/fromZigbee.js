@@ -550,7 +550,12 @@ const converters = {
                 result.color_mode = msg.data.data['colorMode'];
             }
 
-            if (msg.data.data['currentX'] || msg.data.data['currentY']) {
+            if (
+                msg.data.data['currentX']
+                || msg.data.data['currentY']
+                || msg.data.data['currentSaturation']
+                || msg.data.data['enhancedCurrentHue']
+            ) {
                 result.color = {};
 
                 if (msg.data.data['currentX']) {
@@ -559,6 +564,14 @@ const converters = {
 
                 if (msg.data.data['currentY']) {
                     result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentSaturation']) {
+                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
+                }
+
+                if (msg.data.data['enhancedCurrentHue']) {
+                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
 
