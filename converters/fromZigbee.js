@@ -571,7 +571,7 @@ const converters = {
                 }
 
                 if (msg.data.data['enhancedCurrentHue']) {
-                    result.color.saturation = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
 
