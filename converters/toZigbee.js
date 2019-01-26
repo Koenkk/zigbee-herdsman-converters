@@ -290,9 +290,9 @@ const converters = {
 
                 return {
                     cid: cid,
-                    cmd,
+                    cmd: cmd,
                     cmdType: 'functional',
-                    zclData,
+                    zclData: zclData,
                     cfg: cfg.default,
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
