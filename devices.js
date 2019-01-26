@@ -2020,6 +2020,24 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['DoorSensor-EM'],
+        model: 'HS1DS-E',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.heiman_contact],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
         zigbeeModel: ['WaterSensor-N'],
         model: 'HS1WL',
         vendor: 'HEIMAN',
