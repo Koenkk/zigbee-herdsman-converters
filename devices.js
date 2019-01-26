@@ -1617,9 +1617,9 @@ const devices = [
     },
 	{
         zigbeeModel: ['GL-S-003Z'],
-        model: 'GL-D-003Z',
+        model: 'GL-S-003Z',
         vendor: 'Gledopto',
-        description: 'Gledopto Smart RGBW GU10 ',
+        description: 'Smart RGBW GU10 ',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
@@ -1631,7 +1631,6 @@ const devices = [
             }
         },
     },
-
     {
         zigbeeModel: ['HOMA2023'],
         model: 'GD-CZ-006',
