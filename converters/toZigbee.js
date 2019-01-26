@@ -236,7 +236,8 @@ const converters = {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
-                // Check if we need to convert from RGB to XY.
+                // Check if we need to convert from RGB to XY and which cmd to use
+                let cmd;
                 if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                     const xy = utils.rgbToXY(value.r, value.g, value.b);
                     value.x = xy.x;
@@ -250,17 +251,48 @@ const converters = {
                     const xy = utils.hexToXY(value.hex);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
+                    value.hue = value.hue * (65535 / 360);
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'enhancedMoveToHueAndSaturation';
+                } else if (value.hasOwnProperty('hue')) {
+                    value.hue = value.hue * (65535 / 360);
+                    cmd = 'enhancedMoveToHue';
+                } else if (value.hasOwnProperty('saturation')) {
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'moveToSaturation';
+                }
+
+                const zclData = {
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                };
+
+                switch (cmd) {
+                case 'enhancedMoveToHueAndSaturation':
+                    zclData.enhancehue = value.hue;
+                    zclData.saturation = value.saturation;
+                    zclData.direction = value.direction || 0;
+                    break;
+                case 'enhancedMoveToHue':
+                    zclData.enhancehue = value.hue;
+                    zclData.direction = value.direction || 0;
+                    break;
+
+                case 'moveToSaturation':
+                    zclData.saturation = value.saturation;
+                    break;
+
+                default:
+                    cmd = 'moveToColor';
+                    zclData.colorx = Math.round(value.x * 65535);
+                    zclData.colory = Math.round(value.y * 65535);
                 }
 
                 return {
                     cid: cid,
-                    cmd: 'moveToColor',
+                    cmd,
                     cmdType: 'functional',
-                    zclData: {
-                        colorx: Math.round(value.x * 65535),
-                        colory: Math.round(value.y * 65535),
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
-                    },
+                    zclData,
                     cfg: cfg.default,
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
