@@ -1107,14 +1107,13 @@ const devices = [
         description: 'Active plug',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change, 
+            fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change,
             fz.generic_temperature, fz.ignore_temperature_change,
         ],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const IODcfg = {direction: 0, attrId: 1024, dataType: 42, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
