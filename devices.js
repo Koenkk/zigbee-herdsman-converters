@@ -1992,9 +1992,9 @@ const devices = [
         description: 'Smoke detector',
         supports: 'smoke',
         fromZigbee: [
-          fz.heiman_smoke,
-          fz.heiman_smoke_battery,
-          fz.heiman_smoke_battery2,
+            fz.heiman_smoke,
+            fz.heiman_smoke_battery,
+            fz.heiman_smoke_battery2,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {

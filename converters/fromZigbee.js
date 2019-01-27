@@ -835,17 +835,17 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const batt = msg.data.data.batteryPercentageRemaining;
-            const batt_low = msg.data.data.batteryAlarmState;
-            var results = {};
+            const battLow = msg.data.data.batteryAlarmState;
+            const results = {};
             if (batt != null) {
-                const value = Math.round(batt/255.0*10000)/100;; // Out of 255
+                const value = Math.round(batt/255.0*10000)/100; // Out of 255
                 results['battery'] = value;
             }
-            if (batt_low != null) {
-                if (batt_low) {
+            if (battLow != null) {
+                if (battLow) {
                     results['battery_low'] = true;
                 } else {
-                  results['battery_low'] = false;
+                    results['battery_low'] = false;
                 }
             }
             return results;
@@ -855,21 +855,21 @@ const converters = {
         cid: 'genPowerCfg',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-          const batt = msg.data.data.batteryPercentageRemaining;
-          const batt_low = msg.data.data.batteryAlarmState;
-          var results = {};
-          if (batt != null) {
-              const value = Math.round(batt/255.0*10000)/100;; // Out of 255
-              results['battery'] = value;
-          }
-          if (batt_low != null) {
-              if (batt_low) {
-                  results['battery_low'] = true;
-              } else {
-                results['battery_low'] = false;
-              }
-          }
-          return results;
+            const batt = msg.data.data.batteryPercentageRemaining;
+            const battLow = msg.data.data.batteryAlarmState;
+            const results = {};
+            if (batt != null) {
+                const value = Math.round(batt/255.0*10000)/100; // Out of 255
+                results['battery'] = value;
+            }
+            if (battLow != null) {
+                if (battLow) {
+                    results['battery_low'] = true;
+                } else {
+                    results['battery_low'] = false;
+                }
+            }
+            return results;
         },
     },
     heiman_water_leak: {
