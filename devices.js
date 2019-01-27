@@ -1991,7 +1991,11 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke],
+        fromZigbee: [
+          fz.heiman_smoke,
+          fz.heiman_smoke_battery,
+          fz.heiman_smoke_battery2,
+        ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
