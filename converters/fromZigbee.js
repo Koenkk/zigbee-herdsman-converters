@@ -830,6 +830,48 @@ const converters = {
             };
         },
     },
+    heiman_smoke_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const batt = msg.data.data.batteryPercentageRemaining;
+            const batt_low = msg.data.data.batteryAlarmState;
+            var results = {};
+            if (batt != null) {
+                const value = Math.round(batt/255.0*10000)/100;; // Out of 255
+                results['battery'] = value;
+            }
+            if (batt_low != null) {
+                if (batt_low) {
+                    results['battery_low'] = true;
+                } else {
+                  results['battery_low'] = false;
+                }
+            }
+            return results;
+        },
+    },
+    heiman_smoke_battery2: {
+        cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+          const batt = msg.data.data.batteryPercentageRemaining;
+          const batt_low = msg.data.data.batteryAlarmState;
+          var results = {};
+          if (batt != null) {
+              const value = Math.round(batt/255.0*10000)/100;; // Out of 255
+              results['battery'] = value;
+          }
+          if (batt_low != null) {
+              if (batt_low) {
+                  results['battery_low'] = true;
+              } else {
+                results['battery_low'] = false;
+              }
+          }
+          return results;
+        },
+    },
     heiman_water_leak: {
         cid: 'ssIasZone',
         type: 'statusChange',
