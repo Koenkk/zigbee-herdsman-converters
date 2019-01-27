@@ -1102,11 +1102,14 @@ const devices = [
     },
     {
         zigbeeModel: ['SLP2b'],
-        model: 'SLP2b',
+        model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change, fz.generic_temperature, fz.ignore_temperature_change],
+        fromZigbee: [
+            fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change, 
+            fz.generic_temperature, fz.ignore_temperature_change,
+        ],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
