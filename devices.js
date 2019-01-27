@@ -1533,6 +1533,25 @@ const devices = [
         description: 'ZigBee smart light controller',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['FB56+ZSW1HKJ1.7'],
+        model: 'HGZB-042',
+        vendor: 'Nue',
+        description: 'Smart light switch - 2 gang',
+        supports: 'Basic, On/Off, Scenes, Groups',
+        fromZigbee: [fz.generic_state],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 16, 'right': 17};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep16 = shepherd.find(ieeeAddr, 16);
+            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
+                const ep17 = shepherd.find(ieeeAddr, 17);
+                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
+    },
 
     // Gledopto
     {
