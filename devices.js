@@ -1941,7 +1941,7 @@ const devices = [
         zigbeeModel: ['FLS-CT'],
         model: 'XVV-Mega23M12',
         vendor: 'Dresden Elektronik',
-        description: 'ZigBee Light Link wireless electronic ballast',
+        description: 'ZigBee Light Link wireless electronic ballast color temperature',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
