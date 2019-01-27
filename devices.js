@@ -1931,11 +1931,18 @@ const devices = [
 
     // Dresden Elektronik
     {
-        zigbeeModel: ['FLS-PP3\u0000'],
+        zigbeeModel: ['FLS-PP3'],
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['FLS-CT'],
+        model: 'XVV-Mega23M12',
+        vendor: 'Dresden Elektronik',
+        description: 'ZigBee Light Link wireless electronic ballast',
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // Centralite Swiss Plug
