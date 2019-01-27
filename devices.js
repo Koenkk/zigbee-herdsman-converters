@@ -2025,13 +2025,20 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke],
+        fromZigbee: [
+            fz.heiman_smoke,
+            fz.heiman_smoke_battery,
+            fz.ignore_power_change,
+        ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('ssIasZone', coordinator, cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65535, 0, cb), // once per day
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65535, 1, cb),
             ];
 
             execute(device, actions, callback, 1000);
