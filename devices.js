@@ -2230,9 +2230,9 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 9);
             const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 5, repChange: 0};
             const actions = [
-                  (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                  (cb) => device.bind('genOnOff', coordinator, cb),
-                  (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
             ];
 
             execute(device, actions, callback);
