@@ -982,7 +982,7 @@ const converters = {
             return result;
         },
     },
-    EDP_power: {
+    generic_power: {
         cid: 'seMetering',
         type: 'attReport',
         convert: (model, msg, publish, options) => {

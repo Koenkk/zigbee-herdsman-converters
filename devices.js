@@ -794,7 +794,7 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change],
+        fromZigbee: [fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
@@ -1107,7 +1107,7 @@ const devices = [
         description: 'Active plug',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change,
+            fz.generic_state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change,
             fz.generic_temperature, fz.ignore_temperature_change,
         ],
         toZigbee: [tz.on_off],
@@ -2215,6 +2215,28 @@ const devices = [
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+
+    // Salus
+    {
+        zigbeeModel: ['SP600'],
+        model: 'SP600',
+        vendor: 'Salus',
+        description: 'Smart plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 9);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 5, repChange: 0};
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 ];
 
