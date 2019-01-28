@@ -1571,7 +1571,7 @@ const devices = [
             } else if (device.epList.toString() === '11,12,13,15') {
                 return {
                     'rgb': 12,
-                    'white': 15
+                    'white': 15,
                 };
             } else {
                 return {};
