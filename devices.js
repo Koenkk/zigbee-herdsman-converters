@@ -2020,6 +2020,28 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee,
     },
+
+    // Salus
+    {
+        zigbeeModel: ['SP600'],
+        model: 'SP600',
+        vendor: 'Salus',
+        description: 'Smart plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.EDP_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 9);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 5, repChange: 0};
+            const actions = [
+                  (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                  (cb) => device.bind('genOnOff', coordinator, cb),
+                  (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices;
