@@ -869,6 +869,22 @@ const converters = {
             return results;
         },
     },
+    heiman_smoke_enrolled: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneId = msg.data.data.zoneId;
+            const zoneState = msg.data.data.zoneState;
+            const results = {};
+            if (zoneState) {
+                results['enrolled'] = true;
+            } else {
+                results['enrolled'] = false;
+            }
+            results['zone_id'] = zoneId;
+            return results;
+        },
+    },
     heiman_water_leak: {
         cid: 'ssIasZone',
         type: 'statusChange',
