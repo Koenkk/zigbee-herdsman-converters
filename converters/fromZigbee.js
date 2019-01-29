@@ -856,7 +856,7 @@ const converters = {
             const battLow = msg.data.data.batteryAlarmState;
             const results = {};
             if (batt != null) {
-                const value = Math.round(batt/255.0*10000)/100; // Out of 255
+                const value = Math.round(batt/200.0*10000)/100; // Out of 200
                 results['battery'] = value;
             }
             if (battLow != null) {
