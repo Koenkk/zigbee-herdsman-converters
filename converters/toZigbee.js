@@ -1,6 +1,7 @@
 'use strict';
 
 const utils = require('./utils');
+const common = require('./common');
 const zclId = require('zcl-id');
 
 const cfg = {
@@ -182,6 +183,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -215,6 +217,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -233,7 +236,8 @@ const converters = {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
-                // Check if we need to convert from RGB to XY.
+                // Check if we need to convert from RGB to XY and which cmd to use
+                let cmd;
                 if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                     const xy = utils.rgbToXY(value.r, value.g, value.b);
                     value.x = xy.x;
@@ -247,18 +251,50 @@ const converters = {
                     const xy = utils.hexToXY(value.hex);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
+                    value.hue = value.hue * (65535 / 360);
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'enhancedMoveToHueAndSaturation';
+                } else if (value.hasOwnProperty('hue')) {
+                    value.hue = value.hue * (65535 / 360);
+                    cmd = 'enhancedMoveToHue';
+                } else if (value.hasOwnProperty('saturation')) {
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'moveToSaturation';
+                }
+
+                const zclData = {
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                };
+
+                switch (cmd) {
+                case 'enhancedMoveToHueAndSaturation':
+                    zclData.enhancehue = value.hue;
+                    zclData.saturation = value.saturation;
+                    zclData.direction = value.direction || 0;
+                    break;
+                case 'enhancedMoveToHue':
+                    zclData.enhancehue = value.hue;
+                    zclData.direction = value.direction || 0;
+                    break;
+
+                case 'moveToSaturation':
+                    zclData.saturation = value.saturation;
+                    break;
+
+                default:
+                    cmd = 'moveToColor';
+                    zclData.colorx = Math.round(value.x * 65535);
+                    zclData.colory = Math.round(value.y * 65535);
                 }
 
                 return {
                     cid: cid,
-                    cmd: 'moveToColor',
+                    cmd: cmd,
                     cmdType: 'functional',
-                    zclData: {
-                        colorx: Math.round(value.x * 65535),
-                        colory: Math.round(value.y * 65535),
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
-                    },
+                    zclData: zclData,
                     cfg: cfg.default,
+                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
                 return {
@@ -464,15 +500,9 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Cooling Only Heat and Emergency are not possible
-                        // 0x01 Cooling With Reheat Heat and Emergency are not possible
-                        // 0x02 Heating Only Cool and precooling are not possible
-                        // 0x03 Heating With Reheat Cool and precooling are not possible
-                        // 0x04 Cooling and Heating 4-pipes: All modes are possible
-                        // 0x05 Cooling and Heating 4-pipes with Reheat: All modes are possible
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrData: utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value),
                     }],
                     cfg: cfg.default,
                 };
@@ -498,20 +528,12 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Off
-                        // 0x01 Auto
-                        // 0x03 Cool
-                        // 0x04 Heat
-                        // 0x05 Emergency heating
-                        // 0x06 Precooling
-                        // 0x07 Fan only
-                        // 0x08 Dry
-                        // 0x09 Sleep
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrData: utils.getKeyByValue(common.thermostatSystemModes, value, value),
                     }],
                     cfg: cfg.default,
+                    readAfterWriteTime: 250,
                 };
             } else if (type === 'get') {
                 return {
@@ -644,6 +666,22 @@ const converters = {
             };
         },
     },
+    thermostat_running_mode: {
+        key: 'running_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'runningMode';
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     thermostat_running_state: {
         key: 'running_state',
         convert: (key, value, message, type) => {
@@ -671,8 +709,6 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        // 0x00 Temperature in °C
-                        // 0x01 Temperature in °F
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: value,

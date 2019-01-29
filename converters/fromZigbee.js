@@ -1,6 +1,7 @@
 'use strict';
 
 const debounce = require('debounce');
+const common = require('./common');
 
 const clickLookup = {
     1: 'single',
@@ -549,7 +550,12 @@ const converters = {
                 result.color_mode = msg.data.data['colorMode'];
             }
 
-            if (msg.data.data['currentX'] || msg.data.data['currentY']) {
+            if (
+                msg.data.data['currentX']
+                || msg.data.data['currentY']
+                || msg.data.data['currentSaturation']
+                || msg.data.data['enhancedCurrentHue']
+            ) {
                 result.color = {};
 
                 if (msg.data.data['currentX']) {
@@ -558,6 +564,14 @@ const converters = {
 
                 if (msg.data.data['currentY']) {
                     result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentSaturation']) {
+                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
+                }
+
+                if (msg.data.data['enhancedCurrentHue']) {
+                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
 
@@ -769,8 +783,12 @@ const converters = {
                         return {keyerror: true, inserted: 'unknown'};
                     }
                     if (action == 3) {
-                        // explicitly disabled key (e.g.: reported lost)
+                        // explicitly disabled key (i.e. reported lost)
                         return {keyerror: true, inserted: keynum};
+                    }
+                    if (action == 7) {
+                        // strange object introduced into the cylinder (e.g. a lock pick)
+                        return {keyerror: true, inserted: 'strange'};
                     }
                 }
                 if (state == 12) {
@@ -828,6 +846,27 @@ const converters = {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
+        },
+    },
+    heiman_smoke_battery: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const batt = msg.data.data.batteryPercentageRemaining;
+            const battLow = msg.data.data.batteryAlarmState;
+            const results = {};
+            if (batt != null) {
+                const value = Math.round(batt/255.0*10000)/100; // Out of 255
+                results['battery'] = value;
+            }
+            if (battLow != null) {
+                if (battLow) {
+                    results['battery_low'] = true;
+                } else {
+                    results['battery_low'] = false;
+                }
+            }
+            return results;
         },
     },
     heiman_water_leak: {
@@ -943,7 +982,7 @@ const converters = {
             return result;
         },
     },
-    EDP_power: {
+    generic_power: {
         cid: 'seMetering',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -1313,14 +1352,21 @@ const converters = {
             if (typeof msg.data.data['remoteSensing'] == 'number') {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
-            if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'];
+            const ctrl = msg.data.data['ctrlSeqeOfOper'];
+            if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
+                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
-            if (typeof msg.data.data['systemMode'] == 'number') {
-                result.system_mode = msg.data.data['systemMode'];
+            const smode = msg.data.data['systemMode'];
+            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
+                result.system_mode = common.thermostatSystemModes[smode];
             }
-            if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state = msg.data.data['runningState'];
+            const rmode = msg.data.data['runningMode'];
+            if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
+                result.running_mode = common.thermostatSystemModes[rmode];
+            }
+            const state = msg.data.data['runningState'];
+            if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
+                result.running_state = common.thermostatRunningStates[state];
             }
             return result;
         },
@@ -1363,14 +1409,21 @@ const converters = {
             if (typeof msg.data.data['remoteSensing'] == 'number') {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
-            if (typeof msg.data.data['ctrlSeqeOfOper'] == 'number') {
-                result.control_sequence_of_operation = msg.data.data['ctrlSeqeOfOper'];
+            const ctrl = msg.data.data['ctrlSeqeOfOper'];
+            if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
+                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
-            if (typeof msg.data.data['systemMode'] == 'number') {
-                result.system_mode = msg.data.data['systemMode'];
+            const smode = msg.data.data['systemMode'];
+            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
+                result.system_mode = common.thermostatSystemModes[smode];
             }
-            if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state = msg.data.data['runningState'];
+            const rmode = msg.data.data['runningMode'];
+            if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
+                result.running_mode = common.thermostatSystemModes[rmode];
+            }
+            const state = msg.data.data['runningState'];
+            if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
+                result.running_state = common.thermostatRunningStates[state];
             }
             return result;
         },
