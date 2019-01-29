@@ -2212,6 +2212,13 @@ const devices = [
         description: 'Q-INIGO LED ceiling light',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['NLG-RGBW light '],
+        model: '100.110.39',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-FLAG LED Panel, Smart-Home RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // iCasa
     {
