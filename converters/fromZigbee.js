@@ -1368,6 +1368,9 @@ const converters = {
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
             }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
             return result;
         },
     },
@@ -1425,6 +1428,9 @@ const converters = {
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
             }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
             return result;
         },
     },
@@ -1433,30 +1439,15 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint =
-                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount = msg.data.data['setpointChangeAmount'] / 100;
-            }
-            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
-            }
             if (typeof msg.data.data[16387] == 'number') {
                 result.current_heating_setpoint =
                     precisionRound(msg.data.data[16387], 2) / 100;
+            }
+            if (typeof msg.data.data[16392] == 'number') {
+                result.spzb_system_mode = msg.data.data[16392];
+            }
+            if (typeof msg.data.data[16386] == 'number') {
+                result.spzb_16386 = msg.data.data[16386];
             }
             return result;
         },
@@ -1466,38 +1457,15 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint =
-                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
-            }
             if (typeof msg.data.data[16387] == 'number') {
                 result.current_heating_setpoint =
                     precisionRound(msg.data.data[16387], 2) / 100;
             }
-            return result;
-        },
-    },
-    eurotronic_battery_dev_change: {
-        cid: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-            if (typeof msg.data.data['batteryPercentageRemaining'] == 'number') {
-                return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
+            if (typeof msg.data.data[16392] == 'number') {
+                result.spzb_system_mode = msg.data.data[16392];
+            }
+            if (typeof msg.data.data[16386] == 'number') {
+                result.spzb_16386 = msg.data.data[16386];
             }
             return result;
         },

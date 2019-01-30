@@ -14,6 +14,10 @@ const cfg = {
         disDefaultRsp: 1,
         manufCode: 0x115F,
     },
+    eurotronic: { 
+        manufSpec: 1,
+        manufCode: 4151, 
+    },
 };
 
 const converters = {
@@ -880,6 +884,65 @@ const converters = {
                 }],
                 cfg: cfg.default,
             };
+        },
+    },
+    spzb0001_system_mode: {
+        key: 'spzb_system_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16392;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // Bit 0 = ? (default 1)
+                        // Bit 2 = Boost
+                        // Bit 7 = Child protection
+                        attrId: attrId,
+                        dataType: 0x22,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    spzb0001_16386: {
+        key: 'spzb_16386',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16386;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x22,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
         },
     },
 

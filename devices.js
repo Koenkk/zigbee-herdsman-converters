@@ -2282,25 +2282,22 @@ const devices = [
         description: 'Wireless heater thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
-            fz.ignore_basic_change, fz.eurotronic_thermostat_att_report,
-            fz.eurotronic_thermostat_dev_change, fz.hue_battery, fz.eurotronic_battery_dev_change,
+            fz.ignore_basic_change, fz.thermostat_att_report, fz.thermostat_dev_change,
+            fz.eurotronic_thermostat_att_report, fz.eurotronic_thermostat_dev_change, 
+            fz.hue_battery
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
+            tz.spzb0001_system_mode, tz.spzb0001_16386,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('genBasic', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
-                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 1, 0, 1, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 300, 3600, 0, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 1, 1200, 25, cb),
             ];
 
             execute(device, actions, callback);
