@@ -2049,6 +2049,7 @@ const devices = [
         fromZigbee: [
             fz.heiman_smoke,
             fz.heiman_smoke_battery,
+            fz.heiman_smoke_enrolled,
             fz.ignore_power_change,
         ],
         toZigbee: [],

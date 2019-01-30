@@ -856,7 +856,7 @@ const converters = {
             const battLow = msg.data.data.batteryAlarmState;
             const results = {};
             if (batt != null) {
-                const value = Math.round(batt/255.0*10000)/100; // Out of 255
+                const value = Math.round(batt/200.0*10000)/100; // Out of 200
                 results['battery'] = value;
             }
             if (battLow != null) {
@@ -866,6 +866,22 @@ const converters = {
                     results['battery_low'] = false;
                 }
             }
+            return results;
+        },
+    },
+    heiman_smoke_enrolled: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneId = msg.data.data.zoneId;
+            const zoneState = msg.data.data.zoneState;
+            const results = {};
+            if (zoneState) {
+                results['enrolled'] = true;
+            } else {
+                results['enrolled'] = false;
+            }
+            results['zone_id'] = zoneId;
             return results;
         },
     },
