@@ -2283,8 +2283,8 @@ const devices = [
         supports: 'temperature, heating system control',
         fromZigbee: [
             fz.ignore_basic_change, fz.thermostat_att_report, fz.thermostat_dev_change,
-            fz.eurotronic_thermostat_att_report, fz.eurotronic_thermostat_dev_change, 
-            fz.hue_battery
+            fz.eurotronic_thermostat_att_report, fz.eurotronic_thermostat_dev_change,
+            fz.hue_battery,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,

@@ -14,9 +14,9 @@ const cfg = {
         disDefaultRsp: 1,
         manufCode: 0x115F,
     },
-    eurotronic: { 
+    eurotronic: {
         manufSpec: 1,
-        manufCode: 4151, 
+        manufCode: 4151,
     },
 };
 
