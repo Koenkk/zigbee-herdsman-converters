@@ -2282,22 +2282,24 @@ const devices = [
         description: 'Wireless heater thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
-            fz.ignore_basic_change, fz.thermostat_att_report, fz.thermostat_dev_change,
-            fz.eurotronic_thermostat_att_report, fz.eurotronic_thermostat_dev_change,
-            fz.hue_battery,
+            fz.thermostat_att_report, fz.eurotronic_thermostat_att_report,
+            fz.ignore_thermostat_change, fz.hue_battery, fz.ignore_power_change,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
-            tz.spzb0001_system_mode, tz.spzb0001_16386,
+            tz.eurotronic_system_mode, tz.eurotronic_16386, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_remote_sensing,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
                 (cb) => device.report('hvacThermostat', 'localTemp', 1, 1200, 25, cb),
+                (cb) => device.foundation('hvacThermostat', 'configReport', [{
+                    direction: 0, attrId: 16387, dataType: 41, minRepIntval: 0,
+                    maxRepIntval: 600, repChange: 25}], {manufSpec: 1, manufCode: 4151}, cb),
             ];
 
             execute(device, actions, callback);

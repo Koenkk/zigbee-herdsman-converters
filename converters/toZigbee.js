@@ -886,8 +886,8 @@ const converters = {
             };
         },
     },
-    spzb0001_system_mode: {
-        key: 'spzb_system_mode',
+    eurotronic_system_mode: {
+        key: 'eurotronic_system_mode',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 16392;
@@ -917,8 +917,8 @@ const converters = {
             }
         },
     },
-    spzb0001_16386: {
-        key: 'spzb_16386',
+    eurotronic_16386: {
+        key: 'eurotronic_16386',
         convert: (key, value, message, type) => {
             const cid = 'hvacThermostat';
             const attrId = 16386;
@@ -929,7 +929,7 @@ const converters = {
                     cmdType: 'foundation',
                     zclData: [{
                         attrId: attrId,
-                        dataType: 0x22,
+                        dataType: 0x20,
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,

@@ -1444,28 +1444,10 @@ const converters = {
                     precisionRound(msg.data.data[16387], 2) / 100;
             }
             if (typeof msg.data.data[16392] == 'number') {
-                result.spzb_system_mode = msg.data.data[16392];
+                result.eurotronic_system_mode = msg.data.data[16392];
             }
             if (typeof msg.data.data[16386] == 'number') {
-                result.spzb_16386 = msg.data.data[16386];
-            }
-            return result;
-        },
-    },
-    eurotronic_thermostat_dev_change: {
-        cid: 'hvacThermostat',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-            if (typeof msg.data.data[16387] == 'number') {
-                result.current_heating_setpoint =
-                    precisionRound(msg.data.data[16387], 2) / 100;
-            }
-            if (typeof msg.data.data[16392] == 'number') {
-                result.spzb_system_mode = msg.data.data[16392];
-            }
-            if (typeof msg.data.data[16386] == 'number') {
-                result.spzb_16386 = msg.data.data[16386];
+                result.eurotronic_16386 = msg.data.data[16386];
             }
             return result;
         },
@@ -1647,6 +1629,11 @@ const converters = {
     ignore_closuresWindowCovering_report: {
         cid: 'closuresWindowCovering',
         type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_thermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
 };
