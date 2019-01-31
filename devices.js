@@ -33,7 +33,7 @@ const generic = {
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
-            fz.light_brightness, fz.light_color_colortemp, fz.light_state, fz.generic_state, 
+            fz.light_brightness, fz.light_color_colortemp, fz.light_state, fz.generic_state,
             fz.light_brightness_report,
         ],
         toZigbee: [
