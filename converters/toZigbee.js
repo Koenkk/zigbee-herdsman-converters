@@ -883,6 +883,60 @@ const converters = {
         },
     },
 
+    livolo_switch_on_off: {
+        key: ['state', 'state1', 'state2'],
+        convert: (key, value, message, type) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+
+            if (type === 'set') {
+                const cid = 'genLevelCtrl';
+                let state = value.toLowerCase();
+                let channel = 1;
+
+                if (state === 'on') {
+                    state = 108;
+                } else if (state === 'off') {
+                    state = 1;
+                } else {
+                    return;
+                }
+
+                if ((key === 'state') || (key === 'state1')) {
+                    channel = 1.0;
+                } else if (key === 'state2') {
+                    channel = 2.0;
+                } else {
+                    return;
+                }
+
+                const msg = {
+                    cid: cid,
+                    cmd: 'moveToLevelWithOnOff',
+                    cmdType: 'functional',
+                    zclData: {
+                        level: state,
+                        transtime: channel,
+                    },
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+                return msg;
+            } else if (type === 'get') {
+                const cid = 'genOnOff';
+                const attrId = 'onOff';
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+
     // Ignore converters
     ignore_transition: {
         key: ['transition'],

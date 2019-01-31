@@ -1505,6 +1505,25 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
+    livolo_switch_onoff_ignore: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    livolo_switch_dev_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const status = msg.data.data.onOff;
+            const payload = {};
+            payload['state1'] = status & 1 ? 'ON' : 'OFF';
+            payload['state2'] = status & 2 ? 'ON' : 'OFF';
+            if (msg.endpoints[0].hasOwnProperty('linkquality')) {
+                payload['linkquality'] = msg.endpoints[0].linkquality;
+            }
+            return payload;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
