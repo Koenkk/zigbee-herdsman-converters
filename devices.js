@@ -11,7 +11,7 @@ const repInterval = {
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.light_brightness, fz.light_state],
+        fromZigbee: [fz.light_brightness, fz.light_state, fz.generic_state, fz.light_brightness_report],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
