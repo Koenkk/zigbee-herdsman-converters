@@ -884,13 +884,18 @@ const converters = {
     },
 
     livolo_switch_on_off: {
-        key: ['state', 'state1', 'state2'],
-        convert: (key, value, message, type) => {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
             if (typeof value !== 'string') {
+                return;
+            }
+            if (key !== 'state') {
                 return;
             }
 
             if (type === 'set') {
+                const postfix_ = postfix || 'left';
+
                 const cid = 'genLevelCtrl';
                 let state = value.toLowerCase();
                 let channel = 1;
@@ -903,9 +908,9 @@ const converters = {
                     return;
                 }
 
-                if ((key === 'state') || (key === 'state1')) {
+                if (postfix_ === 'left') {
                     channel = 1.0;
-                } else if (key === 'state2') {
+                } else if (postfix_ === 'right') {
                     channel = 2.0;
                 } else {
                     return;

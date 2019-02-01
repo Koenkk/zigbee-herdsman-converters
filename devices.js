@@ -2280,9 +2280,9 @@ const devices = [
         model: 'TI0001          ',
         description: 'Zigbee switch',
         vendor: 'Livolo',
-        supports: 'brightness, on/off',
+        supports: 'on/off',
         fromZigbee: [fz.livolo_switch_onoff_ignore, fz.livolo_switch_dev_change],
-        toZigbee: [tz.light_brightness, tz.livolo_switch_on_off],
+        toZigbee: [tz.livolo_switch_on_off],
     },
 ];
 

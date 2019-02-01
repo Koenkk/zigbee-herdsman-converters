@@ -1516,8 +1516,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const status = msg.data.data.onOff;
             const payload = {};
-            payload['state1'] = status & 1 ? 'ON' : 'OFF';
-            payload['state2'] = status & 2 ? 'ON' : 'OFF';
+            payload['state_left'] = status & 1 ? 'ON' : 'OFF';
+            payload['state_right'] = status & 2 ? 'ON' : 'OFF';
             if (msg.endpoints[0].hasOwnProperty('linkquality')) {
                 payload['linkquality'] = msg.endpoints[0].linkquality;
             }
