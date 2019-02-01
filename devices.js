@@ -18,7 +18,7 @@ const generic = {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report,
+            fz.brightness_report, fz.color_colortemp_report,
         ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
@@ -26,7 +26,7 @@ const generic = {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report,
+            fz.brightness_report, fz.color_colortemp_report,
         ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
@@ -34,11 +34,11 @@ const generic = {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report,
+            fz.brightness_report, fz.color_colortemp_report,
         ],
         toZigbee: [
             tz.on_off, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition,
-            tz.light_alert,
+            tz.light_alert, fz.color_colortemp_report,
         ],
     },
 };
