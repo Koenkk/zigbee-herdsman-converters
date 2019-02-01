@@ -2281,7 +2281,7 @@ const devices = [
         description: 'Zigbee switch',
         vendor: 'Livolo',
         supports: 'on/off',
-        fromZigbee: [fz.livolo_switch_onoff_ignore, fz.livolo_switch_dev_change],
+        fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
         toZigbee: [tz.livolo_switch_on_off],
     },
 ];
