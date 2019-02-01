@@ -2277,9 +2277,9 @@ const devices = [
     // Eurotronic
     {
         zigbeeModel: ['SPZB0001'],
-        model: 'Spirit Zigbee (SPZB0001)',
+        model: 'SPZB0001',
         vendor: 'Eurotronic',
-        description: 'Wireless heater thermostat',
+        description: 'Spirit Zigbee wireless heater thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
             fz.thermostat_att_report, fz.eurotronic_thermostat_att_report,
