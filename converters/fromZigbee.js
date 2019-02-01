@@ -1505,11 +1505,6 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
-    livolo_switch_onoff_ignore: {
-        cid: 'genOnOff',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => null,
-    },
     livolo_switch_dev_change: {
         cid: 'genOnOff',
         type: 'devChange',
@@ -1534,6 +1529,11 @@ const converters = {
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_onoff_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_basic_change: {
