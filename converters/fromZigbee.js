@@ -571,6 +571,48 @@ const converters = {
             return result;
         },
     },
+    color_colortemp_report: {
+        cid: 'lightingColorCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data['colorTemperature']) {
+                result.color_temp = msg.data.data['colorTemperature'];
+            }
+
+            if (msg.data.data['colorMode']) {
+                result.color_mode = msg.data.data['colorMode'];
+            }
+
+            if (
+                msg.data.data['currentX']
+                || msg.data.data['currentY']
+                || msg.data.data['currentSaturation']
+                || msg.data.data['enhancedCurrentHue']
+            ) {
+                result.color = {};
+
+                if (msg.data.data['currentX']) {
+                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentY']) {
+                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentSaturation']) {
+                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
+                }
+
+                if (msg.data.data['enhancedCurrentHue']) {
+                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                }
+            }
+
+            return result;
+        },
+    },
     WXKG11LM_click: {
         cid: 'genOnOff',
         type: 'attReport',
