@@ -522,21 +522,14 @@ const converters = {
             return {contact: msg.data.data['65281']['100'] === 0};
         },
     },
-    light_state: {
-        cid: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
-        },
-    },
-    light_brightness: {
+    brightness: {
         cid: 'genLevelCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {brightness: msg.data.data['currentLevel']};
         },
     },
-    light_color_colortemp: {
+    color_colortemp: {
         cid: 'lightingColorCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -654,14 +647,14 @@ const converters = {
             return {water_leak: msg.data.zoneStatus === 1};
         },
     },
-    generic_state: {
+    state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
-    generic_state_change: {
+    state_change: {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -1310,7 +1303,7 @@ const converters = {
             };
         },
     },
-    light_brightness_report: {
+    brightness_report: {
         cid: 'genLevelCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
