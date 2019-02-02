@@ -2290,6 +2290,19 @@ const devices = [
             };
         },
     },
+
+    // Livolo
+    {
+        zigbeeModel: ['TI0001          '],
+        model: 'TI0001',
+        description:
+            'Zigbee switch (1 and 2 gang) ' +
+            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        vendor: 'Livolo',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
+        toZigbee: [tz.livolo_switch_on_off],
+    },
 ];
 
 module.exports = devices.map((device) =>

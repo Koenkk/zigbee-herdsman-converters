@@ -1556,6 +1556,20 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
+    livolo_switch_dev_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const status = msg.data.data.onOff;
+            const payload = {};
+            payload['state_left'] = status & 1 ? 'ON' : 'OFF';
+            payload['state_right'] = status & 2 ? 'ON' : 'OFF';
+            if (msg.endpoints[0].hasOwnProperty('linkquality')) {
+                payload['linkquality'] = msg.endpoints[0].linkquality;
+            }
+            return payload;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
@@ -1566,6 +1580,11 @@ const converters = {
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_onoff_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_basic_change: {
