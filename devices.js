@@ -2322,7 +2322,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-  
+
     // Livolo
     {
         zigbeeModel: ['TI0001          '],
