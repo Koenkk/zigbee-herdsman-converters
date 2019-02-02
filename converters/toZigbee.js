@@ -37,11 +37,11 @@ const converters = {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
-            if (typeof value !== 'string') {
-                return;
-            }
-
             if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
                 return {
                     cid: cid,
                     cmd: value.toLowerCase(),
