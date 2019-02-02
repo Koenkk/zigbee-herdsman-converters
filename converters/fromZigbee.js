@@ -522,23 +522,58 @@ const converters = {
             return {contact: msg.data.data['65281']['100'] === 0};
         },
     },
-    light_state: {
-        cid: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
-        },
-    },
-    light_brightness: {
+    brightness: {
         cid: 'genLevelCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             return {brightness: msg.data.data['currentLevel']};
         },
     },
-    light_color_colortemp: {
+    color_colortemp: {
         cid: 'lightingColorCtrl',
         type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+
+            if (msg.data.data['colorTemperature']) {
+                result.color_temp = msg.data.data['colorTemperature'];
+            }
+
+            if (msg.data.data['colorMode']) {
+                result.color_mode = msg.data.data['colorMode'];
+            }
+
+            if (
+                msg.data.data['currentX']
+                || msg.data.data['currentY']
+                || msg.data.data['currentSaturation']
+                || msg.data.data['enhancedCurrentHue']
+            ) {
+                result.color = {};
+
+                if (msg.data.data['currentX']) {
+                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentY']) {
+                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                }
+
+                if (msg.data.data['currentSaturation']) {
+                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
+                }
+
+                if (msg.data.data['enhancedCurrentHue']) {
+                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                }
+            }
+
+            return result;
+        },
+    },
+    color_colortemp_report: {
+        cid: 'lightingColorCtrl',
+        type: 'attReport',
         convert: (model, msg, publish, options) => {
             const result = {};
 
@@ -654,14 +689,14 @@ const converters = {
             return {water_leak: msg.data.zoneStatus === 1};
         },
     },
-    generic_state: {
+    state: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
         },
     },
-    generic_state_change: {
+    state_change: {
         cid: 'genOnOff',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -856,7 +891,7 @@ const converters = {
             const battLow = msg.data.data.batteryAlarmState;
             const results = {};
             if (batt != null) {
-                const value = Math.round(batt/255.0*10000)/100; // Out of 255
+                const value = Math.round(batt/200.0*10000)/100; // Out of 200
                 results['battery'] = value;
             }
             if (battLow != null) {
@@ -866,6 +901,22 @@ const converters = {
                     results['battery_low'] = false;
                 }
             }
+            return results;
+        },
+    },
+    heiman_smoke_enrolled: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneId = msg.data.data.zoneId;
+            const zoneState = msg.data.data.zoneState;
+            const results = {};
+            if (zoneState) {
+                results['enrolled'] = true;
+            } else {
+                results['enrolled'] = false;
+            }
+            results['zone_id'] = zoneId;
             return results;
         },
     },
@@ -1294,7 +1345,7 @@ const converters = {
             };
         },
     },
-    light_brightness_report: {
+    brightness_report: {
         cid: 'genLevelCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -1529,6 +1580,20 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
+    livolo_switch_dev_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const status = msg.data.data.onOff;
+            const payload = {};
+            payload['state_left'] = status & 1 ? 'ON' : 'OFF';
+            payload['state_right'] = status & 2 ? 'ON' : 'OFF';
+            if (msg.endpoints[0].hasOwnProperty('linkquality')) {
+                payload['linkquality'] = msg.endpoints[0].linkquality;
+            }
+            return payload;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
@@ -1539,6 +1604,11 @@ const converters = {
     ignore_onoff_change: {
         cid: 'genOnOff',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_onoff_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_basic_change: {
