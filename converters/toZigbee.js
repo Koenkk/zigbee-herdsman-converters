@@ -888,7 +888,7 @@ const converters = {
     },
     eurotronic_system_mode: {
         key: 'eurotronic_system_mode',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 16392;
             if (type === 'set') {
@@ -919,7 +919,7 @@ const converters = {
     },
     eurotronic_16386: {
         key: 'eurotronic_16386',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 16386;
             if (type === 'set') {
