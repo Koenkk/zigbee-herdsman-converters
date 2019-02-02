@@ -19,7 +19,7 @@ const cfg = {
 const converters = {
     factory_reset: {
         key: ['reset'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
                 return {
                     cid: 'genBasic',
@@ -33,7 +33,7 @@ const converters = {
     },
     on_off: {
         key: ['state'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
@@ -63,7 +63,7 @@ const converters = {
     generic_occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'msOccupancySensing'; // 1030
             const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
 
@@ -98,7 +98,7 @@ const converters = {
     },
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const lookup = {
                 'default': 0x01,
                 'on': 0x01,
@@ -123,7 +123,7 @@ const converters = {
     },
     hue_power_on_brightness: {
         key: ['hue_power_on_brightness'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
                 if (value === 'default') {
                     value = 255;
@@ -144,7 +144,7 @@ const converters = {
     },
     hue_power_on_color_temperature: {
         key: ['hue_power_on_color_temperature'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
                 if (value === 'default') {
                     value = 366;
@@ -165,7 +165,7 @@ const converters = {
     },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
 
@@ -198,7 +198,7 @@ const converters = {
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'lightingColorCtrl';
             const attrId = 'colorTemperature';
 
@@ -232,7 +232,7 @@ const converters = {
     },
     light_color: {
         key: ['color'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
@@ -312,7 +312,7 @@ const converters = {
     },
     light_alert: {
         key: ['alert', 'flash'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'genIdentify';
             if (type === 'set') {
                 const lookup = {
@@ -342,7 +342,7 @@ const converters = {
     },
     thermostat_local_temperature: {
         key: 'local_temperature',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemp';
             if (type === 'get') {
@@ -358,7 +358,7 @@ const converters = {
     },
     thermostat_local_temperature_calibration: {
         key: 'local_temperature_calibration',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemperatureCalibration';
             if (type === 'set') {
@@ -385,7 +385,7 @@ const converters = {
     },
     thermostat_occupancy: {
         key: 'occupancy',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'ocupancy';
             if (type === 'get') {
@@ -401,7 +401,7 @@ const converters = {
     },
     thermostat_occupied_heating_setpoint: {
         key: 'occupied_heating_setpoint',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'occupiedHeatingSetpoint';
             if (type === 'set') {
@@ -429,7 +429,7 @@ const converters = {
     },
     thermostat_unoccupied_heating_setpoint: {
         key: 'unoccupied_heating_setpoint',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'unoccupiedHeatingSetpoint';
             if (type === 'set') {
@@ -457,7 +457,7 @@ const converters = {
     },
     thermostat_remote_sensing: {
         key: 'remote_sensing',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'remoteSensing';
             if (type === 'set') {
@@ -491,7 +491,7 @@ const converters = {
     },
     thermostat_control_sequence_of_operation: {
         key: 'control_sequence_of_operation',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'ctrlSeqeOfOper';
             if (type === 'set') {
@@ -519,7 +519,7 @@ const converters = {
     },
     thermostat_system_mode: {
         key: 'system_mode',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'systemMode';
             if (type === 'set') {
@@ -548,7 +548,7 @@ const converters = {
     },
     thermostat_setpoint_raise_lower: {
         key: 'setpoint_raise_lower',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'setpointRaiseLower';
             if (type === 'set') {
@@ -577,7 +577,7 @@ const converters = {
     },
     thermostat_weekly_schedule: {
         key: 'weekly_schedule',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'weeklySchedule';
             if (type === 'set') {
@@ -609,7 +609,7 @@ const converters = {
     thermostat_clear_weekly_schedule: {
         key: 'clear_weekly_schedule',
         attr: [],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'clearWeeklySchedule',
@@ -621,7 +621,7 @@ const converters = {
     thermostat_relay_status_log: {
         key: 'relay_status_log',
         attr: [],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLog',
@@ -633,7 +633,7 @@ const converters = {
     thermostat_weekly_schedule_rsp: {
         key: 'weekly_schedule_rsp',
         attr: [],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getWeeklyScheduleRsp',
@@ -650,7 +650,7 @@ const converters = {
     thermostat_relay_status_log_rsp: {
         key: 'relay_status_log_rsp',
         attr: [],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             return {
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLogRsp',
@@ -668,7 +668,7 @@ const converters = {
     },
     thermostat_running_mode: {
         key: 'running_mode',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'runningMode';
             if (type === 'get') {
@@ -684,7 +684,7 @@ const converters = {
     },
     thermostat_running_state: {
         key: 'running_state',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
             const attrId = 'runningState';
             if (type === 'get') {
@@ -700,7 +700,7 @@ const converters = {
     },
     thermostat_temperature_display_mode: {
         key: 'temperature_display_mode',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'hvacUserInterfaceCfg';
             const attrId = 'tempDisplayMode';
             if (type === 'set') {
@@ -724,7 +724,7 @@ const converters = {
      */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'genBasic';
             const attrId = 0xFF0D;
 
@@ -761,7 +761,7 @@ const converters = {
     },
     JTQJBF01LMBW_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'ssIasZone';
 
             if (type === 'set') {
@@ -800,7 +800,7 @@ const converters = {
     },
     JTQJBF01LMBW_selfest: {
         key: ['selftest'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
                 return {
                     cid: 'ssIasZone',
@@ -818,7 +818,7 @@ const converters = {
     },
     STS_PRS_251_beep: {
         key: ['beep'],
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const cid = 'genIdentify';
             const attrId = 'identifyTime';
 
@@ -845,7 +845,7 @@ const converters = {
     },
     ZNCLDJ11LM_control: {
         key: 'state',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             const lookup = {
                 'open': 'upOpen',
                 'close': 'downClose',
@@ -868,7 +868,7 @@ const converters = {
     },
     ZNCLDJ11LM_control_position: {
         key: 'position',
-        convert: (key, value, message, type) => {
+        convert: (key, value, message, type, postfix) => {
             return {
                 cid: 'genAnalogOutput',
                 cmd: 'write',
@@ -882,12 +882,66 @@ const converters = {
             };
         },
     },
+    livolo_switch_on_off: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                postfix = postfix || 'left';
+
+                const cid = 'genLevelCtrl';
+                let state = value.toLowerCase();
+                let channel = 1;
+
+                if (state === 'on') {
+                    state = 108;
+                } else if (state === 'off') {
+                    state = 1;
+                } else {
+                    return;
+                }
+
+                if (postfix === 'left') {
+                    channel = 1.0;
+                } else if (postfix === 'right') {
+                    channel = 2.0;
+                } else {
+                    return;
+                }
+
+                return {
+                    cid: cid,
+                    cmd: 'moveToLevelWithOnOff',
+                    cmdType: 'functional',
+                    zclData: {
+                        level: state,
+                        transtime: channel,
+                    },
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                const cid = 'genOnOff';
+                const attrId = 'onOff';
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
         key: ['transition'],
         attr: [],
-        convert: (key, value, message, type) => null,
+        convert: (key, value, message, type, postfix) => null,
     },
 };
 
