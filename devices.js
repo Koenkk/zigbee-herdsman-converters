@@ -2281,11 +2281,11 @@ const devices = [
         model: 'FC600',
         vendor: 'Salus',
         description: 'Thermostat, fan control, heat/cool',
-        supports:'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
+        supports: 'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
         fromZigbee: [ 
             fz.thermostat_att_report, fz.thermostat_dev_change, 
             fz.ignore_basic_change, fz.fc600_thermostat_fan_change, fz.fc600_thermostat_fan_att_report, 
-    ],
+        ],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
@@ -2293,8 +2293,8 @@ const devices = [
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
             tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp, tz.thermostat_keypad_lockout,
-            tz.thermostat_fan_mode, tz.thermostat_fan_mode_sequence, tz.thermostat_running_mode, tz.thermostat_running_state
-            ],
+            tz.thermostat_fan_mode, tz.thermostat_fan_mode_sequence, tz.thermostat_running_mode, tz.thermostat_running_state,
+        ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
             const actions = [
@@ -2313,7 +2313,7 @@ const devices = [
                 (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
                 (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 0, cb),
         (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 0, cb),
-            ];
+        ];
             execute(device, actions, callback);
         },
     },
