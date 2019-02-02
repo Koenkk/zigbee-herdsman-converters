@@ -1318,6 +1318,9 @@ const converters = {
             if (typeof msg.data.data['remoteSensing'] == 'number') {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
+            if (typeof msg.data.data['keypadLockout'] == 'number') {
+                result.remote_sensing = msg.data.data['keypadLockout'];
+            } 
             const ctrl = msg.data.data['ctrlSeqeOfOper'];
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
@@ -1375,6 +1378,9 @@ const converters = {
             if (typeof msg.data.data['remoteSensing'] == 'number') {
                 result.remote_sensing = msg.data.data['remoteSensing'];
             }
+            if (typeof msg.data.data['keypadLockout'] == 'number') {
+                result.remote_sensing = msg.data.data['keypadLockout'];
+            } 
             const ctrl = msg.data.data['ctrlSeqeOfOper'];
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
@@ -1390,6 +1396,35 @@ const converters = {
             const state = msg.data.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
+            }
+            return result;
+        },
+
+    },
+     fc600_thermostat_fan_change: {
+        cid: 'hvacFanCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data.data['fanMode'] == 'number') {
+                result.fan_mode = msg.data.data['fanMode'];
+            }
+            if (typeof msg.data.data['fanModeSequence'] == 'number') {
+                result.fan_mode_sequence = msg.data.data['fanModeSequence'];
+            }
+            return result;
+        },
+    },
+    fc600_thermostat_fan_att_report: {
+        cid: 'hvacFanCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data.data['fanMode'] == 'number') {
+                result.fan_mode = msg.data.data['fanMode'];
+            }
+            if (typeof msg.data.data['fanModeSequence'] == 'number') {
+                result.fan_mode_sequence = msg.data.data['fanModeSequence'];
             }
             return result;
         },
