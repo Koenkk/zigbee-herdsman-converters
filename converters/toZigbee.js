@@ -236,7 +236,8 @@ const converters = {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
-                // Check if we need to convert from RGB to XY.
+                // Check if we need to convert from RGB to XY and which cmd to use
+                let cmd;
                 if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                     const xy = utils.rgbToXY(value.r, value.g, value.b);
                     value.x = xy.x;
@@ -250,17 +251,48 @@ const converters = {
                     const xy = utils.hexToXY(value.hex);
                     value.x = xy.x;
                     value.y = xy.y;
+                } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
+                    value.hue = value.hue * (65535 / 360);
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'enhancedMoveToHueAndSaturation';
+                } else if (value.hasOwnProperty('hue')) {
+                    value.hue = value.hue * (65535 / 360);
+                    cmd = 'enhancedMoveToHue';
+                } else if (value.hasOwnProperty('saturation')) {
+                    value.saturation = value.saturation * (2.54);
+                    cmd = 'moveToSaturation';
+                }
+
+                const zclData = {
+                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                };
+
+                switch (cmd) {
+                case 'enhancedMoveToHueAndSaturation':
+                    zclData.enhancehue = value.hue;
+                    zclData.saturation = value.saturation;
+                    zclData.direction = value.direction || 0;
+                    break;
+                case 'enhancedMoveToHue':
+                    zclData.enhancehue = value.hue;
+                    zclData.direction = value.direction || 0;
+                    break;
+
+                case 'moveToSaturation':
+                    zclData.saturation = value.saturation;
+                    break;
+
+                default:
+                    cmd = 'moveToColor';
+                    zclData.colorx = Math.round(value.x * 65535);
+                    zclData.colory = Math.round(value.y * 65535);
                 }
 
                 return {
                     cid: cid,
-                    cmd: 'moveToColor',
+                    cmd: cmd,
                     cmdType: 'functional',
-                    zclData: {
-                        colorx: Math.round(value.x * 65535),
-                        colory: Math.round(value.y * 65535),
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
-                    },
+                    zclData: zclData,
                     cfg: cfg.default,
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
@@ -470,7 +502,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.thermostat_control_sequence_of_operations, value, value),
+                        attrData: utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value),
                     }],
                     cfg: cfg.default,
                 };
@@ -498,7 +530,7 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.thermostat_system_modes, value, value),
+                        attrData: utils.getKeyByValue(common.thermostatSystemModes, value, value),
                     }],
                     cfg: cfg.default,
                     readAfterWriteTime: 250,
@@ -666,6 +698,64 @@ const converters = {
             }
         },
     },
+    thermostat_fan_mode: {
+        key: 'fan_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_fan_mode_sequence: {
+        key: 'fan_mode_sequence',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanModeSequence';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     thermostat_temperature_display_mode: {
         key: 'temperature_display_mode',
         convert: (key, value, message, type) => {
@@ -686,7 +776,36 @@ const converters = {
             }
         },
     },
-    /*
+    thermostat_keypad_lockout: {
+        key: 'keypad_lockout',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'keypadLockout';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },    
+/*
      * Note when send the command to set sensitivity, press button on the device
      * to make it wakeup
      */
