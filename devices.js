@@ -2282,9 +2282,9 @@ const devices = [
         vendor: 'Salus',
         description: 'Thermostat, fan control, heat/cool',
         supports: 'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
-        fromZigbee: [ 
-            fz.thermostat_att_report, fz.thermostat_dev_change, 
-            fz.ignore_basic_change, fz.fc600_thermostat_fan_change, fz.fc600_thermostat_fan_att_report, 
+        fromZigbee: [
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+            fz.ignore_basic_change, fz.fc600_thermostat_fan_change, fz.fc600_thermostat_fan_att_report,
         ],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
