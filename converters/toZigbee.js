@@ -718,6 +718,94 @@ const converters = {
             }
         },
     },
+    thermostat_keypad_lockout: {
+        key: 'keypad_lockout',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'keypadLockout';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_fan_mode: {
+        key: 'fan_mode',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    thermostat_fan_mode_sequence: {
+        key: 'fan_mode_sequence',
+        convert: (key, value, message, type) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanModeSequence';
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                    readAfterWriteTime: 250,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+
     /*
      * Note when send the command to set sensitivity, press button on the device
      * to make it wakeup
