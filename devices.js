@@ -2277,8 +2277,8 @@ const devices = [
     // Livolo
     {
         zigbeeModel: ['TI0001          '],
-        model: 'TI0001          ',
-        description: 'Zigbee switch',
+        model: 'TI0001',
+        description: 'Zigbee switch (1 and 2 gang)',
         vendor: 'Livolo',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
