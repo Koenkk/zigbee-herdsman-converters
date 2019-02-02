@@ -938,7 +938,7 @@ const converters = {
                 return {
                     cid: cid,
                     cmd: 'read',
-                    cmdType: 'foundation',              
+                    cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
                 };
