@@ -1371,7 +1371,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const result = {};
             if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
+                result.local_temperature =
+                    precisionRound(msg.data.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration =
