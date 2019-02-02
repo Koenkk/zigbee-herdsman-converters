@@ -2312,8 +2312,8 @@ const devices = [
                 (cb) => device.report('hvacThermostat', 'runningMode', 1, 0, 0, cb),
                 (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
                 (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 0, cb),
-        (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 0, cb),
-        ];
+                (cb) => device.report('hvacThermostat', 'systemMode', 1, 0, 0, cb),
+            ];
             execute(device, actions, callback);
         },
     },
