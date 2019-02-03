@@ -310,8 +310,8 @@ const converters = {
             }
         },
     },
-    // This convertor is a combination of light_color and light_colortemp and
-    // can be used instead of the two individual convertors. When used to set,
+    // This converter is a combination of light_color and light_colortemp and
+    // can be used instead of the two individual converters. When used to set,
     // it actually calls out to light_color or light_colortemp to get the
     // return value. When used to get, it gets both color and colorTemp in
     // one call.
