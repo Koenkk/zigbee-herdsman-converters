@@ -1978,7 +1978,7 @@ const devices = [
         fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
-    
+
     // Ninja Blocks Inc
     {
         zigbeeModel: ['Ninja Smart plug'],
