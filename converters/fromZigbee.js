@@ -1706,6 +1706,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_genGroups_devChange: {
+        cid: 'genGroups',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;
