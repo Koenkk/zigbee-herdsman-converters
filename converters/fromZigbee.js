@@ -959,7 +959,7 @@ const converters = {
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
                 if (basicAttrs.hasOwnProperty('100')) {
-                    return {density: basicAttrs['100']};
+                    return {gas_density: basicAttrs['100']};
                 }
             }
         },
