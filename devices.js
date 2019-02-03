@@ -1979,13 +1979,13 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // Ninja Blocks Inc
+    // Ninja Blocks
     {
         zigbeeModel: ['Ninja Smart plug'],
         model: 'Z809AF',
-        vendor: 'Ninja Blocks inc',
-        description: 'Zigbee Smart Plug with power meter',
-        supports: 'on/off',
+        vendor: 'Ninja Blocks',
+        description: 'Zigbee smart plug with power meter',
+        supports: 'on/off, power measurement',
         fromZigbee: [fz.ignore_onoff_change, fz.state, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
