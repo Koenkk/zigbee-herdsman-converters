@@ -37,7 +37,7 @@ const generic = {
             fz.brightness_report, fz.color_colortemp_report,
         ],
         toZigbee: [
-            tz.on_off, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition,
+            tz.on_off, tz.light_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
