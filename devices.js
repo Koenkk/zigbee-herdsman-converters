@@ -1978,6 +1978,27 @@ const devices = [
         fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
+    
+    // Ninja Blocks Inc
+    {
+        zigbeeModel: ['Ninja Smart plug'],
+        model: 'Z809AF',
+        vendor: 'Ninja Blocks inc',
+        description: 'Zigbee Smart Plug with power meter',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Commercial Electric
     {
