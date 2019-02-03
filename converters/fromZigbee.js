@@ -1419,6 +1419,9 @@ const converters = {
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
             }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
             return result;
         },
     },
@@ -1475,6 +1478,27 @@ const converters = {
             const state = msg.data.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
+            }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
+            return result;
+        },
+    },
+    eurotronic_thermostat_att_report: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data.data[16387] == 'number') {
+                result.current_heating_setpoint =
+                    precisionRound(msg.data.data[16387], 2) / 100;
+            }
+            if (typeof msg.data.data[16392] == 'number') {
+                result.eurotronic_system_mode = msg.data.data[16392];
+            }
+            if (typeof msg.data.data[16386] == 'number') {
+                result.eurotronic_16386 = msg.data.data[16386];
             }
             return result;
         },
@@ -1675,6 +1699,11 @@ const converters = {
     ignore_closuresWindowCovering_report: {
         cid: 'closuresWindowCovering',
         type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_thermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
 };

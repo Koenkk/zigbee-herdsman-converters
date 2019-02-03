@@ -14,6 +14,10 @@ const cfg = {
         disDefaultRsp: 1,
         manufCode: 0x115F,
     },
+    eurotronic: {
+        manufSpec: 1,
+        manufCode: 4151,
+    },
 };
 
 const converters = {
@@ -915,6 +919,65 @@ const converters = {
                 }],
                 cfg: cfg.default,
             };
+        },
+    },
+    eurotronic_system_mode: {
+        key: 'eurotronic_system_mode',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16392;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // Bit 0 = ? (default 1)
+                        // Bit 2 = Boost
+                        // Bit 7 = Child protection
+                        attrId: attrId,
+                        dataType: 0x22,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_16386: {
+        key: 'eurotronic_16386',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16386;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x20,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
         },
     },
     livolo_switch_on_off: {
