@@ -2280,8 +2280,8 @@ const devices = [
         zigbeeModel: ['FC600'],
         model: 'FC600',
         vendor: 'Salus',
-        description: 'Thermostat, fan control, heat/cool',
-        supports: 'Measuring room temperature every 60s, setting room temperatyre, cooling/heating, 3 fan speed, programing schedule, temperature offset and etc.',
+        description: 'Wired thermostat with fan control',
+        supports: 'Cooling/heating, temperature, fan control, schedule',
         fromZigbee: [
             fz.thermostat_att_report, fz.thermostat_dev_change,
             fz.ignore_basic_change, fz.fc600_thermostat_fan_change, fz.fc600_thermostat_fan_att_report,
@@ -2293,7 +2293,8 @@ const devices = [
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
             tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp, tz.thermostat_keypad_lockout,
-            tz.thermostat_fan_mode, tz.thermostat_fan_mode_sequence, tz.thermostat_running_mode, tz.thermostat_running_state,
+            tz.thermostat_fan_mode, tz.thermostat_fan_mode_sequence,
+            tz.thermostat_running_mode, tz.thermostat_running_state,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
