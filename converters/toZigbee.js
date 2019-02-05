@@ -406,10 +406,11 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: attrId,
+                        attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: Math.round(value * 10),
                     }],
+                    cfg: cfg.default,
                 };
             } else if (type === 'get') {
                 return {
