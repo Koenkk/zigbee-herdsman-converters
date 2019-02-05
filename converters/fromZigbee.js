@@ -929,7 +929,7 @@ const converters = {
                 gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
-        },                
+        },
     },
     heiman_water_leak: {
         cid: 'ssIasZone',
