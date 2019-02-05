@@ -920,7 +920,7 @@ const converters = {
             return results;
         },
     },
-    heiman_gas: {    
+    heiman_gas: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
