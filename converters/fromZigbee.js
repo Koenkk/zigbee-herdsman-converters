@@ -930,11 +930,6 @@ const converters = {
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },                
-    }, 
-    ignore_iaszone_change: {
-        cid: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
     },
     heiman_water_leak: {
         cid: 'ssIasZone',
@@ -1724,6 +1719,11 @@ const converters = {
     },
     ignore_genGroups_devChange: {
         cid: 'genGroups',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_iaszone_change: {
+        cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
