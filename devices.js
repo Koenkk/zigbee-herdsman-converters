@@ -2311,6 +2311,23 @@ const devices = [
             };
         },
     },
+    {
+        zigbeeModel: ['Adurolight_NCC'],
+        model: '81825',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart wireless dimming switch',
+        fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Eurotronic
     {

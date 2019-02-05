@@ -1594,6 +1594,28 @@ const converters = {
             return payload;
         },
     },
+    eria_81825_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    eria_81825_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
+    eria_81825_updown: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            return {action: `${direction}`};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
