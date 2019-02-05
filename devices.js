@@ -2115,21 +2115,22 @@ const devices = [
         },
     },
     {
-    zigbeeModel: ["GASSensor-N"],
-    model: "HS3CG",
-    vendor: "Heiman",
-    description: "Combustible gas sensor",
-    supports: "gas",
-    fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
-    toZigbee: [],
-    configure: (ieeeAddr, shepherd, coordinator, callback) => {
-      const device = shepherd.find(ieeeAddr, 1);
-      const actions = [
-        (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-        (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-        ];
+        zigbeeModel: ['GASSensor-N'],
+        model: 'HS3CG',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
 
-      execute(device, actions, callback, 1000);
+            execute(device, actions, callback, 1000);
+        },
     },
     {
         zigbeeModel: ['DoorSensor-N'],
