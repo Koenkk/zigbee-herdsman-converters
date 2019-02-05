@@ -2316,6 +2316,7 @@ const devices = [
         model: '81825',
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
+        supports: 'on, off, up, down',
         fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
