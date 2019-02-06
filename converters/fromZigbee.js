@@ -920,6 +920,17 @@ const converters = {
             return results;
         },
     },
+    heiman_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
     heiman_water_leak: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -959,7 +970,7 @@ const converters = {
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
                 if (basicAttrs.hasOwnProperty('100')) {
-                    return {density: basicAttrs['100']};
+                    return {gas_density: basicAttrs['100']};
                 }
             }
         },
@@ -1419,6 +1430,9 @@ const converters = {
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
             }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
             return result;
         },
     },
@@ -1475,6 +1489,27 @@ const converters = {
             const state = msg.data.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
+            }
+            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            }
+            return result;
+        },
+    },
+    eurotronic_thermostat_att_report: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data.data[16387] == 'number') {
+                result.current_heating_setpoint =
+                    precisionRound(msg.data.data[16387], 2) / 100;
+            }
+            if (typeof msg.data.data[16392] == 'number') {
+                result.eurotronic_system_mode = msg.data.data[16392];
+            }
+            if (typeof msg.data.data[16386] == 'number') {
+                result.eurotronic_16386 = msg.data.data[16386];
             }
             return result;
         },
@@ -1568,6 +1603,28 @@ const converters = {
                 payload['linkquality'] = msg.endpoints[0].linkquality;
             }
             return payload;
+        },
+    },
+    eria_81825_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    eria_81825_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
+    eria_81825_updown: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            return {action: `${direction}`};
         },
     },
 
@@ -1675,6 +1732,21 @@ const converters = {
     ignore_closuresWindowCovering_report: {
         cid: 'closuresWindowCovering',
         type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_thermostat_change: {
+        cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genGroups_devChange: {
+        cid: 'genGroups',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_iaszone_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
 };

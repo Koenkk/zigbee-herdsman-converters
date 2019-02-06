@@ -14,6 +14,10 @@ const cfg = {
         disDefaultRsp: 1,
         manufCode: 0x115F,
     },
+    eurotronic: {
+        manufSpec: 1,
+        manufCode: 4151,
+    },
 };
 
 const converters = {
@@ -310,6 +314,41 @@ const converters = {
             }
         },
     },
+    // This converter is a combination of light_color and light_colortemp and
+    // can be used instead of the two individual converters. When used to set,
+    // it actually calls out to light_color or light_colortemp to get the
+    // return value. When used to get, it gets both color and colorTemp in
+    // one call.
+    // The reason for the existence of this somewhat peculiar converter is
+    // that some lights don't report their state when changed. To fix this,
+    // we query the state after we set it. We want to query color and colorTemp
+    // both when setting either, because both change when setting one. This
+    // converter is used to do just that.
+    light_color_colortemp: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'lightingColorCtrl';
+            if (type === 'set') {
+                if (key == 'color') {
+                    return converters.light_color.convert(key, value, message, type, postfix);
+                } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                    return converters.light_colortemp.convert(key, value, message, type, postfix);
+                }
+            } else if (type == 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [
+                        {attrId: zclId.attr(cid, 'currentX').value},
+                        {attrId: zclId.attr(cid, 'currentY').value},
+                        {attrId: zclId.attr(cid, 'colorTemperature').value},
+                    ],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     light_alert: {
         key: ['alert', 'flash'],
         convert: (key, value, message, type, postfix) => {
@@ -367,10 +406,11 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: attrId,
+                        attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
                         attrData: Math.round(value * 10),
                     }],
+                    cfg: cfg.default,
                 };
             } else if (type === 'get') {
                 return {
@@ -880,6 +920,65 @@ const converters = {
                 }],
                 cfg: cfg.default,
             };
+        },
+    },
+    eurotronic_system_mode: {
+        key: 'eurotronic_system_mode',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16392;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        // Bit 0 = ? (default 1)
+                        // Bit 2 = Boost
+                        // Bit 7 = Child protection
+                        attrId: attrId,
+                        dataType: 0x22,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_16386: {
+        key: 'eurotronic_16386',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 16386;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x20,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
         },
     },
     livolo_switch_on_off: {

@@ -11,14 +11,14 @@ const repInterval = {
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state_change, fz.state, fz.brightness_report],
+        fromZigbee: [fz.brightness, fz.state_change, fz.state, fz.brightness_report, fz.ignore_genGroups_devChange],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
@@ -26,7 +26,7 @@ const generic = {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
@@ -34,10 +34,10 @@ const generic = {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [
-            tz.on_off, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition,
+            tz.on_off, tz.light_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -1979,6 +1979,27 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
+    // Ninja Blocks
+    {
+        zigbeeModel: ['Ninja Smart plug'],
+        model: 'Z809AF',
+        vendor: 'Ninja Blocks',
+        description: 'Zigbee smart plug with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
     // Commercial Electric
     {
         zigbeeModel: ['Zigbee CCT Downlight'],
@@ -2082,6 +2103,24 @@ const devices = [
         description: 'Smoke detector',
         supports: 'smoke',
         fromZigbee: [fz.heiman_smoke],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['GASSensor-N'],
+        model: 'HS3CG',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -2288,6 +2327,56 @@ const devices = [
             return {
                 '': 2,
             };
+        },
+    },
+    {
+        zigbeeModel: ['Adurolight_NCC'],
+        model: '81825',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart wireless dimming switch',
+        supports: 'on, off, up, down',
+        fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Eurotronic
+    {
+        zigbeeModel: ['SPZB0001'],
+        model: 'SPZB0001',
+        vendor: 'Eurotronic',
+        description: 'Spirit Zigbee wireless heater thermostat',
+        supports: 'temperature, heating system control',
+        fromZigbee: [
+            fz.thermostat_att_report, fz.eurotronic_thermostat_att_report,
+            fz.ignore_thermostat_change, fz.hue_battery, fz.ignore_power_change,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
+            tz.eurotronic_system_mode, tz.eurotronic_16386, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_remote_sensing,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 1, 1200, 25, cb),
+                (cb) => device.foundation('hvacThermostat', 'configReport', [{
+                    direction: 0, attrId: 16387, dataType: 41, minRepIntval: 0,
+                    maxRepIntval: 600, repChange: 25}], {manufSpec: 1, manufCode: 4151}, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
