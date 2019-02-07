@@ -1347,7 +1347,7 @@ const converters = {
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
             };
         },
-    },    
+    },
     ias_contact_dev_change: {
         cid: 'ssIasZone',
         type: 'devChange',
