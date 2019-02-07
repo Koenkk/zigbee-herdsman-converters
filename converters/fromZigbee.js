@@ -1496,20 +1496,26 @@ const converters = {
             return result;
         },
     },
-    eurotronic_thermostat_att_report: {
+    eurotronic_thermostat_dev_change: {
         cid: 'hvacThermostat',
-        type: 'attReport',
+        type: 'devChange',
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data[16387] == 'number') {
+            if (typeof msg.data.data[0x4003] == 'number') {
                 result.current_heating_setpoint =
-                    precisionRound(msg.data.data[16387], 2) / 100;
+                    precisionRound(msg.data.data[0x4003], 2) / 100;
             }
-            if (typeof msg.data.data[16392] == 'number') {
-                result.eurotronic_system_mode = msg.data.data[16392];
+            if (typeof msg.data.data[0x4008] == 'number') {
+                result.eurotronic_system_mode = msg.data.data[0x4008];
             }
-            if (typeof msg.data.data[16386] == 'number') {
-                result.eurotronic_16386 = msg.data.data[16386];
+            if (typeof msg.data.data[0x4002] == 'number') {
+                result.eurotronic_error_status = msg.data.data[0x4002];
+            }
+            if (typeof msg.data.data[0x4000] == 'number') {
+                result.eurotronic_trv_mode = msg.data.data[0x4000];
+            }
+            if (typeof msg.data.data[0x4001] == 'number') {
+                result.eurotronic_valve_position = msg.data.data[0x4001];
             }
             return result;
         },
@@ -1737,6 +1743,11 @@ const converters = {
     ignore_thermostat_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_thermostat_report: {
+        cid: 'hvacThermostat',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_genGroups_devChange: {
