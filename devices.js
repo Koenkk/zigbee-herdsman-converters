@@ -2393,14 +2393,17 @@ const devices = [
         toZigbee: [tz.livolo_switch_on_off],
     },
     
-    // BOSCH
+    // Bosch
     {
         zigbeeModel: ['RFDL-ZB-MS'],
         model: 'RADON TriTech ZB',
         vendor: 'Bosch',
-        description: 'Motion sensor',
+        description: 'Wireless motion detector',
         supports: 'occupancy and temperature',
-        fromZigbee: [fz.generic_temperature,fz.ignore_temperature_change,fz.STS_PRS_251_battery,fz.ignore_power_change,fz.bosch_ias_zone_motion_status_change,fz.ignore_iaszone_devchange],
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500, 
+            fz.ignore_power_change, fz.bosch_ias_zone_motion_status_change, fz.ignore_iaszone_devchange,
+        ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
