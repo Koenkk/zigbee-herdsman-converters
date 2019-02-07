@@ -2392,7 +2392,7 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
         toZigbee: [tz.livolo_switch_on_off],
     },
-
+ 
     // Bosch
     {
         zigbeeModel: ['RFDL-ZB-MS'],
@@ -2401,7 +2401,7 @@ const devices = [
         description: 'Wireless motion detector',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500, 
+            fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500,
             fz.ignore_power_change, fz.bosch_ias_zone_motion_status_change, fz.ignore_iaszone_devchange,
         ],
         toZigbee: [],
@@ -2418,7 +2418,7 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    }, 
+    },
 
     // Immax
     {
