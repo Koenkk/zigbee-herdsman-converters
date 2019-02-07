@@ -2392,7 +2392,7 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
         toZigbee: [tz.livolo_switch_on_off],
     },
-    
+
     // Bosch
     {
         zigbeeModel: ['RFDL-ZB-MS'],
@@ -2418,7 +2418,16 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },    
+    }, 
+
+    // Immax
+    {
+        zigbeeModel: ['IM-Z3.0-DIM'],
+        model: 'IM-Z3.0-DIM',
+        vendor: 'Immax',
+        description: 'LED E14/230V C35 5W TB 440LM ZIGBEE DIM',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 module.exports = devices.map((device) =>
