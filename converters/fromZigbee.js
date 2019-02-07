@@ -920,6 +920,17 @@ const converters = {
             return results;
         },
     },
+    heiman_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
     heiman_water_leak: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -959,7 +970,7 @@ const converters = {
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
                 if (basicAttrs.hasOwnProperty('100')) {
-                    return {density: basicAttrs['100']};
+                    return {gas_density: basicAttrs['100']};
                 }
             }
         },
@@ -1594,6 +1605,28 @@ const converters = {
             return payload;
         },
     },
+    eria_81825_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    eria_81825_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
+    eria_81825_updown: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            return {action: `${direction}`};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
@@ -1703,6 +1736,16 @@ const converters = {
     },
     ignore_thermostat_change: {
         cid: 'hvacThermostat',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genGroups_devChange: {
+        cid: 'genGroups',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_iaszone_change: {
+        cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
