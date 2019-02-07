@@ -2392,7 +2392,7 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
         toZigbee: [tz.livolo_switch_on_off],
     },
- 
+
     // Bosch
     {
         zigbeeModel: ['RFDL-ZB-MS'],
