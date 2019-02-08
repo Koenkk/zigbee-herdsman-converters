@@ -926,7 +926,7 @@ const converters = {
         key: 'eurotronic_system_mode',
         convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
-            const attrId = 16392;
+            const attrId = 0x4008;
             if (type === 'set') {
                 return {
                     cid: cid,
@@ -935,6 +935,7 @@ const converters = {
                     zclData: [{
                         // Bit 0 = ? (default 1)
                         // Bit 2 = Boost
+                        // Bit 4 = Window open
                         // Bit 7 = Child protection
                         attrId: attrId,
                         dataType: 0x22,
@@ -953,11 +954,55 @@ const converters = {
             }
         },
     },
-    eurotronic_16386: {
-        key: 'eurotronic_16386',
+    eurotronic_error_status: {
+        key: 'eurotronic_error_status',
         convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
-            const attrId = 16386;
+            const attrId = 0x4002;
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_current_heating_setpoint: {
+        key: 'current_heating_setpoint',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4003;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x29,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_valve_position: {
+        key: 'eurotronic_valve_position',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4001;
             if (type === 'set') {
                 return {
                     cid: cid,
@@ -966,6 +1011,34 @@ const converters = {
                     zclData: [{
                         attrId: attrId,
                         dataType: 0x20,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_trv_mode: {
+        key: 'eurotronic_trv_mode',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4000;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x30,
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,
