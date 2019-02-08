@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
   "dependencies": {
-    "zcl-id": "https://github.com/koenkk/zcl-id/tarball/master",
+    "zcl-id": "https://github.com/koenkk/zcl-id/tarball/2f25e0848562b570453abd663794d5b95e1f324f",
     "debounce": "*",
     "debug": "3.2.6",
     "chai": "*"
