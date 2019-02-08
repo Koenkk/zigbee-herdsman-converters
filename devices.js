@@ -8,6 +8,8 @@ const repInterval = {
     MAX: 58000,
 };
 
+const coordinatorGroup = 99;
+
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
@@ -575,6 +577,26 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TRADFRI ON/OFF Switch'],
+        model: 'E1743',
+        vendor: 'IKEA',
+        description: 'TRADFRI ON/OFF switch',
+        supports: 'on, off',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
+            fz.E1743_brightness_stop,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinatorGroup, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Philips
     {
@@ -1082,7 +1104,7 @@ const devices = [
         description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.AC0251100NJ_long_middle,
             fz.cmd_stop, fz.cmd_move, fz.cmd_move_with_onoff,
             fz.cmd_move_to_level_with_onoff, fz.generic_batteryvoltage_3000_2500,
         ],
