@@ -1108,6 +1108,36 @@ const converters = {
             }
         },
     },
+    gledopto_light_brightness: {
+        key: ['brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_brightness.convert(key, value, message, type, postfix);
+        },
+    },
+    gledopto_light_color_colortemp: {
+        key: ['brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_color_colortemp.convert(key, value, message, type, postfix);
+        },
+    },
+    gledopto_light_colortemp: {
+        key: ['brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_colortemp.convert(key, value, message, type, postfix);
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
