@@ -578,7 +578,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['TRADFRI ON/OFF Switch'],
+        zigbeeModel: ['TRADFRI on/off switch'],
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
@@ -590,8 +590,14 @@ const devices = [
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
             const actions = [
                 (cb) => device.bind('genOnOff', coordinatorGroup, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
 
             execute(device, actions, callback);
