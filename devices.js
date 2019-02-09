@@ -6,6 +6,7 @@ const tz = require('./converters/toZigbee');
 
 const repInterval = {
     MAX: 58000,
+    HOUR: 3600,
 };
 
 const generic = {
@@ -2085,7 +2086,7 @@ const devices = [
         supports: 'smoke',
         fromZigbee: [
             fz.heiman_smoke,
-            fz.heiman_smoke_battery,
+            fz.battery_200,
             fz.heiman_smoke_enrolled,
             fz.ignore_power_change,
         ],
@@ -2436,6 +2437,27 @@ const devices = [
         vendor: 'Immax',
         description: 'LED E14/230V C35 5W TB 440LM ZIGBEE DIM',
         extend: generic.light_onoff_brightness,
+    },
+
+    // Yale
+    {
+        zigbeeModel: ['YRD446 BLE TSDB'],
+        model: 'YRD426NRSC',
+        vendor: 'Yale',
+        description: 'Assure lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.YRD426NRSC_lock, fz.battery_200],
+        toZigbee: [tz.YRD426NRSC_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 ];
 

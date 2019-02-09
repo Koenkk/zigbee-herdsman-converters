@@ -126,6 +126,13 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    YRD426NRSC_lock: {
+        cid: 'closuresDoorLock',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
+        },
+    },
     AC0251100NJ_on: {
         cid: 'genOnOff',
         type: 'cmdOn',
@@ -883,7 +890,7 @@ const converters = {
             };
         },
     },
-    heiman_smoke_battery: {
+    battery_200: {
         cid: 'genPowerCfg',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
