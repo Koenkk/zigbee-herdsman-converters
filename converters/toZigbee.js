@@ -1119,7 +1119,7 @@ const converters = {
         },
     },
     gledopto_light_color_colortemp: {
-        key: ['brightness', 'brightness_percent'],
+        key: ['color', 'color_temp', 'color_temp_percent'],
         convert: (key, value, message, type, postfix) => {
             if (message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
@@ -1129,7 +1129,7 @@ const converters = {
         },
     },
     gledopto_light_colortemp: {
-        key: ['brightness', 'brightness_percent'],
+        key: ['color_temp', 'color_temp_percent'],
         convert: (key, value, message, type, postfix) => {
             if (message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
