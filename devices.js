@@ -599,6 +599,15 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TRADFRI signal repeater'],
+        model: 'E1746',
+        description: 'TRADFRI signal repeater',
+        supports: '',
+        vendor: 'IKEA',
+        fromZigbee: [],
+        toZigbee: [],
+    },
 
     // Philips
     {
