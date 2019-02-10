@@ -585,7 +585,7 @@ const devices = [
         supports: 'on, off',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
-            fz.E1743_brightness_stop, fz.generic_battery,
+            fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
