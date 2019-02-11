@@ -126,7 +126,7 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
-  YRD426NRSC_lock: {
+    YRD426NRSC_lock: {
         cid: 'closuresDoorLock',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
