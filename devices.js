@@ -44,6 +44,30 @@ const generic = {
     },
 };
 
+const gledopto = {
+    light_onoff_brightness: {
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: [tz.on_off, tz.gledopto_light_brightness, tz.ignore_transition, tz.light_alert],
+    },
+    light_onoff_brightness_colortemp: {
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: [
+            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_colortemp, tz.ignore_transition,
+            tz.light_alert,
+        ],
+    },
+    light_onoff_brightness_colortemp_colorxy: {
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: [
+            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_color_colortemp, tz.ignore_transition,
+            tz.light_alert,
+        ],
+    },
+};
+
 const tzHuePowerOnBehavior = [tz.hue_power_on_behavior, tz.hue_power_on_brightness, tz.hue_power_on_color_temperature];
 const hue = {
     light_onoff_brightness: {
@@ -462,7 +486,7 @@ const devices = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: generic.light_onoff_brightness_colorxy,
     },
     {
         zigbeeModel: [
@@ -574,6 +598,15 @@ const devices = [
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
         ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TRADFRI signal repeater'],
+        model: 'E1746',
+        description: 'TRADFRI signal repeater',
+        supports: '',
+        vendor: 'IKEA',
+        fromZigbee: [],
         toZigbee: [],
     },
 
@@ -1191,6 +1224,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['RS 225'],
+        model: 'RS 225',
+        vendor: 'Innr',
+        description: 'GU10 Spot',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RS 128 T'],
         model: 'RS 128 T',
         vendor: 'Innr',
@@ -1579,7 +1619,7 @@ const devices = [
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1600,7 +1640,7 @@ const devices = [
         model: 'GL-C-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW Dimmer',
-        extend: generic.light_onoff_brightness_colortemp,
+        extend: gledopto.light_onoff_brightness_colortemp,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1616,7 +1656,7 @@ const devices = [
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1632,7 +1672,7 @@ const devices = [
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
         description: 'Smart 6W E27 RGB / CW LED bulb',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1648,7 +1688,7 @@ const devices = [
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1664,7 +1704,7 @@ const devices = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1680,7 +1720,7 @@ const devices = [
         model: 'GL-S-003Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1696,7 +1736,7 @@ const devices = [
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Driver',
-        extend: generic.light_onoff_brightness,
+        extend: gledopto.light_onoff_brightness,
     },
 
     // SmartThings
