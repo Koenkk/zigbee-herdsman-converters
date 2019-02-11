@@ -126,18 +126,39 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
-    AC0251100NJ_on: {
+    genOnOff_cmdOn: {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
             return {click: 'on'};
         },
     },
-    AC0251100NJ_off: {
+    genOnOff_cmdOff: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
             return {click: 'off'};
+        },
+    },
+    E1743_brightness_up: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            return {click: 'brightness_up'};
+        },
+    },
+    E1743_brightness_down: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {click: 'brightness_down'};
+        },
+    },
+    E1743_brightness_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {click: 'brightness_stop'};
         },
     },
     AC0251100NJ_long_middle: {

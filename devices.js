@@ -8,6 +8,8 @@ const repInterval = {
     MAX: 58000,
 };
 
+const coordinatorGroup = 99;
+
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
@@ -600,6 +602,32 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['TRADFRI on/off switch'],
+        model: 'E1743',
+        vendor: 'IKEA',
+        description: 'TRADFRI ON/OFF switch',
+        supports: 'on, off',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
+            fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinatorGroup, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         description: 'TRADFRI signal repeater',
@@ -1115,7 +1143,7 @@ const devices = [
         description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.AC0251100NJ_long_middle,
             fz.cmd_stop, fz.cmd_move, fz.cmd_move_with_onoff,
             fz.cmd_move_to_level_with_onoff, fz.generic_batteryvoltage_3000_2500,
         ],
