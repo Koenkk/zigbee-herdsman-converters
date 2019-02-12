@@ -277,7 +277,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -2522,6 +2522,52 @@ const devices = [
             const actions = [
                 (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Keen Home
+    {
+        zigbeeModel: ['SV01-410-MP-1.4'],
+        model: 'SV01-410-MP-1.4',
+        vendor: 'Keen Home Inc.',
+        description: 'Smart Vent',
+        supports: 'open, close, position, temperature, pressure',
+        fromZigbee: [
+            fz.brightness,
+            fz.state_change,
+            fz.state,
+            fz.brightness_report,
+            fz.generic_temperature,
+            fz.generic_pressure,
+            fz.generic_battery,
+        ],
+        toZigbee: [
+            tz.on_off,
+            tz.light_brightness,
+            tz.ignore_transition,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.report('msPressureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 600, 0, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 600, 0, cb),
             ];
 
             execute(device, actions, callback);

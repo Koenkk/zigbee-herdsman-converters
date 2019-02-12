@@ -666,7 +666,7 @@ const converters = {
             return {illuminance: msg.data.data['measuredValue']};
         },
     },
-    xiaomi_pressure: {
+    generic_pressure: {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
