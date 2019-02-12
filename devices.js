@@ -1393,6 +1393,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LIGHTIFY BR RGBW'],
+        model: '73739',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED RGBW BR30',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
