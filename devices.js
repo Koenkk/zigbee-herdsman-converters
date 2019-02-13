@@ -6,29 +6,65 @@ const tz = require('./converters/toZigbee');
 
 const repInterval = {
     MAX: 58000,
+    HOUR: 3600,
 };
+
+const coordinatorGroup = 99;
 
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.light_brightness, fz.light_state],
+        fromZigbee: [fz.brightness, fz.state_change, fz.state, fz.brightness_report, fz.ignore_genGroups_devChange],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
-        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
+        fromZigbee: [
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
-        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
+        fromZigbee: [
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [tz.on_off, tz.light_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
-        fromZigbee: [fz.light_brightness, fz.light_color_colortemp, fz.light_state],
+        fromZigbee: [
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [
-            tz.on_off, tz.light_brightness, tz.light_colortemp, tz.light_color, tz.ignore_transition,
+            tz.on_off, tz.light_brightness, tz.light_color_colortemp, tz.ignore_transition,
+            tz.light_alert,
+        ],
+    },
+};
+
+const gledopto = {
+    light_onoff_brightness: {
+        supports: generic.light_onoff_brightness.supports,
+        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        toZigbee: [tz.on_off, tz.gledopto_light_brightness, tz.ignore_transition, tz.light_alert],
+    },
+    light_onoff_brightness_colortemp: {
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        toZigbee: [
+            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_colortemp, tz.ignore_transition,
+            tz.light_alert,
+        ],
+    },
+    light_onoff_brightness_colortemp_colorxy: {
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: [
+            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -102,7 +138,7 @@ const devices = [
         description: 'Aqara smart LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: [
-            fz.light_brightness, fz.light_color_colortemp, fz.generic_state, fz.xiaomi_bulb_interval,
+            fz.brightness, fz.color_colortemp, fz.state, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
             fz.ignore_basic_change,
         ],
@@ -320,7 +356,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.on_off],
@@ -332,7 +368,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.generic_state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
             fz.ignore_basic_change, fz.ignore_analog_change,
         ],
         toZigbee: [tz.on_off],
@@ -452,7 +488,7 @@ const devices = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: generic.light_onoff_brightness_colorxy,
     },
     {
         zigbeeModel: [
@@ -537,7 +573,7 @@ const devices = [
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -557,13 +593,48 @@ const devices = [
         supports:
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
             '(**[requires additional setup!]' +
-            '(https://github.com/Koenkk/zigbee2mqtt/blob/dev/docs/getting_started/pairing_devices.md)**)',
+            '(https://koenkk.github.io/zigbee2mqtt/getting_started/pairing_devices.html#ikea-tradfri)**)',
         vendor: 'IKEA',
         fromZigbee: [
             fz.E1524_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
         ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TRADFRI on/off switch'],
+        model: 'E1743',
+        vendor: 'IKEA',
+        description: 'TRADFRI ON/OFF switch',
+        supports: 'on, off',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
+            fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinatorGroup, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['TRADFRI signal repeater'],
+        model: 'E1746',
+        description: 'TRADFRI signal repeater',
+        supports: '',
+        vendor: 'IKEA',
+        fromZigbee: [],
         toZigbee: [],
     },
 
@@ -702,6 +773,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTP003'],
+        model: '4033930P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Fair',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LLC010'],
         model: '7199960PH',
         vendor: 'Philips',
@@ -818,7 +896,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
     },
     {
@@ -980,7 +1058,7 @@ const devices = [
         description: 'Smart+ plug',
         supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 3);
@@ -1066,7 +1144,7 @@ const devices = [
         description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_long_middle,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.AC0251100NJ_long_middle,
             fz.cmd_stop, fz.cmd_move, fz.cmd_move_with_onoff,
             fz.cmd_move_to_level_with_onoff, fz.generic_batteryvoltage_3000_2500,
         ],
@@ -1107,7 +1185,7 @@ const devices = [
         description: 'Active plug',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.generic_state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change,
+            fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change,
             fz.generic_temperature, fz.ignore_temperature_change,
         ],
         toZigbee: [tz.on_off],
@@ -1169,6 +1247,13 @@ const devices = [
     {
         zigbeeModel: ['RS 125'],
         model: 'RS 125',
+        vendor: 'Innr',
+        description: 'GU10 Spot',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['RS 225'],
+        model: 'RS 225',
         vendor: 'Innr',
         description: 'GU10 Spot',
         extend: generic.light_onoff_brightness,
@@ -1263,7 +1348,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_electrical_change, fz.SP120_power, fz.generic_state, fz.ignore_onoff_change],
+        fromZigbee: [fz.ignore_electrical_change, fz.SP120_power, fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1308,6 +1393,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LIGHTIFY BR RGBW'],
+        model: '73739',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED RGBW BR30',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
@@ -1334,7 +1426,7 @@ const devices = [
         vendor: 'Sylvania',
         description: 'SMART+ Smart Plug',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1383,7 +1475,7 @@ const devices = [
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1402,7 +1494,7 @@ const devices = [
         vendor: 'GE',
         description: 'In-wall smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1421,7 +1513,7 @@ const devices = [
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1502,7 +1594,7 @@ const devices = [
         vendor: 'Netvox',
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.Z809A_power],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.Z809A_power],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1533,7 +1625,7 @@ const devices = [
         vendor: 'Nue',
         description: 'ZigBee one gang smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state],
+        fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
     },
     {
@@ -1562,7 +1654,7 @@ const devices = [
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1583,7 +1675,7 @@ const devices = [
         model: 'GL-C-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW Dimmer',
-        extend: generic.light_onoff_brightness_colortemp,
+        extend: gledopto.light_onoff_brightness_colortemp,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1599,7 +1691,23 @@ const devices = [
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['GL-B-007Z'],
+        model: 'GL-B-007Z',
+        vendor: 'Gledopto',
+        description: 'Smart 6W E27 RGB / CW LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1615,7 +1723,7 @@ const devices = [
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1631,7 +1739,7 @@ const devices = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1647,7 +1755,7 @@ const devices = [
         model: 'GL-S-003Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
@@ -1663,7 +1771,7 @@ const devices = [
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Driver',
-        extend: generic.light_onoff_brightness,
+        extend: gledopto.light_onoff_brightness,
     },
 
     // SmartThings
@@ -1834,7 +1942,7 @@ const devices = [
         vendor: 'Bitron',
         description: 'Video wireless socket',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1889,7 +1997,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Smart plug',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_onoff_change, fz.ignore_electrical_change, fz.generic_state, fz.iris_3210L_power],
+        fromZigbee: [fz.ignore_onoff_change, fz.ignore_electrical_change, fz.state, fz.iris_3210L_power],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -1950,8 +2058,29 @@ const devices = [
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_change],
+        fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
+    },
+
+    // Ninja Blocks
+    {
+        zigbeeModel: ['Ninja Smart plug'],
+        model: 'Z809AF',
+        vendor: 'Ninja Blocks',
+        description: 'Zigbee smart plug with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
     },
 
     // Commercial Electric
@@ -1995,7 +2124,7 @@ const devices = [
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
         supports: 'switch and power meter',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_state, fz.ignore_electrical_change, fz.RZHAC_4256251_power],
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.ignore_electrical_change, fz.RZHAC_4256251_power],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -2019,7 +2148,7 @@ const devices = [
         vendor: 'Climax',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_change],
+        fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
 
@@ -2032,7 +2161,8 @@ const devices = [
         supports: 'smoke',
         fromZigbee: [
             fz.heiman_smoke,
-            fz.heiman_smoke_battery,
+            fz.battery_200,
+            fz.heiman_smoke_enrolled,
             fz.ignore_power_change,
         ],
         toZigbee: [],
@@ -2056,6 +2186,24 @@ const devices = [
         description: 'Smoke detector',
         supports: 'smoke',
         fromZigbee: [fz.heiman_smoke],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['GASSensor-N'],
+        model: 'HS3CG',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -2145,7 +2293,7 @@ const devices = [
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
         extend: generic.light_onoff_brightness,
-        fromZigbee: [fz.light_state, fz.light_brightness_report, fz.light_brightness, fz.generic_state],
+        fromZigbee: [fz.state_change, fz.brightness_report, fz.brightness, fz.state],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -2184,7 +2332,7 @@ const devices = [
         vendor: 'Smart Home Pty',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_change],
+        fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
 
@@ -2195,6 +2343,13 @@ const devices = [
         vendor: 'Paul Neuhaus',
         description: 'Q-INIGO LED ceiling light',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['NLG-RGBW light '],
+        model: '100.110.39',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-FLAG LED Panel, Smart-Home RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // iCasa
@@ -2229,7 +2384,7 @@ const devices = [
         vendor: 'Salus',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 9);
@@ -2238,6 +2393,142 @@ const devices = [
                 (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // AduroSmart
+    {
+        zigbeeModel: ['ZLL-ExtendedColo'],
+        model: '81809',
+        vendor: 'AduroSmart',
+        description: 'ERIA colors and white shades smart light bulb A19',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            return {
+                '': 2,
+            };
+        },
+    },
+    {
+        zigbeeModel: ['Adurolight_NCC'],
+        model: '81825',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart wireless dimming switch',
+        supports: 'on, off, up, down',
+        fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Eurotronic
+    {
+        zigbeeModel: ['SPZB0001'],
+        model: 'SPZB0001',
+        vendor: 'Eurotronic',
+        description: 'Spirit Zigbee wireless heater thermostat',
+        supports: 'temperature, heating system control',
+        fromZigbee: [
+            fz.thermostat_dev_change,
+            fz.eurotronic_thermostat_dev_change,
+            fz.ignore_thermostat_report, fz.hue_battery, fz.ignore_power_change,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
+            tz.eurotronic_system_mode, tz.eurotronic_error_status, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_remote_sensing,
+            tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 1, 1200, 25, cb),
+                (cb) => device.foundation('hvacThermostat', 'configReport', [{
+                    direction: 0, attrId: 0x4003, dataType: 41, minRepIntval: 0,
+                    maxRepIntval: 600, repChange: 25}], {manufSpec: 1, manufCode: 4151}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Livolo
+    {
+        zigbeeModel: ['TI0001          '],
+        model: 'TI0001',
+        description:
+            'Zigbee switch (1 and 2 gang) ' +
+            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        vendor: 'Livolo',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_report, fz.livolo_switch_dev_change],
+        toZigbee: [tz.livolo_switch_on_off],
+    },
+
+    // Bosch
+    {
+        zigbeeModel: ['RFDL-ZB-MS'],
+        model: 'RADON TriTech ZB',
+        vendor: 'Bosch',
+        description: 'Wireless motion detector',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500,
+            fz.ignore_power_change, fz.bosch_ias_zone_motion_status_change, fz.ignore_iaszone_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 60, 58000, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Immax
+    {
+        zigbeeModel: ['IM-Z3.0-DIM'],
+        model: 'IM-Z3.0-DIM',
+        vendor: 'Immax',
+        description: 'LED E14/230V C35 5W TB 440LM ZIGBEE DIM',
+        extend: generic.light_onoff_brightness,
+    },
+
+    // Yale
+    {
+        zigbeeModel: ['YRD446 BLE TSDB'],
+        model: 'YRD426NRSC',
+        vendor: 'Yale',
+        description: 'Assure lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.YRD426NRSC_lock, fz.battery_200],
+        toZigbee: [tz.YRD426NRSC_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
             ];
 
             execute(device, actions, callback);
