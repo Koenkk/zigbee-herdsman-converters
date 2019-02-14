@@ -1560,7 +1560,29 @@ const converters = {
             return result;
         },
     },
-    E1524_toggle: {
+    tint404011_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'toggle'};
+        },
+    },
+    tint404011_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'toggle'};
+        },
+    },
+    tint404011_brightness_updown_click: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
+            return {action: `brightness_${direction}_click`};
+        },
+    },
+    cmdToggle: {
         cid: 'genOnOff',
         type: 'cmdToggle',
         convert: (model, msg, publish, options) => {
