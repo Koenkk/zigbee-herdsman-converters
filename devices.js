@@ -603,7 +603,7 @@ const devices = [
             '(https://koenkk.github.io/zigbee2mqtt/getting_started/pairing_devices.html#ikea-tradfri)**)',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.E1524_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
+            fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
         ],
@@ -2392,8 +2392,7 @@ const devices = [
             '(http://www.zigbee2mqtt.io/getting_started/pairing_devices.htmli)**)',
         vendor: 'Müller Licht',
         fromZigbee: [
-            fz.tint404011_on, fz.tint404011_off,
-            fz.E1524_toggle, fz.tint404011_brightness_updown_click,
+            fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
         ],
         toZigbee: [],
     },
