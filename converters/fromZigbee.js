@@ -1582,7 +1582,7 @@ const converters = {
             return {action: `brightness_${direction}_click`};
         },
     },
-    E1524_toggle: {
+    cmdToggle: {
         cid: 'genOnOff',
         type: 'cmdToggle',
         convert: (model, msg, publish, options) => {
