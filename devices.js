@@ -2385,19 +2385,15 @@ const devices = [
     },
     {
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
-        model: 'tint404011',
+        model: 'MLI-404011',
         description: 'Tint remote control',
-        supports:
-            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
+        supports: 'toggle, brightness, other buttons are not supported yet! ' +
             '(**[requires additional setup!]' +
-            '(https://koenkk.github.io/zigbee2mqtt/getting_started/pairing_devices.html#ikea-tradfri)**)',
+            '(http://www.zigbee2mqtt.io/getting_started/pairing_devices.htmli)**)',
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off,
             fz.E1524_toggle, fz.tint404011_brightness_updown_click,
-            // fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
-            // fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
-            // fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
         ],
         toZigbee: [],
     },
