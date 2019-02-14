@@ -2383,6 +2383,24 @@ const devices = [
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
+        model: 'tint404011',
+        description: 'Tint remote control',
+        supports:
+            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
+            '(**[requires additional setup!]' +
+            '(https://koenkk.github.io/zigbee2mqtt/getting_started/pairing_devices.html#ikea-tradfri)**)',
+        vendor: 'Müller Licht',
+        fromZigbee: [
+            fz.tint404011_on, fz.tint404011_off,
+            fz.E1524_toggle, fz.tint404011_brightness_updown_click,
+            // fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
+            // fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
+            // fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
+        ],
+        toZigbee: [],
+    },
 
     // Salus
     {
