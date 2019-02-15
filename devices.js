@@ -2530,19 +2530,21 @@ const devices = [
 
     // Keen Home
     {
-        zigbeeModel: ['SV01-410-MP-1.4'],
-        model: 'SV01-410-MP-1.4',
+        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5'],
+        model: 'Smart Vent SV01',
         vendor: 'Keen Home Inc.',
         description: 'Smart Vent',
-        supports: 'open, close, position, temperature, pressure',
+        supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
             fz.brightness,
             fz.state_change,
             fz.state,
             fz.brightness_report,
             fz.generic_temperature,
-            fz.generic_pressure,
             fz.generic_battery,
+            fz.keen_home_smart_vent_pressure_dev_change,
+            fz.keen_home_smart_vent_temperature_dev_change,
+            fz.keen_home_smart_vent_pressure_attr_report,
         ],
         toZigbee: [
             tz.on_off,
@@ -2552,22 +2554,17 @@ const devices = [
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('msPressureMeasurement', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+
+                (cb) => device.report('genOnOff', 'onOff', 0, 600, 0, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 600, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
                 (cb) => device.report('msPressureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 600, 0, cb),
-                (cb) => device.report('genOnOff', 'onOff', 0, 600, 0, cb),
             ];
 
             execute(device, actions, callback);

@@ -1673,6 +1673,32 @@ const converters = {
             return {action: `${direction}`};
         },
     },
+    keen_home_smart_vent_temperature_dev_change: {
+        cid: 'msTemperatureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msTemperatureMeasurement","data":{"measuredValue":2498}}'
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
+    keen_home_smart_vent_pressure_dev_change: {
+        cid: 'msPressureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    keen_home_smart_vent_pressure_attr_report: {
+        cid: 'msPressureMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
