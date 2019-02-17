@@ -35,6 +35,44 @@ const converters = {
             }
         },
     },
+    samsung_on_off: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genOnOff';
+            const attrId = 'onOff';
+
+            let state = value.toLowerCase();
+            if (state === 'on' ) {
+                state = 1;
+            } else if ( state === 'off' ) {
+                state = 0;
+            } else {
+                return;
+            }
+
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                return {
+                    cid: cid,
+                    cmd: state,
+                    cmdType: 'functional',
+                    zclData: {},
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     on_off: {
         key: ['state'],
         convert: (key, value, message, type, postfix) => {
