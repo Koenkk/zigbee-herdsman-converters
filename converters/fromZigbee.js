@@ -1579,7 +1579,22 @@ const converters = {
         type: 'cmdStep',
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
-            return {action: `brightness_${direction}_click`};
+            return {action: `brightness_${direction}_click`, stepsize: msg.data.data.stepsize ,transtime: msg.data.data.transtime};
+        },
+    },
+    tint404011_move_to_color_temp: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToColorTemp',
+        convert: (model, msg, publish, options) => {
+            return {action: `color_temp_move`, colortemp: msg.data.data.colortemp, transtime: msg.data.data.transtime  };
+        },
+    },
+    tint404011_move_to_color: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToColor',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
+            return {action: `color_move`, colorx: msg.data.data.colorx, colory: msg.data.data.colory, transtime: msg.data.data.transtime };
         },
     },
     cmdToggle: {
