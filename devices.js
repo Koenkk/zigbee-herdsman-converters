@@ -2570,7 +2570,7 @@ const devices = [
         vendor: 'ELKO',
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
