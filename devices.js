@@ -2548,7 +2548,7 @@ const devices = [
         ],
         toZigbee: [
             tz.on_off,
-            tz.light_brightness,
+            tz.cover_position,
             tz.ignore_transition,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
