@@ -856,6 +856,52 @@ const converters = {
             }
         },
     },
+    xiaomi_decoupled_mode: {
+        key: ['decoupled_mode'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genBasic';
+            const lookupAttrId = {
+                'single': 0xFF22,
+                'left': 0xFF22,
+                'right': 0xFF23,
+            };
+            const lookupState = {
+                'decoupled': 0xFE,
+                'toggle_left': 0x12,
+                'toggle_right': 0x22,
+            };
+            let button;
+            if (value.hasOwnProperty('button')) {
+                button = value.button;
+            } else {
+                button = 'single';
+            }
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: lookupAttrId[button],
+                        dataType: 0x20,
+                        attrData: lookupState[value.state],
+                    }],
+                    cfg: cfg.xiaomi,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: lookupAttrId[button],
+                        dataType: 0x20,
+                    }],
+                    cfg: cfg.xiaomi,
+                };
+            }
+        },
+    },
     STS_PRS_251_beep: {
         key: ['beep'],
         convert: (key, value, message, type, postfix) => {

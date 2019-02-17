@@ -802,6 +802,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            } else {
+                return {click: 'single'};
             }
         },
     },
@@ -815,6 +817,10 @@ const converters = {
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
+            } else {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoints[0].epId];
+                return {click: button};
             }
         },
     },
