@@ -2139,6 +2139,33 @@ const devices = [
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['ZBT-ColorTemperature'],
+        model: '404006/404008/404004',
+        vendor: 'Müller Licht',
+        description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    // ELKO
+    {
+        zigbeeModel: ['ElkoDimmerZHA'],
+        model: '316GLEDRF',
+        vendor: 'ELKO',
+        description: 'ZigBee in-wall smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.light_brightness, fz.ignore_onoff_change, fz.generic_state],
+        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
