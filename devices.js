@@ -2542,9 +2542,9 @@ const devices = [
             fz.brightness_report,
             fz.generic_temperature,
             fz.generic_battery,
-            fz.keen_home_smart_vent_pressure_dev_change,
-            fz.keen_home_smart_vent_temperature_dev_change,
             fz.keen_home_smart_vent_pressure_attr_report,
+            fz.ignore_temperature_change,
+            fz.ignore_pressure_change,
         ],
         toZigbee: [
             tz.on_off,
@@ -2560,11 +2560,12 @@ const devices = [
                 (cb) => device.bind('msPressureMeasurement', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
 
-                (cb) => device.report('genOnOff', 'onOff', 0, 600, 0, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 600, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.report('msPressureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, repInterval.MAX, 0, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, repInterval.MAX, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 60, repInterval.MAX, 10, cb),
+                (cb) => device.report('msPressureMeasurement', 'measuredValue', 600, repInterval.MAX, 1, cb),
+                (cb) => device.report('msPressureMeasurement', '32', 600, repInterval.MAX, 100, cb),
             ];
 
             execute(device, actions, callback);
