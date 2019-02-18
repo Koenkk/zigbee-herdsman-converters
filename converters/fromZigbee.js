@@ -1564,14 +1564,14 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'power', state: on};
+            return {action: 'power', state: 'on'};
         },
     },
     tint404011_off: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'power', state: off};
+            return {action: 'power', state: 'off'};
         },
     },
     tint404011_brightness_updown_click: {
@@ -1580,6 +1580,13 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
             return {action: `brightness_${direction}_click`, stepsize: msg.data.data.stepsize ,transtime: msg.data.data.transtime};
+        },
+    },
+    tint404011_scene: {
+        cid: 'genBasic',
+        type: 'cmdWrite',
+        convert: (model, msg, publish, options) => {
+            return {action: `scene${msg.data.data[0].attrData}` };
         },
     },
     tint404011_move_to_color_temp: {
