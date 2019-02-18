@@ -1564,14 +1564,14 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'power', state: 'on'};
+            return {action: 'on'};
         },
     },
     tint404011_off: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'power', state: 'off'};
+            return {action: 'off'};
         },
     },
     tint404011_brightness_updown_click: {
