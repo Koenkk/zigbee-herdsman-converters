@@ -2579,6 +2579,19 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+
+   //LivingWise
+   {
+	// Smart dimmer Switch LVS-ZB500D
+	zigbeeModel: ['abb71ca5fe1846f185cfbda554046cce'],
+	model: 'abb71ca5fe1846f185cfbda554046cce',
+	vendor: 'LivingWise',
+	description: 'ZigBee Smart dimmer Switch. Model#: LVS-ZB500D',
+	supports: 'on/off, brightness',
+	toZigbee: [tz.on_off, tz.light_brightness],
+	fromZigbee: [fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change, fz.ignore_genIdentify],
+   },
 ];
 
 module.exports = devices.map((device) =>

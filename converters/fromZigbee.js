@@ -1828,6 +1828,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_genIdentify: {
+	cid: 'genIdentify',
+	type: 'attReport',
+	convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;
