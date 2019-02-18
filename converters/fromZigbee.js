@@ -1829,9 +1829,9 @@ const converters = {
         convert: (model, msg, publish, options) => null,
     },
     ignore_genIdentify: {
-	cid: 'genIdentify',
-	type: 'attReport',
-	convert: (model, msg, publish, options) => null,
+        cid: 'genIdentify',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
     },
 };
 
