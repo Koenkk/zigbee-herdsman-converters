@@ -2580,20 +2580,19 @@ const devices = [
         },
     },
 
-
-   //LivingWise
-   {
-	zigbeeModel: ['abb71ca5fe1846f185cfbda554046cce'],
-	model: 'LVS-ZB500D',
-	vendor: 'LivingWise',
-	description: 'ZigBee smart dimmer switch',
-	supports: 'on/off, brightness',
-	toZigbee: [tz.on_off, tz.light_brightness],
-	fromZigbee: [
-		fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
-		fz.ignore_genIdentify,
-	],
-   },
+    // LivingWise
+    {
+        zigbeeModel: ['abb71ca5fe1846f185cfbda554046cce'],
+        model: 'LVS-ZB500D',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart dimmer switch',
+        supports: 'on/off, brightness',
+        toZigbee: [tz.on_off, tz.light_brightness],
+        fromZigbee: [
+            fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
+            fz.ignore_genIdentify,
+        ],
+    },
 ];
 
 module.exports = devices.map((device) =>
