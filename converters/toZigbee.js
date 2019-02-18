@@ -41,17 +41,17 @@ const converters = {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
-            let state = value.toLowerCase();
-            if (state === 'on' ) {
-                state = 1;
-            } else if ( state === 'off' ) {
-                state = 0;
-            } else {
-                return;
-            }
-
             if (type === 'set') {
                 if (typeof value !== 'string') {
+                    return;
+                }
+                
+                let state = value.toLowerCase();
+                if (state === 'on' ) {
+                    state = 1;
+                } else if ( state === 'off' ) {
+                    state = 0;
+                } else {
                     return;
                 }
 
