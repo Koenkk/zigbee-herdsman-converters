@@ -138,7 +138,7 @@ const devices = [
         description: 'Smartthings Outlet',
         supports: 'on/off',
         fromZigbee: [fz.samsung_outlet, fz.samsung_outlet_report],
-        toZigbee: [tz.samsung_on_off],
+        toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
