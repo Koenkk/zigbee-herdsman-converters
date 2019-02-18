@@ -501,6 +501,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 WS opal 1000lm'],
+        model: 'LED1732G11',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI wireless dimmer'],
         model: 'ICTC-G-1',
         vendor: 'IKEA',
@@ -593,10 +600,10 @@ const devices = [
         supports:
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
             '(**[requires additional setup!]' +
-            '(https://koenkk.github.io/zigbee2mqtt/getting_started/pairing_devices.html#ikea-tradfri)**)',
+            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.E1524_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
+            fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
         ],
@@ -1217,6 +1224,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['RB 265'],
+        model: 'RB 265',
+        vendor: 'Innr',
+        description: 'E27 Bulb',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',
@@ -1391,6 +1405,13 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable white BR30',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LIGHTIFY BR RGBW'],
+        model: '73739',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED RGBW BR30',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
@@ -2147,7 +2168,7 @@ const devices = [
 
     // HEIMAN
     {
-        zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10'],
+        zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10', 'SmokeSensor-EM'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -2165,8 +2186,9 @@ const devices = [
                 (cb) => device.bind('ssIasZone', coordinator, cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65535, 0, cb), // once per day
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65535, 1, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
             ];
 
             execute(device, actions, callback, 1000);
@@ -2369,6 +2391,19 @@ const devices = [
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
+        model: 'MLI-404011',
+        description: 'Tint remote control',
+        supports: 'toggle, brightness, other buttons are not supported yet! ' +
+            '(**[requires additional setup!]' +
+            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
+        vendor: 'Müller Licht',
+        fromZigbee: [
+            fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
+        ],
+        toZigbee: [],
+    },
 
     // Salus
     {
@@ -2566,6 +2601,27 @@ const devices = [
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 60, repInterval.MAX, 10, cb),
                 (cb) => device.report('msPressureMeasurement', 'measuredValue', 600, repInterval.MAX, 1, cb),
                 (cb) => device.report('msPressureMeasurement', '32', 600, repInterval.MAX, 100, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // ELKO
+    {
+        zigbeeModel: ['ElkoDimmerZHA'],
+        model: '316GLEDRF',
+        vendor: 'ELKO',
+        description: 'ZigBee in-wall smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
             ];
 
             execute(device, actions, callback);
