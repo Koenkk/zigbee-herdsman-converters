@@ -598,9 +598,7 @@ const devices = [
         model: 'E1524',
         description: 'TRADFRI remote control',
         supports:
-            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
-            '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
+            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
         vendor: 'IKEA',
         fromZigbee: [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
@@ -2395,9 +2393,7 @@ const devices = [
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
         model: 'MLI-404011',
         description: 'Tint remote control',
-        supports: 'toggle, brightness, other buttons are not supported yet! ' +
-            '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
+        supports: 'toggle, brightness, other buttons are not supported yet!',
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
