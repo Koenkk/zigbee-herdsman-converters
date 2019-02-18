@@ -130,26 +130,6 @@ const execute = (device, actions, callback, delay) => {
 };
 
 const devices = [
-    // smartthings
-    {
-        zigbeeModel: ['outlet'],
-        model: 'IM6001-OTP05',
-        vendor: 'Samsung',
-        description: 'Smartthings Outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.samsung_outlet, fz.samsung_outlet_report],
-        toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -1885,6 +1865,25 @@ const devices = [
                     zoneid: 23,
                 }, cb),
             ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['outlet'],
+        model: 'IM6001-OTP05',
+        vendor: 'SmartThings',
+        description: 'Outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_report],
+        toZigbee: [tz.samsung_on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
             execute(device, actions, callback);
         },
     },

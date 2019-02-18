@@ -126,19 +126,6 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
-    samsung_outlet: {
-        cid: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            // console.log(msg.data);
-            return {state: msg.data.data.onOff === 1 ? 'ON' : 'OFF'};
-        },
-    },
-    samsung_outlet_report: {
-        cid: 'genOnOff',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {},
-    },
     YRD426NRSC_lock: {
         cid: 'closuresDoorLock',
         type: 'attReport',
