@@ -45,7 +45,7 @@ const converters = {
                 if (typeof value !== 'string') {
                     return;
                 }
-                
+
                 let state = value.toLowerCase();
                 if (state === 'on' ) {
                     state = 1;
