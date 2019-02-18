@@ -212,9 +212,9 @@ const devices = [
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
         ep: (device) => {
-            return {'': 2};
+            return {'system': 1, 'default': 2};
         },
     },
     {
@@ -238,9 +238,9 @@ const devices = [
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
         ep: (device) => {
-            return {'left': 2, 'right': 3};
+            return {'system': 1, 'left': 2, 'right': 3};
         },
     },
     {
