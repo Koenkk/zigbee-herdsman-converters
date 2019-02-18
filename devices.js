@@ -600,7 +600,7 @@ const devices = [
         supports:
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
             '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/getting_started/pairing_devices.html#ikea-tradfri)**)',
+            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
         vendor: 'IKEA',
         fromZigbee: [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
@@ -1222,6 +1222,13 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 Bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['RB 265'],
+        model: 'RB 265',
+        vendor: 'Innr',
+        description: 'E27 Bulb',
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RB 285 C'],
@@ -2179,8 +2186,9 @@ const devices = [
                 (cb) => device.bind('ssIasZone', coordinator, cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65535, 0, cb), // once per day
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65535, 1, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
             ];
 
             execute(device, actions, callback, 1000);
@@ -2389,7 +2397,7 @@ const devices = [
         description: 'Tint remote control',
         supports: 'toggle, brightness, other buttons are not supported yet! ' +
             '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/getting_started/pairing_devices.html)**)',
+            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
@@ -2550,6 +2558,27 @@ const devices = [
             const actions = [
                 (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // ELKO
+    {
+        zigbeeModel: ['ElkoDimmerZHA'],
+        model: '316GLEDRF',
+        vendor: 'ELKO',
+        description: 'ZigBee in-wall smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
             ];
 
             execute(device, actions, callback);

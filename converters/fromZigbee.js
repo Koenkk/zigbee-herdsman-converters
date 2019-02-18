@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const debounce = require('debounce');
 const common = require('./common');
@@ -1564,14 +1564,14 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'toggle'};
+            return {action: 'power', state: on};
         },
     },
     tint404011_off: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'toggle'};
+            return {action: 'power', state: off};
         },
     },
     tint404011_brightness_updown_click: {
@@ -1586,15 +1586,14 @@ const converters = {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColorTemp',
         convert: (model, msg, publish, options) => {
-            return {action: `color_temp_move`, colortemp: msg.data.data.colortemp, transtime: msg.data.data.transtime  };
+            return {action: `color_temp`, colortemp: msg.data.data.colortemp, transtime: msg.data.data.transtime  };
         },
     },
     tint404011_move_to_color: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColor',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
-            return {action: `color_move`, colorx: msg.data.data.colorx, colory: msg.data.data.colory, transtime: msg.data.data.transtime };
+            return {action: `color_wheel`, colorx: msg.data.data.colorx, colory: msg.data.data.colory, transtime: msg.data.data.transtime };
         },
     },
     cmdToggle: {
