@@ -1171,7 +1171,7 @@ const converters = {
         },
     },
     cover_position: {
-        key: ['position'],
+        key: ['state'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
@@ -1184,6 +1184,7 @@ const converters = {
                     cmdType: 'functional',
                     zclData: {
                         level: value,
+                        transtime: 0,
                     },
                     cfg: cfg.default,
                     readAfterWriteTime: 0,
