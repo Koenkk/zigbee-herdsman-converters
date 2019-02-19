@@ -807,6 +807,21 @@ const converters = {
             }
         },
     },
+    QBKG04LM_operation_mode: {
+        cid: 'genBasic',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const mappingMode = {
+                0x12: 'control_relay',
+                0xFE: 'decoupled',
+            };
+            const key = '65314';
+            if (msg.data.data.hasOwnProperty(key)) {
+                const mode = mappingMode[msg.data.data[key]];
+                return {operation_mode: mode};
+            }
+        },
+    },
     QBKG03LM_QBKG12LM_state: {
         cid: 'genOnOff',
         type: 'attReport',
@@ -834,6 +849,29 @@ const converters = {
                 const payload = {};
                 payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
+            }
+        },
+    },
+    QBKG03LM_operation_mode: {
+        cid: 'genBasic',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const mappingButton = {
+                '65314': 'left',
+                '65315': 'right',
+            };
+            const mappingMode = {
+                0x12: 'control_left_relay',
+                0x22: 'control_right_relay',
+                0xFE: 'decoupled',
+            };
+            for (const key in mappingButton) {
+                if (msg.data.data.hasOwnProperty(key)) {
+                    const payload = {};
+                    const mode = mappingMode[msg.data.data[key]];
+                    payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    return payload;
+                }
             }
         },
     },

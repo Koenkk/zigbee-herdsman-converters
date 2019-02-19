@@ -210,9 +210,9 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
+            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.QBKG04LM_operation_mode, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -236,9 +236,9 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.QBKG03LM_operation_mode, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
