@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const debounce = require('debounce');
 const common = require('./common');
@@ -1579,28 +1579,41 @@ const converters = {
         type: 'cmdStep',
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
-            return {action: `brightness_${direction}_click`, stepsize: msg.data.data.stepsize ,transtime: msg.data.data.transtime};
+            return {
+                action: `brightness_${direction}_click`,
+                step_size: msg.data.data.stepsize,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     tint404011_scene: {
         cid: 'genBasic',
         type: 'cmdWrite',
         convert: (model, msg, publish, options) => {
-            return {action: `scene${msg.data.data[0].attrData}` };
+            return {action: `scene${msg.data.data[0].attrData}`};
         },
     },
     tint404011_move_to_color_temp: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColorTemp',
         convert: (model, msg, publish, options) => {
-            return {action: `color_temp`, colortemp: msg.data.data.colortemp, transtime: msg.data.data.transtime  };
+            return {
+                action: `color_temp`,
+                color_temperature: msg.data.data.colortemp,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     tint404011_move_to_color: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColor',
         convert: (model, msg, publish, options) => {
-            return {action: `color_wheel`, colorx: msg.data.data.colorx, colory: msg.data.data.colory, transtime: msg.data.data.transtime };
+            return {
+                action: `color_wheel`,
+                color_x: msg.data.data.colorx,
+                color_y: msg.data.data.colory,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     cmdToggle: {
