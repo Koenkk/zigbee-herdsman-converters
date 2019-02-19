@@ -1570,14 +1570,14 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'toggle'};
+            return {action: 'on'};
         },
     },
     tint404011_off: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'toggle'};
+            return {action: 'off'};
         },
     },
     tint404011_brightness_updown_click: {
@@ -1585,7 +1585,41 @@ const converters = {
         type: 'cmdStep',
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
-            return {action: `brightness_${direction}_click`};
+            return {
+                action: `brightness_${direction}_click`,
+                step_size: msg.data.data.stepsize,
+                transition_time: msg.data.data.transtime,
+            };
+        },
+    },
+    tint404011_scene: {
+        cid: 'genBasic',
+        type: 'cmdWrite',
+        convert: (model, msg, publish, options) => {
+            return {action: `scene${msg.data.data[0].attrData}`};
+        },
+    },
+    tint404011_move_to_color_temp: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToColorTemp',
+        convert: (model, msg, publish, options) => {
+            return {
+                action: `color_temp`,
+                action_color_temperature: msg.data.data.colortemp,
+                transition_time: msg.data.data.transtime,
+            };
+        },
+    },
+    tint404011_move_to_color: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToColor',
+        convert: (model, msg, publish, options) => {
+            return {
+                action: `color_wheel`,
+                action_color_x: msg.data.data.colorx,
+                action_color_y: msg.data.data.colory,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     cmdToggle: {
