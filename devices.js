@@ -1533,13 +1533,13 @@ const devices = [
         description: 'ZigBee smart light controller',
         extend: generic.light_onoff_brightness,
     },
-    {
+	{
         zigbeeModel: ['FB56+ZSW1HKJ1.7'],
         model: 'HGZB-042',
         vendor: 'Nue',
         description: 'Smart light switch - 2 gang',
         supports: 'Basic, On/Off, Scenes, Groups',
-        fromZigbee: [fz.generic_state],
+        fromZigbee: [fz.generic_state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         ep: (device) => {
             return {'left': 16, 'right': 17};
