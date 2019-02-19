@@ -212,9 +212,9 @@ const devices = [
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
         ep: (device) => {
-            return {'': 2};
+            return {'system': 1, 'default': 2};
         },
     },
     {
@@ -238,9 +238,9 @@ const devices = [
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_decoupled_mode],
         ep: (device) => {
-            return {'left': 2, 'right': 3};
+            return {'system': 1, 'left': 2, 'right': 3};
         },
     },
     {
@@ -598,9 +598,7 @@ const devices = [
         model: 'E1524',
         description: 'TRADFRI remote control',
         supports:
-            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release ' +
-            '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
+            'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
         vendor: 'IKEA',
         fromZigbee: [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
@@ -2395,9 +2393,7 @@ const devices = [
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
         model: 'MLI-404011',
         description: 'Tint remote control',
-        supports: 'toggle, brightness, other buttons are not supported yet! ' +
-            '(**[requires additional setup!]' +
-            '(http://www.zigbee2mqtt.io/information/coordinator_group.md)**)',
+        supports: 'toggle, brightness, other buttons are not supported yet!',
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
@@ -2626,6 +2622,20 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+
+    // LivingWise
+    {
+        zigbeeModel: ['abb71ca5fe1846f185cfbda554046cce'],
+        model: 'LVS-ZB500D',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart dimmer switch',
+        supports: 'on/off, brightness',
+        toZigbee: [tz.on_off, tz.light_brightness],
+        fromZigbee: [
+            fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
+            fz.ignore_genIdentify,
+        ],
     },
 ];
 
