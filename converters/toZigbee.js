@@ -1216,6 +1216,40 @@ const converters = {
             return converters.light_colortemp.convert(key, value, message, type, postfix);
         },
     },
+    cover_open_close: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genOnOff';
+            const attrId = 'onOff';
+
+            if (type === 'set') {
+                const lookup = {
+                    'open': 'on',
+                    'close': 'off',
+                };
+
+                if (typeof value !== 'string' || !lookup[value]) {
+                    return;
+                }
+
+                return {
+                    cid: cid,
+                    cmd: lookup[value.toLowerCase()],
+                    cmdType: 'functional',
+                    zclData: {},
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     cover_position: {
         key: ['state'],
         convert: (key, value, message, type, postfix) => {
