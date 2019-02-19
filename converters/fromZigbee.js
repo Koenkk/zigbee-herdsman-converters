@@ -1599,7 +1599,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: `color_temp`,
-                color_temperature: msg.data.data.colortemp,
+                action_color_temperature: msg.data.data.colortemp,
                 transition_time: msg.data.data.transtime,
             };
         },
@@ -1610,8 +1610,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: `color_wheel`,
-                color_x: msg.data.data.colorx,
-                color_y: msg.data.data.colory,
+                action_color_x: msg.data.data.colorx,
+                action_color_y: msg.data.data.colory,
                 transition_time: msg.data.data.transtime,
             };
         },
