@@ -1866,6 +1866,25 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['outlet'],
+        model: 'IM6001-OTP05',
+        vendor: 'SmartThings',
+        description: 'Outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_report],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Trust
     {
@@ -2397,6 +2416,7 @@ const devices = [
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
+            fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
         ],
         toZigbee: [],
     },
