@@ -856,8 +856,8 @@ const converters = {
             }
         },
     },
-    xiaomi_decoupled_mode: {
-        key: ['decoupled_mode'],
+    xiaomi_switch_operation_mode: {
+        key: ['operation_mode'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'genBasic';
             const lookupAttrId = {
@@ -866,9 +866,10 @@ const converters = {
                 'right': 0xFF23,
             };
             const lookupState = {
+                'control_relay': 0x12,
+                'control_left_relay': 0x12,
+                'control_right_relay': 0x22,
                 'decoupled': 0xFE,
-                'toggle_left': 0x12,
-                'toggle_right': 0x22,
             };
             let button;
             if (value.hasOwnProperty('button')) {
