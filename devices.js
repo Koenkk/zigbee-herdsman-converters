@@ -1785,6 +1785,22 @@ const devices = [
         description: 'Zigbee LED Driver',
         extend: gledopto.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['GL-FL-004TZ'],
+        model: 'GL-FL-004TZ',
+        vendor: 'Gledopto',
+        description: 'Zigbee 10W floodlight RGB CCT',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
 
     // SmartThings
     {
