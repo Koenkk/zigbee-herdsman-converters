@@ -1701,6 +1701,42 @@ const converters = {
             return {action: `${direction}`};
         },
     },
+    generic_cover_state: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+        },
+    },
+    generic_cover_state_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+        },
+    },
+    generic_cover_position: {
+        cid: 'genLevelCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            let position = msg.data.data['currentLevel'];
+            if (position) {
+                position = Math.round(Number(position) / 2.55).toString();
+            }
+            return {position: position};
+        },
+    },
+    generic_cover_position_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            let position = msg.data.data['currentLevel'];
+            if (position) {
+                position = Math.round(Number(position) / 2.55).toString();
+            }
+            return {position: position};
+        },
+    },
     keen_home_smart_vent_pressure_attr_report: {
         cid: 'msPressureMeasurement',
         type: 'attReport',

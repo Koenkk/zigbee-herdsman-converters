@@ -2567,10 +2567,10 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.brightness, // TODO refactor to position
-            fz.state_change, // TODO refactor to open/close
-            fz.state, // TODO refactor to open/close
-            fz.brightness_report,
+            fz.generic_cover_position,
+            fz.generic_cover_position_report,
+            fz.generic_cover_state,
+            fz.generic_cover_state_report,
             fz.generic_temperature,
             fz.generic_battery,
             fz.keen_home_smart_vent_pressure_attr_report,

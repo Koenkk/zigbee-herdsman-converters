@@ -1228,13 +1228,18 @@ const converters = {
                     'close': 'off',
                 };
 
-                if (typeof value !== 'string' || !lookup[value]) {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                const cmdValue = lookup[value.toLowerCase()];
+                if (!cmdValue) {
                     return;
                 }
 
                 return {
                     cid: cid,
-                    cmd: lookup[value.toLowerCase()],
+                    cmd: cmdValue,
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
@@ -1251,7 +1256,7 @@ const converters = {
         },
     },
     cover_position: {
-        key: ['state'],
+        key: ['position'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
