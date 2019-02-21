@@ -864,7 +864,7 @@ const devices = [
         zigbeeModel: ['SML002'],
         model: '9290019758',
         vendor: 'Philips',
-        description: 'Hue motion Outdoor sensor',
+        description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
             fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
@@ -895,6 +895,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
     // Belkin
     {
         zigbeeModel: ['MZ100'],
