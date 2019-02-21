@@ -860,6 +860,41 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['SML002'],
+        model: '9290019758',
+        vendor: 'Philips',
+        description: 'Hue motion outdoor sensor',
+        supports: 'occupancy, temperature, illuminance',
+        fromZigbee: [
+            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
+            fz.ignore_temperature_change,
+        ],
+        toZigbee: [tz.generic_occupancy_timeout],
+        ep: (device) => {
+            return {
+                '': 2, // default
+                'ep1': 1,
+                'ep2': 2, // e.g. for write to msOccupancySensing
+            };
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 2);
+
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msOccupancySensing', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
+                (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Belkin
     {
