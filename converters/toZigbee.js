@@ -1219,40 +1219,20 @@ const converters = {
     cover_open_close: {
         key: ['state'],
         convert: (key, value, message, type, postfix) => {
-            const cid = 'genOnOff';
-            const attrId = 'onOff';
-
             if (type === 'set') {
-                const lookup = {
-                    'open': 'on',
-                    'close': 'off',
-                };
-
                 if (typeof value !== 'string') {
                     return;
                 }
 
-                const cmdValue = lookup[value.toLowerCase()];
-                if (!cmdValue) {
-                    return;
-                }
+                const positionByState = {
+                    'open': 100,
+                    'close': 0,
+                };
 
-                return {
-                    cid: cid,
-                    cmd: cmdValue,
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: cfg.default,
-                };
-            } else if (type === 'get') {
-                return {
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
-                    cfg: cfg.default,
-                };
+                value = positionByState[value.toLowerCase()]
             }
+
+            return converters.cover_position.convert(key, value, message, type, postfix);
         },
     },
     cover_position: {

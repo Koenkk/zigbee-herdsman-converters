@@ -2587,36 +2587,37 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.generic_cover_position,
-            fz.generic_cover_position_report,
-            fz.generic_cover_state,
-            fz.generic_cover_state_report,
+            fz.cover_position,
+            fz.cover_position_report,
             fz.generic_temperature,
+            fz.generic_temperature_change,
             fz.generic_battery,
-            fz.keen_home_smart_vent_pressure_attr_report,
-            fz.ignore_temperature_change,
-            fz.ignore_pressure_change,
+            fz.generic_battery_change,
+            fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report,
+            fz.ignore_onoff_change,
+            fz.ignore_onoff_report,
         ],
         toZigbee: [
             tz.cover_open_close,
             tz.cover_position,
-            tz.ignore_transition,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 32, dataType: 43, minRepIntval: 600, maxRepIntval: repInterval.MAX, repChange: 100};
             const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
 
-                (cb) => device.report('genOnOff', 'onOff', 0, repInterval.MAX, 0, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, repInterval.MAX, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 60, repInterval.MAX, 10, cb),
-                (cb) => device.report('msPressureMeasurement', 'measuredValue', 600, repInterval.MAX, 1, cb),
-                (cb) => device.report('msPressureMeasurement', '32', 600, repInterval.MAX, 100, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, repInterval.MAX, 10, cb),
+                (cb) => device.report('msPressureMeasurement', 'measuredValue', 600, repInterval.MAX, 100, cb),
+                (cb) => device.foundation('msPressureMeasurement', 'configReport', [cfg], foundationCfg, cb),
+
+                (cb) => device.read('genPowerCfg', 'batteryPercentageRemaining', cb),
+                (cb) => device.read('genLevelCtrl', 'currentLevel', cb),
+                (cb) => device.read('msTemperatureMeasurement', 'measuredValue', cb),
             ];
 
             execute(device, actions, callback);
