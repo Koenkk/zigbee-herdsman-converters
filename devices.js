@@ -1668,7 +1668,7 @@ const devices = [
     // Nue
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
-        model: 'HGZB-01A' ,
+        model: 'FB56+ZSW05HG1.2' ,
         vendor: 'Nue',
         description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',
