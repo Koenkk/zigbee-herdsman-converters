@@ -1665,7 +1665,26 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // Nue
+    // Nue, 3A Smarthome, Smarthome Pty Ltd, 3A
+    {
+        zigbeeModel: ['FB56+ZSW1HKJ1.7'],
+        model: 'HGZB-042',
+        vendor: 'Nue',
+        description: 'Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 16, 'right': 17};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep16 = shepherd.find(ieeeAddr, 16);
+            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
+                const ep17 = shepherd.find(ieeeAddr, 17);
+                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
+    },
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
