@@ -1976,6 +1976,27 @@ const devices = [
 
     // Trust
     {
+        zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+                      '\u0000\u0000\u0000\u0000\u0000'],
+        model: 'ZYCT-202',
+        vendor: 'Trust',
+        description: 'Remote control',
+        supports: 'on, off, stop, up-press, down-press',
+        fromZigbee: [
+            fz.ZYCT202_on, fz.ZYCT202_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['ZLL-DimmableLigh'],
         model: 'ZLED-2709',
         vendor: 'Trust',
