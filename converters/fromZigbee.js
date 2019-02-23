@@ -1828,10 +1828,10 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const value = msg.data.data['movemode'];
             let action = null;
-            if (value === 0) action = {'action': 'up-press', action_group: msg.groupid};
-            else if (value === 1) action = {'action': 'down-press', action_group: msg.groupid};
+            if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupid};
+            else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupid};
             return action ? action : null;
-       },
+        },
     },
     cover_position: {
         cid: 'genLevelCtrl',
