@@ -2706,6 +2706,23 @@ const devices = [
         },
     },
 
+    // Gear Axis
+    {
+        zigbeeModel: ['Gear'],
+        model: 'Gear',
+        vendor: 'AXIS',
+        description: 'Window shade motor',
+        supports: 'open, close, position',
+        fromZigbee: [
+            fz.cover_position,
+            fz.cover_position_report,
+        ],
+        toZigbee: [
+            tz.cover_open_close,
+            tz.cover_position,
+        ],
+    },
+
     // ELKO
     {
         zigbeeModel: ['ElkoDimmerZHA'],
