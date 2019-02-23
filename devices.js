@@ -2664,6 +2664,32 @@ const devices = [
             fz.ignore_genIdentify,
         ],
     },
+
+    // Stelpro
+    {
+        zigbeeModel: ['ST218'],
+        model: 'ST218',
+        vendor: 'Stelpro',
+        description: 'Built-in electronic thermostat',
+        supports: 'temperature ',
+        fromZigbee: [fz.thermostat_att_report, fz.thermostat_dev_change],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 25);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genGroups', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
