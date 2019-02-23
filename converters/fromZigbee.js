@@ -1371,6 +1371,17 @@ const converters = {
             }
         },
     },
+    generic_state_multi_ep: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const payload = {};
+            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            return payload;
+        },
+    },
     RZHAC_4256251_power: {
         cid: 'haElectricalMeasurement',
         type: 'attReport',
