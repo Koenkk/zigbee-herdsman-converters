@@ -1757,8 +1757,8 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             const currentLevel = msg.data.data['currentLevel'];
-            let position = Math.round(Number(currentLevel) / 2.55).toString();
-            let state = position > 0 ? 'OPEN' : 'CLOSE';
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
             return {state: state, position: position};
         },
     },
@@ -1767,8 +1767,8 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => {
             const currentLevel = msg.data.data['currentLevel'];
-            let position = Math.round(Number(currentLevel) / 2.55).toString();
-            let state = position > 0 ? 'OPEN' : 'CLOSE';
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
             return {state: state, position: position};
         },
     },

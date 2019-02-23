@@ -2604,7 +2604,6 @@ const devices = [
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 32, dataType: 43, minRepIntval: 600, maxRepIntval: repInterval.MAX, repChange: 100};
             const actions = [
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),

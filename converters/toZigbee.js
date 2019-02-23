@@ -1229,7 +1229,7 @@ const converters = {
                     'close': 0,
                 };
 
-                value = positionByState[value.toLowerCase()]
+                value = positionByState[value.toLowerCase()];
             }
 
             return converters.cover_position.convert(key, value, message, type, postfix);
