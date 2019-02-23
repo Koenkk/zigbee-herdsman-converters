@@ -1689,9 +1689,9 @@ const devices = [
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
         vendor: 'Nue',
-        description: 'ZigBee one gang smart switch',
+        description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
     },
     {
@@ -1712,6 +1712,24 @@ const devices = [
         vendor: 'Nue',
         description: 'ZigBee smart light controller',
         extend: generic.light_onoff_brightness,
+    },
+
+    // Smart Home Pty
+    {
+        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        model: 'HGZB-07A',
+        vendor: 'Smart Home Pty',
+        description: 'RGBW Downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['FNB56-SKT1EHG1.2'],
+        model: 'HGZB-20-DE',
+        vendor: 'Smart Home Pty',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state_change],
+        toZigbee: [tz.on_off],
     },
 
     // Gledopto
@@ -2418,24 +2436,6 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [],
         toZigbee: [],
-    },
-
-    // Smart Home Pty
-    {
-        zigbeeModel: ['FB56-ZCW11HG1.2'],
-        model: 'HGZB-07A',
-        vendor: 'Smart Home Pty',
-        description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['FNB56-SKT1EHG1.2'],
-        model: 'HGZB-20-DE',
-        vendor: 'Smart Home Pty',
-        description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.state_change],
-        toZigbee: [tz.on_off],
     },
 
     // Paul Neuhaus
