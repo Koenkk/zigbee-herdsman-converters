@@ -1777,21 +1777,21 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            return {action: msg.groupid+'_on'};
+            return {action: 'on', action_group: msg.groupid};
         },
     },
     ZYCT202_off: {
         cid: 'genOnOff',
         type: 'cmdOffWithEffect',
         convert: (model, msg, publish, options) => {
-            return {action: msg.groupid+'_off'};
+            return {action: 'off', action_group: msg.groupid};
         },
     },
     ZYCT202_stop: {
         cid: 'genLevelCtrl',
         type: 'cmdStop',
         convert: (model, msg, publish, options) => {
-            return {action: msg.groupid+'_stop'};
+            return {action: 'stop', action_group: msg.groupid};
         },
     },
     ZYCT202_up_down: {
@@ -1800,8 +1800,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const value = msg.data.data['movemode'];
             let action = null;
-            if (value === 0) action = {action: msg.groupid+'_up-press'};
-            else if (value === 1) action = {action: msg.groupid+'_down-press'};
+            if (value === 0) action = {'action': 'up-press', action_group: msg.groupid};
+            else if (value === 1) action = {'action': 'down-press', action_group: msg.groupid};
             return action ? action : null;
        },
     },
