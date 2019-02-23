@@ -634,6 +634,28 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TRADFRI motion sensor'],
+        model: 'E1525',
+        vendor: 'IKEA',
+        description: 'TRADFRI motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.generic_battery, fz.ignore_power_change, fz.E1525_occupancy],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         description: 'TRADFRI signal repeater',
