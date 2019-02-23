@@ -1217,6 +1217,55 @@ const converters = {
             return converters.light_colortemp.convert(key, value, message, type, postfix);
         },
     },
+    cover_open_close: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                const positionByState = {
+                    'open': 100,
+                    'close': 0,
+                };
+
+                value = positionByState[value.toLowerCase()];
+            }
+
+            return converters.cover_position.convert(key, value, message, type, postfix);
+        },
+    },
+    cover_position: {
+        key: ['position'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genLevelCtrl';
+            const attrId = 'currentLevel';
+
+            if (type === 'set') {
+                value = Math.round(Number(value) * 2.55).toString();
+                return {
+                    cid: cid,
+                    cmd: 'moveToLevelWithOnOff',
+                    cmdType: 'functional',
+                    zclData: {
+                        level: value,
+                        transtime: 0,
+                    },
+                    cfg: cfg.default,
+                    readAfterWriteTime: 0,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
 
     // Ignore converters
     ignore_transition: {
