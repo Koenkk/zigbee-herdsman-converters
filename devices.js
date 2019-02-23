@@ -2706,10 +2706,10 @@ const devices = [
         },
     },
 
-    // Gear Axis
+    // AXIS Gear
     {
         zigbeeModel: ['Gear'],
-        model: 'Gear',
+        model: 'GR-ZB01-W',
         vendor: 'AXIS',
         description: 'Window shade motor',
         supports: 'open, close, position',
