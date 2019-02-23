@@ -373,6 +373,14 @@ const converters = {
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    generic_temperature_change: {
+        cid: 'msTemperatureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
     xiaomi_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
@@ -666,7 +674,7 @@ const converters = {
             return {illuminance: msg.data.data['measuredValue']};
         },
     },
-    xiaomi_pressure: {
+    generic_pressure: {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -1305,6 +1313,15 @@ const converters = {
             }
         },
     },
+    generic_battery_change: {
+        cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: msg.data.data['batteryPercentageRemaining']};
+            }
+        },
+    },
     hue_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
@@ -1369,6 +1386,17 @@ const converters = {
                 payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             }
+        },
+    },
+    generic_state_multi_ep: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const payload = {};
+            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            return payload;
         },
     },
     RZHAC_4256251_power: {
@@ -1805,7 +1833,45 @@ const converters = {
             return action ? action : null;
        },
     },
-    
+    cover_position: {
+        cid: 'genLevelCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const currentLevel = msg.data.data['currentLevel'];
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
+            return {state: state, position: position};
+        },
+    },
+    cover_position_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const currentLevel = msg.data.data['currentLevel'];
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
+            return {state: state, position: position};
+        },
+    },
+    keen_home_smart_vent_pressure: {
+        cid: 'msPressureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    keen_home_smart_vent_pressure_report: {
+        cid: 'msPressureMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',

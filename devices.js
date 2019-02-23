@@ -277,7 +277,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -1665,14 +1665,33 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // Nue
+    // Nue, 3A Smarthome, Smarthome Pty Ltd, 3A
+    {
+        zigbeeModel: ['FB56+ZSW1HKJ1.7'],
+        model: 'HGZB-042',
+        vendor: 'Nue',
+        description: 'Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 16, 'right': 17};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep16 = shepherd.find(ieeeAddr, 16);
+            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
+                const ep17 = shepherd.find(ieeeAddr, 17);
+                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
+    },
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
         vendor: 'Nue',
-        description: 'ZigBee one gang smart switch',
+        description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
     },
     {
@@ -1693,6 +1712,24 @@ const devices = [
         vendor: 'Nue',
         description: 'ZigBee smart light controller',
         extend: generic.light_onoff_brightness,
+    },
+
+    // Smart Home Pty
+    {
+        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        model: 'HGZB-07A',
+        vendor: 'Smart Home Pty',
+        description: 'RGBW Downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['FNB56-SKT1EHG1.2'],
+        model: 'HGZB-20-DE',
+        vendor: 'Smart Home Pty',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state_change],
+        toZigbee: [tz.on_off],
     },
 
     // Gledopto
@@ -2422,24 +2459,6 @@ const devices = [
         toZigbee: [],
     },
 
-    // Smart Home Pty
-    {
-        zigbeeModel: ['FB56-ZCW11HG1.2'],
-        model: 'HGZB-07A',
-        vendor: 'Smart Home Pty',
-        description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['FNB56-SKT1EHG1.2'],
-        model: 'HGZB-20-DE',
-        vendor: 'Smart Home Pty',
-        description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.state_change],
-        toZigbee: [tz.on_off],
-    },
-
     // Paul Neuhaus
     {
         zigbeeModel: ['NLG-CCT light '],
@@ -2651,6 +2670,42 @@ const devices = [
         },
     },
 
+    // Keen Home
+    {
+        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5'],
+        model: 'SV01',
+        vendor: 'Keen Home',
+        description: 'Smart vent',
+        supports: 'open, close, position, temperature, pressure, battery',
+        fromZigbee: [
+            fz.cover_position,
+            fz.cover_position_report,
+            fz.generic_temperature,
+            fz.generic_temperature_change,
+            fz.generic_battery,
+            fz.generic_battery_change,
+            fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report,
+            fz.ignore_onoff_change,
+            fz.ignore_onoff_report,
+        ],
+        toZigbee: [
+            tz.cover_open_close,
+            tz.cover_position,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
     // ELKO
     {
         zigbeeModel: ['ElkoDimmerZHA'],
@@ -2684,6 +2739,32 @@ const devices = [
             fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
             fz.ignore_genIdentify,
         ],
+    },
+
+    // Stelpro
+    {
+        zigbeeModel: ['ST218'],
+        model: 'ST218',
+        vendor: 'Stelpro',
+        description: 'Built-in electronic thermostat',
+        supports: 'temperature ',
+        fromZigbee: [fz.thermostat_att_report, fz.thermostat_dev_change],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 25);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genGroups', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
     },
 ];
 
