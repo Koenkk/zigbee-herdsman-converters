@@ -1939,7 +1939,8 @@ const devices = [
 
     // Trust
     {
-        zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+                      '\u0000\u0000\u0000\u0000\u0000'],
         model: 'ZYCT-202',
         vendor: 'Trust',
         description: 'Remote control',
