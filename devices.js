@@ -277,7 +277,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.xiaomi_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -2643,6 +2643,42 @@ const devices = [
             const actions = [
                 (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Keen Home
+    {
+        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5'],
+        model: 'SV01',
+        vendor: 'Keen Home',
+        description: 'Smart vent',
+        supports: 'open, close, position, temperature, pressure, battery',
+        fromZigbee: [
+            fz.cover_position,
+            fz.cover_position_report,
+            fz.generic_temperature,
+            fz.generic_temperature_change,
+            fz.generic_battery,
+            fz.generic_battery_change,
+            fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report,
+            fz.ignore_onoff_change,
+            fz.ignore_onoff_report,
+        ],
+        toZigbee: [
+            tz.cover_open_close,
+            tz.cover_position,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
             ];
 
             execute(device, actions, callback);

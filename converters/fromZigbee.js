@@ -373,6 +373,14 @@ const converters = {
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    generic_temperature_change: {
+        cid: 'msTemperatureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
     xiaomi_temperature: {
         cid: 'msTemperatureMeasurement',
         type: 'attReport',
@@ -666,7 +674,7 @@ const converters = {
             return {illuminance: msg.data.data['measuredValue']};
         },
     },
-    xiaomi_pressure: {
+    generic_pressure: {
         cid: 'msPressureMeasurement',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -1305,6 +1313,15 @@ const converters = {
             }
         },
     },
+    generic_battery_change: {
+        cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: msg.data.data['batteryPercentageRemaining']};
+            }
+        },
+    },
     hue_battery: {
         cid: 'genPowerCfg',
         type: 'attReport',
@@ -1782,6 +1799,44 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
             return {action: `${direction}`};
+        },
+    },
+    cover_position: {
+        cid: 'genLevelCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const currentLevel = msg.data.data['currentLevel'];
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
+            return {state: state, position: position};
+        },
+    },
+    cover_position_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const currentLevel = msg.data.data['currentLevel'];
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            const state = position > 0 ? 'OPEN' : 'CLOSE';
+            return {state: state, position: position};
+        },
+    },
+    keen_home_smart_vent_pressure: {
+        cid: 'msPressureMeasurement',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    keen_home_smart_vent_pressure_report: {
+        cid: 'msPressureMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
 
