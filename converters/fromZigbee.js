@@ -509,6 +509,29 @@ const converters = {
             }
         },
     },
+    E1525_occupancy: {
+        cid: 'genOnOff',
+        type: 'cmdOnWithTimedOff',
+        convert: (model, msg, publish, options) => {
+            const timeout = msg.data.data.ontime / 10;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // Stop existing timer because motion is detected and set a new one.
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {occupancy: true};
+        },
+    },
     generic_occupancy_no_off_msg: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
