@@ -2610,14 +2610,6 @@ const devices = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.bind('msPressureMeasurement', coordinator, cb),
-
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, repInterval.MAX, 10, cb),
-                (cb) => device.report('msPressureMeasurement', 'measuredValue', 600, repInterval.MAX, 100, cb),
-                (cb) => device.foundation('msPressureMeasurement', 'configReport', [cfg], foundationCfg, cb),
-
-                (cb) => device.read('genPowerCfg', 'batteryPercentageRemaining', cb),
-                (cb) => device.read('genLevelCtrl', 'currentLevel', cb),
-                (cb) => device.read('msTemperatureMeasurement', 'measuredValue', cb),
             ];
 
             execute(device, actions, callback);
