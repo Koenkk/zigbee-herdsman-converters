@@ -2706,21 +2706,15 @@ const devices = [
         },
     },
 
-    // AXIS Gear
+    // AXIS
     {
         zigbeeModel: ['Gear'],
         model: 'GR-ZB01-W',
         vendor: 'AXIS',
-        description: 'Window shade motor',
+        description: 'Gear window shade motor',
         supports: 'open, close, position',
-        fromZigbee: [
-            fz.cover_position,
-            fz.cover_position_report,
-        ],
-        toZigbee: [
-            tz.cover_open_close,
-            tz.cover_position,
-        ],
+        fromZigbee: [fz.cover_position, fz.cover_position_report],
+        toZigbee: [tz.cover_open_close, tz.cover_position],
     },
 
     // ELKO
