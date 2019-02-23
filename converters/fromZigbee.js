@@ -1777,7 +1777,6 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
-            console.log(msg);
             return {action: msg.groupid+'_on'};
         },
     },
@@ -1785,7 +1784,6 @@ const converters = {
         cid: 'genOnOff',
         type: 'cmdOffWithEffect',
         convert: (model, msg, publish, options) => {
-            console.log(msg);
             return {action: msg.groupid+'_off'};
         },
     },
@@ -1793,7 +1791,6 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdStop',
         convert: (model, msg, publish, options) => {
-            console.log(msg);
             return {action: msg.groupid+'_stop'};
         },
     },
@@ -1803,13 +1800,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const value = msg.data.data['movemode'];
             let action = null;
-
             if (value === 0) action = {action: msg.groupid+'_up-press'};
             else if (value === 1) action = {action: msg.groupid+'_down-press'};
-
-            console.log(msg);
             return action ? action : null;
- 
        },
     },
     
