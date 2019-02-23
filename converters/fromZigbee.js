@@ -1801,6 +1801,38 @@ const converters = {
             return {action: `${direction}`};
         },
     },
+    ZYCT202_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on', action_group: msg.groupid};
+        },
+    },
+    ZYCT202_off: {
+        cid: 'genOnOff',
+        type: 'cmdOffWithEffect',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off', action_group: msg.groupid};
+        },
+    },
+    ZYCT202_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            return {action: 'stop', action_group: msg.groupid};
+        },
+    },
+    ZYCT202_up_down: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['movemode'];
+            let action = null;
+            if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupid};
+            else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupid};
+            return action ? action : null;
+        },
+    },
     cover_position: {
         cid: 'genLevelCtrl',
         type: 'devChange',
