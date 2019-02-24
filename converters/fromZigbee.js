@@ -151,14 +151,14 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
         convert: (model, msg, publish, options) => {
-            return {click: 'brightness_up'};
+            return {click: 'brightness_down'};
         },
     },
     E1743_brightness_down: {
         cid: 'genLevelCtrl',
         type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => {
-            return {click: 'brightness_down'};
+            return {click: 'brightness_up'};
         },
     },
     E1743_brightness_stop: {
