@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const debounce = require('debounce');
 const common = require('./common');
@@ -802,6 +802,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            } else {
+                return {click: 'single'};
             }
         },
     },
@@ -815,6 +817,10 @@ const converters = {
                 const payload = {};
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
+            } else {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoints[0].epId];
+                return {click: button};
             }
         },
     },
@@ -1579,28 +1585,41 @@ const converters = {
         type: 'cmdStep',
         convert: (model, msg, publish, options) => {
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
-            return {action: `brightness_${direction}_click`, stepsize: msg.data.data.stepsize ,transtime: msg.data.data.transtime};
+            return {
+                action: `brightness_${direction}_click`,
+                step_size: msg.data.data.stepsize,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     tint404011_scene: {
         cid: 'genBasic',
         type: 'cmdWrite',
         convert: (model, msg, publish, options) => {
-            return {action: `scene${msg.data.data[0].attrData}` };
+            return {action: `scene${msg.data.data[0].attrData}`};
         },
     },
     tint404011_move_to_color_temp: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColorTemp',
         convert: (model, msg, publish, options) => {
-            return {action: `color_temp`, colortemp: msg.data.data.colortemp, transtime: msg.data.data.transtime  };
+            return {
+                action: `color_temp`,
+                action_color_temperature: msg.data.data.colortemp,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     tint404011_move_to_color: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColor',
         convert: (model, msg, publish, options) => {
-            return {action: `color_wheel`, colorx: msg.data.data.colorx, colory: msg.data.data.colory, transtime: msg.data.data.transtime };
+            return {
+                action: `color_wheel`,
+                action_color_x: msg.data.data.colorx,
+                action_color_y: msg.data.data.colory,
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     cmdToggle: {
@@ -1841,6 +1860,11 @@ const converters = {
     ignore_iaszone_change: {
         cid: 'ssIasZone',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genIdentify: {
+        cid: 'genIdentify',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
 };
