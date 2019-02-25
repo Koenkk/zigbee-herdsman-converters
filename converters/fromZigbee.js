@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const debounce = require('debounce');
 const common = require('./common');
@@ -1614,12 +1614,13 @@ const converters = {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColor',
         convert: (model, msg, publish, options) => {
-            return {
-                action: `color_wheel`,
-                action_color_x: msg.data.data.colorx,
-                action_color_y: msg.data.data.colory,
-                transition_time: msg.data.data.transtime,
-            };
+            const result = {};
+            result.color = {};
+            result.color.x= precisionRound(msg.data.data.colorx / 65535, 3),
+            result.color.y= precisionRound(msg.data.data.colory / 65535, 3),
+            result.action= `color_wheel`;
+            result.transitiontime= msg.data.data.transtime;
+            return result;
         },
     },
     cmdToggle: {
@@ -1860,11 +1861,6 @@ const converters = {
     ignore_iaszone_change: {
         cid: 'ssIasZone',
         type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_genIdentify: {
-        cid: 'genIdentify',
-        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
 };
