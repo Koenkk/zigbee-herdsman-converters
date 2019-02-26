@@ -1614,13 +1614,14 @@ const converters = {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColor',
         convert: (model, msg, publish, options) => {
-            const result = {};
-            result.color = {};
-            result.color.x= precisionRound(msg.data.data.colorx / 65535, 3),
-            result.color.y= precisionRound(msg.data.data.colory / 65535, 3),
-            result.action= `color_wheel`;
-            result.transitiontime= msg.data.data.transtime;
-            return result;
+            return {
+                action_color: {
+                    x: precisionRound(msg.data.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.data.colory / 65535, 3),
+                },
+                action: 'color_wheel',
+                transition_time: msg.data.data.transtime,
+            };
         },
     },
     cmdToggle: {
