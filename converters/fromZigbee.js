@@ -1,5 +1,4 @@
-﻿'use strict';
-
+﻿
 const debounce = require('debounce');
 const common = require('./common');
 
