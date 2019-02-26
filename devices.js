@@ -5,7 +5,7 @@ const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
 const repInterval = {
-    MAX: 58000,
+    MAX: 62000,
     HOUR: 3600,
 };
 
