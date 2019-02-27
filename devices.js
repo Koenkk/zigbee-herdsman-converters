@@ -912,7 +912,7 @@ const devices = [
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
                 (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),                
+                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
             ];
 
             execute(device, actions, callback);
