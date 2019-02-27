@@ -604,14 +604,6 @@ const converters = {
                     },
                     cfg: cfg.default,
                 };
-            } else if (type === 'get') {
-                return {
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
-                    cfg: cfg.default,
-                };
             }
         },
     },
