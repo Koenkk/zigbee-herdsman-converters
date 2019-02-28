@@ -864,7 +864,7 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [tz.generic_occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
         ep: (device) => {
             return {
                 '': 2, // default
@@ -900,7 +900,7 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [tz.generic_occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
         ep: (device) => {
             return {
                 '': 2, // default
