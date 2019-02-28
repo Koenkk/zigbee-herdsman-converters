@@ -685,7 +685,6 @@ const devices = [
         model: '4090531P7',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light',
-        supports: 'on/off, brightness, color temperature, color xy',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
