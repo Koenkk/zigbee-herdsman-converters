@@ -681,6 +681,14 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LCC001'],
+        model: '4090531P7',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance ceiling light',
+        supports: 'on/off, brightness, color temperature, color xy',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LWB004'],
         model: '433714',
         vendor: 'Philips',
