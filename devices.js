@@ -827,7 +827,7 @@ const devices = [
         description: 'Hue dimmer switch',
         supports: 'on/off',
         fromZigbee: [
-            fz._324131092621_on, fz._324131092621_off, fz._324131092621_step, fz._324131092621_stop,
+            fz._324131092621_notification,
             fz.ignore_power_change, fz.hue_battery,
         ],
         toZigbee: [],
