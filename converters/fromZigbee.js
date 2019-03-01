@@ -1348,7 +1348,7 @@ const converters = {
                         (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
                             Date.now() - store[deviceID].pressStart : 0;
                     payload['action'] = `${button}-${store[deviceID].pressType}`;
-                    payload['duration'] = pressDuration;
+                    payload['duration'] = pressDuration / 1000;
                     if (brightnessSend) {
                         payload['brightness'] = store[deviceID].brightnessValue;
                     }
