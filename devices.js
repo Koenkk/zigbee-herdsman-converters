@@ -842,6 +842,7 @@ const devices = [
                 if (result) {
                     const ep2 = shepherd.find(ieeeAddr, 2);
                     const actions = [
+                        (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
                         (cb) => ep2.bind('genPowerCfg', coordinator, cb),
                         (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
                     ];
