@@ -5,7 +5,7 @@ const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
 const repInterval = {
-    MAX: 58000,
+    MAX: 62000,
     HOUR: 3600,
     MINUTE: 60,
 };
@@ -682,6 +682,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LCC001'],
+        model: '4090531P7',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance ceiling light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LWB004'],
         model: '433714',
         vendor: 'Philips',
@@ -858,7 +865,7 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [tz.generic_occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
         ep: (device) => {
             return {
                 '': 2, // default
@@ -894,7 +901,7 @@ const devices = [
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [tz.generic_occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
         ep: (device) => {
             return {
                 '': 2, // default
@@ -913,6 +920,7 @@ const devices = [
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
                 (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
                 (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
             ];
 
             execute(device, actions, callback);
@@ -1688,11 +1696,11 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // Nue, 3A Smarthome, Smarthome Pty Ltd, 3A
+    // Nue, 3A
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7'],
         model: 'HGZB-042',
-        vendor: 'Nue',
+        vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
@@ -1711,7 +1719,7 @@ const devices = [
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'FB56+ZSW05HG1.2',
-        vendor: 'Nue',
+        vendor: 'Nue / 3A',
         description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_change],
@@ -1720,7 +1728,7 @@ const devices = [
     {
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
         model: 'MG-AUWS01',
-        vendor: 'Nue',
+        vendor: 'Nue / 3A',
         description: 'ZigBee Double GPO',
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
@@ -1732,9 +1740,18 @@ const devices = [
     {
         zigbeeModel: ['FNB56-ZSW23HG1.1'],
         model: 'HGZB-01A',
-        vendor: 'Nue',
+        vendor: 'Nue / 3A',
         description: 'ZigBee smart light controller',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['FNB56-ZSW01LX2.0'],
+        model: 'HGZB-42-UK',
+        description: 'Zigbee smart switch 2 gang',
+        vendor: 'Nue / 3A',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off],
     },
 
     // Smart Home Pty
