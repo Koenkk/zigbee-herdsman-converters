@@ -832,26 +832,14 @@ const devices = [
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb),
-                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
+                (cb) => ep2.bind('genPowerCfg', coordinator, cb),
+                (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
             ];
 
-            execute(ep1, actions, (result) => {
-                if (result) {
-                    const ep2 = shepherd.find(ieeeAddr, 2);
-                    const actions = [
-                        (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
-                        (cb) => ep2.bind('genPowerCfg', coordinator, cb),
-                        (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                    ];
-
-                    execute(ep2, actions, callback);
-                } else {
-                    callback(result);
-                }
-            });
+            execute(device, actions, callback);
         },
     },
     {
