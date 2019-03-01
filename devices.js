@@ -839,7 +839,7 @@ const devices = [
                 (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
             ];
 
-            execute(device, actions, callback);
+            execute(ep2, actions, callback);
         },
     },
     {
