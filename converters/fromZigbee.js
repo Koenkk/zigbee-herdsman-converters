@@ -1273,39 +1273,40 @@ const converters = {
         cid: 'manuSpecificPhilips',
         type: 'cmdHueNotification',
         convert: (model, msg, publish, options) => {
-            let payload = {};
+            const payload = {};
 
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             let button = null;
             switch (msg.data.data['button']) {
-                case 1:
-                    button = 'on';
-                    break;
-                case 2:
-                    button = 'up';
-                    break;
-                case 3:
-                    button = 'down';
-                    break;
-                case 4:
-                    button = 'off';
-                    break;
+            case 1:
+                button = 'on';
+                break;
+            case 2:
+                button = 'up';
+                break;
+            case 3:
+                button = 'down';
+                break;
+            case 4:
+                button = 'off';
+                break;
             }
             let type = null;
             switch (msg.data.data['type']) {
-                case 0:
-                    type = 'press';
-                    break;
-                case 1:
-                    type = 'hold';
-                    break;
-                case 2:
-                case 3:
-                    type = 'release';
-                    break;
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
             }
 
-            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ? options.send_brightess : true
+            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ?
+                options.send_brightess : true;
             const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
 
             // Initialize store
@@ -1343,7 +1344,8 @@ const converters = {
                     }
                 }
                 if (type != 'press') {
-                    const pressDuration = (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
+                    const pressDuration =
+                        (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
                         Date.now() - store[deviceID].pressStart : 0;
                     payload['action'] = `${button}-${store[deviceID].pressType}`;
                     payload['duration'] = pressDuration;
