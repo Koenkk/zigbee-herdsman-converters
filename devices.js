@@ -2741,12 +2741,24 @@ const devices = [
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.bind('msPressureMeasurement', coordinator, cb),
 
+                // eslint-disable-next-line
                 // https://github.com/yracine/keenhome.device-type/blob/master/devicetypes/keensmartvent.src/keensmartvent.groovy
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb),
-                (cb) => device.foundation('msPressureMeasurement', 'configReport', [{
-                    direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5, maxRepIntval: repInterval.HOUR, repChange: 500}],
-                    {manufSpec: 1, manufCode: 4443}, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb),
+                (cb) => device.report(
+                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb
+                ),
+                (cb) => device.foundation(
+                    'msPressureMeasurement',
+                    'configReport',
+                    [{
+                        direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5,
+                        maxRepIntval: repInterval.HOUR, repChange: 500,
+                    }],
+                    {manufSpec: 1, manufCode: 4443},
+                    cb
+                ),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
+                ),
             ];
 
             execute(device, actions, callback);
@@ -2760,21 +2772,17 @@ const devices = [
         vendor: 'AXIS',
         description: 'Gear window shade motor',
         supports: 'open, close, position, battery',
-        fromZigbee: [
-            fz.cover_position,
-            fz.cover_position_report,
-            fz.generic_battery,
-            fz.generic_battery_change
-        ],
+        fromZigbee: [fz.cover_position, fz.cover_position_report, fz.generic_battery, fz.generic_battery_change],
         toZigbee: [tz.cover_open_close, tz.cover_position],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('genLevelCtrl', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-
                 (cb) => device.report('genLevelCtrl', 'currentLevel', repInterval.MINUTE, repInterval.HOUR * 12, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
+                ),
             ];
 
             execute(device, actions, callback);
