@@ -1132,7 +1132,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW'],
+        zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW', 'LIGHTIFY Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
