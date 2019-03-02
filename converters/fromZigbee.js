@@ -116,11 +116,11 @@ const ictcg1 = (model, msg, publish, options, action) => {
 };
 
 const holdUpdateBrightness324131092621 = (deviceID) => {
-    if (store[deviceID] && store[deviceID].since && store[deviceID].direction) {
-        const duration = Date.now() - store[deviceID].since;
-        const delta = (duration / 10) * (store[deviceID].direction === 'up' ? 1 : -1);
-        const newValue = store[deviceID].value + delta;
-        store[deviceID].value = numberWithinRange(newValue, 0, 255);
+    if (store[deviceID] && store[deviceID].brightnessSince && store[deviceID].brightnessDirection) {
+        const duration = Date.now() - store[deviceID].brightnessSince;
+        const delta = (duration / 10) * (store[deviceID].brightnessDirection === 'up' ? 1 : -1);
+        const newValue = store[deviceID].brightnessValue + delta;
+        store[deviceID].brightnessValue = numberWithinRange(newValue, 0, 255);
     }
 };
 
@@ -1269,62 +1269,93 @@ const converters = {
             return {action: 'beeping'};
         },
     },
-    _324131092621_on: {
-        cid: 'genOnOff',
-        type: 'cmdOn',
+    _324131092621_notification: {
+        cid: 'manuSpecificPhilips',
+        type: 'cmdHueNotification',
         convert: (model, msg, publish, options) => {
-            return {action: 'on'};
-        },
-    },
-    _324131092621_off: {
-        cid: 'genOnOff',
-        type: 'cmdOffWithEffect',
-        convert: (model, msg, publish, options) => {
-            return {action: 'off'};
-        },
-    },
-    _324131092621_step: {
-        cid: 'genLevelCtrl',
-        type: 'cmdStep',
-        convert: (model, msg, publish, options) => {
+            const payload = {};
+
             const deviceID = msg.endpoints[0].device.ieeeAddr;
-            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
-            const mode = msg.data.data.stepsize === 30 ? 'press' : 'hold';
+            let button = null;
+            switch (msg.data.data['button']) {
+            case 1:
+                button = 'on';
+                break;
+            case 2:
+                button = 'up';
+                break;
+            case 3:
+                button = 'down';
+                break;
+            case 4:
+                button = 'off';
+                break;
+            }
+            let type = null;
+            switch (msg.data.data['type']) {
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
+            }
+
+            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ?
+                options.send_brightess : true;
+            const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
 
             // Initialize store
             if (!store[deviceID]) {
-                store[deviceID] = {value: 255, since: null, direction: null};
+                store[deviceID] = {pressStart: null, pressType: null};
+                if (brightnessEnabled) {
+                    store[deviceID].brightnessValue = 255;
+                    store[deviceID].brightnessSince = null;
+                    store[deviceID].brightnessDirection = null;
+                }
             }
 
-            if (mode === 'press') {
-                const newValue = store[deviceID].value + (direction === 'up' ? 50 : -50);
-                store[deviceID].value = numberWithinRange(newValue, 0, 255);
-            } else if (mode === 'hold') {
-                holdUpdateBrightness324131092621(deviceID);
-                store[deviceID].since = Date.now();
-                store[deviceID].direction = direction;
+            if (button && type) {
+                if (type == 'press') {
+                    store[deviceID].pressStart = Date.now();
+                    store[deviceID].pressType = 'press';
+                    if (brightnessSend) {
+                        const newValue = store[deviceID].brightnessValue + (button === 'up' ? 50 : -50);
+                        store[deviceID].brightnessValue = numberWithinRange(newValue, 0, 255);
+                    }
+                } else if (type == 'hold') {
+                    store[deviceID].pressType = 'hold';
+                    if (brightnessSend) {
+                        holdUpdateBrightness324131092621(deviceID);
+                        store[deviceID].brightnessSince = Date.now();
+                        store[deviceID].brightnessDirection = button;
+                    }
+                } else if (type == 'release') {
+                    if (brightnessSend) {
+                        store[deviceID].brightnessSince = null;
+                        store[deviceID].brightnessDirection = null;
+                    }
+                    if (store[deviceID].pressType == 'hold') {
+                        store[deviceID].pressType += '-release';
+                    }
+                }
+                if (type != 'press') {
+                    const pressDuration =
+                        (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
+                            Date.now() - store[deviceID].pressStart : 0;
+                    payload['action'] = `${button}-${store[deviceID].pressType}`;
+                    payload['duration'] = pressDuration / 1000;
+                    if (brightnessSend) {
+                        payload['brightness'] = store[deviceID].brightnessValue;
+                    }
+                }
             }
 
-            return {action: `${direction}-${mode}`, brightness: store[deviceID].value};
-        },
-    },
-    _324131092621_stop: {
-        cid: 'genLevelCtrl',
-        type: 'cmdStop',
-        convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-
-            if (store[deviceID]) {
-                holdUpdateBrightness324131092621(deviceID);
-                const payload = {
-                    brightness: store[deviceID].value,
-                    action: `${store[deviceID].direction}-hold-release`,
-                };
-
-                store[deviceID].since = null;
-                store[deviceID].direction = null;
-                return payload;
-            }
+            return payload;
         },
     },
     generic_battery: {
