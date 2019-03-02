@@ -1931,7 +1931,60 @@ const converters = {
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
-
+// osram mini switch    
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'up'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'down'};
+        },
+    },
+    AC0251100NJ_on_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on_hold'};
+        },
+    },
+    AC0251100NJ_off_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            //return {click: 'off_hold'};
+            return {action: 'off_hold'};
+        },
+    },
+    AC0251100NJ_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {click: 'circle_press'};
+        },
+    },
+    
+    AC0251100NJ_circle_release: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveHue',
+        convert: (model, msg, publish, options) => {
+            return {click: 'circle_hold'};
+        },
+    },
+    
+    AC0251100NJ_circle: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToSaturation',
+        convert: (model, msg, publish, options) => {
+            return {click: 'circle_click'};
+        },
+    },
+    
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
