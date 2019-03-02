@@ -15,7 +15,7 @@ const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state_change, fz.state, fz.brightness_report, fz.ignore_genGroups_devChange],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition, tz.light_alert],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
@@ -23,7 +23,7 @@ const generic = {
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
+        toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
@@ -31,7 +31,7 @@ const generic = {
             fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
+        toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
@@ -40,7 +40,7 @@ const generic = {
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [
-            tz.on_off, tz.light_brightness, tz.light_color_colortemp, tz.ignore_transition,
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -50,13 +50,13 @@ const gledopto = {
     light_onoff_brightness: {
         supports: generic.light_onoff_brightness.supports,
         fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: [tz.on_off, tz.gledopto_light_brightness, tz.ignore_transition, tz.light_alert],
+        toZigbee: [tz.gledopto_light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: generic.light_onoff_brightness_colortemp.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: [
-            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_colortemp, tz.ignore_transition,
+            tz.gledopto_light_onoff_brightness, tz.gledopto_light_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -64,7 +64,7 @@ const gledopto = {
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: [
-            tz.on_off, tz.gledopto_light_brightness, tz.gledopto_light_color_colortemp, tz.ignore_transition,
+            tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -1553,7 +1553,7 @@ const devices = [
         description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -1591,7 +1591,7 @@ const devices = [
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -2764,7 +2764,7 @@ const devices = [
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
-        toZigbee: [tz.on_off, tz.light_brightness, tz.ignore_transition],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -2784,7 +2784,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'ZigBee smart dimmer switch',
         supports: 'on/off, brightness',
-        toZigbee: [tz.on_off, tz.light_brightness],
+        toZigbee: [tz.light_onoff_brightness],
         fromZigbee: [
             fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
             fz.ignore_genIdentify,

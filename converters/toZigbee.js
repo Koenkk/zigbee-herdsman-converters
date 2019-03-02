@@ -163,10 +163,10 @@ const converters = {
 
                 return {
                     cid: cid,
-                    cmd: 'moveToLevelWithOnOff',
+                    cmd: 'moveToLevel',
                     cmdType: 'functional',
                     zclData: {
-                        level: value,
+                        level: Number(value),
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
@@ -178,6 +178,49 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                const hasBrightness = message.hasOwnProperty('brightness') ||
+                                        message.hasOwnProperty('brightness_percent');
+                const hasState = message.hasOwnProperty('state');
+                const state = hasState ? message.state.toLowerCase() : null;
+
+                if (hasState && (state === 'off' || !hasBrightness)) {
+                    return converters.on_off.convert('state', state, message, 'set', postfix);
+                } else {
+                    let brightness = 0;
+
+                    if (message.hasOwnProperty('brightness')) {
+                        brightness = message.brightness;
+                    } else if (message.hasOwnProperty('brightness_percent')) {
+                        brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
+                    }
+
+                    return {
+                        cid: 'genLevelCtrl',
+                        cmd: 'moveToLevelWithOnOff',
+                        cmdType: 'functional',
+                        zclData: {
+                            level: Number(brightness),
+                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                        },
+                        cfg: cfg.default,
+                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
+                    };
+                }
+            } else if (type === 'get') {
+                return {
+                    cid: 'genLevelCtrl',
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
                     cfg: cfg.default,
                 };
             }
@@ -1162,14 +1205,14 @@ const converters = {
             }
         },
     },
-    gledopto_light_brightness: {
-        key: ['brightness', 'brightness_percent'],
+    gledopto_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
         convert: (key, value, message, type, postfix) => {
             if (message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
             }
 
-            return converters.light_brightness.convert(key, value, message, type, postfix);
+            return converters.light_onoff_brightness.convert(key, value, message, type, postfix);
         },
     },
     gledopto_light_color_colortemp: {
