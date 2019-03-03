@@ -2675,6 +2675,34 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['ISW-ZPR1-WP13'],
+        model: 'ISW-ZPR1-WP13',
+        vendor: 'Bosch',
+        description: 'Motion sensor',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.generic_batteryvoltage_3000_2500, fz.bosch_ias_zone_motion_status_change,
+            fz.ignore_iaszone_report, fz.ignore_iaszone_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 5);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report(
+                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE, repInterval.MAX, 0, cb
+                ),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 
     // Immax
     {
