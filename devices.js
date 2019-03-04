@@ -1203,10 +1203,10 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.AC0251100NJ_on, fz.AC0251100NJ_off, 
-                     fz.AC0251100NJ_on_hold, fz.AC0251100NJ_off_hold, 
-                     fz.AC0251100NJ_release, fz.AC0251100NJ_circle, fz.AC0251100NJ_circle_release,
-                     fz.generic_batteryvoltage_3000_2500, fz.cmd_stop,
+        fromZigbee: [
+            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_on_hold, fz.AC0251100NJ_off_hold,
+            fz.AC0251100NJ_release, fz.AC0251100NJ_circle, fz.AC0251100NJ_circle_release,
+            fz.generic_batteryvoltage_3000_2500, fz.cmd_stop,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
