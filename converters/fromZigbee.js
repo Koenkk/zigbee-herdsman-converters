@@ -1931,7 +1931,6 @@ const converters = {
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
-// osram mini switch    
     AC0251100NJ_on: {
         cid: 'genOnOff',
         type: 'cmdOn',
@@ -1965,7 +1964,7 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
-            return {click: 'circle_press'};
+            return {action: 'circle_press'};
         },
     },
     
@@ -1973,15 +1972,14 @@ const converters = {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveHue',
         convert: (model, msg, publish, options) => {
-            return {click: 'circle_hold'};
+            return {action: 'circle_hold'};
         },
     },
-    
     AC0251100NJ_circle: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToSaturation',
         convert: (model, msg, publish, options) => {
-            return {click: 'circle_click'};
+            return {action: 'circle_click'};
         },
     },
     
