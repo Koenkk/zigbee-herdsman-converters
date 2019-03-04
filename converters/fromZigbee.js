@@ -313,10 +313,19 @@ const converters = {
             if (msg.data.data['65281']) {
                 const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
                 const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
-                const result = {
-                    temperature: precisionRoundOptions(temperature, options, 'temperature'),
-                    humidity: precisionRoundOptions(humidity, options, 'humidity'),
-                };
+                const result = {};
+
+                // https://github.com/Koenkk/zigbee2mqtt/issues/798
+                // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
+                // -20 till +60, don't produce messages beyond these values.
+                if (temperature > -25 && temperature < 65) {
+                    result.temperature = precisionRoundOptions(temperature, options, 'temperature');
+                }
+
+                // in the 0 - 100 range, don't produce messages beyond these values.
+                if (humidity >= 0 && humidity <= 100) {
+                    result.humidity = precisionRoundOptions(humidity, options, 'humidity');
+                }
 
                 // Check if contains pressure (WSDCGQ11LM only)
                 if (msg.data.data['65281'].hasOwnProperty('102')) {
