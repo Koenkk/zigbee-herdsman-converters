@@ -1956,7 +1956,6 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
         convert: (model, msg, publish, options) => {
-            //return {click: 'off_hold'};
             return {action: 'off_hold'};
         },
     },
