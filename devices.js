@@ -1748,6 +1748,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['FNB56-ZSC01LX1.2'],
+        model: 'HGZB-02A',
+        vendor: 'Nue / 3A',
+        description: 'ZigBee smart light controller',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
         model: 'HGZB-42-UK',
         description: 'Zigbee smart switch 2 gang',
