@@ -1942,6 +1942,11 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
+    ignore_light_brightness_change: {
+        cid: 'genLevelCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
         type: 'devChange',
