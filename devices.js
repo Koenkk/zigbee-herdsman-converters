@@ -1708,7 +1708,7 @@ const devices = [
         supports: 'on/off, brightness',
         toZigbee: [tz.on_off, tz.light_brightness],
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.brightness_report, fz.ignore_light_brightness_change],
-    },    
+    },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7'],
         model: 'HGZB-042',
