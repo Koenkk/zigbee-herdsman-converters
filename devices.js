@@ -1702,7 +1702,7 @@ const devices = [
     // Nue, 3A
     {
         zigbeeModel: ['FB56+ZSC05HG1.0'],
-        model: 'HGZB-042',
+        model: 'HGZB-04D',
         vendor: 'Nue / 3A',
         description: 'ZigBee smart dimmer wall switch',
         supports: 'on/off, brightness',
