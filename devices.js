@@ -1547,7 +1547,7 @@ const devices = [
         zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
-        description: 'Link smart LED light bulb, BR30 soft white (2700K)',
+        description: 'Link smart LED light bulb, A19/BR30 soft white (2700K)',
         extend: generic.light_onoff_brightness,
     },
     {
