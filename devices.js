@@ -1718,7 +1718,7 @@ const devices = [
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         ep: (device) => {
-            return {'left': 16, 'right': 17};
+            return {'top': 16, 'bottom': 17};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep16 = shepherd.find(ieeeAddr, 16);
