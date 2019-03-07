@@ -2090,6 +2090,26 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
+    _324131092621_ignore_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => null,
+    },
+    _324131092621_ignore_off: {
+        cid: 'genOnOff',
+        type: 'cmdOffWithEffect',
+        convert: (model, msg, publish, options) => null,
+    },
+    _324131092621_ignore_step: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => null,
+    },
+    _324131092621_ignore_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;
