@@ -513,7 +513,7 @@ const devices = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        supports: 'brightness [0-255], quick rotate for instant 0/255',
+        supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
         fromZigbee: [
             fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
             fz.cmd_move_to_level_with_onoff, fz.generic_battery, fz.ignore_power_change,
@@ -1547,7 +1547,7 @@ const devices = [
         zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
-        description: 'Link smart LED light bulb, BR30 soft white (2700K)',
+        description: 'Link smart LED light bulb, A19/BR30 soft white (2700K)',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1721,7 +1721,16 @@ const devices = [
                 });
             });
         },
-    },   
+    },
+    {
+        zigbeeModel: ['FB56+ZSC05HG1.0'],
+        model: 'HGZB-04D',
+        vendor: 'Nue / 3A',
+        description: 'ZigBee smart dimmer wall switch',
+        supports: 'on/off, brightness',
+        toZigbee: [tz.on_off, tz.light_brightness],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.brightness_report, fz.ignore_light_brightness_change],
+    },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7'],
         model: 'HGZB-042',
@@ -1731,7 +1740,7 @@ const devices = [
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         ep: (device) => {
-            return {'left': 16, 'right': 17};
+            return {'top': 16, 'bottom': 17};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep16 = shepherd.find(ieeeAddr, 16);

@@ -83,6 +83,7 @@ const store = {};
 
 const ictcg1 = (model, msg, publish, options, action) => {
     const deviceID = msg.endpoints[0].device.ieeeAddr;
+    const payload = {};
 
     if (!store[deviceID]) {
         const _publish = debounce((msg) => publish(msg), 250);
@@ -102,17 +103,24 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
     if (action === 'move') {
         s.since = Date.now();
-        s.direction = msg.data.data.movemode === 1 ? 'left' : 'right';
+        const direction = msg.data.data.movemode === 1 ? 'left' : 'right';
+        s.direction = direction;
+        payload.action = `rotate_${direction}`;
     } else if (action === 'stop' || action === 'level') {
         if (action === 'level') {
             s.value = msg.data.data.level;
+            const direction = s.value === 0 ? 'left' : 'right';
+            payload.action = `rotate_${direction}_quick`;
+        } else {
+            payload.action = 'rotate_stop';
         }
 
         s.since = false;
         s.direction = false;
     }
 
-    s.publish({brightness: s.value});
+    payload.brightness = s.value;
+    s.publish(payload);
 };
 
 const holdUpdateBrightness324131092621 = (deviceID) => {
