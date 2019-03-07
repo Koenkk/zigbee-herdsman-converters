@@ -842,21 +842,21 @@ const devices = [
         description: 'Hue dimmer switch',
         supports: 'on/off',
         fromZigbee: [
-            fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step, fz._324131092621_ignore_stop,
-            fz._324131092621_notification,
+            fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step, 
+            fz._324131092621_ignore_stop, fz._324131092621_notification,
             fz.ignore_power_change, fz.hue_battery,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep1 = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb), //cluster 6
-                (cb) => ep1.bind('genLevelCtrl', coordinator, cb), //cluster 8
+                (cb) => ep1.bind('genOnOff', coordinator, cb), // cluster 6
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb), // cluster 8
             ];
 
             execute(ep1, actions, (result) => {
                 if (result) {
-                    const ep2 = shepherd.find(ieeeAddr, 2); //ugrug
+                    const ep2 = shepherd.find(ieeeAddr, 2); // ugrug
                     const actions = [
                         (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
                         (cb) => ep2.bind('genPowerCfg', coordinator, cb),
