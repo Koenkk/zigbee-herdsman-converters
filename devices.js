@@ -850,14 +850,16 @@ const devices = [
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep1 = shepherd.find(ieeeAddr, 1);
             const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb), // cluster 6
-                (cb) => ep1.bind('genLevelCtrl', coordinator, cb), // cluster 8
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
             ];
 
             execute(ep1, actions, (result) => {
                 if (result) {
-                    const ep2 = shepherd.find(ieeeAddr, 2); // ugrug
+                    const ep2 = shepherd.find(ieeeAddr, 2);
                     const actions = [
+                        (cb) => ep2.foundation('genBasic', 'write', [{attrId: 0x0031, dataType: 0x19, attrData: 0x000B}],
+                            {manufSpec: 1, disDefaultRsp: 1, manufCode: 0x100B}, cb),
                         (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
                         (cb) => ep2.bind('genPowerCfg', coordinator, cb),
                         (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
