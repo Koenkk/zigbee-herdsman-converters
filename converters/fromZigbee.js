@@ -1294,7 +1294,22 @@ const converters = {
         cid: 'manuSpecificPhilips',
         type: 'cmdHueNotification',
         convert: (model, msg, publish, options) => {
-            const payload = {};
+            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ?
+                options.multiple_press_timeout : 0.25;
+
+            const getPayload = function(button, pressType, pressDuration, pressCounter,
+                brightnessSend, brightnessValue) {
+                const payLoad = {};
+                payLoad['action'] = `${button}-${pressType}`;
+                payLoad['duration'] = pressDuration / 1000;
+                if (pressCounter) {
+                    payLoad['counter'] = pressCounter;
+                }
+                if (brightnessSend) {
+                    payLoad['brightness'] = store[deviceID].brightnessValue;
+                }
+                return payLoad;
+            };
 
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             let button = null;
@@ -1332,7 +1347,9 @@ const converters = {
 
             // Initialize store
             if (!store[deviceID]) {
-                store[deviceID] = {pressStart: null, pressType: null};
+                store[deviceID] = {pressStart: null, pressType: null,
+                    delayedButton: null, delayedBrightnessSend: null, delayedType: null,
+                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
                 if (brightnessEnabled) {
                     store[deviceID].brightnessValue = 255;
                     store[deviceID].brightnessSince = null;
@@ -1364,19 +1381,49 @@ const converters = {
                         store[deviceID].pressType += '-release';
                     }
                 }
-                if (type != 'press') {
-                    const pressDuration =
-                        (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
-                            Date.now() - store[deviceID].pressStart : 0;
-                    payload['action'] = `${button}-${store[deviceID].pressType}`;
-                    payload['duration'] = pressDuration / 1000;
-                    if (brightnessSend) {
-                        payload['brightness'] = store[deviceID].brightnessValue;
+                if (type == 'press') {
+                    // pressed different button
+                    if (store[deviceID].delayedTimer && (store[deviceID].delayedButton != button)) {
+                        clearTimeout(store[deviceID].delayedTimer);
+                        store[deviceID].delayedTimer = null;
+                        publish(getPayload(store[deviceID].delayedButton,
+                            store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
+                            store[deviceID].delayedBrightnessSend,
+                            store[deviceID].brightnessValue));
+                    }
+                } else {
+                    // released after press: start timer
+                    if (store[deviceID].pressType == 'press') {
+                        if (store[deviceID].delayedTimer) {
+                            clearTimeout(store[deviceID].delayedTimer);
+                            store[deviceID].delayedTimer = null;
+                        } else {
+                            store[deviceID].delayedCounter = 0;
+                        }
+                        store[deviceID].delayedButton = button;
+                        store[deviceID].delayedBrightnessSend = brightnessSend;
+                        store[deviceID].delayedType = store[deviceID].pressType;
+                        store[deviceID].delayedCounter++;
+                        store[deviceID].delayedTimerStart = Date.now();
+                        store[deviceID].delayedTimer = setTimeout(() => {
+                            publish(getPayload(store[deviceID].delayedButton,
+                                store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
+                                store[deviceID].delayedBrightnessSend,
+                                store[deviceID].brightnessValue));
+                            store[deviceID].delayedTimer = null;
+                        }, multiplePressTimeout * 1000);
+                    } else {
+                        const pressDuration =
+                            (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
+                                Date.now() - store[deviceID].pressStart : 0;
+                        return getPayload(button,
+                            store[deviceID].pressType, pressDuration, null, brightnessSend,
+                            store[deviceID].brightnessValue);
                     }
                 }
             }
 
-            return payload;
+            return {};
         },
     },
     generic_battery: {
