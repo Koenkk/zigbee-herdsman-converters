@@ -1208,7 +1208,7 @@ const converters = {
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convert: (key, value, message, type, postfix) => {
-            if (message.hasOwnProperty('transition')) {
+            if (message && message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
             }
 
