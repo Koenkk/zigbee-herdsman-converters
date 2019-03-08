@@ -1297,20 +1297,19 @@ const converters = {
             const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ?
                 options.multiple_press_timeout : 0.25;
 
-            const getPayload = function (button, pressType, pressDuration, pressCounter, brightnessSend, brightnessValue) {
-                const payLoad = {};
-                payload['action'] = `${button}-${pressType}`;
-                payload['duration'] = pressDuration / 1000;
-                if (pressCounter) {
-                    payload['counter'] = pressCounter;
-                }
-                if (brightnessSend) {
-                    payload['brightness'] = store[deviceID].brightnessValue;
-                }
-                return payload;
-            };
-
-            const payload = {};
+            const getPayload = function (button, pressType, pressDuration, pressCounter,
+                brightnessSend, brightnessValue) {
+                    const payLoad = {};
+                    payLoad['action'] = `${button}-${pressType}`;
+                    payLoad['duration'] = pressDuration / 1000;
+                    if (pressCounter) {
+                        payLoad['counter'] = pressCounter;
+                    }
+                    if (brightnessSend) {
+                        payLoad['brightness'] = store[deviceID].brightnessValue;
+                    }
+                    return payLoad;
+                };
 
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             let button = null;
@@ -1350,7 +1349,7 @@ const converters = {
             if (!store[deviceID]) {
                 store[deviceID] = {pressStart: null, pressType: null,
                     delayedButton: null, delayedBrightnessSend: null, delayedType: null,
-                    delayedCounter: 0, delayedTimerStart: null, delayedTimer:null};
+                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
                 if (brightnessEnabled) {
                     store[deviceID].brightnessValue = 255;
                     store[deviceID].brightnessSince = null;
@@ -1383,7 +1382,7 @@ const converters = {
                     }
                 }
                 if (type == 'press') {
-                    //pressed different button
+                    // pressed different button
                     if (store[deviceID].delayedTimer && (store[deviceID].delayedButton != button)) {
                         clearTimeout(store[deviceID].delayedTimer);
                         store[deviceID].delayedTimer = null;
@@ -1393,7 +1392,7 @@ const converters = {
                             store[deviceID].brightnessValue));
                     }
                 } else {
-                    //released after press: start timer
+                    // released after press: start timer
                     if (store[deviceID].pressType == 'press') {
                         if (store[deviceID].delayedTimer) {
                             clearTimeout(store[deviceID].delayedTimer);
@@ -1417,14 +1416,14 @@ const converters = {
                         const pressDuration =
                             (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
                                 Date.now() - store[deviceID].pressStart : 0;
-                        let payload = getPayload(button,
+                        return getPayload(button,
                             store[deviceID].pressType, pressDuration, null, brightnessSend,
                             store[deviceID].brightnessValue);
                     }
                 }
             }
 
-            return payload;
+            return {};
         },
     },
     generic_battery: {
