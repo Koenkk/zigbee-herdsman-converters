@@ -1297,19 +1297,19 @@ const converters = {
             const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ?
                 options.multiple_press_timeout : 0.25;
 
-            const getPayload = function (button, pressType, pressDuration, pressCounter,
+            const getPayload = function(button, pressType, pressDuration, pressCounter,
                 brightnessSend, brightnessValue) {
-                    const payLoad = {};
-                    payLoad['action'] = `${button}-${pressType}`;
-                    payLoad['duration'] = pressDuration / 1000;
-                    if (pressCounter) {
-                        payLoad['counter'] = pressCounter;
-                    }
-                    if (brightnessSend) {
-                        payLoad['brightness'] = store[deviceID].brightnessValue;
-                    }
-                    return payLoad;
-                };
+                const payLoad = {};
+                payLoad['action'] = `${button}-${pressType}`;
+                payLoad['duration'] = pressDuration / 1000;
+                if (pressCounter) {
+                    payLoad['counter'] = pressCounter;
+                }
+                if (brightnessSend) {
+                    payLoad['brightness'] = store[deviceID].brightnessValue;
+                }
+                return payLoad;
+            };
 
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             let button = null;
