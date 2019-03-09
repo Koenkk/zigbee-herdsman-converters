@@ -1966,7 +1966,7 @@ const converters = {
             return {action: 'circle_press'};
         },
     },
-    
+
     AC0251100NJ_circle_release: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveHue',
@@ -1981,7 +1981,7 @@ const converters = {
             return {action: 'circle_click'};
         },
     },
-    
+
     // Ignore converters (these message dont need parsing).
     ignore_doorlock_change: {
         cid: 'closuresDoorLock',
