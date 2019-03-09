@@ -1806,8 +1806,8 @@ const devices = [
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
-        model: 'HGZB-42-UK',
-        description: 'Zigbee smart switch 2 gang',
+        model: 'HGZB-42-UK / HGZB-41',
+        description: 'Zigbee smart switch 1/2 gang',
         vendor: 'Nue / 3A',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.state],
