@@ -2157,7 +2157,7 @@ const converters = {
         type: 'cmdStop',
         convert: (model, msg, publish, options) => null,
     },
-    ignore_poll_ctrl: { 
+    ignore_poll_ctrl: {
         cid: 'genPollCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
