@@ -2157,6 +2157,21 @@ const converters = {
         type: 'cmdStop',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_poll_ctrl: { 
+        cid: 'genPollCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_poll_ctrl_change: {
+        cid: 'genPollCtrl',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genIdentify_change: {
+        cid: 'genIdentify',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;

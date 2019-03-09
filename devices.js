@@ -2070,6 +2070,85 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    // STS-IRM-250
+    {
+        zigbeeModel: ['motionv4'],
+        model: 'STS-IRM-250',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2016 model)',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
+            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    // ST 3305-S
+    {
+        zigbeeModel: ['3305-S'],
+        model: '3305-S',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2014 model)',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
+            fz.ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    // ST 3300-S
+    {
+        zigbeeModel: ['3300-S'],
+        model: '3300-S',
+        vendor: 'SmartThings',
+        description: 'Door Sensor',
+        supports: 'contact and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
+            fz.ias_contact_status_change, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Trust
     {
@@ -2930,6 +3009,30 @@ const devices = [
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    // Nyce
+    {
+        zigbeeModel: ['3043'], 
+        model: 'NCZ-3043-HA',
+        vendor: 'Nyce', 
+        description: 'Nyce motion sensor', 
+        supports: 'motion, humidity and temperature', 
+        fromZigbee: [
+            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report, 
+            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
+            fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change, fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report, 
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.generic_battery_change
+        ], 
+        toZigbee: [], 
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb), 
             ];
             execute(device, actions, callback);
         },
