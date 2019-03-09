@@ -2070,7 +2070,6 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    // STS-IRM-250
     {
         zigbeeModel: ['motionv4'],
         model: 'STS-IRM-250',
@@ -2095,7 +2094,6 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    // ST 3305-S
     {
         zigbeeModel: ['3305-S'],
         model: '3305-S',
@@ -2120,12 +2118,11 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    // ST 3300-S
     {
         zigbeeModel: ['3300-S'],
         model: '3300-S',
         vendor: 'SmartThings',
-        description: 'Door Sensor',
+        description: 'Door sensor',
         supports: 'contact and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
@@ -3013,26 +3010,28 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
     // Nyce
     {
-        zigbeeModel: ['3043'], 
+        zigbeeModel: ['3043'],
         model: 'NCZ-3043-HA',
-        vendor: 'Nyce', 
-        description: 'Nyce motion sensor', 
-        supports: 'motion, humidity and temperature', 
+        vendor: 'Nyce',
+        description: 'Motion sensor',
+        supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report, 
+            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
-            fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change, fz.ignore_iaszone_change,
-            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report, 
-            fz.ias_zone_motion_status_change, fz.generic_battery, fz.generic_battery_change
-        ], 
-        toZigbee: [], 
+            fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
+            fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.generic_battery_change,
+        ],
+        toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb), 
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
             ];
             execute(device, actions, callback);
         },
