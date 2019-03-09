@@ -616,7 +616,7 @@ const devices = [
             const cfg = {
                 direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
             };
- 
+
             const actions = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
