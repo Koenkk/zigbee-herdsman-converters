@@ -602,7 +602,9 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            return {brightness: msg.data.data['currentLevel']};
+            if (msg.data.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data.data['currentLevel']};
+            }
         },
     },
     color_colortemp: {
@@ -1594,9 +1596,9 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {
-                brightness: msg.data.data['currentLevel'],
-            };
+            if (msg.data.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data.data['currentLevel']};
+            }
         },
     },
     smartsense_multi: {
