@@ -2248,6 +2248,22 @@ const devices = [
 
     // Bitron
     {
+        zigbeeModel: ['AV2010/34'],
+        model: 'AV2010/34',
+        vendor: 'Bitron',
+        description: '4-Touch single click buttons',
+        supports: 'click',
+        fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['902010/22'],
         model: 'AV2010/22',
         vendor: 'Bitron',

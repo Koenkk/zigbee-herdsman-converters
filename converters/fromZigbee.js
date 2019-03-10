@@ -183,6 +183,13 @@ const converters = {
             return {click: 'long_middle'};
         },
     },
+    AV2010_34_click: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: msg.data.data.groupid};
+        },
+    },
     bitron_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -2127,6 +2134,11 @@ const converters = {
     ignore_power_change: {
         cid: 'genPowerCfg',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_power_report: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_metering_change: {
