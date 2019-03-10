@@ -602,7 +602,9 @@ const converters = {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.data['65281']['100'] === 0};
+            if (msg.data.data.hasOwnProperty('65281')) {
+                return {contact: msg.data.data['65281']['100'] === 0};
+            }
         },
     },
     brightness: {
