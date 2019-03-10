@@ -2237,8 +2237,8 @@ const devices = [
         zigbeeModel: ['AV2010/34'],
         model: 'AV2010/34',
         vendor: 'Bitron',
-        description: '4-Touch Single Click Buttons',
-        supports: '4 Single Click Touch Buttons',
+        description: '4-Touch single click buttons',
+        supports: 'click',
         fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
