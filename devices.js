@@ -1734,6 +1734,28 @@ const devices = [
 
     // Nue, 3A
     {
+        zigbeeModel: ['FNB56-ZSW03LX2.0'],
+        model: 'HGZB-43',
+        vendor: 'Nue / 3A',
+        description: 'Smart light switch - 3 gang v2.0',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
+                });
+            });
+        },
+    },
+    {
         zigbeeModel: ['FB56+ZSW1IKJ1.7'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
