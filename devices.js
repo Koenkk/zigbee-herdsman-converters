@@ -2238,7 +2238,7 @@ const devices = [
         model: 'AV2010/22',
         vendor: 'Bitron',
         description: 'Wireless motion detector',
-        supports: 'occupancy',
+        supports: 'occupancy, tamper, battery low indicator',
         fromZigbee: [fz.bitron_occupancy],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
