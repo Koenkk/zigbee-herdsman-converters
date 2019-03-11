@@ -2185,6 +2185,87 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    //multiv4
+    // https://support.smartthings.com/hc/en-us/articles/214413386-Which-SmartThings-Multipurpose-Sensor-do-I-have-
+    {
+        zigbeeModel: ['multiv4'],
+        model: 'F-MLT-US-2',
+        vendor: 'SmartThings',
+        description: 'Multipurpose sensor (2016 model)',
+        supports: 'contact',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.st_contact_status_change, 
+            fz.generic_batteryvoltage_3000_2500, fz.ias_contact_dev_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },   
+    //3310-S, note: humidity not (yet) implemented, as this seems to use proprietary cluster
+    // see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
+    // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/861ec6b88eb45273e341436a23d35274dc367c3b/devicetypes/smartthings/smartsense-temp-humidity-sensor.src/smartsense-temp-humidity-sensor.groovy#L153-L156
+    {
+        zigbeeModel: ['3310-S'],
+        model: '3310-S',
+        vendor: 'SmartThings',
+        description: 'Temperature and Humidity sensor',
+        supports: 'Temperature and humidity',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, 
+            fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        }, 
+    }, 
+    // 3315-S
+    // https://centralite.com/products/water-sensor
+    {
+        zigbeeModel: ['3315-S'],
+        model: '3315-S',
+        vendor: 'SmartThings',
+        description: 'Water  sensor',
+        supports: 'water and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.st_leak, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Trust
     {
