@@ -199,6 +199,8 @@ const converters = {
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
             const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const tamper_data = (msg.data.zoneStatus & 1<<2) > 0; // Bit 3 = Tamper status
+            const battery_low_data = (msg.data.zoneStatus & 1<<3) > 0; // Bit 4 = Battery LOW indicator
 
             // Stop existing timer because motion is detected and set a new one.
             if (store[deviceID]) {
@@ -208,12 +210,20 @@ const converters = {
 
             if (timeout !== 0) {
                 store[deviceID] = setTimeout(() => {
-                    publish({occupancy: false});
+                    publish({
+                        tamper: tamper_data,
+                        battery_low: battery_low_data,
+                        occupancy: false
+                    });
                     store[deviceID] = null;
                 }, timeout * 1000);
             }
 
-            return {occupancy: true};
+            return {
+                tamper: tamper_data,
+                battery_low: battery_low_data,
+                occupancy: true
+            };
         },
     },
     bitron_battery: {
