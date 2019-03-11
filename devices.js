@@ -15,13 +15,16 @@ const coordinatorGroup = 99;
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state_change, fz.state, fz.brightness_report, fz.ignore_genGroups_devChange],
+        fromZigbee: [
+            fz.brightness, fz.state_change, fz.state, fz.brightness_report,
+            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
+        ],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
@@ -29,7 +32,7 @@ const generic = {
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
@@ -37,7 +40,7 @@ const generic = {
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
             fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
         ],
         toZigbee: [
@@ -605,8 +608,22 @@ const devices = [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
+            fz.generic_battery, fz.ignore_power_change,
         ],
         toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -1234,9 +1251,9 @@ const devices = [
         description: 'Smart+ switch mini',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.AC0251100NJ_long_middle,
-            fz.cmd_stop, fz.cmd_move, fz.cmd_move_with_onoff,
-            fz.cmd_move_to_level_with_onoff, fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_on_hold, fz.AC0251100NJ_off_hold,
+            fz.AC0251100NJ_release, fz.AC0251100NJ_circle, fz.AC0251100NJ_circle_release,
+            fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -1717,6 +1734,28 @@ const devices = [
 
     // Nue, 3A
     {
+        zigbeeModel: ['FNB56-ZSW03LX2.0'],
+        model: 'HGZB-43',
+        vendor: 'Nue / 3A',
+        description: 'Smart light switch - 3 gang v2.0',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
+                });
+            });
+        },
+    },
+    {
         zigbeeModel: ['FB56+ZSW1IKJ1.7'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
@@ -1803,8 +1842,8 @@ const devices = [
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
-        model: 'HGZB-42-UK',
-        description: 'Zigbee smart switch 2 gang',
+        model: 'HGZB-42-UK / HGZB-41',
+        description: 'Zigbee smart switch 1/2 gang',
         vendor: 'Nue / 3A',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.state],
@@ -2230,6 +2269,22 @@ const devices = [
     },
 
     // Bitron
+    {
+        zigbeeModel: ['AV2010/34'],
+        model: 'AV2010/34',
+        vendor: 'Bitron',
+        description: '4-Touch single click buttons',
+        supports: 'click',
+        fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
     {
         zigbeeModel: ['902010/22'],
         model: 'AV2010/22',

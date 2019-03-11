@@ -183,6 +183,13 @@ const converters = {
             return {click: 'long_middle'};
         },
     },
+    AV2010_34_click: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: msg.data.data.groupid};
+        },
+    },
     bitron_power: {
         cid: 'seMetering',
         type: 'attReport',
@@ -595,14 +602,18 @@ const converters = {
         cid: 'genBasic',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.data['65281']['100'] === 0};
+            if (msg.data.data.hasOwnProperty('65281')) {
+                return {contact: msg.data.data['65281']['100'] === 0};
+            }
         },
     },
     brightness: {
         cid: 'genLevelCtrl',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
-            return {brightness: msg.data.data['currentLevel']};
+            if (msg.data.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data.data['currentLevel']};
+            }
         },
     },
     color_colortemp: {
@@ -1594,9 +1605,9 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
-            return {
-                brightness: msg.data.data['currentLevel'],
-            };
+            if (msg.data.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data.data['currentLevel']};
+            }
         },
     },
     smartsense_multi: {
@@ -1995,6 +2006,56 @@ const converters = {
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
+    AC0251100NJ_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'up'};
+        },
+    },
+    AC0251100NJ_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'down'};
+        },
+    },
+    AC0251100NJ_on_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on_hold'};
+        },
+    },
+    AC0251100NJ_off_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off_hold'};
+        },
+    },
+    AC0251100NJ_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'circle_press'};
+        },
+    },
+
+    AC0251100NJ_circle_release: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveHue',
+        convert: (model, msg, publish, options) => {
+            return {action: 'circle_hold'};
+        },
+    },
+    AC0251100NJ_circle: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToSaturation',
+        convert: (model, msg, publish, options) => {
+            return {action: 'circle_click'};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
@@ -2075,6 +2136,11 @@ const converters = {
     ignore_power_change: {
         cid: 'genPowerCfg',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_power_report: {
+        cid: 'genPowerCfg',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_metering_change: {
