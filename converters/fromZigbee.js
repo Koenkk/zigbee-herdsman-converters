@@ -285,6 +285,13 @@ const converters = {
             return result;
         },
     },
+    nue_click: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: msg.data.data.sceneid};
+        },
+    },
     smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
