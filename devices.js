@@ -3069,7 +3069,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    
+
     // Securifi
     {
         zigbeeModel: ['PP-WHT-US'],
@@ -3077,7 +3077,7 @@ const devices = [
         vendor: 'Securifi',
         description: 'Peanut Smart Plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_electrical_change, fz.generic_state, fz.ignore_onoff_change],
+        fromZigbee: [fz.ignore_electrical_change, fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
