@@ -2029,6 +2029,29 @@ const devices = [
         toZigbee: [],
     },
 
+
+    // oujiabao
+    {
+        zigbeeModel: ['OJB-CR701-YZ'],
+        model: 'CR701-YZ',
+        vendor: 'Oujiabao',
+        description: 'CO and Gas detector',
+        supports: 'smoke',
+        fromZigbee: [
+            fz['OJB-CR701-YZ_statuschange'],
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
