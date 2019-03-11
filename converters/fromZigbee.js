@@ -2063,6 +2063,18 @@ const converters = {
             return {action: 'circle_click'};
         },
     },
+    visonic_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0), // Bit 1 = Alarm: Contact detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {

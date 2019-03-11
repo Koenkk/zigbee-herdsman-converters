@@ -3136,6 +3136,17 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Visonic
+    {
+        zigbeeModel: ['MCT-350 SMA'],
+        model: 'MCT-350 SMA',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
