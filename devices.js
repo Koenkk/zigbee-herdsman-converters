@@ -2643,7 +2643,7 @@ const devices = [
     {
         zigbeeModel: ['OJB-CR701-YZ'],
         model: 'CR701-YZ',
-        vendor: 'Shenzhen Yongchangda Electronics Co., Ltd.',
+        vendor: 'oujiabao',
         description: 'Gas/Carbon Monoxide Alarm',
         supports: 'gas and co',
         fromZigbee: [
