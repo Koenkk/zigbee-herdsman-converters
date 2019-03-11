@@ -1805,7 +1805,7 @@ const devices = [
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.brightness_report, fz.ignore_light_brightness_change],
     },
     {
-        zigbeeModel: ['FB56+ZSW1HKJ1.7'],
+        zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5'],
         model: 'HGZB-042',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
