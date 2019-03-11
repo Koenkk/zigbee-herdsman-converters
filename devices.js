@@ -2639,16 +2639,15 @@ const devices = [
         toZigbee: [],
     },
 
-
     // oujiabao
     {
         zigbeeModel: ['OJB-CR701-YZ'],
         model: 'CR701-YZ',
-        vendor: 'Oujiabao',
-        description: 'CO and Gas detector',
-        supports: 'smoke',
+        vendor: 'Shenzhen Yongchangda Electronics Co., Ltd.',
+        description: 'Gas/Carbon Monoxide Alarm',
+        supports: 'gas and co',
         fromZigbee: [
-            fz['OJB-CR701-YZ_statuschange'],
+            fz['OJBCR701YZ_statuschange'],
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
