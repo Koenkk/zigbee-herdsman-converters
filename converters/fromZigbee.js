@@ -2063,7 +2063,7 @@ const converters = {
             return {action: 'circle_click'};
         },
     },
-	visonic_contact: {
+    visonic_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
