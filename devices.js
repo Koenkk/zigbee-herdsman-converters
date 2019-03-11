@@ -3136,8 +3136,8 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-	
-	// Visonic
+
+    // Visonic
     {
         zigbeeModel: ['MCT-350 SMA'],
         model: 'MCT-350 SMA',
@@ -3146,7 +3146,7 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
-    },	
+    },
 ];
 
 module.exports = devices.map((device) =>
