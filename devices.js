@@ -214,7 +214,7 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.QBKG04LM_operation_mode, fz.ignore_basic_report,
+            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
@@ -228,10 +228,10 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
+            fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_onoff_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.xiaomi_power,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -240,7 +240,7 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.QBKG03LM_operation_mode, fz.ignore_basic_report,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
@@ -254,10 +254,10 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
             return {'left': 1, 'right': 2};
         },
