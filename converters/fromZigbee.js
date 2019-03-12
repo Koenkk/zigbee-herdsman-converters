@@ -2134,6 +2134,16 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_illuminance_report: {
+        cid: 'msIlluminanceMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_occupancy_report: {
+        cid: 'msOccupancySensing',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_temperature_change: {
         cid: 'msTemperatureMeasurement',
         type: 'devChange',
