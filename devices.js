@@ -1734,6 +1734,24 @@ const devices = [
 
     // Nue, 3A
     {
+        zigbeeModel: ['FTB56+ZSN15HG1.0'],
+        model: 'HGZB-1S',
+        vendor: 'Nue / 3A',
+        description: 'Smart 1 key scene wall switch',
+        supports: 'on/off, click',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+    },
+    {
+        zigbeeModel: ['FB56+ZSN08KJ2.3'],
+        model: 'HGZB-045',
+        vendor: 'Nue / 3A',
+        description: 'Smart 4 key scene wall switch',
+        supports: 'on/off, click',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+    },
+    {
         zigbeeModel: ['FNB56-ZSW03LX2.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
@@ -1787,7 +1805,7 @@ const devices = [
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.brightness_report, fz.ignore_light_brightness_change],
     },
     {
-        zigbeeModel: ['FB56+ZSW1HKJ1.7'],
+        zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5'],
         model: 'HGZB-042',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
@@ -2702,6 +2720,26 @@ const devices = [
         toZigbee: [],
     },
 
+    // Oujiabao
+    {
+        zigbeeModel: ['OJB-CR701-YZ'],
+        model: 'CR701-YZ',
+        vendor: 'Oujiabao',
+        description: 'Gas and carbon monoxide alarm',
+        supports: 'gas and carbon monoxide',
+        fromZigbee: [fz.OJBCR701YZ_statuschange],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
@@ -3171,6 +3209,44 @@ const devices = [
             ];
             execute(device, actions, callback);
         },
+    },
+
+    // Securifi
+    {
+        zigbeeModel: ['PP-WHT-US'],
+        model: 'PP-WHT-US',
+        vendor: 'Securifi',
+        description: 'Peanut Smart Plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.ignore_electrical_change, fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const rmsCurrent = {
+                direction: 0, attrId: 1288, dataType: 33, minRepIntval: 0, maxRepIntval: 3, repChange: 0,
+            };
+            const electricalCfg = [rmsCurrent];
+            const actions = [
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
+                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Visonic
+    {
+        zigbeeModel: ['MCT-350 SMA'],
+        model: 'MCT-350 SMA',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
+        toZigbee: [],
     },
 ];
 
