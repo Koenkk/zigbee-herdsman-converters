@@ -2264,7 +2264,7 @@ const devices = [
         supports: 'water and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
-            fz.st_leak, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {

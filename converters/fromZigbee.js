@@ -1649,6 +1649,16 @@ const converters = {
             };
         },
     },
+    st_leak_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
+            };
+        },
+    },
     st_contact_status_change: {
         cid: 'ssIasZone',
         type: 'statusChange',
