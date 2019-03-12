@@ -2644,7 +2644,7 @@ const devices = [
         zigbeeModel: ['OJB-CR701-YZ'],
         model: 'CR701-YZ',
         vendor: 'Oujiabao',
-        description: 'Gas/Carbon Monoxide Alarm',
+        description: 'Gas and carbon monoxide alarm',
         supports: 'gas and co',
         fromZigbee: [fz.OJBCR701YZ_statuschange],
         toZigbee: [],
