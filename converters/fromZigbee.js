@@ -2092,6 +2092,7 @@ const converters = {
             };
         },
     },
+
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
         cid: 'genLevelCtrl',
