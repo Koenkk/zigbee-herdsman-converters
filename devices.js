@@ -2645,7 +2645,7 @@ const devices = [
         model: 'CR701-YZ',
         vendor: 'Oujiabao',
         description: 'Gas and carbon monoxide alarm',
-        supports: 'gas and co',
+        supports: 'gas and carbon monoxide',
         fromZigbee: [fz.OJBCR701YZ_statuschange],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
