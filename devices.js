@@ -2639,6 +2639,26 @@ const devices = [
         toZigbee: [],
     },
 
+    // Oujiabao
+    {
+        zigbeeModel: ['OJB-CR701-YZ'],
+        model: 'CR701-YZ',
+        vendor: 'Oujiabao',
+        description: 'Gas and carbon monoxide alarm',
+        supports: 'gas and carbon monoxide',
+        fromZigbee: [fz.OJBCR701YZ_statuschange],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+
     // Calex
     {
         zigbeeModel: ['EC-Z3.0-CCT '],
