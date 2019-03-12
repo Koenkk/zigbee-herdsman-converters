@@ -285,6 +285,13 @@ const converters = {
             return result;
         },
     },
+    nue_click: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: msg.data.data.sceneid};
+        },
+    },
     smartthings_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
@@ -2088,6 +2095,35 @@ const converters = {
             return {action: 'circle_click'};
         },
     },
+    visonic_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0), // Bit 1 = Alarm: Contact detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
+    OJBCR701YZ_statuschange: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const {zoneStatus} = msg.data;
+            return {
+                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Carbon Monoxide (CO)
+                gas: (zoneStatus & 1 << 1) > 0, // Bit 1 = Alarm 2: Gas (CH4)
+                tamper: (zoneStatus & 1 << 2) > 0, // Bit 2 = Tamper
+                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Low battery alarm
+                trouble: (zoneStatus & 1 << 6) > 0, // Bit 6 = Trouble/Failure
+                ac_connected: !((zoneStatus & 1 << 7) > 0), // Bit 7 = AC Connected
+                test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
+                battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
@@ -2128,6 +2164,16 @@ const converters = {
     ignore_occupancy_change: {
         cid: 'msOccupancySensing',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_illuminance_report: {
+        cid: 'msIlluminanceMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_occupancy_report: {
+        cid: 'msOccupancySensing',
+        type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
     ignore_temperature_change: {
