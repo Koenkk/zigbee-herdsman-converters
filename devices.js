@@ -2263,7 +2263,7 @@ const devices = [
         description: 'Water  sensor',
         supports: 'water and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
             fz.st_leak, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
