@@ -1186,7 +1186,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW'],
+        zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW', 'LIGHTIFY FLEX OUTDOOR RGBW'],
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
