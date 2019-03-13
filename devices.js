@@ -1807,9 +1807,9 @@ const devices = [
     },
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
-        model: 'HGZB-02A',
+        model: 'HGZB-01A/02A',
         vendor: 'Nue / 3A',
-        description: 'ZigBee in-wall smart switch',
+        description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
