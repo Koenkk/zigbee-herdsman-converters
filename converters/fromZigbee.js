@@ -2158,14 +2158,29 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_temperature_report: {
+        cid: 'msTemperatureMeasurement',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_humidity_change: {
         cid: 'msRelativeHumidity',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_humidity_report: {
+        cid: 'msRelativeHumidity',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_pressure_change: {
         cid: 'msPressureMeasurement',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_pressure_report: {
+        cid: 'msPressureMeasurement',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_analog_change: {

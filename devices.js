@@ -144,7 +144,9 @@ const devices = [
         fromZigbee: [
             fz.brightness, fz.color_colortemp, fz.state_report, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
-            fz.ignore_basic_change,
+            fz.ignore_basic_change, fz.ignore_occupancy_report, fz.ignore_temperature_change,
+            fz.ignore_humidity_change, fz.ignore_pressure_change, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
         ],
     },
     {
@@ -361,7 +363,9 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
-            fz.ignore_basic_change, fz.ignore_analog_change,
+            fz.ignore_basic_change, fz.ignore_analog_change, fz.ignore_occupancy_report,
+            fz.ignore_illuminance_report, fz.ignore_temperature_change,
+            fz.ignore_humidity_change, fz.ignore_pressure_change,
         ],
         toZigbee: [tz.on_off],
     },
