@@ -792,6 +792,15 @@ const converters = {
             }
         },
     },
+    state_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('onOff')) {
+                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
     state_change: {
         cid: 'genOnOff',
         type: 'devChange',

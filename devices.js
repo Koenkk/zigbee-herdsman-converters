@@ -142,7 +142,7 @@ const devices = [
         description: 'Aqara smart LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state, fz.xiaomi_bulb_interval,
+            fz.brightness, fz.color_colortemp, fz.state_report, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
             fz.ignore_basic_change,
         ],
