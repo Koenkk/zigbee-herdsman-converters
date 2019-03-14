@@ -897,7 +897,7 @@ const converters = {
             }
         },
     },
-    QBKG04LM_operation_mode: {
+    QBKG04LM_QBKG11LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -942,7 +942,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_operation_mode: {
+    QBKG03LM_QBKG12LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
