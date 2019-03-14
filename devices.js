@@ -2163,7 +2163,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
-            fz.ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
