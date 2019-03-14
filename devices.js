@@ -3171,6 +3171,15 @@ const devices = [
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
     },
+
+    // Sunricher
+    {
+        zigbeeModel: ['ZG9101SAC-HP'],
+        model: 'ZG9101SAC-HP',
+        vendor: 'Sunricher',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 module.exports = devices.map((device) =>
