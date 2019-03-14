@@ -1977,7 +1977,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GL-D-003Z'],
+        zigbeeModel: ['GL-D-003Z', 'GL-D-005Z'],
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
