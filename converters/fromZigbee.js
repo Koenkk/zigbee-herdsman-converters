@@ -776,6 +776,26 @@ const converters = {
             return {click: 'single'};
         },
     },
+    KEF1PA_arm: {
+        cid: 'ssIasAce',
+        type: 'cmdArm',
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['armmode'];
+            const modeLookup = {
+                0: 'home',
+                2: 'night',
+                3: 'away',
+            };
+            return { armmode : modeLookup[value] };
+        },
+    },
+    KEF1PA_panic: {
+        cid: 'ssIasAce',
+        type: 'cmdPanic',
+        convert: (model, msg, publish, options) => {
+            return { armmode : 'panic' };
+        },
+    },
     SJCGQ11LM_water_leak_iaszone: {
         cid: 'ssIasZone',
         type: 'statusChange',
