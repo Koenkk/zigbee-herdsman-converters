@@ -142,9 +142,11 @@ const devices = [
         description: 'Aqara smart LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state, fz.xiaomi_bulb_interval,
+            fz.brightness, fz.color_colortemp, fz.state_report, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report, fz.ignore_onoff_change,
-            fz.ignore_basic_change,
+            fz.ignore_basic_change, fz.ignore_occupancy_report, fz.ignore_temperature_change,
+            fz.ignore_humidity_change, fz.ignore_pressure_change, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
         ],
     },
     {
@@ -361,7 +363,9 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
-            fz.ignore_basic_change, fz.ignore_analog_change,
+            fz.ignore_basic_change, fz.ignore_analog_change, fz.ignore_occupancy_report,
+            fz.ignore_illuminance_report, fz.ignore_temperature_change,
+            fz.ignore_humidity_change, fz.ignore_pressure_change,
         ],
         toZigbee: [tz.on_off],
     },
@@ -1186,7 +1190,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW'],
+        zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW', 'LIGHTIFY FLEX OUTDOOR RGBW'],
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
@@ -1825,7 +1829,7 @@ const devices = [
     },
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
-        model: 'FB56+ZSW05HG1.2',
+        model: 'HGZB-01A/02A',
         vendor: 'Nue / 3A',
         description: 'ZigBee one gang wall / in-wall smart switch',
         supports: 'on/off',

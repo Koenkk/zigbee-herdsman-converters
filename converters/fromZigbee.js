@@ -136,7 +136,7 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 const converters = {
     YRD426NRSC_lock: {
         cid: 'closuresDoorLock',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
@@ -192,7 +192,7 @@ const converters = {
     },
     bitron_power: {
         cid: 'seMetering',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {power: parseFloat(msg.data.data['instantaneousDemand']) / 10.0};
         },
@@ -225,7 +225,7 @@ const converters = {
     },
     bitron_battery: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const battery = {max: 3200, min: 2500};
             const voltage = msg.data.data['batteryVoltage'] * 100;
@@ -237,7 +237,7 @@ const converters = {
     },
     bitron_thermostat_att_report: {
         cid: 'hvacThermostat',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
             if (typeof msg.data.data['localTemp'] == 'number') {
@@ -312,7 +312,7 @@ const converters = {
     },
     xiaomi_battery_3v: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             let voltage = null;
 
@@ -332,7 +332,7 @@ const converters = {
     },
     RTCGQ11LM_interval: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 return {illuminance: msg.data.data['65281']['11']};
@@ -341,7 +341,7 @@ const converters = {
     },
     WSDCGQ01LM_WSDCGQ11LM_interval: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
@@ -372,7 +372,7 @@ const converters = {
     },
     WXKG01LM_click: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
             const state = msg.data.data['onOff'];
@@ -409,7 +409,7 @@ const converters = {
     },
     generic_temperature: {
         cid: 'msTemperatureMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
@@ -425,7 +425,7 @@ const converters = {
     },
     xiaomi_temperature: {
         cid: 'msTemperatureMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
 
@@ -439,7 +439,7 @@ const converters = {
     },
     MFKZQ01LM_action_multistate: {
         cid: 'genMultistateInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
@@ -479,7 +479,7 @@ const converters = {
     },
     MFKZQ01LM_action_analog: {
         cid: 'genAnalogInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
@@ -494,7 +494,7 @@ const converters = {
     },
     WXKG12LM_action_click_multistate: {
         cid: 'genMultistateInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const value = msg.data.data['presentValue'];
             const lookup = {
@@ -510,7 +510,7 @@ const converters = {
     },
     xiaomi_action_click_multistate: {
         cid: 'genMultistateInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const value = msg.data.data['presentValue'];
             const lookup = {
@@ -525,7 +525,7 @@ const converters = {
     },
     xiaomi_humidity: {
         cid: 'msRelativeHumidity',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
 
@@ -542,7 +542,7 @@ const converters = {
         // Note: options.occupancy_timeout not available yet, to implement it will be
         // needed to update device report intervall as well, see devices.js
         cid: 'msOccupancySensing',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.occupancy === 0) {
                 return {occupancy: false};
@@ -579,7 +579,7 @@ const converters = {
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
         cid: 'msOccupancySensing',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
@@ -611,14 +611,14 @@ const converters = {
     },
     xiaomi_contact: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {contact: msg.data.data['onOff'] === 0};
         },
     },
     xiaomi_contact_interval: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('65281')) {
                 return {contact: msg.data.data['65281']['100'] === 0};
@@ -678,7 +678,7 @@ const converters = {
     },
     color_colortemp_report: {
         cid: 'lightingColorCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
 
@@ -720,7 +720,7 @@ const converters = {
     },
     WXKG11LM_click: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             let clicks;
@@ -738,14 +738,14 @@ const converters = {
     },
     generic_illuminance: {
         cid: 'msIlluminanceMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {illuminance: msg.data.data['measuredValue']};
         },
     },
     generic_pressure: {
         cid: 'msPressureMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const pressure = parseFloat(msg.data.data['measuredValue']);
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
@@ -753,7 +753,7 @@ const converters = {
     },
     WXKG02LM_click: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const ep = msg.endpoints[0];
             return {click: getKey(model.ep(ep.device), ep.epId)};
@@ -761,7 +761,7 @@ const converters = {
     },
     WXKG02LM_click_multistate: {
         cid: 'genMultistateInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const ep = msg.endpoints[0];
             const button = getKey(model.ep(ep.device), ep.epId);
@@ -782,7 +782,7 @@ const converters = {
     },
     WXKG03LM_click: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {click: 'single'};
         },
@@ -795,6 +795,15 @@ const converters = {
         },
     },
     state: {
+        cid: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('onOff')) {
+                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    state_report: {
         cid: 'genOnOff',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -814,14 +823,14 @@ const converters = {
     },
     xiaomi_power: {
         cid: 'genAnalogInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {power: precisionRound(msg.data.data['presentValue'], 2)};
         },
     },
     xiaomi_plug_state: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
@@ -837,7 +846,7 @@ const converters = {
     },
     xiaomi_bulb_interval: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
@@ -851,7 +860,7 @@ const converters = {
     },
     QBKG11LM_power: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
@@ -865,7 +874,7 @@ const converters = {
     },
     QBKG12LM_power: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
                 const data = msg.data.data['65281'];
@@ -879,7 +888,7 @@ const converters = {
     },
     QBKG04LM_QBKG11LM_state: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
@@ -905,7 +914,7 @@ const converters = {
     },
     QBKG03LM_QBKG12LM_state: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['61440']) {
                 const ep = msg.endpoints[0];
@@ -958,7 +967,7 @@ const converters = {
     },
     xiaomi_lock_report: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65328']) {
                 const data = msg.data.data['65328'];
@@ -1006,7 +1015,7 @@ const converters = {
     },
     ZNCLDJ11LM_curtain_genAnalogOutput_report: {
         cid: 'genAnalogOutput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             let running = false;
 
@@ -1038,7 +1047,7 @@ const converters = {
     },
     battery_200: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const batt = msg.data.data.batteryPercentageRemaining;
             const battLow = msg.data.data.batteryAlarmState;
@@ -1117,7 +1126,7 @@ const converters = {
     },
     JTQJBF01LMBW_gas_density: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             if (data && data['65281']) {
@@ -1151,7 +1160,7 @@ const converters = {
     },
     DJT11LM_vibration: {
         cid: 'closuresDoorLock',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
             const vibrationLookup = {
@@ -1199,21 +1208,21 @@ const converters = {
     },
     generic_power: {
         cid: 'seMetering',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {power: precisionRound(msg.data.data['instantaneousDemand'], 2)};
         },
     },
     CC2530ROUTER_state: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
         cid: 'genBinaryValue',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             return {
@@ -1225,7 +1234,7 @@ const converters = {
     },
     DNCKAT_S00X_state: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const ep = msg.endpoints[0];
             const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
@@ -1247,7 +1256,7 @@ const converters = {
     },
     Z809A_power: {
         cid: 'haElectricalMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {
                 power: msg.data.data['activePower'],
@@ -1259,7 +1268,7 @@ const converters = {
     },
     SP120_power: {
         cid: 'haElectricalMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
 
@@ -1280,7 +1289,7 @@ const converters = {
     },
     STS_PRS_251_presence: {
         cid: 'genBinaryInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
@@ -1302,7 +1311,7 @@ const converters = {
     },
     generic_batteryvoltage_3000_2500: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const battery = {max: 3000, min: 2500};
             const voltage = msg.data.data['batteryVoltage'] * 100;
@@ -1457,7 +1466,7 @@ const converters = {
     },
     generic_battery: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
                 return {battery: msg.data.data['batteryPercentageRemaining']};
@@ -1475,14 +1484,14 @@ const converters = {
     },
     hue_battery: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
         },
     },
     generic_battery_voltage: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {voltage: msg.data.data['batteryVoltage'] / 100};
         },
@@ -1514,7 +1523,7 @@ const converters = {
     },
     iris_3210L_power: {
         cid: 'haElectricalMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {power: msg.data.data['activePower'] / 10.0};
         },
@@ -1528,7 +1537,7 @@ const converters = {
     },
     nue_power_state: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const ep = msg.endpoints[0];
             const button = getKey(model.ep(ep.device), ep.epId);
@@ -1541,7 +1550,7 @@ const converters = {
     },
     generic_state_multi_ep: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const ep = msg.endpoints[0];
             const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
@@ -1552,7 +1561,7 @@ const converters = {
     },
     RZHAC_4256251_power: {
         cid: 'haElectricalMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             return {
                 power: msg.data.data['activePower'],
@@ -1621,7 +1630,7 @@ const converters = {
     },
     brightness_report: {
         cid: 'genLevelCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('currentLevel')) {
                 return {brightness: msg.data.data['currentLevel']};
@@ -1630,7 +1639,7 @@ const converters = {
     },
     smartsense_multi: {
         cid: 'ssIasZone',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.data.zoneStatus;
             return {
@@ -1732,7 +1741,7 @@ const converters = {
     },
     thermostat_att_report: {
         cid: 'hvacThermostat',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
             if (typeof msg.data.data['localTemp'] == 'number') {
@@ -2029,7 +2038,7 @@ const converters = {
     },
     cover_position_report: {
         cid: 'genLevelCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const currentLevel = msg.data.data['currentLevel'];
             const position = Math.round(Number(currentLevel) / 2.55).toString();
@@ -2048,7 +2057,7 @@ const converters = {
     },
     keen_home_smart_vent_pressure_report: {
         cid: 'msPressureMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
             const pressure = parseFloat(msg.data.data['32']) / 1000.0;
@@ -2153,7 +2162,7 @@ const converters = {
     },
     ignore_onoff_report: {
         cid: 'genOnOff',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_basic_change: {
@@ -2163,7 +2172,7 @@ const converters = {
     },
     ignore_basic_report: {
         cid: 'genBasic',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_illuminance_change: {
@@ -2178,12 +2187,12 @@ const converters = {
     },
     ignore_illuminance_report: {
         cid: 'msIlluminanceMeasurement',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_occupancy_report: {
         cid: 'msOccupancySensing',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_temperature_change: {
@@ -2191,14 +2200,29 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_temperature_report: {
+        cid: 'msTemperatureMeasurement',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_humidity_change: {
         cid: 'msRelativeHumidity',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_humidity_report: {
+        cid: 'msRelativeHumidity',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_pressure_change: {
         cid: 'msPressureMeasurement',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_pressure_report: {
+        cid: 'msPressureMeasurement',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_analog_change: {
@@ -2208,12 +2232,12 @@ const converters = {
     },
     ignore_analog_report: {
         cid: 'genAnalogInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_multistate_report: {
         cid: 'genMultistateInput',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_multistate_change: {
@@ -2228,7 +2252,7 @@ const converters = {
     },
     ignore_power_report: {
         cid: 'genPowerCfg',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_metering_change: {
@@ -2243,12 +2267,12 @@ const converters = {
     },
     ignore_light_brightness_report: {
         cid: 'genLevelCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_light_color_colortemp_report: {
         cid: 'lightingColorCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_closuresWindowCovering_change: {
@@ -2258,7 +2282,7 @@ const converters = {
     },
     ignore_closuresWindowCovering_report: {
         cid: 'closuresWindowCovering',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_thermostat_change: {
@@ -2268,7 +2292,7 @@ const converters = {
     },
     ignore_thermostat_report: {
         cid: 'hvacThermostat',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_genGroups_devChange: {
@@ -2283,12 +2307,12 @@ const converters = {
     },
     ignore_iaszone_report: {
         cid: 'ssIasZone',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_genIdentify: {
         cid: 'genIdentify',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     _324131092621_ignore_on: {
@@ -2313,7 +2337,7 @@ const converters = {
     },
     ignore_poll_ctrl: {
         cid: 'genPollCtrl',
-        type: 'attReport',
+        type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_poll_ctrl_change: {
