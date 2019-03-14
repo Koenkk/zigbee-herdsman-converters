@@ -780,20 +780,22 @@ const converters = {
         cid: 'ssIasAce',
         type: 'cmdArm',
         convert: (model, msg, publish, options) => {
-            const value = msg.data.data['armmode'];
+            const action = msg.data.data['armmode'];
+            delete msg.data.data['armmode'];
             const modeLookup = {
                 0: 'home',
-                2: 'night',
+                2: 'sleep',
                 3: 'away',
             };
-            return { armmode : modeLookup[value] };
+            return { action : modeLookup[action] };
         },
     },
     KEF1PA_panic: {
         cid: 'ssIasAce',
         type: 'cmdPanic',
         convert: (model, msg, publish, options) => {
-            return { armmode : 'panic' };
+            delete msg.data.data['armmode'];
+            return { action : 'panic' };
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
