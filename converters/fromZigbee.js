@@ -787,7 +787,7 @@ const converters = {
                 2: 'sleep',
                 3: 'away',
             };
-            return {action : modeLookup[action]};
+            return {action: modeLookup[action]};
         },
     },
     KEF1PA_panic: {
@@ -795,7 +795,7 @@ const converters = {
         type: 'cmdPanic',
         convert: (model, msg, publish, options) => {
             delete msg.data.data['armmode'];
-            return {action : 'panic'};
+            return {action: 'panic'};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
