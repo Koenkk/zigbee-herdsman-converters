@@ -1637,6 +1637,37 @@ const converters = {
             };
         },
     },
+    st_leak: {
+        cid: 'ssIasZone',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
+            };
+        },
+    },
+    st_leak_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
+            };
+        },
+    },
+    st_contact_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0), // Bit 0 = Alarm: Contact detection
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
+            };
+        },
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
