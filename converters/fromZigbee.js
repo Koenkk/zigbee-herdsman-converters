@@ -299,17 +299,6 @@ const converters = {
             return {contact: msg.data.zoneStatus === 48};
         },
     },
-    st_contact_status_change: {
-        cid: 'ssIasZone',
-        type: 'statusChange',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
-            return {
-                contact: !((zoneStatus & 1) > 0), // Bit 0 = Alarm: Contact detection
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
-            };
-        },
-    },
     xiaomi_battery_3v: {
         cid: 'genBasic',
         type: ['attReport', 'readRsp'],
@@ -1678,7 +1667,7 @@ const converters = {
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
             };
         },
-    },    
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
