@@ -2245,7 +2245,7 @@ const devices = [
         zigbeeModel: ['3310-S'],
         model: '3310-S',
         vendor: 'SmartThings',
-        description: 'Temperature and Humidity sensor',
+        description: 'Temperature and humidity sensor',
         supports: 'Temperature and humidity',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change,
