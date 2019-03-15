@@ -582,17 +582,29 @@ const converters = {
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
             const deviceID = msg.endpoints[0].device.ieeeAddr;
 
-            // Stop existing timer because motion is detected and set a new one.
+            // Stop existing timers because motion is detected and set a new one.
             if (store[deviceID]) {
-                clearTimeout(store[deviceID]);
-                store[deviceID] = null;
+                store[deviceID].forEach((t) => clearTimeout(t));
             }
 
+            store[deviceID] = [];
+
             if (timeout !== 0) {
-                store[deviceID] = setTimeout(() => {
+                const timer = setTimeout(() => {
                     publish({occupancy: false});
-                    store[deviceID] = null;
                 }, timeout * 1000);
+
+                store[deviceID].push(timer);
+            }
+
+            // No occupancy since
+            if (options && options.no_occupancy_since) {
+                options.no_occupancy_since.forEach((since) => {
+                    const timer = setTimeout(() => {
+                        publish({no_occupancy_since: since});
+                    }, since * 1000);
+                    store[deviceID].push(timer);
+                });
             }
 
             return {occupancy: true};
