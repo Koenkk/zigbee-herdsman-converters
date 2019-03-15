@@ -787,7 +787,7 @@ const converters = {
                 2: 'sleep',
                 3: 'away',
             };
-            return { action : modeLookup[action] };
+            return {action: modeLookup[action]};
         },
     },
     KEF1PA_panic: {
@@ -795,7 +795,7 @@ const converters = {
         type: 'cmdPanic',
         convert: (model, msg, publish, options) => {
             delete msg.data.data['armmode'];
-            return { action : 'panic' };
+            return {action: 'panic'};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
@@ -908,7 +908,7 @@ const converters = {
             }
         },
     },
-    QBKG04LM_operation_mode: {
+    QBKG04LM_QBKG11LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -953,7 +953,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_operation_mode: {
+    QBKG03LM_QBKG12LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
@@ -1656,6 +1656,37 @@ const converters = {
             return {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
+            };
+        },
+    },
+    st_leak: {
+        cid: 'ssIasZone',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
+            };
+        },
+    },
+    st_leak_change: {
+        cid: 'ssIasZone',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
+            };
+        },
+    },
+    st_contact_status_change: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0), // Bit 0 = Alarm: Contact detection
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
             };
         },
     },

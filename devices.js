@@ -216,7 +216,8 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change, fz.QBKG04LM_operation_mode, fz.ignore_basic_report,
+            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change,
+            fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
@@ -230,10 +231,11 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.ignore_onoff_change, fz.ignore_basic_change,
+            fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.ignore_onoff_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.xiaomi_power,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -242,7 +244,8 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons, fz.QBKG03LM_operation_mode, fz.ignore_basic_report,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons,
+            fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
@@ -256,10 +259,11 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
+            fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1696,13 +1700,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // SwannOne
+    // Swann
     {
         zigbeeModel: ['SWO-KEF1PA'],
         model: 'SWO-KEF1PA',
-        vendor: 'SwannONe',
-        description: 'Key Fob Remote',
-        supports: 'panic, home, away, night',
+        vendor: 'Swann',
+        description: 'Key fob remote',
+        supports: 'panic, home, away, sleep',
         fromZigbee: [fz.KEF1PA_arm, fz.KEF1PA_panic],
         toZigbee: [tz.factory_reset],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -1767,6 +1771,15 @@ const devices = [
         fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
+        zigbeeModel: ['FTB56+ZSN16HG1.0'],
+        model: 'HGZB-02S',
+        vendor: 'Nue / 3A',
+        description: 'Smart 2 key scene wall switch',
+        supports: 'on/off, click',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+    },
+    {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
         model: 'HGZB-045',
         vendor: 'Nue / 3A',
@@ -1823,7 +1836,7 @@ const devices = [
         zigbeeModel: ['FB56+ZSC05HG1.0'],
         model: 'HGZB-04D',
         vendor: 'Nue / 3A',
-        description: 'ZigBee smart dimmer wall switch',
+        description: 'Smart dimmer wall switch',
         supports: 'on/off, brightness',
         toZigbee: [tz.on_off, tz.light_brightness],
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.brightness_report, fz.ignore_light_brightness_change],
@@ -1851,7 +1864,16 @@ const devices = [
         zigbeeModel: ['FB56+ZSW05HG1.2'],
         model: 'HGZB-01A/02A',
         vendor: 'Nue / 3A',
-        description: 'ZigBee one gang wall / in-wall smart switch',
+        description: 'Smart 1 gang wall or in-wall switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['FB56+ZSW1GKJ2.5'],
+        model: 'HGZB-41',
+        vendor: 'Nue / 3A',
+        description: 'Smart one gang wall switch',
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
@@ -1860,7 +1882,7 @@ const devices = [
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
         model: 'MG-AUWS01',
         vendor: 'Nue / 3A',
-        description: 'ZigBee Double GPO',
+        description: 'Smart Double GPO',
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
@@ -1872,20 +1894,20 @@ const devices = [
         zigbeeModel: ['FNB56-ZSW23HG1.1'],
         model: 'HGZB-01A',
         vendor: 'Nue / 3A',
-        description: 'ZigBee smart light controller',
+        description: 'Smart light controller',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['FNB56-ZSC01LX1.2'],
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
-        description: 'ZigBee smart light controller',
+        description: 'Smart light controller',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
         model: 'HGZB-42-UK / HGZB-41',
-        description: 'Zigbee smart switch 1/2 gang',
+        description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.state],
@@ -1997,7 +2019,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GL-D-003Z'],
+        zigbeeModel: ['GL-D-003Z', 'GL-D-005Z'],
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
@@ -2183,7 +2205,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
-            fz.ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500, fz.ignore_power_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2208,6 +2230,86 @@ const devices = [
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
             fz.ias_contact_status_change, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['multiv4'],
+        model: 'F-MLT-US-2',
+        vendor: 'SmartThings',
+        description: 'Multipurpose sensor (2016 model)',
+        supports: 'contact',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.st_contact_status_change,
+            fz.generic_batteryvoltage_3000_2500, fz.ias_contact_dev_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        /**
+         * Note: humidity not (yet) implemented, as this seems to use proprietary cluster
+         * see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
+         * https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/861ec6b88eb45273e341436a23d35274dc367c3b/
+         * devicetypes/smartthings/smartsense-temp-humidity-sensor.src/smartsense-temp-humidity-sensor.groovy#L153-L156
+         */
+        zigbeeModel: ['3310-S'],
+        model: '3310-S',
+        vendor: 'SmartThings',
+        description: 'Temperature and humidity sensor',
+        supports: 'temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3315-S'],
+        model: '3315-S',
+        vendor: 'SmartThings',
+        description: 'Water sensor',
+        supports: 'water and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -3190,6 +3292,15 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
+    },
+
+    // Sunricher
+    {
+        zigbeeModel: ['ZG9101SAC-HP'],
+        model: 'ZG9101SAC-HP',
+        vendor: 'Sunricher',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: generic.light_onoff_brightness,
     },
 ];
 
