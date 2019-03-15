@@ -1700,13 +1700,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // SwannOne
+    // Swann
     {
         zigbeeModel: ['SWO-KEF1PA'],
         model: 'SWO-KEF1PA',
-        vendor: 'SwannONe',
-        description: 'Key Fob Remote',
-        supports: 'panic, home, away, night',
+        vendor: 'Swann',
+        description: 'Key fob remote',
+        supports: 'panic, home, away, sleep',
         fromZigbee: [fz.KEF1PA_arm, fz.KEF1PA_panic],
         toZigbee: [tz.factory_reset],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
