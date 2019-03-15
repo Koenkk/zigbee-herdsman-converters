@@ -1700,6 +1700,26 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Swann
+    {
+        zigbeeModel: ['SWO-KEF1PA'],
+        model: 'SWO-KEF1PA',
+        vendor: 'Swann',
+        description: 'Key fob remote',
+        supports: 'panic, home, away, sleep',
+        fromZigbee: [fz.KEF1PA_arm, fz.KEF1PA_panic],
+        toZigbee: [tz.factory_reset],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 250);
+        },
+    },
+
     // JIAWEN
     {
         zigbeeModel: ['FB56-ZCW08KU1.1'],
