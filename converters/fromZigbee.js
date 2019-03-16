@@ -2383,6 +2383,16 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_diagnostic_change: {
+        cid: 'haDiagnostic',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genscenes_change: {
+        cid: 'genScenes',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;
