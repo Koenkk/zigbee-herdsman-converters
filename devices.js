@@ -1656,21 +1656,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (A19)',
         supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
@@ -1678,21 +1668,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (A60)',
         supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['Z01-CIA19NAE26'],
@@ -1700,21 +1680,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Touch (A19)',
         supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['Z01-A19NAE26'],
@@ -1722,21 +1692,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Plus (A19)',
         supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['E11-N1EA'],
@@ -1744,21 +1704,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Plus Color (A19)',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['E12-N14'],
@@ -1766,21 +1716,11 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (BR30)',
         supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([fz.ignore_metering_change, fz.ignore_diagnostic_change]),
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
         toZigbee: generic.light_onoff_brightness.toZigbee,
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 65534, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['E1A-AC2'],
