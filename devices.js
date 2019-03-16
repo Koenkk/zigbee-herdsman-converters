@@ -1520,8 +1520,15 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_remember_state,tz.osram_set_transition]),
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([fz.ignore_genIdentify_change,fz.ignore_diagnostic_change,fz.ignore_genscenes_change]),
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([
+            tz.osram_remember_state,
+            tz.osram_set_transition,
+        ]),
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([
+            fz.ignore_genIdentify_change,
+            fz.ignore_diagnostic_change,
+            fz.ignore_genscenes_change,
+        ]),
     },
     {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
@@ -1529,7 +1536,10 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_remember_state,tz.osram_set_transition]),
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([
+            tz.osram_remember_state,
+            tz.osram_set_transition,
+        ]),
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
     },
     {
@@ -1545,8 +1555,12 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED soft white dimmable A19',
         supports: generic.light_onoff_brightness.supports,
-        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.osram_remember_state,tz.osram_set_transition]),
-        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([fz.ignore_genIdentify_change,fz.ignore_diagnostic_change,fz.ignore_genscenes_change]),
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.osram_remember_state, tz.osram_set_transition]),
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_genIdentify_change,
+            fz.ignore_diagnostic_change,
+            fz.ignore_genscenes_change,
+        ]),
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 5, maxRepIntval: 300, repChange: 1};
