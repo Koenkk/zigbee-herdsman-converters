@@ -1529,6 +1529,19 @@ const devices = [
             fz.ignore_diagnostic_change,
             fz.ignore_genscenes_change,
         ]),
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
+            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
     {
         zigbeeModel: ['LIGHTIFY A19 RGBW'],
@@ -1541,6 +1554,19 @@ const devices = [
             tz.osram_set_transition,
         ]),
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
+            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
     {
         zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM', 'LIGHTIFY A19 ON/OFF/DIM 10 Year'],
@@ -1563,10 +1589,13 @@ const devices = [
         ]),
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 5, maxRepIntval: 300, repChange: 1};
+            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
+            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 3, maxRepIntval: 1000, repChange: 1};
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
             ];
 
             execute(device, actions, callback);
