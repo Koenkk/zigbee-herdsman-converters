@@ -992,7 +992,7 @@ const converters = {
         },
     },
     osram_set_transition: {
-        key: ['osram_set_transition'],
+        key: 'osram_set_transition',
         convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
                 const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
