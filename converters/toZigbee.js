@@ -991,50 +991,46 @@ const converters = {
             };
         },
     },
-    osram_set_transition: {
-        key: 'osram_set_transition',
+    osram_cmds: {
+        key: ['osram_set_transition', 'osram_remember_state'],
         convert: (key, value, message, type, postfix) => {
             if (type === 'set') {
-                const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
-                if (value) {
-                    return {
-                        cid: 'genLevelCtrl',
-                        cmd: 'write',
-                        cmdType: 'foundation',
-                        zclData: [{
-                            attrId: 0x0012,
-                            dataType: 0x21,
-                            attrData: transition,
-                        }, {attrId: 0x0013,
-                            dataType: 0x21,
-                            attrData: transition,
-                        }],
-                        cfg: cfg.default,
-                    };
-                }
-            }
-        },
-    },
-    osram_remember_state: {
-        key: 'osram_remember_state',
-        convert: (key, value, message, type, postfix) => {
-            if (type === 'set') {
-                if (value === true) {
-                    return {
-                        cid: 'manuSpecificOsram',
-                        cmd: 'saveStartupParams',
-                        cmdType: 'functional',
-                        zclData: {},
-                        cfg: cfg.osram,
-                    };
-                } else if ( value === false ) {
-                    return {
-                        cid: 'manuSpecificOsram',
-                        cmd: 'resetStartupParams',
-                        cmdType: 'functional',
-                        zclData: {},
-                        cfg: cfg.osram,
-                    };
+                if ( key === 'osram_set_transition' ) {
+                    if (value) {
+                        const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
+                        return {
+                            cid: 'genLevelCtrl',
+                            cmd: 'write',
+                            cmdType: 'foundation',
+                            zclData: [{
+                                attrId: 0x0012,
+                                dataType: 0x21,
+                                attrData: transition,
+                            }, {attrId: 0x0013,
+                                dataType: 0x21,
+                                attrData: transition,
+                            }],
+                            cfg: cfg.default,
+                        };
+                    }
+                } else if ( key == 'osram_remember_state' ) {
+                    if (value === true) {
+                        return {
+                            cid: 'manuSpecificOsram',
+                            cmd: 'saveStartupParams',
+                            cmdType: 'functional',
+                            zclData: {},
+                            cfg: cfg.osram,
+                        };
+                    } else if ( value === false ) {
+                        return {
+                            cid: 'manuSpecificOsram',
+                            cmd: 'resetStartupParams',
+                            cmdType: 'functional',
+                            zclData: {},
+                            cfg: cfg.osram,
+                        };
+                    }
                 }
             }
         },
