@@ -1520,7 +1520,7 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_cmds,]),
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_cmds]),
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
@@ -1533,7 +1533,7 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_cmds,]),
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.osram_cmds]),
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
     },
     {
@@ -1549,7 +1549,7 @@ const devices = [
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED soft white dimmable A19',
         supports: generic.light_onoff_brightness.supports,
-        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.osram_cmds,]),
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.osram_cmds]),
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
