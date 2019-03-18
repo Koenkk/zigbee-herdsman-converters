@@ -18,9 +18,14 @@ const cfg = {
         manufSpec: 1,
         manufCode: 4151,
     },
+    osram: {
+        manufSpec: 1,
+        manufCode: 0x110c,
+    },
 };
 
 const converters = {
+    // Generic
     factory_reset: {
         key: ['reset'],
         convert: (key, value, message, type, postfix) => {
@@ -64,7 +69,56 @@ const converters = {
             }
         },
     },
-    generic_occupancy_timeout: {
+    cover_open_close: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                const positionByState = {
+                    'open': 100,
+                    'close': 0,
+                };
+
+                value = positionByState[value.toLowerCase()];
+            }
+
+            return converters.cover_position.convert(key, value, message, type, postfix);
+        },
+    },
+    cover_position: {
+        key: ['position'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genLevelCtrl';
+            const attrId = 'currentLevel';
+
+            if (type === 'set') {
+                value = Math.round(Number(value) * 2.55).toString();
+                return {
+                    cid: cid,
+                    cmd: 'moveToLevelWithOnOff',
+                    cmdType: 'functional',
+                    zclData: {
+                        level: value,
+                        transtime: 0,
+                    },
+                    cfg: cfg.default,
+                    readAfterWriteTime: 0,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
         convert: (key, value, message, type, postfix) => {
@@ -100,73 +154,6 @@ const converters = {
             }
         },
     },
-    hue_power_on_behavior: {
-        key: ['hue_power_on_behavior'],
-        convert: (key, value, message, type, postfix) => {
-            const lookup = {
-                'default': 0x01,
-                'on': 0x01,
-                'off': 0x00,
-                'recover': 0xff,
-            };
-
-            if (type === 'set') {
-                return {
-                    cid: 'genOnOff',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4003,
-                        dataType: 0x30,
-                        attrData: lookup[value],
-                    }],
-                    cfg: cfg.default,
-                };
-            }
-        },
-    },
-    hue_power_on_brightness: {
-        key: ['hue_power_on_brightness'],
-        convert: (key, value, message, type, postfix) => {
-            if (type === 'set') {
-                if (value === 'default') {
-                    value = 255;
-                }
-                return {
-                    cid: 'genLevelCtrl',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4000,
-                        dataType: 0x20,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                };
-            }
-        },
-    },
-    hue_power_on_color_temperature: {
-        key: ['hue_power_on_color_temperature'],
-        convert: (key, value, message, type, postfix) => {
-            if (type === 'set') {
-                if (value === 'default') {
-                    value = 366;
-                }
-                return {
-                    cid: 'lightingColorCtrl',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4010,
-                        dataType: 0x21,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                };
-            }
-        },
-    },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
         convert: (key, value, message, type, postfix) => {
@@ -178,12 +165,16 @@ const converters = {
                     value = Math.round(Number(value) * 2.55).toString();
                 }
 
+                if (Number(value) === 0) {
+                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
+                }
+
                 return {
                     cid: cid,
-                    cmd: 'moveToLevelWithOnOff',
+                    cmd: 'moveToLevel',
                     cmdType: 'functional',
                     zclData: {
-                        level: value,
+                        level: Number(value),
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
@@ -195,6 +186,53 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                const hasBrightness = message.hasOwnProperty('brightness') ||
+                                        message.hasOwnProperty('brightness_percent');
+                const brightnessValue = message.hasOwnProperty('brightness') ?
+                    message.brightness : message.brightness_percent;
+                const hasState = message.hasOwnProperty('state');
+                const state = hasState ? message.state.toLowerCase() : null;
+
+                if (hasState && (state === 'off' || !hasBrightness)) {
+                    return converters.on_off.convert('state', state, message, 'set', postfix);
+                } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
+                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
+                } else {
+                    let brightness = 0;
+
+                    if (message.hasOwnProperty('brightness')) {
+                        brightness = message.brightness;
+                    } else if (message.hasOwnProperty('brightness_percent')) {
+                        brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
+                    }
+
+                    return {
+                        cid: 'genLevelCtrl',
+                        cmd: 'moveToLevelWithOnOff',
+                        cmdType: 'functional',
+                        zclData: {
+                            level: Number(brightness),
+                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                        },
+                        cfg: cfg.default,
+                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
+                    };
+                }
+            } else if (type === 'get') {
+                return {
+                    cid: 'genLevelCtrl',
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
                     cfg: cfg.default,
                 };
             }
@@ -314,17 +352,19 @@ const converters = {
             }
         },
     },
-    // This converter is a combination of light_color and light_colortemp and
-    // can be used instead of the two individual converters. When used to set,
-    // it actually calls out to light_color or light_colortemp to get the
-    // return value. When used to get, it gets both color and colorTemp in
-    // one call.
-    // The reason for the existence of this somewhat peculiar converter is
-    // that some lights don't report their state when changed. To fix this,
-    // we query the state after we set it. We want to query color and colorTemp
-    // both when setting either, because both change when setting one. This
-    // converter is used to do just that.
     light_color_colortemp: {
+        /**
+          * This converter is a combination of light_color and light_colortemp and
+          * can be used instead of the two individual converters. When used to set,
+          * it actually calls out to light_color or light_colortemp to get the
+          * return value. When used to get, it gets both color and colorTemp in
+          * one call.
+          * The reason for the existence of this somewhat peculiar converter is
+          * that some lights don't report their state when changed. To fix this,
+          * we query the state after we set it. We want to query color and colorTemp
+          * both when setting either, because both change when setting one. This
+          * converter is used to do just that.
+         */
         key: ['color', 'color_temp', 'color_temp_percent'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'lightingColorCtrl';
@@ -604,14 +644,6 @@ const converters = {
                     },
                     cfg: cfg.default,
                 };
-            } else if (type === 'get') {
-                return {
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
-                    cfg: cfg.default,
-                };
             }
         },
     },
@@ -758,10 +790,8 @@ const converters = {
             }
         },
     },
-    /*
-     * Note when send the command to set sensitivity, press button on the device
-     * to make it wakeup
-     */
+
+    // Device specific
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
         convert: (key, value, message, type, postfix) => {
@@ -856,6 +886,53 @@ const converters = {
             }
         },
     },
+    xiaomi_switch_operation_mode: {
+        key: ['operation_mode'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'genBasic';
+            const lookupAttrId = {
+                'single': 0xFF22,
+                'left': 0xFF22,
+                'right': 0xFF23,
+            };
+            const lookupState = {
+                'control_relay': 0x12,
+                'control_left_relay': 0x12,
+                'control_right_relay': 0x22,
+                'decoupled': 0xFE,
+            };
+            let button;
+            if (value.hasOwnProperty('button')) {
+                button = value.button;
+            } else {
+                button = 'single';
+            }
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: lookupAttrId[button],
+                        dataType: 0x20,
+                        attrData: lookupState[value.state],
+                    }],
+                    cfg: cfg.xiaomi,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: lookupAttrId[button],
+                        dataType: 0x20,
+                    }],
+                    cfg: cfg.xiaomi,
+                };
+            }
+        },
+    },
     STS_PRS_251_beep: {
         key: ['beep'],
         convert: (key, value, message, type, postfix) => {
@@ -922,11 +999,55 @@ const converters = {
             };
         },
     },
+    osram_cmds: {
+        key: ['osram_set_transition', 'osram_remember_state'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if ( key === 'osram_set_transition' ) {
+                    if (value) {
+                        const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
+                        return {
+                            cid: 'genLevelCtrl',
+                            cmd: 'write',
+                            cmdType: 'foundation',
+                            zclData: [{
+                                attrId: 0x0012,
+                                dataType: 0x21,
+                                attrData: transition,
+                            }, {attrId: 0x0013,
+                                dataType: 0x21,
+                                attrData: transition,
+                            }],
+                            cfg: cfg.default,
+                        };
+                    }
+                } else if ( key == 'osram_remember_state' ) {
+                    if (value === true) {
+                        return {
+                            cid: 'manuSpecificOsram',
+                            cmd: 'saveStartupParams',
+                            cmdType: 'functional',
+                            zclData: {},
+                            cfg: cfg.osram,
+                        };
+                    } else if ( value === false ) {
+                        return {
+                            cid: 'manuSpecificOsram',
+                            cmd: 'resetStartupParams',
+                            cmdType: 'functional',
+                            zclData: {},
+                            cfg: cfg.osram,
+                        };
+                    }
+                }
+            }
+        },
+    },
     eurotronic_system_mode: {
         key: 'eurotronic_system_mode',
         convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
-            const attrId = 16392;
+            const attrId = 0x4008;
             if (type === 'set') {
                 return {
                     cid: cid,
@@ -935,6 +1056,7 @@ const converters = {
                     zclData: [{
                         // Bit 0 = ? (default 1)
                         // Bit 2 = Boost
+                        // Bit 4 = Window open
                         // Bit 7 = Child protection
                         attrId: attrId,
                         dataType: 0x22,
@@ -953,11 +1075,55 @@ const converters = {
             }
         },
     },
-    eurotronic_16386: {
-        key: 'eurotronic_16386',
+    eurotronic_error_status: {
+        key: 'eurotronic_error_status',
         convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
-            const attrId = 16386;
+            const attrId = 0x4002;
+            if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_current_heating_setpoint: {
+        key: 'current_heating_setpoint',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4003;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x29,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_valve_position: {
+        key: 'eurotronic_valve_position',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4001;
             if (type === 'set') {
                 return {
                     cid: cid,
@@ -966,6 +1132,34 @@ const converters = {
                     zclData: [{
                         attrId: attrId,
                         dataType: 0x20,
+                        attrData: value,
+                    }],
+                    cfg: cfg.eurotronic,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: attrId}],
+                    cfg: cfg.eurotronic,
+                };
+            }
+        },
+    },
+    eurotronic_trv_mode: {
+        key: 'eurotronic_trv_mode',
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x4000;
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x30,
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,
@@ -1030,6 +1224,135 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    YRD426NRSC_lock: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'closuresDoorLock';
+            const attrId = 'lockState';
+
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                return {
+                    cid: cid,
+                    cmd: `${value.toLowerCase()}Door`,
+                    cmdType: 'functional',
+                    zclData: {
+                        'pincodevalue': '',
+                    },
+                    cfg: cfg.default,
+                    readAfterWriteTime: 200,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    gledopto_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message && message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_onoff_brightness.convert(key, value, message, type, postfix);
+        },
+    },
+    gledopto_light_color_colortemp: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_color_colortemp.convert(key, value, message, type, postfix);
+        },
+    },
+    gledopto_light_colortemp: {
+        key: ['color_temp', 'color_temp_percent'],
+        convert: (key, value, message, type, postfix) => {
+            if (message.hasOwnProperty('transition')) {
+                message.transition = message.transition * 3.3;
+            }
+
+            return converters.light_colortemp.convert(key, value, message, type, postfix);
+        },
+    },
+    hue_power_on_behavior: {
+        key: ['hue_power_on_behavior'],
+        convert: (key, value, message, type, postfix) => {
+            const lookup = {
+                'default': 0x01,
+                'on': 0x01,
+                'off': 0x00,
+                'recover': 0xff,
+            };
+
+            if (type === 'set') {
+                return {
+                    cid: 'genOnOff',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x4003,
+                        dataType: 0x30,
+                        attrData: lookup[value],
+                    }],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    hue_power_on_brightness: {
+        key: ['hue_power_on_brightness'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if (value === 'default') {
+                    value = 255;
+                }
+                return {
+                    cid: 'genLevelCtrl',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x4000,
+                        dataType: 0x20,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
+    hue_power_on_color_temperature: {
+        key: ['hue_power_on_color_temperature'],
+        convert: (key, value, message, type, postfix) => {
+            if (type === 'set') {
+                if (value === 'default') {
+                    value = 366;
+                }
+                return {
+                    cid: 'lightingColorCtrl',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x4010,
+                        dataType: 0x21,
+                        attrData: value,
+                    }],
                     cfg: cfg.default,
                 };
             }
