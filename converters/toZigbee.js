@@ -165,6 +165,10 @@ const converters = {
                     value = Math.round(Number(value) * 2.55).toString();
                 }
 
+                if (Number(value) === 0) {
+                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
+                }
+
                 return {
                     cid: cid,
                     cmd: 'moveToLevel',
@@ -193,11 +197,15 @@ const converters = {
             if (type === 'set') {
                 const hasBrightness = message.hasOwnProperty('brightness') ||
                                         message.hasOwnProperty('brightness_percent');
+                const brightnessValue = message.hasOwnProperty('brightness') ?
+                    message.brightness : message.brightness_percent;
                 const hasState = message.hasOwnProperty('state');
                 const state = hasState ? message.state.toLowerCase() : null;
 
                 if (hasState && (state === 'off' || !hasBrightness)) {
                     return converters.on_off.convert('state', state, message, 'set', postfix);
+                } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
+                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
                 } else {
                     let brightness = 0;
 
