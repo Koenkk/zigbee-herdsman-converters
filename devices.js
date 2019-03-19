@@ -3143,7 +3143,10 @@ const devices = [
 
     // Keen Home
     {
-        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5'],
+        zigbeeModel: [
+            'SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
+            'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
+        ],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
