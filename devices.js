@@ -2031,6 +2031,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-B-001Z'],
+        model: 'GL-B-001Z',
+        vendor: 'Gledopto',
+        description: 'Smart 4W E14 RGB / CW LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
