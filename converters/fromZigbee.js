@@ -607,7 +607,7 @@ const converters = {
                 });
             }
 
-            return {occupancy: true};
+            return {occupancy: true, no_occupancy_since: 0};
         },
     },
     xiaomi_contact: {
