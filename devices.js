@@ -436,7 +436,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_report,
-            fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
+            fz.ignore_closuresWindowCovering_change, fz.closuresWindowCovering_report,
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
@@ -977,7 +977,12 @@ const devices = [
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
-        extend: generic.light_onoff_brightness,
+        fromZigbee: [
+            fz.brightness, fz.state_change, fz.state_report, fz.brightness_report,
+            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
+        ],
+        supports: generic.light_onoff_brightness.supports,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // EDP
