@@ -3403,6 +3403,15 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Shenzhen Homa
+    {
+        zigbeeModel: ['HOMA1008'],
+        model: 'HLD812-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver',
+        extend: generic.light_onoff_brightness,
+    },
+
     // Honyar
     {
         zigbeeModel: ['00500c35'],
