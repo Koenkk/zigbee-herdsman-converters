@@ -436,7 +436,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_report,
-            fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
+            fz.ignore_closuresWindowCovering_change, fz.closuresWindowCovering_report,
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
@@ -977,7 +977,12 @@ const devices = [
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
-        extend: generic.light_onoff_brightness,
+        fromZigbee: [
+            fz.brightness, fz.state_change, fz.state_report, fz.brightness_report,
+            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
+        ],
+        supports: generic.light_onoff_brightness.supports,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // EDP
@@ -3405,6 +3410,36 @@ const devices = [
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
         extend: generic.light_onoff_brightness,
+    },
+
+    // Honyar
+    {
+        zigbeeModel: ['00500c35'],
+        model: 'U86K31ND6',
+        vendor: 'Honyar',
+        description: '3 gang switch ',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+            const ep3 = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep3.bind('genOnOff', coordinator, cb),
+                (cb) => ep3.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(ep1, actions, callback);
+        },
     },
 ];
 
