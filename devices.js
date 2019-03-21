@@ -3397,6 +3397,15 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
+    
+    // Shenzhen Homa
+    {
+        zigbeeModel: ['HOMA1008'],
+        model: 'HLD812-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED Driver',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 module.exports = devices.map((device) =>
