@@ -2166,13 +2166,6 @@ const converters = {
             };
         },
     },
-    closuresWindowCovering_report: {
-        cid: 'closuresWindowCovering',
-        type: ['attReport', 'readRsp'],
-        convert: (model, msg, publish, options) => {
-            return {position: msg.data.data.currentPositionLiftPercentage};
-        },
-    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
