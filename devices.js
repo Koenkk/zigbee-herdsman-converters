@@ -3402,6 +3402,36 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
+
+    // Honyar
+    {
+        zigbeeModel: ['00500c35'],
+        model: 'U86K31ND6',
+        vendor: 'Honyar',
+        description: '3 gang switch ',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+            const ep3 = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep3.bind('genOnOff', coordinator, cb),
+                (cb) => ep3.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(ep1, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
