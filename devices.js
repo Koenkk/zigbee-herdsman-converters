@@ -2868,6 +2868,27 @@ const devices = [
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['RC_V14'],
+        model: 'HS1RC-M',
+        vendor: 'HEIMAN',
+        description: 'Smart remote controller',
+        supports: 'action',
+        fromZigbee: [
+            fz.battery_200, fz.ignore_power_change,
+            fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
 
     // Oujiabao
     {
