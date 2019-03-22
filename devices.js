@@ -439,7 +439,7 @@ const devices = [
             fz.ignore_closuresWindowCovering_change, fz.closuresWindowCovering_report,
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
+        toZigbee: [tz.ZNCLDJ11LM_control],
     },
 
     // IKEA

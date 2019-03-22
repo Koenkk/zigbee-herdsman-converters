@@ -961,42 +961,39 @@ const converters = {
         },
     },
     ZNCLDJ11LM_control: {
-        key: 'state',
+        key: ['state', 'position'],
         convert: (key, value, message, type, postfix) => {
-            const lookup = {
-                'open': 'upOpen',
-                'close': 'downClose',
-                'stop': 'stop',
-                'on': 'upOpen',
-                'off': 'downClose',
-            };
-
-            value = value.toLowerCase();
-            if (lookup[value]) {
+            if (key === 'state' && value.toLowerCase() === 'stop') {
                 return {
                     cid: 'closuresWindowCovering',
-                    cmd: lookup[value],
+                    cmd: 'stop',
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
                 };
+            } else {
+                const lookup = {
+                    'open': 100,
+                    'close': 0,
+                    'on': 100,
+                    'off': 0,
+                };
+
+                value = typeof value === 'string' ? value.toLowerCase() : value;
+                value = lookup.hasOwnProperty(value) ? lookup[value] : value;
+
+                return {
+                    cid: 'genAnalogOutput',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x0055,
+                        dataType: 0x39,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
             }
-        },
-    },
-    ZNCLDJ11LM_control_position: {
-        key: 'position',
-        convert: (key, value, message, type, postfix) => {
-            return {
-                cid: 'genAnalogOutput',
-                cmd: 'write',
-                cmdType: 'foundation',
-                zclData: [{
-                    attrId: 0x0055,
-                    dataType: 0x39,
-                    attrData: value,
-                }],
-                cfg: cfg.default,
-            };
         },
     },
     osram_cmds: {
