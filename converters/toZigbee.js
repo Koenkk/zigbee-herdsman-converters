@@ -200,16 +200,19 @@ const converters = {
                 const brightnessValue = message.hasOwnProperty('brightness') ?
                     message.brightness : message.brightness_percent;
                 const hasState = message.hasOwnProperty('state');
+                const hasTrasition = message.hasOwnProperty('transition');
                 const state = hasState ? message.state.toLowerCase() : null;
 
-                if (hasState && (state === 'off' || !hasBrightness)) {
+                if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
                     return converters.on_off.convert('state', state, message, 'set', postfix);
                 } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                     return converters.on_off.convert('state', 'off', message, 'set', postfix);
                 } else {
                     let brightness = 0;
 
-                    if (message.hasOwnProperty('brightness')) {
+                    if (hasState && !hasBrightness && state == 'on') {
+                        brightness = 255;
+                    } else if (message.hasOwnProperty('brightness')) {
                         brightness = message.brightness;
                     } else if (message.hasOwnProperty('brightness_percent')) {
                         brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
