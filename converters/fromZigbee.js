@@ -1068,6 +1068,36 @@ const converters = {
             };
         },
     },
+    heiman_smart_controller_armmode: {
+        cid: 'ssIasAce',
+        type: 'cmdArm',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.armmode != null) {
+                switch (msg.data.data.armmode) {
+                    case 0:
+                        return {action: 'disarm'};
+                        break;
+                    case 1:
+                        return {action: 'armPartialZones'};
+                        break;
+                    case 3:
+                        return {action: 'armAllZones'};
+                        break;
+                    default:
+                        return {action: `armmode_${value}`};
+                }
+            }
+            return {action: ''};
+        },
+    },
+    heiman_smart_controller_emergency: {
+        cid: 'ssIasAce',
+        type: 'cmdEmergency',
+        convert: (model, msg, publish, options) => {
+               return {action: 'emergency'};
+        },
+    },
+
     battery_200: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
