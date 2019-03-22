@@ -1076,8 +1076,8 @@ const converters = {
                 const lookup = {
                     0: 'disarm',
                     1: 'arm_partial_zones',
-                    3: 'arm_all_zones'
-                }
+                    3: 'arm_all_zones',
+                };
 
                 const value = msg.data.data.armmode;
                 return {action: lookup[value] || `armmode_${value}`};
@@ -1088,7 +1088,7 @@ const converters = {
         cid: 'ssIasAce',
         type: 'cmdEmergency',
         convert: (model, msg, publish, options) => {
-               return {action: 'emergency'};
+            return {action: 'emergency'};
         },
     },
     battery_200: {
