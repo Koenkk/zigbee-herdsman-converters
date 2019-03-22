@@ -2865,13 +2865,11 @@ const devices = [
         zigbeeModel: ['RC_V14'],
         model: 'HS1RC-M',
         vendor: 'HEIMAN',
-        description: 'Smart Controller',
-        supports: 'Smart Remote Controller',
+        description: 'Smart remote controller',
+        supports: 'action',
         fromZigbee: [
-            fz.battery_200,
-            fz.ignore_power_change,
-            fz.heiman_smart_controller_armmode,
-            fz.heiman_smart_controller_emergency
+            fz.battery_200, fz.ignore_power_change,
+            fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
