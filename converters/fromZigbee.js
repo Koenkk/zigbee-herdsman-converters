@@ -1073,21 +1073,15 @@ const converters = {
         type: 'cmdArm',
         convert: (model, msg, publish, options) => {
             if (msg.data.data.armmode != null) {
-                switch (msg.data.data.armmode) {
-                    case 0:
-                        return {action: 'disarm'};
-                        break;
-                    case 1:
-                        return {action: 'armPartialZones'};
-                        break;
-                    case 3:
-                        return {action: 'armAllZones'};
-                        break;
-                    default:
-                        return {action: `armmode_${value}`};
+                const lookup = {
+                    0: 'disarm',
+                    1: 'arm_partial_zones',
+                    3: 'arm_all_zones'
                 }
+
+                const value = msg.data.data.armmode;
+                return {action: lookup[value] || `armmode_${value}`};
             }
-            return {action: ''};
         },
     },
     heiman_smart_controller_emergency: {
@@ -1097,7 +1091,6 @@ const converters = {
                return {action: 'emergency'};
         },
     },
-
     battery_200: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
