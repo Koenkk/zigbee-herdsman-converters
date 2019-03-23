@@ -607,7 +607,11 @@ const converters = {
                 });
             }
 
-            return {occupancy: true, no_occupancy_since: 0};
+            if (options && options.no_occupancy_since) {
+                return {occupancy: true, no_occupancy_since: 0};
+            } else {
+                return {occupancy: true};
+            }
         },
     },
     xiaomi_contact: {
@@ -946,17 +950,6 @@ const converters = {
                 payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             } else {
-                const mapping = {4: 'left', 5: 'right', 6: 'both'};
-                const button = mapping[msg.endpoints[0].epId];
-                return {click: button};
-            }
-        },
-    },
-    QBKG12LM_click: {
-        cid: 'genMultistateInput',
-        type: ['attReport', 'readRsp'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.presentValue === 1) {
                 const mapping = {4: 'left', 5: 'right', 6: 'both'};
                 const button = mapping[msg.endpoints[0].epId];
                 return {click: button};
