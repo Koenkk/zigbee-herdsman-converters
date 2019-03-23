@@ -134,6 +134,17 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    HS2SK_power: {
+	cid: 'haElectricalMeasurement',
+	type: ['attReport', 'readRsp'],
+	convert: (model, msg, publish, options) => {
+	    return {
+		power: msg.data.data['activePower'] / 10,
+		current: msg.data.data['rmsCurrent'] / 100,
+		voltage: msg.data.data['rmsVoltage'] / 100,
+	    };
+	},
+    },
     YRD426NRSC_lock: {
         cid: 'closuresDoorLock',
         type: ['attReport', 'readRsp'],
