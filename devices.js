@@ -1782,6 +1782,24 @@ const devices = [
             execute(device, actions, callback, 250);
         },
     },
+    {
+        zigbeeModel: ['SWO-WDS1PA'],
+        model: 'SWO-WDS1PA',
+        vendor: 'Swann',
+        description: 'Window/door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
 
     // JIAWEN
     {
