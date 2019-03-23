@@ -1786,7 +1786,7 @@ const devices = [
         zigbeeModel: ['SWO-WDS1PA'],
         model: 'SWO-WDS1PA',
         vendor: 'Swann',
-        description: 'Window/Door Sensor',
+        description: 'Window/door sensor',
         supports: 'contact',
         fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
         toZigbee: [],
@@ -1799,7 +1799,7 @@ const devices = [
 
             execute(device, actions, callback, 1000);
         },
-    }
+    },
 
     // JIAWEN
     {
