@@ -952,6 +952,17 @@ const converters = {
             }
         },
     },
+    QBKG12LM_click: {
+        cid: 'genMultistateInput',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.presentValue === 1) {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoints[0].epId];
+                return {click: button};
+            }
+        },
+    },
     QBKG03LM_buttons: {
         cid: 'genOnOff',
         type: 'devChange',
