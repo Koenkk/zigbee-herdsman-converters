@@ -3363,10 +3363,8 @@ const devices = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
             ];
-
             execute(device, actions, callback);
         },
-
     },
     
     // Stelpro
@@ -3417,6 +3415,7 @@ const devices = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
             ];
+           
             execute(device, actions, callback);
         },
     },
