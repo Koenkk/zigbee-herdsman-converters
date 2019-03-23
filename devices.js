@@ -3363,10 +3363,11 @@ const devices = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
             ];
+           
             execute(device, actions, callback);
         },
     },
-    
+     
     // Stelpro
     {
         zigbeeModel: ['ST218'],
@@ -3389,6 +3390,7 @@ const devices = [
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
                 (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
             ];
+            
             execute(device, actions, callback);
         },
     },
