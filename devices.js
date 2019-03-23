@@ -436,10 +436,10 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [
             fz.ZNCLDJ11LM_curtain_genAnalogOutput_change, fz.ZNCLDJ11LM_curtain_genAnalogOutput_report,
-            fz.ignore_closuresWindowCovering_change, fz.ignore_closuresWindowCovering_report,
+            fz.ignore_closuresWindowCovering_change, fz.closuresWindowCovering_report,
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.ZNCLDJ11LM_control, tz.ZNCLDJ11LM_control_position],
+        toZigbee: [tz.ZNCLDJ11LM_control],
     },
 
     // IKEA
@@ -977,7 +977,12 @@ const devices = [
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
-        extend: generic.light_onoff_brightness,
+        fromZigbee: [
+            fz.brightness, fz.state_change, fz.state_report, fz.brightness_report,
+            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
+        ],
+        supports: generic.light_onoff_brightness.supports,
+        toZigbee: generic.light_onoff_brightness.toZigbee,
     },
 
     // EDP
@@ -1346,6 +1351,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['BY 285 C'],
+        model: 'BY 285 C',
+        vendor: 'Innr',
+        description: 'B22 Bulb RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['RB 165'],
         model: 'RB 165',
         vendor: 'Innr',
@@ -1365,6 +1377,13 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['RS 122'],
+        model: 'RS 122',
+        vendor: 'Innr',
+        description: 'GU10 Spot',
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RS 125'],
@@ -2031,6 +2050,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-B-001Z'],
+        model: 'GL-B-001Z',
+        vendor: 'Gledopto',
+        description: 'Smart 4W E14 RGB / CW LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
@@ -2214,6 +2249,31 @@ const devices = [
                 (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
             ];
 
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['motion'],
+        model: 'IM6001-MTP01',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2018 model)',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.ignore_iaszone_report, fz.ias_zone_motion_dev_change,
+            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
             execute(device, actions, callback);
         },
     },
@@ -2614,7 +2674,7 @@ const devices = [
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
-        fromZigbee: [fz.state_change],
+        fromZigbee: [fz.state_change, fz.state],
         toZigbee: [tz.on_off],
     },
 
@@ -2807,6 +2867,27 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['RC_V14'],
+        model: 'HS1RC-M',
+        vendor: 'HEIMAN',
+        description: 'Smart remote controller',
+        supports: 'action',
+        fromZigbee: [
+            fz.battery_200, fz.ignore_power_change,
+            fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
     },
 
     // Oujiabao
@@ -3136,7 +3217,10 @@ const devices = [
 
     // Keen Home
     {
-        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5'],
+        zigbeeModel: [
+            'SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
+            'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
+        ],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
@@ -3345,6 +3429,45 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
+    },
+
+    // Shenzhen Homa
+    {
+        zigbeeModel: ['HOMA1008'],
+        model: 'HLD812-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver',
+        extend: generic.light_onoff_brightness,
+    },
+
+    // Honyar
+    {
+        zigbeeModel: ['00500c35'],
+        model: 'U86K31ND6',
+        vendor: 'Honyar',
+        description: '3 gang switch ',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+            const ep3 = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => ep3.bind('genOnOff', coordinator, cb),
+                (cb) => ep3.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(ep1, actions, callback);
+        },
     },
 ];
 

@@ -607,7 +607,7 @@ const converters = {
                 });
             }
 
-            return {occupancy: true};
+            return {occupancy: true, no_occupancy_since: 0};
         },
     },
     xiaomi_contact: {
@@ -1066,6 +1066,29 @@ const converters = {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
+        },
+    },
+    heiman_smart_controller_armmode: {
+        cid: 'ssIasAce',
+        type: 'cmdArm',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.armmode != null) {
+                const lookup = {
+                    0: 'disarm',
+                    1: 'arm_partial_zones',
+                    3: 'arm_all_zones',
+                };
+
+                const value = msg.data.data.armmode;
+                return {action: lookup[value] || `armmode_${value}`};
+            }
+        },
+    },
+    heiman_smart_controller_emergency: {
+        cid: 'ssIasAce',
+        type: 'cmdEmergency',
+        convert: (model, msg, publish, options) => {
+            return {action: 'emergency'};
         },
     },
     battery_200: {
@@ -2164,6 +2187,13 @@ const converters = {
                 test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
                 battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
             };
+        },
+    },
+    closuresWindowCovering_report: {
+        cid: 'closuresWindowCovering',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            return {position: msg.data.data.currentPositionLiftPercentage};
         },
     },
 
