@@ -1750,7 +1750,7 @@ const converters = {
     },
     st_button_state: {
         cid: 'ssIasZone',
-        //type: 'devChange',
+        // type: 'devChange',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             const buttonStates = {
@@ -1760,7 +1760,7 @@ const converters = {
                 3: 'hold',
             };
 
-            var zoneStatus;
+            const zoneStatus;
 
             if (msg.data.hasOwnProperty('data')) {
                 zoneStatus = msg.data.data.zoneStatus;
