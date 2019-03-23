@@ -204,7 +204,11 @@ const converters = {
                 const state = hasState ? message.state.toLowerCase() : null;
 
                 if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
-                    return converters.on_off.convert('state', state, message, 'set', postfix);
+                    const converted = converters.on_off.convert('state', state, message, 'set', postfix);
+                    if (state === 'on') {
+                        converted.readAfterWriteTime = 0;
+                    }
+                    return converted;
                 } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                     return converters.on_off.convert('state', 'off', message, 'set', postfix);
                 } else {
