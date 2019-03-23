@@ -3349,7 +3349,26 @@ const devices = [
             fz.ignore_genIdentify,
         ],
     },
+    {
+        zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
+        model: 'LVS-SM10ZW',
+        vendor: 'LivingWise',
+        description: 'Door or Window contact switch',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
 
+            execute(device, actions, callback);
+        },
+
+    },
+    
     // Stelpro
     {
         zigbeeModel: ['ST218'],
