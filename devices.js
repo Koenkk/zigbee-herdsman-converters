@@ -2451,6 +2451,36 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['button'],
+        model: 'IM6001-BTP01',
+        vendor: 'SmartThings',
+        description: 'Button',
+        supports: 'single click, double click, hold and temperature',
+        fromZigbee: [
+                fz.st_button_state,
+                fz.generic_battery_change,
+                fz.generic_temperature_attreport,
+                fz.ignore_basic_change,
+                fz.ignore_diagnostic_change,
+                fz.ignore_genIdentify_change,
+                fz.ignore_iaszone_attreport,
+                fz.ignore_iaszone_change,
+                //fz.ignore_iaszone_statuschange,
+                fz.ignore_poll_ctrl_change,
+                fz.ignore_temperature_change,
+                fz.ignore_temperature_report,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Trust
     {

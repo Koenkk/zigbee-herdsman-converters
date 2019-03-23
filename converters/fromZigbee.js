@@ -404,6 +404,14 @@ const converters = {
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    generic_temperature_attreport: {
+        cid: 'msTemperatureMeasurement',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
     generic_temperature_change: {
         cid: 'msTemperatureMeasurement',
         type: 'devChange',
@@ -1740,6 +1748,29 @@ const converters = {
             };
         },
     },
+    st_button_state: {
+        cid: 'ssIasZone',
+        //type: 'devChange',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const buttonStates = {
+                0: 'off',
+                1: 'single',
+                2: 'double',
+                3: 'hold',
+            };
+
+            var zoneStatus;
+
+            if (msg.data.hasOwnProperty('data')) {
+                zoneStatus = msg.data.data.zoneStatus;
+            } else {
+                zoneStatus = msg.data.zoneStatus;
+            }
+
+            return {click: buttonStates[zoneStatus]};
+        },
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
@@ -2368,9 +2399,19 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_iaszone_attreport: {
+        cid: 'ssIasZone',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_iaszone_change: {
         cid: 'ssIasZone',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_iaszone_statuschange: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_iaszone_report: {
