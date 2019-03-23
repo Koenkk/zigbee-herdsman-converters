@@ -1760,15 +1760,13 @@ const converters = {
                 3: 'hold',
             };
 
-            const zoneStatus;
-
             if (msg.data.hasOwnProperty('data')) {
-                zoneStatus = msg.data.data.zoneStatus;
+                const zoneStatus = msg.data.data.zoneStatus;
+                return {click: buttonStates[zoneStatus]};
             } else {
-                zoneStatus = msg.data.zoneStatus;
+                const zoneStatus = msg.data.zoneStatus;
+                return {click: buttonStates[zoneStatus]};
             }
-
-            return {click: buttonStates[zoneStatus]};
         },
     },
     thermostat_dev_change: {
