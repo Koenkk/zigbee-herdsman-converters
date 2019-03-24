@@ -2817,6 +2817,28 @@ const devices = [
 
     // HEIMAN
     {
+        zigbeeModel: ['SmartPlug'],
+        model: 'HS2SK',
+        description: 'Smart metering plug',
+        supports: 'on/off, power measurement',
+        vendor: 'HEIMAN',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_electrical_change, fz.HS2SK_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 1, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 1, 1000, 1, cb),
+                (cb) => device.report('haElectricalMeasurement', 'activePower', 1, 1000, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10', 'SmokeSensor-EM'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
