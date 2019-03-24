@@ -2019,7 +2019,7 @@ const devices = [
     },
     {
         zigbeeModel: ['GL-C-006', 'GL-C-009'],
-        model: 'GL-C-006',
+        model: 'GL-C-006/GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW Dimmer',
         extend: gledopto.light_onoff_brightness_colortemp,
