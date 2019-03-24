@@ -2030,6 +2030,11 @@ const devices = [
                     'rgb': 12,
                     'white': 15,
                 };
+            } else if (device.epList.toString() === '11,13,15') {
+                return {
+                    'rgb': 11,
+                    'white': 15,
+                };
             } else {
                 return {};
             }
