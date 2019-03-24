@@ -404,14 +404,6 @@ const converters = {
             return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
         },
     },
-    generic_temperature_attreport: {
-        cid: 'msTemperatureMeasurement',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
-            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
-        },
-    },
     generic_temperature_change: {
         cid: 'msTemperatureMeasurement',
         type: 'devChange',
@@ -1750,7 +1742,6 @@ const converters = {
     },
     st_button_state: {
         cid: 'ssIasZone',
-        // type: 'devChange',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             const buttonStates = {
