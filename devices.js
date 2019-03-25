@@ -2248,7 +2248,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change,
-            fz.ignore_iaszone_report, fz.ias_zone_motion_dev_change,
+            fz.ignore_iaszone_report, fz.bosch_ias_zone_motion_dev_change,
             fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
