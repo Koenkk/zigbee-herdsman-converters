@@ -2050,6 +2050,13 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
+    E1524_arrow_click: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: `toggle_hold`};
+        },
+    },
     livolo_switch_dev_change: {
         cid: 'genOnOff',
         type: 'devChange',
