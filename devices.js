@@ -616,7 +616,7 @@ const devices = [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
-            fz.generic_battery, fz.ignore_power_change,
+            fz.generic_battery, fz.ignore_power_change, fz.ignore_basic_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -665,7 +665,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.generic_battery, fz.ignore_power_change, fz.E1525_occupancy],
+        fromZigbee: [fz.generic_battery, fz.ignore_power_change, fz.E1525_occupancy, fz.ignore_basic_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
