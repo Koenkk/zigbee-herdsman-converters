@@ -441,6 +441,22 @@ const devices = [
         ],
         toZigbee: [tz.ZNCLDJ11LM_control],
     },
+    {
+        zigbeeModel: ['lumi.relay.c2acn01'],
+        model: 'LLKZMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Wireless Relay Controller',
+        supports: 'on/off, power measurement',
+        fromZigbee: [
+            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.xiaomi_power,
+            fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change,
+        ],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+    },
 
     // IKEA
     {
