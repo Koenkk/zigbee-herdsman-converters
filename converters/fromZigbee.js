@@ -134,6 +134,17 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 
 
 const converters = {
+    HS2SK_power: {
+        cid: 'haElectricalMeasurement',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            return {
+                power: msg.data.data['activePower'] / 10,
+                current: msg.data.data['rmsCurrent'] / 100,
+                voltage: msg.data.data['rmsVoltage'] / 100,
+            };
+        },
+    },
     YRD426NRSC_lock: {
         cid: 'closuresDoorLock',
         type: ['attReport', 'readRsp'],
@@ -607,7 +618,11 @@ const converters = {
                 });
             }
 
-            return {occupancy: true, no_occupancy_since: 0};
+            if (options && options.no_occupancy_since) {
+                return {occupancy: true, no_occupancy_since: 0};
+            } else {
+                return {occupancy: true};
+            }
         },
     },
     xiaomi_contact: {
@@ -952,6 +967,17 @@ const converters = {
             }
         },
     },
+    QBKG12LM_click: {
+        cid: 'genMultistateInput',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.presentValue === 1) {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoints[0].epId];
+                return {click: button};
+            }
+        },
+    },
     QBKG03LM_buttons: {
         cid: 'genOnOff',
         type: 'devChange',
@@ -1066,6 +1092,29 @@ const converters = {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
+        },
+    },
+    heiman_smart_controller_armmode: {
+        cid: 'ssIasAce',
+        type: 'cmdArm',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.armmode != null) {
+                const lookup = {
+                    0: 'disarm',
+                    1: 'arm_partial_zones',
+                    3: 'arm_all_zones',
+                };
+
+                const value = msg.data.data.armmode;
+                return {action: lookup[value] || `armmode_${value}`};
+            }
+        },
+    },
+    heiman_smart_controller_emergency: {
+        cid: 'ssIasAce',
+        type: 'cmdEmergency',
+        convert: (model, msg, publish, options) => {
+            return {action: 'emergency'};
         },
     },
     battery_200: {
@@ -1714,6 +1763,26 @@ const converters = {
             };
         },
     },
+    st_button_state: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const buttonStates = {
+                0: 'off',
+                1: 'single',
+                2: 'double',
+                3: 'hold',
+            };
+
+            if (msg.data.hasOwnProperty('data')) {
+                const zoneStatus = msg.data.data.zoneStatus;
+                return {click: buttonStates[zoneStatus]};
+            } else {
+                const zoneStatus = msg.data.zoneStatus;
+                return {click: buttonStates[zoneStatus]};
+            }
+        },
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
@@ -2178,6 +2247,13 @@ const converters = {
             };
         },
     },
+    closuresWindowCovering_report: {
+        cid: 'closuresWindowCovering',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            return {position: msg.data.data.currentPositionLiftPercentage};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
@@ -2335,9 +2411,19 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_iaszone_attreport: {
+        cid: 'ssIasZone',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_iaszone_change: {
         cid: 'ssIasZone',
         type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_iaszone_statuschange: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_iaszone_report: {
