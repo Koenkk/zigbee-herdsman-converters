@@ -910,7 +910,7 @@ const converters = {
             }
         },
     },
-    QBKG12LM_power: {
+    QBKG12LM_LLKZMK11LM_power: {
         cid: 'genBasic',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
@@ -950,7 +950,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_QBKG12LM_state: {
+    QBKG03LM_QBKG12LM_LLKZMK11LM_state: {
         cid: 'genOnOff',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
