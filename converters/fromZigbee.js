@@ -1680,7 +1680,7 @@ const converters = {
             };
         },
     },
-    bosch_ias_zone_motion_dev_change: {
+    generic_ias_zone_motion_dev_change: {
         cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
