@@ -244,7 +244,7 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG03LM_buttons,
+            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -259,7 +259,7 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_state, fz.QBKG12LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
+            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
             fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
@@ -440,6 +440,22 @@ const devices = [
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ZNCLDJ11LM_control],
+    },
+    {
+        zigbeeModel: ['lumi.relay.c2acn01'],
+        model: 'LLKZMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless relay controller',
+        supports: 'on/off, power measurement',
+        fromZigbee: [
+            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power,
+            fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change,
+        ],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
     },
 
     // IKEA
