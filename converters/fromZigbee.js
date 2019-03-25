@@ -2050,7 +2050,7 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
-    E1524_arrow_click: {
+    E1524_toggle_hold: {
         cid: 'genLevelCtrl',
         type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
