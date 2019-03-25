@@ -2583,6 +2583,13 @@ const devices = [
         description: 'SmartHome Yourled RGB Controller',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['CCT light'],
+        model: '50064',
+        vendor: 'Paulmann',
+        description: 'SmartHome Led Spot',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Bitron
     {
