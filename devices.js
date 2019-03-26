@@ -2587,7 +2587,7 @@ const devices = [
         zigbeeModel: ['CCT light'],
         model: '50064',
         vendor: 'Paulmann',
-        description: 'SmartHome Led Spot',
+        description: 'SmartHome led spot',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
