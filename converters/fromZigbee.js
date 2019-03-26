@@ -1993,6 +1993,13 @@ const converters = {
             return {action: 'toggle'};
         },
     },
+    E1524_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'toggle_hold'};
+        },
+    },
     E1524_arrow_click: {
         cid: 'genScenes',
         type: 'cmdTradfriArrowSingle',

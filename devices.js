@@ -632,7 +632,7 @@ const devices = [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
-            fz.generic_battery, fz.ignore_power_change, fz.ignore_basic_change,
+            fz.generic_battery, fz.ignore_power_change, fz.ignore_basic_change, fz.E1524_hold,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
