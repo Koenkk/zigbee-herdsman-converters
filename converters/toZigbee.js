@@ -200,16 +200,23 @@ const converters = {
                 const brightnessValue = message.hasOwnProperty('brightness') ?
                     message.brightness : message.brightness_percent;
                 const hasState = message.hasOwnProperty('state');
+                const hasTrasition = message.hasOwnProperty('transition');
                 const state = hasState ? message.state.toLowerCase() : null;
 
-                if (hasState && (state === 'off' || !hasBrightness)) {
-                    return converters.on_off.convert('state', state, message, 'set', postfix);
+                if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
+                    const converted = converters.on_off.convert('state', state, message, 'set', postfix);
+                    if (state === 'on') {
+                        converted.readAfterWriteTime = 0;
+                    }
+                    return converted;
                 } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                     return converters.on_off.convert('state', 'off', message, 'set', postfix);
                 } else {
                     let brightness = 0;
 
-                    if (message.hasOwnProperty('brightness')) {
+                    if (hasState && !hasBrightness && state == 'on') {
+                        brightness = 255;
+                    } else if (message.hasOwnProperty('brightness')) {
                         brightness = message.brightness;
                     } else if (message.hasOwnProperty('brightness_percent')) {
                         brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
@@ -961,42 +968,39 @@ const converters = {
         },
     },
     ZNCLDJ11LM_control: {
-        key: 'state',
+        key: ['state', 'position'],
         convert: (key, value, message, type, postfix) => {
-            const lookup = {
-                'open': 'upOpen',
-                'close': 'downClose',
-                'stop': 'stop',
-                'on': 'upOpen',
-                'off': 'downClose',
-            };
-
-            value = value.toLowerCase();
-            if (lookup[value]) {
+            if (key === 'state' && value.toLowerCase() === 'stop') {
                 return {
                     cid: 'closuresWindowCovering',
-                    cmd: lookup[value],
+                    cmd: 'stop',
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
                 };
+            } else {
+                const lookup = {
+                    'open': 100,
+                    'close': 0,
+                    'on': 100,
+                    'off': 0,
+                };
+
+                value = typeof value === 'string' ? value.toLowerCase() : value;
+                value = lookup.hasOwnProperty(value) ? lookup[value] : value;
+
+                return {
+                    cid: 'genAnalogOutput',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x0055,
+                        dataType: 0x39,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                };
             }
-        },
-    },
-    ZNCLDJ11LM_control_position: {
-        key: 'position',
-        convert: (key, value, message, type, postfix) => {
-            return {
-                cid: 'genAnalogOutput',
-                cmd: 'write',
-                cmdType: 'foundation',
-                zclData: [{
-                    attrId: 0x0055,
-                    dataType: 0x39,
-                    attrData: value,
-                }],
-                cfg: cfg.default,
-            };
         },
     },
     osram_cmds: {
