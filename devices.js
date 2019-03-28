@@ -187,7 +187,7 @@ const devices = [
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
-        supports: 'single, double, hold, release and long click',
+        supports: 'single (and double, hold, release and long click depending on model)',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change,
             fz.xiaomi_action_click_multistate, fz.ignore_multistate_change,
