@@ -972,7 +972,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if ([1, 2].includes(msg.data.data.presentValue)) {
-                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const mapping = {5: 'left', 6: 'right', 7: 'both'};
                 const times = {1: 'single', 2: 'double'};
                 const button = mapping[msg.endpoints[0].epId];
                 return {click: `${button}_${times[msg.data.data.presentValue]}`};
