@@ -1,6 +1,6 @@
 {
   "name": "zigbee-shepherd-converters",
-  "version": "8.0.14",
+  "version": "8.1.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
