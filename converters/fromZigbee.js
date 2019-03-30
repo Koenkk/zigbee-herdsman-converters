@@ -1283,7 +1283,35 @@ const converters = {
         cid: 'seMetering',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {power: precisionRound(msg.data.data['instantaneousDemand'], 2)};
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
+                result.power = precisionRound(msg.data.data['instantaneousDemand'], 2);
+            }
+
+            if (msg.data.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.data.hasOwnProperty('currentSummReceived')) {
+                const endpoint = msg.endpoints[0];
+                const attrs = endpoint.clusters['seMetering'].attrs;
+                let energyFactor = 1;
+                if (attrs.multiplier && attrs.divisor) {
+                    energyFactor = attrs.multiplier / attrs.divisor;
+                }
+
+                result.energy = 0;
+                if (msg.data.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy += value * energyFactor;
+                }
+                if (msg.data.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data.data['currentSummReceived'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy -= value * energyFactor;
+                }
+            }
+
+            return result;
         },
     },
     CC2530ROUTER_state: {
