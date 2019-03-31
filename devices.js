@@ -3611,6 +3611,45 @@ const devices = [
             execute(ep1, actions, callback);
         },
     },
+
+    // NET2GRID
+    {
+        zigbeeModel: ['SP31           '],
+        model: 'N2G-SP',
+        vendor: 'NET2GRID',
+        description: 'White Net2Grid power outlet switch with power meter',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.ignore_metering_change, fz.generic_power,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.report('genOnOff', 'onOff', 10, 30, 1, cb),
+            ];
+
+            execute(ep1, actions, (result) => {
+                if (result) {
+                    const ep10 = shepherd.find(ieeeAddr, 10);
+                    const actions = [
+                        (cb) => ep10.report('seMetering', 'instantaneousDemand', 10, 300, 10, cb),
+                        (cb) => ep10.report('seMetering', 'currentSummDelivered', 10, 300, [0, 1], cb),
+                        (cb) => ep10.report('seMetering', 'currentSummReceived', 10, 300, [0, 1], cb),
+                        (cb) => ep10.read('seMetering', 'unitOfMeasure', cb),
+                        (cb) => ep10.read('seMetering', 'multiplier', cb),
+                        (cb) => ep10.read('seMetering', 'divisor', cb),
+                    ];
+
+                    execute(ep10, actions, callback);
+                } else {
+                    callback(result);
+                }
+            });
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
