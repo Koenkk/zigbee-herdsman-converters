@@ -25,7 +25,9 @@ const cfg = {
 };
 
 const converters = {
-    // Generic
+    /**
+     * Generic
+     */
     factory_reset: {
         key: ['reset'],
         convert: (key, value, message, type, postfix) => {
@@ -57,6 +59,7 @@ const converters = {
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
+                    newState: {state: value.toUpperCase()},
                 };
             } else if (type === 'get') {
                 return {
@@ -105,6 +108,7 @@ const converters = {
                         transtime: 0,
                     },
                     cfg: cfg.default,
+                    newState: {position: value},
                     readAfterWriteTime: 0,
                 };
             } else if (type === 'get') {
@@ -166,20 +170,23 @@ const converters = {
                 }
 
                 if (Number(value) === 0) {
-                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
+                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix);
+                    converted.newState.brightness = 0;
+                    return converted;
+                } else {
+                    return {
+                        cid: cid,
+                        cmd: 'moveToLevel',
+                        cmdType: 'functional',
+                        zclData: {
+                            level: Number(value),
+                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                        },
+                        cfg: cfg.default,
+                        newState: {brightness: Number(value)},
+                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
+                    };
                 }
-
-                return {
-                    cid: cid,
-                    cmd: 'moveToLevel',
-                    cmdType: 'functional',
-                    zclData: {
-                        level: Number(value),
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
-                    },
-                    cfg: cfg.default,
-                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                };
             } else if (type === 'get') {
                 return {
                     cid: cid,
@@ -210,7 +217,9 @@ const converters = {
                     }
                     return converted;
                 } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                    return converters.on_off.convert('state', 'off', message, 'set', postfix);
+                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix);
+                    converted.newState.brightness = 0;
+                    return converted;
                 } else {
                     let brightness = 0;
 
@@ -231,6 +240,7 @@ const converters = {
                             transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                         },
                         cfg: cfg.default,
+                        newState: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
                         readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                     };
                 }
@@ -257,6 +267,8 @@ const converters = {
                     value = Math.round(value + 154).toString();
                 }
 
+                value = Number(value);
+
                 return {
                     cid: cid,
                     cmd: 'moveToColorTemp',
@@ -266,6 +278,7 @@ const converters = {
                         transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                     },
                     cfg: cfg.default,
+                    newState: {color_temp: value},
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
@@ -316,6 +329,7 @@ const converters = {
                     transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                 };
 
+                let newState = null;
                 switch (cmd) {
                 case 'enhancedMoveToHueAndSaturation':
                     zclData.enhancehue = value.hue;
@@ -333,6 +347,7 @@ const converters = {
 
                 default:
                     cmd = 'moveToColor';
+                    newState = {color: {x: value.x, y: value.y}};
                     zclData.colorx = Math.round(value.x * 65535);
                     zclData.colory = Math.round(value.y * 65535);
                 }
@@ -343,6 +358,7 @@ const converters = {
                     cmdType: 'functional',
                     zclData: zclData,
                     cfg: cfg.default,
+                    newState: newState,
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                 };
             } else if (type === 'get') {
@@ -798,7 +814,9 @@ const converters = {
         },
     },
 
-    // Device specific
+    /**
+     * Device specific
+     */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
         convert: (key, value, message, type, postfix) => {
@@ -1218,6 +1236,7 @@ const converters = {
                         transtime: channel,
                     },
                     cfg: cfg.default,
+                    newState: {state: value.toUpperCase()},
                     readAfterWriteTime: 250,
                 };
             } else if (type === 'get') {
@@ -1363,7 +1382,9 @@ const converters = {
         },
     },
 
-    // Ignore converters
+    /**
+     * Ignore converters
+     */
     ignore_transition: {
         key: ['transition'],
         attr: [],

@@ -187,7 +187,7 @@ const devices = [
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
-        supports: 'single, double, hold, release and long click',
+        supports: 'single (and double, hold, release and long click depending on model)',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change,
             fz.xiaomi_action_click_multistate, fz.ignore_multistate_change,
@@ -818,6 +818,13 @@ const devices = [
         model: '8718696598283',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LTW015'],
+        model: '9290011998B',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26',
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
@@ -2492,6 +2499,34 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3315-G'],
+        model: '3315-G',
+        vendor: 'SmartThings',
+        description: 'Water sensor',
+        supports: 'water and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['button'],
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',
@@ -3602,6 +3637,45 @@ const devices = [
             ];
 
             execute(ep1, actions, callback);
+        },
+    },
+
+    // NET2GRID
+    {
+        zigbeeModel: ['SP31           '],
+        model: 'N2G-SP',
+        vendor: 'NET2GRID',
+        description: 'White Net2Grid power outlet switch with power meter',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.ignore_metering_change, fz.generic_power,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.report('genOnOff', 'onOff', 10, 30, 1, cb),
+            ];
+
+            execute(ep1, actions, (result) => {
+                if (result) {
+                    const ep10 = shepherd.find(ieeeAddr, 10);
+                    const actions = [
+                        (cb) => ep10.report('seMetering', 'instantaneousDemand', 10, 300, 10, cb),
+                        (cb) => ep10.report('seMetering', 'currentSummDelivered', 10, 300, [0, 1], cb),
+                        (cb) => ep10.report('seMetering', 'currentSummReceived', 10, 300, [0, 1], cb),
+                        (cb) => ep10.read('seMetering', 'unitOfMeasure', cb),
+                        (cb) => ep10.read('seMetering', 'multiplier', cb),
+                        (cb) => ep10.read('seMetering', 'divisor', cb),
+                    ];
+
+                    execute(ep10, actions, callback);
+                } else {
+                    callback(result);
+                }
+            });
         },
     },
 ];
