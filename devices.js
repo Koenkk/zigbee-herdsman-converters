@@ -3182,6 +3182,15 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Illuminize/Sunricher
+    {
+        zigbeeModel: ['ZG9101SAC-HP'],
+        model: 'ZG9101SAC-HP',
+        vendor: 'Sunricher',
+        description: 'Zigbee 3.0 Dimmer',
+        extend: generic.light_onoff_brightness,
+    },
+
     // Müller Licht
     {
         zigbeeModel: ['ZBT-ExtendedColor'],
