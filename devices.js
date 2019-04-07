@@ -2097,6 +2097,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-S-004Z'],
+        model: 'GL-S-004Z',
+        vendor: 'Gledopto',
+        description: 'Zigbee Smart WW/CW GU10',
+        extend: gledopto.light_onoff_brightness_colortemp,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['GL-C-006', 'GL-C-009'],
         model: 'GL-C-006/GL-C-009',
         vendor: 'Gledopto',
