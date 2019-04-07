@@ -3709,7 +3709,7 @@ const devices = [
         },
     },
 
-     // Third Reality
+    // Third Reality
     {
         zigbeeModel: ['3RSS008Z'],
         model: '3RSS008Z',
