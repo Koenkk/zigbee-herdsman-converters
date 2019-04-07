@@ -856,6 +856,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTC011'],
+        model: '4096730U7',
+        vendor: 'Philips',
+        description: 'Hue Cher ceiling light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
