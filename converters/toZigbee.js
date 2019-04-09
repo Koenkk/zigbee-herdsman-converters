@@ -1289,7 +1289,6 @@ const converters = {
       convert: (key, value, message, type, postfix) => {
           const cid = 'closuresDoorLock';
           const attrId = 'lockState';
-      
           if (type === 'set') {
               if (typeof value !== 'string') {
                   return;
