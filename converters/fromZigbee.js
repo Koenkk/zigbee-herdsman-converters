@@ -159,7 +159,7 @@ const converters = {
             const stateCode = msg.data.data['opereventcode'];
             const user = msg.data.data['userid'];
             const sourceCode = msg.data.data['opereventsrc'];
-            const source;
+            const source = '';
             if (sourceCode == '0') {
                 source = 'Keypad';
             } else if (sourceCode == '2') {
