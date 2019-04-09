@@ -1243,6 +1243,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['40634 Gardenpole Mini RGBW OSRAM'],
+        model: 'AC0363900NJ',
+        vendor: 'OSRAM',
+        description: 'Mini Gardenpole RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
         model: 'AB35996',
         vendor: 'OSRAM',
