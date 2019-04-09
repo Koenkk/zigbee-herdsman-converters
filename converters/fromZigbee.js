@@ -157,9 +157,9 @@ const converters = {
         type: 'cmdOperationEventNotification',
         convert: (model, msg, publish, options) => {
             return {
-                state: msg.data.data['opereventcode'] === 2 ? 'Unlock' : 'Lock',
+                state: msg.data.data['opereventcode'] == 2 ? 'Unlock' : 'Lock',
                 user: msg.data.data['userid'],
-                source: msg.data.data['opereventsrc']  === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other'
+                source: msg.data.data['opereventsrc'] == 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other',
             };
         },
     },
