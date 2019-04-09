@@ -187,7 +187,7 @@ const devices = [
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
-        supports: 'single, double, hold, release and long click',
+        supports: 'single (and double, hold, release and long click depending on model)',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WXKG03LM_click, fz.ignore_basic_change,
             fz.xiaomi_action_click_multistate, fz.ignore_multistate_change,
@@ -568,7 +568,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['TRADFRI transformer 30W'],
+        zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
         model: 'ICPSHC24-30EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (30 watt)',
@@ -632,7 +632,7 @@ const devices = [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
-            fz.generic_battery, fz.ignore_power_change, fz.ignore_basic_change,
+            fz.generic_battery, fz.ignore_power_change, fz.ignore_basic_change, fz.E1524_hold,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -821,6 +821,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTW015'],
+        model: '9290011998B',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
@@ -846,6 +853,13 @@ const devices = [
         model: '3261331P7',
         vendor: 'Philips',
         description: 'Hue white ambiance Still',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LTC011'],
+        model: '4096730U7',
+        vendor: 'Philips',
+        description: 'Hue Cher ceiling light',
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
@@ -1360,6 +1374,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['RB 278 T'],
+        model: 'RB 278 T',
+        vendor: 'Innr',
+        description: 'E27 Bulb',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',
@@ -1648,6 +1669,25 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['45853'],
+        model: '45853GE',
+        vendor: 'GE',
+        description: 'Plug-in smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
             const device = shepherd.find(ieeeAddr, 1);
@@ -2057,6 +2097,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-S-004Z'],
+        model: 'GL-S-004Z',
+        vendor: 'Gledopto',
+        description: 'Zigbee Smart WW/CW GU10',
+        extend: gledopto.light_onoff_brightness_colortemp,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['GL-C-006', 'GL-C-009'],
         model: 'GL-C-006/GL-C-009',
         vendor: 'Gledopto',
@@ -2447,6 +2503,34 @@ const devices = [
     {
         zigbeeModel: ['3315-S'],
         model: '3315-S',
+        vendor: 'SmartThings',
+        description: 'Water sensor',
+        supports: 'water and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3315-G'],
+        model: '3315-G',
         vendor: 'SmartThings',
         description: 'Water sensor',
         supports: 'water and temperature',
@@ -3583,6 +3667,45 @@ const devices = [
             ];
 
             execute(ep1, actions, callback);
+        },
+    },
+
+    // NET2GRID
+    {
+        zigbeeModel: ['SP31           '],
+        model: 'N2G-SP',
+        vendor: 'NET2GRID',
+        description: 'White Net2Grid power outlet switch with power meter',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.ignore_metering_change, fz.generic_power,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.report('genOnOff', 'onOff', 10, 30, 1, cb),
+            ];
+
+            execute(ep1, actions, (result) => {
+                if (result) {
+                    const ep10 = shepherd.find(ieeeAddr, 10);
+                    const actions = [
+                        (cb) => ep10.report('seMetering', 'instantaneousDemand', 10, 300, 10, cb),
+                        (cb) => ep10.report('seMetering', 'currentSummDelivered', 10, 300, [0, 1], cb),
+                        (cb) => ep10.report('seMetering', 'currentSummReceived', 10, 300, [0, 1], cb),
+                        (cb) => ep10.read('seMetering', 'unitOfMeasure', cb),
+                        (cb) => ep10.read('seMetering', 'multiplier', cb),
+                        (cb) => ep10.read('seMetering', 'divisor', cb),
+                    ];
+
+                    execute(ep10, actions, callback);
+                } else {
+                    callback(result);
+                }
+            });
         },
     },
 ];
