@@ -159,20 +159,17 @@ const converters = {
             const stateCode = msg.data.data['opereventcode'];
             const user = msg.data.data['userid'];
             const sourceCode = msg.data.data['opereventsrc'];
-            switch (sourceCode) {
-            case '0':
-                sourceCode = 'Keypad';
-                break;
-            case '2':
-                sourceCode = 'Inside';
-                break;
-            case '4':
-                sourceCode = 'Fingerprint';
-                break;
-            default:
-                sourceCode = 'Other';
+            const source;
+            if (sourceCode == '0') {
+                source = 'Keypad';
+            } else if (sourceCode == '2') {
+                source = 'Inside';
+            } else if (sourceCode == '4') {
+                source = 'Fingerprint';
+            } else {
+                source = 'Other';
             }
-            return {state: stateCode === 2 ? 'Unlock' : 'Lock', user: user, source: sourceCode};
+            return {state: stateCode === 2 ? 'Unlock' : 'Lock', user: user, source: source};
         },
     },
     genOnOff_cmdOn: {
