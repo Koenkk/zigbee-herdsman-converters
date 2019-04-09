@@ -3395,6 +3395,26 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['iZBModule01'],
+        model: 'YMF40',
+        vendor: 'Yale',
+        description: 'Real Living Lock',
+        supports: 'lock/unlock',
+        fromZigbee: [fz.YMF40_lockstatus],
+        toZigbee: [tz.YMF40_lockcmd],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, 3, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+
+    },
+
 
     // Keen Home
     {
