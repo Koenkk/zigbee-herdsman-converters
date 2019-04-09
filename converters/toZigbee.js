@@ -1284,6 +1284,36 @@ const converters = {
             }
         },
     },
+    YMF40_lockcmd: {
+      key: ['state'],
+      convert: (key, value, message, type, postfix) => {
+          const cid = 'closuresDoorLock';
+          const attrId = 'lockState';
+          if (type === 'set') {
+              if (typeof value !== 'string') {
+                  return;
+              }
+              return {
+                  cid: cid,
+                  cmd: `${value.toLowerCase()}Door`,
+                  cmdType: 'functional',
+                  zclData: {
+                      'pincodevalue': '',
+                  },
+                  cfg: cfg.default,
+                  readAfterWriteTime: 200,
+              };
+          } else if (type === 'get') {
+              return {
+                  cid: cid,
+                  cmd: 'read',
+                  cmdType: 'foundation',
+                  zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                  cfg: cfg.default,
+              };
+          }
+      },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convert: (key, value, message, type, postfix) => {
