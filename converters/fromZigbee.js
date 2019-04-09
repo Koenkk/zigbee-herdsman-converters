@@ -159,9 +159,7 @@ const converters = {
             const stateCode = msg.data.data['opereventcode'];
             const user = msg.data.data['userid'];
             const sourceCode = msg.data.data['opereventsrc'];
-            const source = sourceCode === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other';
-            const state = stateCode === 2 ? 'Unlock' : 'Lock'; 
-            return {state: state, user: user, source: source };
+            return {state: stateCode === 2 ? 'Unlock' : 'Lock', user: user, source: sourceCode === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other'};
         },
     },
     genOnOff_cmdOn: {
