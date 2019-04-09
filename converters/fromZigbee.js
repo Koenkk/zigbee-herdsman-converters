@@ -164,7 +164,7 @@ const converters = {
 		      return {state: state, user: user, source: source };
       },
     },
-    
+ 
     genOnOff_cmdOn: {
         cid: 'genOnOff',
         type: 'cmdOn',
