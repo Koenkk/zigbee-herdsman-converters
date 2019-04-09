@@ -156,12 +156,12 @@ const converters = {
       cid: 'closuresDoorLock',
       type: 'cmdOperationEventNotification',
       convert: (model, msg, publish, options) => {
-		  const stateCode = msg.data.data['opereventcode'];
-		  const user = msg.data.data['userid'];
-		  const sourceCode = msg.data.data['opereventsrc'];
-		  const source = sourceCode === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other';
-		  const state = stateCode === 2 ? 'Unlock' : 'Lock'; 
-		      return {state: state, user: user, source: source };
+          const stateCode = msg.data.data['opereventcode'];
+          const user = msg.data.data['userid'];
+          const sourceCode = msg.data.data['opereventsrc'];
+          const source = sourceCode === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other';
+          const state = stateCode === 2 ? 'Unlock' : 'Lock'; 
+              return {state: state, user: user, source: source };
       },
     },
  
