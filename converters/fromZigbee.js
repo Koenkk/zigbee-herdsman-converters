@@ -158,8 +158,12 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const stateCode = msg.data.data['opereventcode'];
             const user = msg.data.data['userid'];
-            const source = (msg.data.data['opereventsrc'] === 0) ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : '';
-            return {state: stateCode === 2 ? 'Unlock' : 'Lock', user: user, source: source};
+            const source = msg.data.data['opereventsrc'];
+            return {
+                state: stateCode === 2 ? 'Unlock' : 'Lock',
+                user: user,
+                source: source  === 0 ? 'Keypad' : 2 ? 'Inside' : 4 ? 'Fingerprint' : 'Other'
+            };
         },
     },
     genOnOff_cmdOn: {
