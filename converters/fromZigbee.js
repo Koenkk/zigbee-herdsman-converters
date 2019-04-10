@@ -159,7 +159,7 @@ const converters = {
             return {
                 state: msg.data.data['opereventcode'] == 2 ? 'Unlock' : 'Lock',
                 user: msg.data.data['userid'],
-                source: source: msg.data.data['opereventsrc'],
+                source: msg.data.data['opereventsrc'],
             };
         },
     },
