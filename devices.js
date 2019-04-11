@@ -3402,7 +3402,7 @@ const devices = [
         description: 'Real Living Lock',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.YMF40_lockstatus],
-        toZigbee: [tz.YMF40_lockcmd],
+        toZigbee: [tz.YRD426NRSC_YMF40_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
 
