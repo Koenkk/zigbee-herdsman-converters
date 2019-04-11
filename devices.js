@@ -1239,7 +1239,14 @@ const devices = [
         zigbeeModel: ['Gardenpole RGBW-Lightify'],
         model: '4058075036147',
         vendor: 'OSRAM',
-        description: 'Smart+ Gardenpole RGBW',
+        description: 'Smart+ gardenpole RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['Gardenpole Mini RGBW OSRAM'],
+        model: 'AC0363900NJ',
+        vendor: 'OSRAM',
+        description: 'Smart+ mini gardenpole RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
