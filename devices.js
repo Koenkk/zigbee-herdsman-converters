@@ -2833,7 +2833,7 @@ const devices = [
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
-        fromZigbee: [fz.state_change, fz.state],
+        fromZigbee: [fz.state_change, fz.state, fz.state_report],
         toZigbee: [tz.on_off],
     },
 
