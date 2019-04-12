@@ -152,6 +152,13 @@ const converters = {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
     },
+    YRD226HA2619_lock: {
+        cid: 'closuresDoorLock',
+        type: ['attReport', 'devChange'],
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
+        },
+    },
     genOnOff_cmdOn: {
         cid: 'genOnOff',
         type: 'cmdOn',
