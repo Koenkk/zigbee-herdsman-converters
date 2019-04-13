@@ -3405,9 +3405,9 @@ const devices = [
         zigbeeModel: ['YRD226 TSDB'],
         model: 'YRD226HA2619',
         vendor: 'Yale',
-        description: 'Assure Lock',
+        description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.YRD226HA2619_lock, fz.battery_200],
+        fromZigbee: [fz.generic_lock, fz.battery_200],
         toZigbee: [tz.YRD426NRSC_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3425,7 +3425,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.YMF40_lockstatus],
+        fromZigbee: [fz.generic_lock],
         toZigbee: [tz.YRD426NRSC_YMF40_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
