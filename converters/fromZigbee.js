@@ -145,9 +145,9 @@ const converters = {
             };
         },
     },
-    YRD426NRSC_lock: {
+    generic_lock: {
         cid: 'closuresDoorLock',
-        type: ['attReport', 'readRsp'],
+        type: ['attReport', 'readRsp', 'devChange'],
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
