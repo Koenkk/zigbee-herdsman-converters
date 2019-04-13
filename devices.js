@@ -3399,7 +3399,7 @@ const devices = [
         zigbeeModel: ['iZBModule01'],
         model: 'YMF40',
         vendor: 'Yale',
-        description: 'Real Living Lock',
+        description: 'Real living lock',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.YMF40_lockstatus],
         toZigbee: [tz.YRD426NRSC_YMF40_lock],
