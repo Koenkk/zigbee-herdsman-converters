@@ -1252,7 +1252,7 @@ const converters = {
             }
         },
     },
-    YRD426NRSC_YMF40_lock: {
+    generic_lock: {
         key: ['state'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'closuresDoorLock';
