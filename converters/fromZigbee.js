@@ -152,6 +152,17 @@ const converters = {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
     },
+    YMF40_lockstatus: {
+        cid: 'closuresDoorLock',
+        type: 'cmdOperationEventNotification',
+        convert: (model, msg, publish, options) => {
+            return {
+                state: msg.data.data['opereventcode'] == 2 ? 'UNLOCK' : 'LOCK',
+                user: msg.data.data['userid'],
+                source: msg.data.data['opereventsrc'],
+            };
+        },
+    },
     genOnOff_cmdOn: {
         cid: 'genOnOff',
         type: 'cmdOn',

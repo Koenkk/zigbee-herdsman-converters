@@ -3390,7 +3390,7 @@ const devices = [
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.YRD426NRSC_lock, fz.battery_200],
-        toZigbee: [tz.YRD426NRSC_lock],
+        toZigbee: [tz.YRD426NRSC_YMF40_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
 
@@ -3401,6 +3401,26 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+    {
+        zigbeeModel: ['iZBModule01'],
+        model: 'YMF40',
+        vendor: 'Yale',
+        description: 'Real living lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.YMF40_lockstatus],
+        toZigbee: [tz.YRD426NRSC_YMF40_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, 3, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 3, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+
     },
 
     // Keen Home
