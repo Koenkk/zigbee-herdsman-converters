@@ -145,18 +145,22 @@ const converters = {
             };
         },
     },
-    YRD426NRSC_lock: {
+    generic_lock: {
         cid: 'closuresDoorLock',
-        type: ['attReport', 'readRsp'],
+        type: ['attReport', 'readRsp', 'devChange'],
         convert: (model, msg, publish, options) => {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
     },
-    YRD226HA2619_lock: {
+    YMF40_lockstatus: {
         cid: 'closuresDoorLock',
-        type: ['attReport', 'devChange'],
+        type: 'cmdOperationEventNotification',
         convert: (model, msg, publish, options) => {
-            return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
+            return {
+                state: msg.data.data['opereventcode'] == 2 ? 'UNLOCK' : 'LOCK',
+                user: msg.data.data['userid'],
+                source: msg.data.data['opereventsrc'],
+            };
         },
     },
     genOnOff_cmdOn: {
