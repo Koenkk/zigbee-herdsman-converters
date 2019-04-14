@@ -2933,6 +2933,14 @@ const devices = [
         fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['SCM-3_00.00.03.15'],
+        model: 'SCM-5ZBS',
+        vendor: 'Climax',
+        description: 'Roller shutter',
+        fromZigbee: [tz.state_report, tz.state_change],
+        toZigbee: [tz.light_brightness],
+    },
 
     // HEIMAN
     {
