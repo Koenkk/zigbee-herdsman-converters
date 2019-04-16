@@ -2523,8 +2523,13 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
-    ignore_genscenes_change: {
+    ignore_genScenes_change: {
         cid: 'genScenes',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_lightLink_change: {
+        cid: 'lightLink',
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
