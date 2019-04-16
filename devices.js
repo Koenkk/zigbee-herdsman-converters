@@ -3752,6 +3752,20 @@ const devices = [
             });
         },
     },
+
+    // Third Reality
+    {
+        zigbeeModel: ['3RSS008Z'],
+        model: '3RSS008Z',
+        vendor: 'Third Reality',
+        description: 'RealitySwitch Plus',
+        supports: 'on/off, battery',
+        fromZigbee: [
+            fz.ignore_onoff_change, fz.state, fz.ignore_genIdentify_change,
+            fz.ignore_basic_change,
+        ],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+    },
 ];
 
 module.exports = devices.map((device) =>
