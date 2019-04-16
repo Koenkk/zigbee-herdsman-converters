@@ -3713,7 +3713,7 @@ const devices = [
     {
         zigbeeModel: ['3RSS008Z'],
         model: '3RSS008Z',
-        vendor: 'Third Reality, Inc',
+        vendor: 'Third Reality',
         description: 'RealitySwitch Plus',
         supports: 'on/off, battery',
         fromZigbee: [
