@@ -1997,7 +1997,15 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
         convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
             const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+
+            // Save last direction for release event
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            store[deviceID].movemode = direction;
+
             return {
                 action: `brightness_${direction}_hold`,
                 rate: msg.data.data.rate
@@ -2008,7 +2016,11 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdStop',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            if (!store[deviceID])
+              return null;
+
+            const direction = store[deviceID].movemode;
             return {
                 action: `brightness_${direction}_release`
             };
