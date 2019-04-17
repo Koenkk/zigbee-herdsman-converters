@@ -3224,7 +3224,7 @@ const devices = [
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
             fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
-            fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold
+            fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
         ],
         toZigbee: [],
     },

@@ -2008,7 +2008,7 @@ const converters = {
 
             return {
                 action: `brightness_${direction}_hold`,
-                rate: msg.data.data.rate
+                rate: msg.data.data.rate,
             };
         },
     },
@@ -2017,12 +2017,13 @@ const converters = {
         type: 'cmdStop',
         convert: (model, msg, publish, options) => {
             const deviceID = msg.endpoints[0].device.ieeeAddr;
-            if (!store[deviceID])
-              return null;
+            if (!store[deviceID]) {
+                return null;
+            }
 
             const direction = store[deviceID].movemode;
             return {
-                action: `brightness_${direction}_release`
+                action: `brightness_${direction}_release`,
             };
         },
     },
