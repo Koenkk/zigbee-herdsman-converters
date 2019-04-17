@@ -3713,7 +3713,27 @@ const devices = [
             execute(ep1, actions, callback);
         },
     },
+    
+        // Danalock
+    {
+        zigbeeModel: ['V3-BTZB'],
+        model: 'V3-BTZB',
+        vendor: 'Danalock',
+        description: 'BT/ZB smartlock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.generic_lock, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
 
+            execute(device, actions, callback);
+        },
+    },    
+        
     // NET2GRID
     {
         zigbeeModel: ['SP31           '],
