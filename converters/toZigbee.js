@@ -98,13 +98,12 @@ const converters = {
             const attrId = 'currentLevel';
 
             if (type === 'set') {
-                value = Math.round(Number(value) * 2.55).toString();
                 return {
                     cid: cid,
                     cmd: 'moveToLevelWithOnOff',
                     cmdType: 'functional',
                     zclData: {
-                        level: value,
+                        level: Math.round(Number(value) * 2.55).toString(),
                         transtime: 0,
                     },
                     cfg: cfg.default,
