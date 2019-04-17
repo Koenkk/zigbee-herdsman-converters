@@ -2939,7 +2939,7 @@ const devices = [
         vendor: 'Climax',
         description: 'Roller shutter',
         supports: 'up/down',
-        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.state_change, fz.state_report],
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
 

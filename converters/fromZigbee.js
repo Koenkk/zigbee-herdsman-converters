@@ -2197,6 +2197,24 @@ const converters = {
             return {state: state, position: position};
         },
     },
+    cover_state_report: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('onOff')) {
+                return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+            }
+        },
+    },
+    cover_state_change: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('onOff')) {
+                return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+            }
+        },
+    },
     keen_home_smart_vent_pressure: {
         cid: 'msPressureMeasurement',
         type: 'devChange',
