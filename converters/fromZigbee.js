@@ -1993,6 +1993,27 @@ const converters = {
             };
         },
     },
+    tint404011_brightness_updown_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_${direction}_hold`,
+                rate: msg.data.data.rate
+            };
+        },
+    },
+    tint404011_brightness_updown_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_${direction}_release`
+            };
+        },
+    },
     tint404011_scene: {
         cid: 'genBasic',
         type: 'cmdWrite',
