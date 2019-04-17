@@ -1937,6 +1937,13 @@ const devices = [
         fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
+        zigbeeModel: ['LXN56-DC27LX1.1'],
+        model: 'LXZB-02A',
+        vendor: 'Nue / 3A',
+        description: 'Smart light controller',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['FNB56-ZSW03LX2.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
