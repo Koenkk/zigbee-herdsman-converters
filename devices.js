@@ -3713,8 +3713,8 @@ const devices = [
             execute(ep1, actions, callback);
         },
     },
-    
-        // Danalock
+
+    // Danalock
     {
         zigbeeModel: ['V3-BTZB'],
         model: 'V3-BTZB',
@@ -3732,8 +3732,8 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },    
-        
+    },
+
     // NET2GRID
     {
         zigbeeModel: ['SP31           '],
