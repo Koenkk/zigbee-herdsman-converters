@@ -2938,7 +2938,7 @@ const devices = [
         model: 'SCM-5ZBS',
         vendor: 'Climax',
         description: 'Roller shutter',
-        supports: 'up/down',
+        supports: 'open/close',
         fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
