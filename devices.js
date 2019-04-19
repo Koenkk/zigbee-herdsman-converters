@@ -3684,6 +3684,15 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Shenzhen Homa
+    {
+        zigbeeModel: ['HOMA1002'],
+        model: 'HLC610-Z',
+        vendor: 'Shenzhen Homa',
+        description: 'Wireless Dimmable Controller',
+        extend: generic.light_onoff_brightness,
+    },
+
     // Honyar
     {
         zigbeeModel: ['00500c35'],
