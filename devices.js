@@ -3704,6 +3704,13 @@ const devices = [
         description: 'Smart LED driver',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HOMA1002'],
+        model: 'HLC610-Z',
+        vendor: 'Shenzhen Homa',
+        description: 'Wireless dimmable controller',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Honyar
     {
