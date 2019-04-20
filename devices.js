@@ -3713,7 +3713,7 @@ const devices = [
     },
     {
         zigbeeModel: ['HOMA1031'],
-        model: 'HLD821-Z-SC',
+        model: 'HLC821-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
