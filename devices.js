@@ -3711,6 +3711,13 @@ const devices = [
         description: 'Wireless dimmable controller',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HOMA1031'],
+        model: 'HLD821-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Honyar
     {
