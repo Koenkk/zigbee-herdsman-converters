@@ -25,7 +25,7 @@ const cfg = {
 };
 
 const converters = {
-    //fan_mode
+    // fan_mode
     fan_mode: {
         key: ['fan_mode'],
         convert: (key, value, message, type, postfix) => {
