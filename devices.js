@@ -173,7 +173,7 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },    
+    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
