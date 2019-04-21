@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
@@ -12,41 +12,37 @@ const repInterval = {
 
 const coordinatorGroup = 99;
 
-const defaultIgnoreConverters = [
-    fz.ignore_genGroups_devChange, fz.ignore_genIdentify_change, fz.ignore_genScenes_change,
-    fz.ignore_diagnostic_change, fz.ignore_lightLink_change, fz.ignore_basic_change,
-];
-
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
         fromZigbee: [
             fz.ignore_light_brightness_change, fz.state_change, fz.state, fz.brightness_report,
-        ].concat(defaultIgnoreConverters),
+            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
+        ],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
-        ].concat(defaultIgnoreConverters),
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
-        ].concat(defaultIgnoreConverters),
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
-            fz.brightness_report, fz.color_colortemp_report,
-        ].concat(defaultIgnoreConverters),
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
+            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
+        ],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
@@ -138,6 +134,41 @@ const execute = (device, actions, callback, delay) => {
 };
 
 const devices = [
+    {
+        zigbeeModel: ['HDC52EastwindFan'],
+        model: '99432',
+        vendor: 'Hampton Bay',
+        description: 'Universal wink enabled white ceiling fan premier remote control',
+        supports: 'on/off',
+        fromZigbee: [
+            fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
+            fz.ignore_level_report,
+        ],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness, tz.fan_mode],
+        meta: {
+            fan_mode: {
+                'off': 0,
+                'low': 1,
+                'medium': 2,
+                'medium-high': 3,
+                'high': 4,
+                'breeze': 6,
+            },
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
+                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
+                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -264,7 +295,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
-            fz.ignore_analog_change, fz.ignore_basic_change, fz.QBKG12LM_click,
+            fz.ignore_analog_change, fz.ignore_basic_change,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -899,7 +930,7 @@ const devices = [
         model: '324131092621',
         vendor: 'Philips',
         description: 'Hue dimmer switch',
-        supports: 'on/off, brightness up/down/hold/release',
+        supports: 'on/off',
         fromZigbee: [
             fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
             fz._324131092621_ignore_stop, fz._324131092621_notification,
@@ -1243,14 +1274,7 @@ const devices = [
         zigbeeModel: ['Gardenpole RGBW-Lightify'],
         model: '4058075036147',
         vendor: 'OSRAM',
-        description: 'Smart+ gardenpole RGBW',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['Gardenpole Mini RGBW OSRAM'],
-        model: 'AC0363900NJ',
-        vendor: 'OSRAM',
-        description: 'Smart+ mini gardenpole RGBW',
+        description: 'Smart+ Gardenpole RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
@@ -1591,7 +1615,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
-            fz.ignore_genScenes_change,
+            fz.ignore_genscenes_change,
         ]),
     },
     {
@@ -1620,7 +1644,7 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
-            fz.ignore_genScenes_change,
+            fz.ignore_genscenes_change,
         ]),
     },
     {
@@ -1937,13 +1961,6 @@ const devices = [
         fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
-        zigbeeModel: ['LXN56-DC27LX1.1'],
-        model: 'LXZB-02A',
-        vendor: 'Nue / 3A',
-        description: 'Smart light controller',
-        extend: generic.light_onoff_brightness,
-    },
-    {
         zigbeeModel: ['FNB56-ZSW03LX2.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
@@ -2109,22 +2126,6 @@ const devices = [
                     'rgb': 11,
                     'white': 15,
                 };
-            } else {
-                return {};
-            }
-        },
-    },
-    {
-        zigbeeModel: ['GL-S-004Z'],
-        model: 'GL-S-004Z',
-        vendor: 'Gledopto',
-        description: 'Zigbee Smart WW/CW GU10',
-        extend: gledopto.light_onoff_brightness_colortemp,
-        ep: (device) => {
-            if (device.epList.toString() === '11,12,13') {
-                return {'': 12};
-            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
-                return {'': 11};
             } else {
                 return {};
             }
@@ -2944,15 +2945,6 @@ const devices = [
         fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
-    {
-        zigbeeModel: ['SCM-3_00.00.03.15'],
-        model: 'SCM-5ZBS',
-        vendor: 'Climax',
-        description: 'Roller shutter',
-        supports: 'open/close',
-        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
-        toZigbee: [tz.cover_position, tz.cover_open_close],
-    },
 
     // HEIMAN
     {
@@ -3233,7 +3225,6 @@ const devices = [
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
             fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
-            fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
         ],
         toZigbee: [],
     },
@@ -3410,10 +3401,11 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
-        toZigbee: [tz.generic_lock],
+        fromZigbee: [fz.YRD426NRSC_lock, fz.battery_200],
+        toZigbee: [tz.YRD426NRSC_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+
             const actions = [
                 (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
@@ -3421,44 +3413,6 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },
-    {
-        zigbeeModel: ['YRD226 TSDB'],
-        model: 'YRD226HA2619',
-        vendor: 'Yale',
-        description: 'Assure lock',
-        supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
-        toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-    },
-    {
-        zigbeeModel: ['iZBModule01'],
-        model: 'YMF40',
-        vendor: 'Yale',
-        description: 'Real living lock',
-        supports: 'lock/unlock, battery',
-        fromZigbee: [fz.YMF40_lockstatus],
-        toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, 3, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 3, 0, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-
     },
 
     // Keen Home
@@ -3704,13 +3658,6 @@ const devices = [
         description: 'Smart LED driver',
         extend: generic.light_onoff_brightness,
     },
-    {
-        zigbeeModel: ['HOMA1002'],
-        model: 'HLC610-Z',
-        vendor: 'Shenzhen Homa',
-        description: 'Wireless dimmable controller',
-        extend: generic.light_onoff_brightness,
-    },
 
     // Honyar
     {
@@ -3739,26 +3686,6 @@ const devices = [
             ];
 
             execute(ep1, actions, callback);
-        },
-    },
-
-    // Danalock
-    {
-        zigbeeModel: ['V3-BTZB'],
-        model: 'V3-BTZB',
-        vendor: 'Danalock',
-        description: 'BT/ZB smartlock',
-        supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
-        toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
         },
     },
 
@@ -3799,20 +3726,6 @@ const devices = [
                 }
             });
         },
-    },
-
-    // Third Reality
-    {
-        zigbeeModel: ['3RSS008Z'],
-        model: '3RSS008Z',
-        vendor: 'Third Reality',
-        description: 'RealitySwitch Plus',
-        supports: 'on/off, battery',
-        fromZigbee: [
-            fz.ignore_onoff_change, fz.state, fz.ignore_genIdentify_change,
-            fz.ignore_basic_change,
-        ],
-        toZigbee: [tz.on_off, tz.ignore_transition],
     },
 ];
 
