@@ -816,6 +816,39 @@ const converters = {
     /**
      * Device specific
      */
+    fan_mode: {
+        key: ['fan_mode'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+            const mapping = {
+                'off': 0,
+                'low': 1,
+                'medium': 2,
+                'medium-high': 3,
+                'high': 4,
+                'breeze': 6,
+            };
+
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value, attrData: mapping[value], dataType: 48}],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
         convert: (key, value, message, type, postfix) => {
