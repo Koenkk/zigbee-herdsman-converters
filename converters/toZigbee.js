@@ -25,6 +25,40 @@ const cfg = {
 };
 
 const converters = {
+    //fan_mode
+    fan_mode: {
+        key: ['fan_mode'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+            const mapping = {
+                'off': 0,
+                'low': 1,
+                'medium': 2,
+                'medium-high': 3,
+                'high': 4,
+                'breeze': 6,
+            };
+
+            if (type === 'set') {
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value, attrData: mapping[value], dataType: 48}],
+                    cfg: cfg.default,
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
     /**
      * Generic
      */
@@ -98,12 +132,13 @@ const converters = {
             const attrId = 'currentLevel';
 
             if (type === 'set') {
+                value = Math.round(Number(value) * 2.55).toString();
                 return {
                     cid: cid,
                     cmd: 'moveToLevelWithOnOff',
                     cmdType: 'functional',
                     zclData: {
-                        level: Math.round(Number(value) * 2.55).toString(),
+                        level: value,
                         transtime: 0,
                     },
                     cfg: cfg.default,
@@ -1251,7 +1286,7 @@ const converters = {
             }
         },
     },
-    generic_lock: {
+    YRD426NRSC_lock: {
         key: ['state'],
         convert: (key, value, message, type, postfix) => {
             const cid = 'closuresDoorLock';
