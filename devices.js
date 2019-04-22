@@ -1156,6 +1156,15 @@ const devices = [
         description: 'SMART+ CLASSIC A 60 TW',
         extend: generic.light_onoff_brightness_colortemp,
     },
+	{
+        zigbeeModel: ['MR16 TW OSRAM'],
+        model: 'AC03648',
+        vendor: 'OSRAM',
+        description: 'SMART+ spot GU5.3',
+        supports: generic.light_onoff_brightness_colortemp().supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
+    },
     {
         // AA70155 is model number of both bulbs.
         zigbeeModel: ['LIGHTIFY A19 Tunable White', 'Classic A60 TW'],
