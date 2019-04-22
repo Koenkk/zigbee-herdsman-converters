@@ -2491,6 +2491,30 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['multi'],
+        model: 'IM6001-MPP01',
+        vendor: 'SmartThings',
+        description: 'Multipurpose sensor (2018 model)',
+        supports: 'contact',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.st_contact_status_change,
+            fz.generic_batteryvoltage_3000_2500, fz.ignore_iaszone_change, fz.ignore_iaszone_attreport,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
         /**
          * Note: humidity not (yet) implemented, as this seems to use proprietary cluster
          * see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
