@@ -1614,7 +1614,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             ictcg1(model, msg, publish, options, 'move');
             const direction = msg.data.data.movemode === 1 ? 'left' : 'right';
-            return {action: `rotate_${direction}`, rate: msg.data.data.rate };
+            return {action: `rotate_${direction}`, rate: msg.data.data.rate};
         },
     },
     cmd_move_with_onoff: {
