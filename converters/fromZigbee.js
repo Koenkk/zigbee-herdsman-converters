@@ -978,6 +978,16 @@ const converters = {
             }
         },
     },
+    QBKG11LM_click: {
+        cid: 'genMultistateInput',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if ([1, 2].includes(msg.data.data.presentValue)) {
+                const times = {1: 'single', 2: 'double'};
+                return {click: times[msg.data.data.presentValue]};
+            }
+        },
+    },
     QBKG12LM_click: {
         cid: 'genMultistateInput',
         type: ['attReport', 'readRsp'],
