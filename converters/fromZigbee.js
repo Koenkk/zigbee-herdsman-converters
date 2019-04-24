@@ -978,6 +978,24 @@ const converters = {
             }
         },
     },
+    WXKG11LM_click: {
+        cid: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const data = msg.data.data;
+            let clicks;
+
+            if (data.onOff) {
+                clicks = 1;
+            } else if (data['32768']) {
+                clicks = data['32768'];
+            }
+
+            if (clickLookup[clicks]) {
+                return {click: clickLookup[clicks]};
+            }
+        },
+    },
     QBKG12LM_click: {
         cid: 'genMultistateInput',
         type: ['attReport', 'readRsp'],
