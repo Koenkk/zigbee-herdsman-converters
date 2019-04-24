@@ -138,42 +138,6 @@ const execute = (device, actions, callback, delay) => {
 };
 
 const devices = [
-    // Hampton Bay Fan Controller
-    {
-        zigbeeModel: ['HDC52EastwindFan'],
-        model: '99432',
-        vendor: 'Hampton Bay',
-        description: 'Universal wink enabled white ceiling fan premier remote control',
-        supports: 'on/off',
-        fromZigbee: [
-            fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
-            fz.ignore_level_report,
-        ],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness, tz.fan_mode],
-        meta: {
-            fan_mode: {
-                'off': 0,
-                'low': 1,
-                'medium': 2,
-                'medium-high': 3,
-                'high': 4,
-                'breeze': 6,
-            },
-        },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
-                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
-                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -3849,6 +3813,33 @@ const devices = [
             fz.ignore_basic_change,
         ],
         toZigbee: [tz.on_off, tz.ignore_transition],
+    },
+
+    // Hampton Bay
+    {
+        zigbeeModel: ['HDC52EastwindFan'],
+        model: '99432',
+        vendor: 'Hampton Bay',
+        description: 'Universal wink enabled white ceiling fan premier remote control',
+        supports: 'on/off, fan_mode, fan_state',
+        fromZigbee: [
+            fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
+            fz.ignore_level_report,
+        ],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness, tz.fan_mode],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
+                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
+                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 ];
 
