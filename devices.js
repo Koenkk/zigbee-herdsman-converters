@@ -3823,7 +3823,7 @@ const devices = [
         description: 'Universal wink enabled white ceiling fan premier remote control',
         supports: 'on/off, fan_mode, fan_state',
         fromZigbee: [
-            fz.generic_state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
+            fz.state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
             fz.ignore_level_report,
         ],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness, tz.fan_mode],
