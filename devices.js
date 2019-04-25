@@ -3821,12 +3821,11 @@ const devices = [
         model: '99432',
         vendor: 'Hampton Bay',
         description: 'Universal wink enabled white ceiling fan premier remote control',
-        supports: 'on/off, fan_mode, fan_state',
-        fromZigbee: [
-            fz.state, fz.light_brightness, fz.ignore_fan_change, fz.generic_fan_mode, fz.ignore_onoff_change,
-            fz.ignore_level_report,
-        ],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness, tz.fan_mode],
+        supports: 'on/off, brightness, fan_mode and fan_state',
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_fan_change, fz.generic_fan_mode,
+        ]),
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
