@@ -2353,6 +2353,14 @@ const converters = {
             return {position: msg.data.data.currentPositionLiftPercentage};
         },
     },
+    generic_fan_mode: {
+        cid: 'hvacFanCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const key = getKey(common.fanMode, msg.data.data.fanMode);
+            return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_light_brightness_change: {
