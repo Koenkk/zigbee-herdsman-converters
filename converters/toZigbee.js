@@ -812,6 +812,35 @@ const converters = {
             }
         },
     },
+    fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+
+            if (type === 'set') {
+                value = value.toLowerCase();
+                const attrData = common.fanMode[value];
+
+                return {
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value, attrData: attrData, dataType: 48}],
+                    cfg: cfg.default,
+                    newState: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'},
+                };
+            } else if (type === 'get') {
+                return {
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                };
+            }
+        },
+    },
 
     /**
      * Device specific

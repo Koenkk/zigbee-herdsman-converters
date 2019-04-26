@@ -3846,6 +3846,32 @@ const devices = [
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
 
+    // Hampton Bay
+    {
+        zigbeeModel: ['HDC52EastwindFan'],
+        model: '99432',
+        vendor: 'Hampton Bay',
+        description: 'Universal wink enabled white ceiling fan premier remote control',
+        supports: 'on/off, brightness, fan_mode and fan_state',
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_fan_change, fz.generic_fan_mode,
+        ]),
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
+                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
+                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
     // Iluminize
     {
         zigbeeModel: ['DIM Lighting'],
