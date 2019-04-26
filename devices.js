@@ -3845,6 +3845,15 @@ const devices = [
         ],
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
+
+    // Iluminize
+    {
+        zigbeeModel: ['DIM Lighting'],
+        model: '511.10',
+        vendor: 'Iluminize',
+        description: 'Zigbee LED-Controller ',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 module.exports = devices.map((device) =>
