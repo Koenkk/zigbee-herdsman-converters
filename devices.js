@@ -2094,6 +2094,15 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
+    // Feibit Inc co.  
+    {
+        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        model: 'FB56-ZCW11HG1.2',
+        vendor: 'Feibit Inc co.  ',
+        description: 'RGBW Downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+
     // Gledopto
     {
         zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
