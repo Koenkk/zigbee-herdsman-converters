@@ -2395,7 +2395,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: 'select',
-                sceneid: msg.data.data.sceneid
+                sceneid: msg.data.data.sceneid,
             };
         },
     },
@@ -2421,7 +2421,7 @@ const converters = {
                 action: 'down',
                 stepmode: msg.data.data.stepmode,
                 stepsize: msg.data.data.stepsize,
-                transtime: msg.data.data.transtime
+                transtime: msg.data.data.transtime,
             };
         },
     },
@@ -2433,7 +2433,7 @@ const converters = {
                 action: 'up',
                 stepmode: msg.data.data.stepmode,
                 stepsize: msg.data.data.stepsize,
-                transtime: msg.data.data.transtime
+                transtime: msg.data.data.transtime,
             };
         },
     },
