@@ -2393,7 +2393,10 @@ const converters = {
         cid: 'genScenes',
         type: 'cmdRecall',
         convert: (model, msg, publish, options) => {
-            return msg.data.data;
+            return {
+                action: 'select',
+                sceneid: msg.data.data.sceneid
+            };
         },
     },
     GIRA2430_on_click: {
