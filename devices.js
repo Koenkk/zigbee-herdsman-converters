@@ -2707,6 +2707,7 @@ const devices = [
         model: '50043',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
+        supports: 'on/off',
         fromZigbee: [fz.state, fz.state_change],
         toZigbee: [tz.on_off],
     },
