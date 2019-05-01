@@ -244,13 +244,22 @@ const converters = {
                     }];
                 }
             } else if (type === 'get') {
-                return [{
-                    cid: 'genLevelCtrl',
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
-                    cfg: cfg.default,
-                }];
+                return [
+                    {
+                        cid: 'genOnOff',
+                        cmd: 'read',
+                        cmdType: 'foundation',
+                        zclData: [{attrId: zclId.attr('genOnOff', 'onOff').value}],
+                        cfg: cfg.default,
+                    },
+                    {
+                        cid: 'genLevelCtrl',
+                        cmd: 'read',
+                        cmdType: 'foundation',
+                        zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
+                        cfg: cfg.default,
+                    },
+                ];
             }
         },
     },
