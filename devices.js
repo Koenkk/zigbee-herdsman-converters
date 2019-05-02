@@ -888,6 +888,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LWB015'],
+        model: '530188',
+        vendor: 'Philips',
+        description: 'Hue white PAR38 outdoor',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LLC010'],
         model: '7199960PH',
         vendor: 'Philips',
