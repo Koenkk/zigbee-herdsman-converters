@@ -3117,6 +3117,24 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['WaterSensor-EM'],
+        model: 'HS1-WL-E',
+        vendor: 'HEIMAN',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.heiman_water_leak],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
         zigbeeModel: ['RC_V14'],
         model: 'HS1RC-M',
         vendor: 'HEIMAN',
