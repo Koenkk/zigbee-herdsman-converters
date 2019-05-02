@@ -2445,6 +2445,7 @@ const converters = {
             };
         },
     },
+
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
