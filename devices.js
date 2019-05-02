@@ -3914,8 +3914,8 @@ const devices = [
         zigbeeModel: [' Remote'],
         model: '2430-100',
         vendor: 'Gira',
-        description: 'Gira ZigBee Light Link',
-        supports: 'on/off',
+        description: 'ZigBee Light Link wall transmitter',
+        supports: 'action',
         fromZigbee: [
             fz.GIRA2430_scene_click, fz.GIRA2430_on_click, fz.GIRA2430_off_click, fz.GIRA2430_down_hold,
             fz.GIRA2430_up_hold, fz.GIRA2430_stop,
