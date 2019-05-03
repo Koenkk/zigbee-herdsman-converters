@@ -2682,6 +2682,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_nlg_plug_genBasic : {
+        cid: 'genBasic',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    }
 };
 
 module.exports = converters;
