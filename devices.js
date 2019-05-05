@@ -3268,9 +3268,9 @@ const devices = [
         zigbeeModel: ['NLG-plug '],
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
-        description: 'Q-PLUG Adapter Plug with night orientation light',
+        description: 'Q-PLUG adapter plug with night orientation light',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_nlg_plug_genBasic],
+        fromZigbee: [fz.ignore_basic_change],
         toZigbee: [tz.on_off],
     },
 
