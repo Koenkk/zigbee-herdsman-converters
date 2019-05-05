@@ -3264,6 +3264,15 @@ const devices = [
         description: 'Q-FLAG LED Panel, Smart-Home RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['NLG-plug '],
+        model: '100.425.90',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-PLUG adapter plug with night orientation light',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_change],
+        toZigbee: [tz.on_off],
+    },
 
     // iCasa
     {
