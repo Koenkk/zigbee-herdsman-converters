@@ -1635,6 +1635,7 @@ const devices = [
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
             fz.ignore_genScenes_change,
+            fz.ignore_light_color_colortemp_report,
         ]),
     },
     {
