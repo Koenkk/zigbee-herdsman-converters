@@ -906,7 +906,7 @@ const devices = [
         model: '324131092621',
         vendor: 'Philips',
         description: 'Hue dimmer switch',
-        supports: 'on/off, brightness up/down/hold/release',
+        supports: 'on/off, brightness, up/down/hold/release, click count',
         fromZigbee: [
             fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
             fz._324131092621_ignore_stop, fz._324131092621_notification,
