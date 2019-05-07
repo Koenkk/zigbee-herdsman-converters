@@ -661,15 +661,12 @@ const converters = {
         key: 'setpoint_raise_lower',
         convert: (key, value, message, type, postfix) => {
             const cid = 'hvacThermostat';
-            const attrId = 'setpointRaiseLower';
             if (type === 'set') {
                 return [{
                     cid: cid,
                     cmd: 'setpointRaiseLower',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Combine mode and amount in attrData?
                         mode: value.mode,
                         amount: Math.round(value.amount) * 100,
                     },
