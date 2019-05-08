@@ -1678,6 +1678,13 @@ const devices = [
         description: 'LIGHTIFY LED gardenspot mini RGB',
         extend: generic.light_onoff_brightness_colorxy,
     },
+	{
+        zigbeeModel: ['PAR38 W 10 year'],
+        model: '74580',
+        vendor: 'Sylvania',
+        description: 'Smart Home soft white PAR38 outdoor bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // GE
     {
