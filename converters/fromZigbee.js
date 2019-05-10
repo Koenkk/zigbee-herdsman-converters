@@ -2105,6 +2105,11 @@ const converters = {
         cid: 'genScenes',
         type: 'cmdTradfriArrowSingle',
         convert: (model, msg, publish, options) => {
+            if (msg.data.data.value === 2) {
+                // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
+                return;
+            }
+
             const direction = msg.data.data.value === 257 ? 'left' : 'right';
             return {action: `arrow_${direction}_click`};
         },
