@@ -1040,6 +1040,15 @@ const devices = [
             execute(device, [(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb)], callback);
         },
     },
+    {
+        zigbeeModel: ['ZB-RelayControl-1.0.0'],
+        model: 'SWITCH EDP RE:DY',
+        vendor: 'EDP',
+        description: 're:dy switch',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
 
     // Custom devices (DiY)
     {
