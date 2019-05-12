@@ -1033,11 +1033,15 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
-            execute(device, [(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb)], callback);
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
+            ]
+            execute(device, actions, callback);
         },
     },
     {
@@ -1046,9 +1050,16 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy switch',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_onoff_change],
+        fromZigbee: [fz.state,, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-    },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 85);
+            const actions = [
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
+            ]
+            execute(device, actions, callback);
+        },
+    }
 
     // Custom devices (DiY)
     {
