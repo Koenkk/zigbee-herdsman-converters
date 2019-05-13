@@ -3777,6 +3777,23 @@ const devices = [
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['MCT-340 E'],
+        model: 'MCT-340 E',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact, temperature',
+        fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 0}, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Sunricher
     {
