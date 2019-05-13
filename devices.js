@@ -1050,7 +1050,7 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy switch',
         supports: 'on/off',
-        fromZigbee: [fz.state,, fz.ignore_onoff_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
