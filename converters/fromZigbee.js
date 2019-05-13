@@ -1313,8 +1313,7 @@ const converters = {
             if (msg.data.data.hasOwnProperty('currentSummDelivered') ||
                 msg.data.data.hasOwnProperty('currentSummReceived')) {
                 const endpoint = msg.endpoints[0];
-                if (endpoint.clusters.has('seMetering'))
-                {
+                if (endpoint.clusters.has('seMetering')) {
                     const attrs = endpoint.clusters['seMetering'].attrs;
                     let energyFactor = 1;
                     if (attrs.multiplier && attrs.divisor) {
