@@ -1040,7 +1040,7 @@ const devices = [
             const actions = [
                 (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
                 (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
-            ]
+            ];
             execute(device, actions, callback);
         },
     },
@@ -1056,7 +1056,7 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 85);
             const actions = [
                 (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
-            ]
+            ];
             execute(device, actions, callback);
         },
     },
