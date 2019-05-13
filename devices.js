@@ -1059,7 +1059,7 @@ const devices = [
             ]
             execute(device, actions, callback);
         },
-    }
+    },
 
     // Custom devices (DiY)
     {
