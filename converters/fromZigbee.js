@@ -2302,52 +2302,65 @@ const converters = {
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
-    AC0251100NJ_on: {
+    AC0251100NJ_cmdOn: {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
             return {action: 'up'};
         },
     },
-    AC0251100NJ_off: {
+    AC0251100NJ_cmdOff: {
         cid: 'genOnOff',
         type: 'cmdOff',
         convert: (model, msg, publish, options) => {
             return {action: 'down'};
         },
     },
-    AC0251100NJ_on_hold: {
+    AC0251100NJ_cmdMoveWithOnOff: {
         cid: 'genLevelCtrl',
         type: 'cmdMoveWithOnOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'on_hold'};
+            return {action: 'up_hold'};
         },
     },
-    AC0251100NJ_off_hold: {
+    AC0251100NJ_cmdStop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            const map = {
+                1: 'up_release',
+                2: 'down_release',
+            };
+
+            return {action: map[msg.endpoints[0].epId]};
+        },
+    },
+    AC0251100NJ_cmdMove: {
         cid: 'genLevelCtrl',
         type: 'cmdMove',
         convert: (model, msg, publish, options) => {
-            return {action: 'off_hold'};
+            return {action: 'down_hold'};
         },
     },
-    AC0251100NJ_release: {
-        cid: 'genLevelCtrl',
-        type: 'cmdMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options) => {
-            return {action: 'circle_press'};
-        },
-    },
-
-    AC0251100NJ_circle_release: {
+    AC0251100NJ_cmdMoveHue: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveHue',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.movemode === 0) {
+                return {action: 'circle_release'};
+            }
+        },
+    },
+    AC0251100NJ_cmdMoveToSaturation: {
+        cid: 'lightingColorCtrl',
+        type: 'cmdMoveToSaturation',
         convert: (model, msg, publish, options) => {
             return {action: 'circle_hold'};
         },
     },
-    AC0251100NJ_circle: {
+    AC0251100NJ_cmdMoveToColorTemp: {
         cid: 'lightingColorCtrl',
-        type: 'cmdMoveToSaturation',
+        type: 'cmdMoveToColorTemp',
         convert: (model, msg, publish, options) => {
             return {action: 'circle_click'};
         },

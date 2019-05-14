@@ -1330,23 +1330,29 @@ const devices = [
         model: 'AC0251100NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
-        supports: 'on/off, brightness',
+        supports: 'circle, up, down and hold/release',
         fromZigbee: [
-            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_on_hold, fz.AC0251100NJ_off_hold,
-            fz.AC0251100NJ_release, fz.AC0251100NJ_circle, fz.AC0251100NJ_circle_release,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_cmdOn, fz.AC0251100NJ_cmdMoveWithOnOff, fz.AC0251100NJ_cmdStop,
+            fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
+            fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
+            const groupid = 1801;
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+            const ep3 = shepherd.find(ieeeAddr, 3);
+
             const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('lightingColorCtrl', coordinator, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep3.bind('lightingColorCtrl', coordinator, cb),
+                (cb) => ep1.bind('genPowerCfg', groupid, cb),
+                (cb) => ep1.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
             ];
-            execute(device, actions, callback);
+            execute(ep1, actions, callback);
         },
 
     },
