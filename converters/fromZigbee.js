@@ -2358,6 +2358,13 @@ const converters = {
             return {action: 'circle_hold'};
         },
     },
+    AC0251100NJ_cmdMoveToLevelWithOnOff: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'circle_click'};
+        },
+    },
     AC0251100NJ_cmdMoveToColorTemp: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColorTemp',

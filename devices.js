@@ -1335,6 +1335,7 @@ const devices = [
             fz.AC0251100NJ_cmdOn, fz.AC0251100NJ_cmdMoveWithOnOff, fz.AC0251100NJ_cmdStop,
             fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
             fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -1347,6 +1348,7 @@ const devices = [
                 (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
                 (cb) => ep2.bind('genOnOff', coordinator, cb),
                 (cb) => ep2.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep3.bind('genLevelCtrl', coordinator, cb),
                 (cb) => ep3.bind('lightingColorCtrl', coordinator, cb),
                 (cb) => ep1.bind('genPowerCfg', coordinator, cb),
                 (cb) => ep1.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
