@@ -1338,7 +1338,6 @@ const devices = [
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const groupid = 1801;
             const ep1 = shepherd.find(ieeeAddr, 1);
             const ep2 = shepherd.find(ieeeAddr, 2);
             const ep3 = shepherd.find(ieeeAddr, 3);
@@ -1349,7 +1348,7 @@ const devices = [
                 (cb) => ep2.bind('genOnOff', coordinator, cb),
                 (cb) => ep2.bind('genLevelCtrl', coordinator, cb),
                 (cb) => ep3.bind('lightingColorCtrl', coordinator, cb),
-                (cb) => ep1.bind('genPowerCfg', groupid, cb),
+                (cb) => ep1.bind('genPowerCfg', coordinator, cb),
                 (cb) => ep1.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
             ];
             execute(ep1, actions, callback);
