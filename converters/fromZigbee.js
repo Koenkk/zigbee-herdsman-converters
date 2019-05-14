@@ -2368,9 +2368,7 @@ const converters = {
     AC0251100NJ_cmdMoveToColorTemp: {
         cid: 'lightingColorCtrl',
         type: 'cmdMoveToColorTemp',
-        convert: (model, msg, publish, options) => {
-            return {action: 'circle_click'};
-        },
+        convert: (model, msg, publish, options) => null,
     },
     visonic_contact: {
         cid: 'ssIasZone',
