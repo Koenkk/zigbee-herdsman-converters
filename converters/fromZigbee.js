@@ -1341,7 +1341,7 @@ const converters = {
         cid: 'genOnOff',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {state: msg.data.data['onOff'] === 1};
+            return {state: true, led_state: msg.data.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
