@@ -3255,7 +3255,7 @@ const devices = [
         zigbeeModel: ['zhaTunW'],
         model: 'D1542',
         vendor: 'EcoSmart',
-        description: 'GU10 adjustable white Bulb ',
+        description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
