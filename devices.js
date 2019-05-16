@@ -3258,7 +3258,7 @@ const devices = [
         description: 'GU10 adjustable white Bulb ',
         extend: generic.light_onoff_brightness_colortemp,
     },
-	
+
     // Airam
     {
         zigbeeModel: ['ZBT-DimmableLight'],
