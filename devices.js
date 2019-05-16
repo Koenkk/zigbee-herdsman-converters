@@ -3251,7 +3251,7 @@ const devices = [
         description: 'A19 soft white bulb',
         extend: generic.light_onoff_brightness,
     },
-	{
+    {
         zigbeeModel: ['zhaTunW'],
         model: 'D1542',
         vendor: 'EcoSmart',
