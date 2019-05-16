@@ -3251,7 +3251,14 @@ const devices = [
         description: 'A19 soft white bulb',
         extend: generic.light_onoff_brightness,
     },
-
+	{
+        zigbeeModel: ['zhaTunW'],
+        model: 'D1542',
+        vendor: 'EcoSmart',
+        description: 'GU10 adjustable white Bulb ',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+	
     // Airam
     {
         zigbeeModel: ['ZBT-DimmableLight'],
