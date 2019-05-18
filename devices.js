@@ -1120,7 +1120,7 @@ const devices = [
         zigbeeModel: ['ZigUP'],
         model: 'ZigUP',
         vendor: 'formtapez',
-        description: '[CC2530 based multi-purpose ZigBee relais, switch, sensor and router](https://github.com/formtapez/ZigUP/)',
+        description: '[CC2530 based ZigBee relais, switch, sensor and router](https://github.com/formtapez/ZigUP/)',
         supports: 'Relais, RGB-Stripe, Sensors, S0-Counter, ADC, Digital I/O',
         fromZigbee: [fz.ZigUP_parse, fz.ignore_onoff_change],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],

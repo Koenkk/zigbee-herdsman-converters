@@ -1421,10 +1421,9 @@ const converters = {
             const lookup = {
                 'off': 'lockDoor',
                 'on': 'unlockDoor',
-                'toggle': 'toggleDoor'
+                'toggle': 'toggleDoor',
             };
             const cid = 'closuresDoorLock';
-            const attrId = 'lockState';
 
             if (type === 'set') {
                 if (typeof value !== 'string') {

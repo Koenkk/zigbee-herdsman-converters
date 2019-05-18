@@ -1396,7 +1396,7 @@ const converters = {
                 S0_Counts: msg.data.data['41364'],
                 ADC_Volt: precisionRound(msg.data.data['41365'], 3),
                 DIG_Input: msg.data.data['41366'],
-                Reason: lookup[msg.data.data['41367']]
+                Reason: lookup[msg.data.data['41367']],
             };
         },
     },
