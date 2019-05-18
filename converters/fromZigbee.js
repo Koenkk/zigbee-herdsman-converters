@@ -1378,6 +1378,28 @@ const converters = {
             return payload;
         },
     },
+    ZigUP_parse: {
+        cid: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const lookup = {
+                '0': 'Timer',
+                '1': 'Key',
+                '2': 'Dig-In',
+            };
+
+            return {
+                state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
+                CPU_Temp: precisionRound(msg.data.data['41361'], 2),
+                EXT_Temp: precisionRound(msg.data.data['41362'], 1),
+                EXT_Humi: precisionRound(msg.data.data['41363'], 1),
+                S0_Counts: msg.data.data['41364'],
+                ADC_Volt: precisionRound(msg.data.data['41365'], 3),
+                DIG_Input: msg.data.data['41366'],
+                Reason: lookup[msg.data.data['41367']]
+            };
+        },
+    },
     Z809A_power: {
         cid: 'haElectricalMeasurement',
         type: ['attReport', 'readRsp'],

@@ -1415,6 +1415,34 @@ const converters = {
             }
         },
     },
+    ZigUP_lock: {
+        key: ['led'],
+        convert: (key, value, message, type, postfix) => {
+            const lookup = {
+                'off': 'lockDoor',
+                'on': 'unlockDoor',
+                'toggle': 'toggleDoor'
+            };
+            const cid = 'closuresDoorLock';
+            const attrId = 'lockState';
+
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                return [{
+                    cid: cid,
+                    cmd: lookup[value],
+                    cmdType: 'functional',
+                    zclData: {
+                        'pincodevalue': '',
+                    },
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
 
     /**
      * Ignore converters
