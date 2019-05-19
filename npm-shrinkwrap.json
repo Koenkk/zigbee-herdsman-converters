@@ -1,6 +1,6 @@
 {
   "name": "zigbee-shepherd-converters",
-  "version": "7.2.8",
+  "version": "9.0.12",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -582,9 +582,9 @@
       "dev": true
     },
     "eslint": {
-      "version": "5.15.1",
-      "resolved": "https://registry.npmjs.org/eslint/-/eslint-5.15.1.tgz",
-      "integrity": "sha512-NTcm6vQ+PTgN3UBsALw5BMhgO6i5EpIjQF/Xb5tIh3sk9QhrFafujUOczGz4J24JBlzWclSB9Vmx8d+9Z6bFCg==",
+      "version": "5.15.2",
+      "resolved": "https://registry.npmjs.org/eslint/-/eslint-5.15.2.tgz",
+      "integrity": "sha512-I8VM4SILpMwUvsRt83bQVwIRQAJ2iPMXun1FVZ/lV1OHklH2tJaXqoDnNzdiFc6bnCtGKXvQIQNP3kj1eMskSw==",
       "dev": true,
       "requires": {
         "@babel/code-frame": "^7.0.0",
@@ -593,7 +593,7 @@
         "cross-spawn": "^6.0.5",
         "debug": "^4.0.1",
         "doctrine": "^3.0.0",
-        "eslint-scope": "^4.0.2",
+        "eslint-scope": "^4.0.3",
         "eslint-utils": "^1.3.1",
         "eslint-visitor-keys": "^1.0.0",
         "espree": "^5.0.1",
@@ -643,9 +643,9 @@
       "dev": true
     },
     "eslint-scope": {
-      "version": "4.0.2",
-      "resolved": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-4.0.2.tgz",
-      "integrity": "sha512-5q1+B/ogmHl8+paxtOKx38Z8LtWkVGuNt3+GQNErqwLl6ViNp/gdJGMCjZNxZ8j/VYjDNZ2Fo+eQc1TAVPIzbg==",
+      "version": "4.0.3",
+      "resolved": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-4.0.3.tgz",
+      "integrity": "sha512-p7VutNr1O/QrxysMo3E45FjYDTeXBy0iTltPFNSqKAIfjDSXC+4dj+qfyuD8bfAXrW/y6lW3O76VaYNPKfpKrg==",
       "dev": true,
       "requires": {
         "esrecurse": "^4.1.0",
@@ -1559,14 +1559,22 @@
       }
     },
     "mem": {
-      "version": "4.1.0",
-      "resolved": "https://registry.npmjs.org/mem/-/mem-4.1.0.tgz",
-      "integrity": "sha512-I5u6Q1x7wxO0kdOpYBB28xueHADYps5uty/zg936CiG8NTe5sJL8EjrCuLneuDW3PlMdZBGDIn8BirEVdovZvg==",
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/mem/-/mem-4.2.0.tgz",
+      "integrity": "sha512-5fJxa68urlY0Ir8ijatKa3eRz5lwXnRCTvo9+TbTGAuTFJOwpGcY0X05moBd0nW45965Njt4CDI2GFQoG8DvqA==",
       "dev": true,
       "requires": {
         "map-age-cleaner": "^0.1.1",
-        "mimic-fn": "^1.0.0",
+        "mimic-fn": "^2.0.0",
         "p-is-promise": "^2.0.0"
+      },
+      "dependencies": {
+        "mimic-fn": {
+          "version": "2.0.0",
+          "resolved": "https://registry.npmjs.org/mimic-fn/-/mimic-fn-2.0.0.tgz",
+          "integrity": "sha512-jbex9Yd/3lmICXwYT6gA/j2mNQGU48wCh/VzRd+/Y/PjYQtlg1gLMdZqvu9s/xH7qKvngxRObl56XZR609IMbA==",
+          "dev": true
+        }
       }
     },
     "micromatch": {
@@ -2780,8 +2788,8 @@
       }
     },
     "zcl-id": {
-      "version": "https://github.com/koenkk/zcl-id/tarball/77ba3058c6c4b09a9958761ae5e3046765c12872",
-      "integrity": "sha512-kyQZ6+5vv1NR2nMlJ5zahSCsjSvmLsZl3a7LTahIcZtLHpiOUxfAdueCyjJFkpsJgwxDea9OJj0ftIcQZQEwwQ==",
+      "version": "https://github.com/koenkk/zcl-id/tarball/4fa75c92424cd070a3bf6e1f4640b1e3ad8f802d",
+      "integrity": "sha512-Qn/it+05QRuufqavDYCFgpr2B7jha46WQyM29iKbtCVCHdCTpFad6FgkMTWIkBzmCkbsrV76uFIC5Nrlze8ZbA==",
       "requires": {
         "busyman": "^0.3.0",
         "enum": "^2.5.0"

@@ -35,9 +35,19 @@ const thermostatRunningStates = {
     14: 'cool',
     15: 'cool',
 };
+const fanMode = {
+    'off': 0,
+    'low': 1,
+    'medium': 2,
+    'high': 3,
+    'on': 4,
+    'auto': 5,
+    'smart': 6,
+};
 
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
     thermostatRunningStates,
+    fanMode,
 };
