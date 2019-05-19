@@ -10,8 +10,6 @@ const repInterval = {
     MINUTE: 60,
 };
 
-const coordinatorGroup = 99;
-
 const defaultIgnoreConverters = [
     fz.ignore_genGroups_devChange, fz.ignore_genIdentify_change, fz.ignore_genScenes_change,
     fz.ignore_diagnostic_change, fz.ignore_lightLink_change, fz.ignore_basic_change,
@@ -671,7 +669,6 @@ const devices = [
             };
 
             const actions = [
-                (cb) => device.bind('genOnOff', coordinatorGroup, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
