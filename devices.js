@@ -4021,6 +4021,30 @@ const devices = [
         ],
         toZigbee: [],
     },
+
+    // RGB genie
+    {
+        zigbeeModel: ['ZGRC-KEY-013'],
+        model: 'ZGRC-KEY-013',
+        vendor: 'RGB Genie',
+        description: '3 Zone remote and dimmer',
+        supports: 'click',
+        fromZigbee: [
+            fz.generic_battery, fz.ZGRC013_brightness_onoff, fz.ZGRC013_brightness, fz.ZGRC013_brightness_stop,
+            fz.ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>

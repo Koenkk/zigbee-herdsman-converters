@@ -2470,6 +2470,65 @@ const converters = {
             };
         },
     },
+    ZGRC013_cmdOn: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            const button = msg.endpoints[0].epId;
+            if (button) {
+                return {click: `${button}_on`};
+            }
+        },
+    },
+    ZGRC013_cmdOff: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            const button = msg.endpoints[0].epId;
+            if (button) {
+                return {click: `${button}_off`};
+            }
+        },
+    },
+    ZGRC013_brightness: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            const button = msg.endpoints[0].epId;
+            const direction = msg.data.data.movemode == 0 ? 'up' : 'down';
+            if (button) {
+                return {click: `${button}_${direction}`};
+            }
+        },
+    },
+    ZGRC013_brightness_onoff: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveWithOnOff',
+        convert: (model, msg, publish, options) => {
+            const button = msg.endpoints[0].epId;
+            const direction = msg.data.data.movemode == 0 ? 'up' : 'down';
+            if (button) {
+                return {click: `${button}_${direction}`};
+            }
+        },
+    },
+    ZGRC013_brightness_stop: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStopWithOnOff',
+        convert: (model, msg, publish, options) => {
+            const button = msg.endpoints[0].epId;
+            if (button) {
+                return {click: `${button}_stop`};
+            }
+        },
+    },
+    ZGRC013_scene: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
