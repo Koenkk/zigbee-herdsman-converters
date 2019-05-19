@@ -1390,13 +1390,13 @@ const converters = {
 
             return {
                 state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
-                CPU_Temp: precisionRound(msg.data.data['41361'], 2),
-                EXT_Temp: precisionRound(msg.data.data['41362'], 1),
-                EXT_Humi: precisionRound(msg.data.data['41363'], 1),
-                S0_Counts: msg.data.data['41364'],
-                ADC_Volt: precisionRound(msg.data.data['41365'], 3),
-                DIG_Input: msg.data.data['41366'],
-                Reason: lookup[msg.data.data['41367']],
+                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
+                external_temperature: precisionRound(msg.data.data['41362'], 1),
+                external_humidity: precisionRound(msg.data.data['41363'], 1),
+                s0_counts: msg.data.data['41364'],
+                adc_volt: precisionRound(msg.data.data['41365'], 3),
+                dig_input: msg.data.data['41366'],
+                reason: lookup[msg.data.data['41367']],
             };
         },
     },
