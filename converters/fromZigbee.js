@@ -1383,9 +1383,9 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const lookup = {
-                '0': 'Timer',
-                '1': 'Key',
-                '2': 'Dig-In',
+                '0': 'timer',
+                '1': 'key',
+                '2': 'dig-in',
             };
 
             return {
