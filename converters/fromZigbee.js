@@ -2551,6 +2551,15 @@ const converters = {
             return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
         },
     },
+    SZ_ESW01_AU_power: {
+        cid: 'seMetering',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
+                return {power: precisionRound(msg.data.data['instantaneousDemand'] / 1000, 2)}
+            }
+        }
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {

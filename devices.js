@@ -4077,6 +4077,28 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Sercomm
+    {
+        zigbeeModel: ['SZ-ESW01-AU'],
+        model: 'SZ-ESW01-AU',
+        vendor: 'Sercomm',
+        description: 'Telstra smart plug',
+        supports: 'on/off, power consumption',
+        fromZigbee: [fz.state, fz.state_change, fz.SZ_ESW01_AU_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
