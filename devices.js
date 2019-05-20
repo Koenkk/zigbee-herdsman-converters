@@ -3563,6 +3563,29 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['YRD256 TSDB'],
+        model: 'YRD256HA20BP',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [
+            fz.generic_lock,
+            fz.YMF40_lockstatus,
+            fz.battery_200,
+            fz.ignore_power_change,
+        ],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['iZBModule01'],
         model: 'YMF40',
         vendor: 'Yale',
