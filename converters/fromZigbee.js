@@ -2556,9 +2556,9 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
-                return {power: precisionRound(msg.data.data['instantaneousDemand'] / 1000, 2)}
+                return {power: precisionRound(msg.data.data['instantaneousDemand'] / 1000, 2)};
             }
-        }
+        },
     },
 
     // Ignore converters (these message dont need parsing).
