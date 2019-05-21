@@ -3041,6 +3041,15 @@ const devices = [
         fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
+    {
+        zigbeeModel: ['PSM_00.00.00.35TC'],
+        model: 'PSM-29ZBSR',
+        vendor: 'Climax',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state_report, fz.state_change],
+        toZigbee: [tz.on_off],
+    },
 
     // HEIMAN
     {
@@ -4098,6 +4107,29 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+
+    // Leedarson
+    {
+        zigbeeModel: ['LED_GU10_OWDT'],
+        model: 'ZM350STW1TCF',
+        vendor: 'Leedarson',
+        description: 'LED PAR16 50 GU10 tunable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['M350ST-W1R-01'],
+        model: 'M350STW1',
+        vendor: 'Leedarson',
+        description: 'LED PAR16 50 GU10 tunable white',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZHA-DimmableLight'],
+        model: 'A806S-Q1R',
+        vendor: 'Leedarson',
+        description: 'LED E27 tunable white',
+        extend: generic.light_onoff_brightness,
     },
 ];
 
