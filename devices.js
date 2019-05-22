@@ -2842,7 +2842,8 @@ const devices = [
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
             fz.ignore_basic_change, fz.bitron_thermostat_att_report,
-            fz.bitron_thermostat_dev_change, fz.bitron_battery,
+            fz.bitron_thermostat_dev_change, fz.bitron_battery_att_report,
+            fz.bitron_battery_dev_change,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
