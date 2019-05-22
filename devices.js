@@ -2111,7 +2111,7 @@ const devices = [
         zigbeeModel: ['FNB56-ZCW25FB1.9'],
         model: 'XY12S-15',
         vendor: 'Nue / 3A',
-        description: 'Smart light controller',
+        description: 'Smart light controller RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
