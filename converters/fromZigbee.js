@@ -245,16 +245,38 @@ const converters = {
             return {occupancy: true};
         },
     },
-    bitron_battery: {
+    bitron_battery_att_report: {
         cid: 'genPowerCfg',
-        type: ['attReport', 'readRsp'],
+        type: 'attReport',
         convert: (model, msg, publish, options) => {
-            const battery = {max: 3200, min: 2500};
-            const voltage = msg.data.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage,
-            };
+            const result = {};
+            if (typeof msg.data.data['batteryVoltage'] == 'number') {
+                const battery = {max: 3200, min: 2500};
+                const voltage = msg.data.data['batteryVoltage'] * 100;
+                result.battery = toPercentage(voltage, battery.min, battery.max);
+                result.voltage = voltage;
+            }
+            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
+                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
+            }
+            return result;
+        },
+    },
+    bitron_battery_dev_change: {
+        cid: 'genPowerCfg',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data.data['batteryVoltage'] == 'number') {
+                const battery = {max: 3200, min: 2500};
+                const voltage = msg.data.data['batteryVoltage'] * 100;
+                result.battery = toPercentage(voltage, battery.min, battery.max);
+                result.voltage = voltage;
+            }
+            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
+                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
+            }
+            return result;
         },
     },
     bitron_thermostat_att_report: {
