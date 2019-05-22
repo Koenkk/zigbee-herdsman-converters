@@ -4139,6 +4139,15 @@ const devices = [
         description: 'LED E27 tunable white',
         extend: generic.light_onoff_brightness,
     },
+
+    // GMY
+    {
+        zigbeeModel: ['CCT box'],
+        model: 'B07KG5KF5R',
+        vendor: 'GMY Smart Bulb',
+        description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 ];
 
 module.exports = devices.map((device) =>
