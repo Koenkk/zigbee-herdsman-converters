@@ -3094,6 +3094,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['WarningDevice'],
+        model: 'HS1WD',
+        description: 'Smart indoor light siren',
+        supports: 'on/off',
+        vendor: 'HEIMAN',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+    },
+    {
         zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10', 'SmokeSensor-EM'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
