@@ -3085,7 +3085,7 @@ const devices = [
     {
         zigbeeModel: ['WarningDevice'],
         model: 'HS1WD',
-        description: 'Smart Indoor Light Siren',
+        description: 'Smart indoor light siren',
         supports: 'on/off',
         vendor: 'HEIMAN',
         fromZigbee: [fz.state],
