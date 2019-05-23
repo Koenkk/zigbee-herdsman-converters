@@ -3166,6 +3166,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['DOOR_TPV13'],
+        model: 'HEIMAN-M1',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.heiman_contact],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['DoorSensor-EM'],
         model: 'HS1DS-E',
         vendor: 'HEIMAN',
