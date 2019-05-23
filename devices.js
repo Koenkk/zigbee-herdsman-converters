@@ -3029,7 +3029,18 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-
+    
+    // Blaupunkt
+    {
+        zigbeeModel: ['SCM-R_00.00.03.15TC'],
+        model: 'SCM-S1',
+        vendor: 'Blaupunkt',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+    
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
