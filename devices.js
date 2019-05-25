@@ -4255,8 +4255,8 @@ const devices = [
     // Meazon Plug and DinRail meters
     {
         zigbeeModel: ['101.301.001649', '102.106.000235', '101.301.001838', '101.301.001802', '101.301.001738',
-           '102.106.001111', '102.106.000348', '101.301.001412', '101.301.001765', '101.301.001814',
-           '102.106.000256', '102.106.001242'],
+            '102.106.001111', '102.106.000348', '101.301.001412', '101.301.001765', '101.301.001814',
+            '102.106.000256', '102.106.001242'],
         model: 'Plug/DinRail',
         vendor: 'Meazon',
         description: 'Plug/DinRail',
@@ -4270,16 +4270,16 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 10);
             const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
             const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
-              maxRepIntval: 300, repChange: 1};
+                maxRepIntval: 300, repChange: 1};
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
                 (cb) => device.bind('seMetering', coordinator, cb),
                 (cb) => device.foundation('seMetering', 'write',
-                   [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
-                   {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
                 (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
-                   {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
             ];
 
             execute(device, actions, callback);
