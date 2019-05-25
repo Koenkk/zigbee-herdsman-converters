@@ -2583,66 +2583,66 @@ const converters = {
         },
     },
     meazon_meter: {
-         cid: 'seMetering',
-         type: ['attReport', 'readRsp'],
-         convert: (model, msg, publish, options) => {
-             const result = {};
+        cid: 'seMetering',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
 
-             if (msg.data.data.hasOwnProperty('inletTempreature')) {
-                 result.inletTemperature = precisionRound(msg.data.data['inletTempreature'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('inletTempreature')) {
+               result.inletTemperature = precisionRound(msg.data.data['inletTempreature'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('status')) {
-                 result.status = precisionRound(msg.data.data['status'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('status')) {
+               result.status = precisionRound(msg.data.data['status'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8192')) {
-                 result.linefrequency = precisionRound((parseFloat(msg.data.data['8192'])) / 100.0, 2);
-             }
+            if (msg.data.data.hasOwnProperty('8192')) {
+               result.linefrequency = precisionRound((parseFloat(msg.data.data['8192'])) / 100.0, 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8193')) {
-                 result.activepower = precisionRound(msg.data.data['8193'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8193')) {
+               result.activepower = precisionRound(msg.data.data['8193'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8196')) {
-                 result.voltage = precisionRound(msg.data.data['8196'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8196')) {
+               result.voltage = precisionRound(msg.data.data['8196'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8213')) {
-                 result.voltage = precisionRound(msg.data.data['8213'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8213')) {
+               result.voltage = precisionRound(msg.data.data['8213'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8199')) {
-                 result.current = precisionRound(msg.data.data['8199'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8199')) {
+               result.current = precisionRound(msg.data.data['8199'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8216')) {
-                 result.current = precisionRound(msg.data.data['8216'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8216')) {
+               result.current = precisionRound(msg.data.data['8216'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('8202')) {
-                 result.reactivepower = precisionRound(msg.data.data['8202'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('8202')) {
+               result.reactivepower = precisionRound(msg.data.data['8202'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('12288')) {
-                 result.energyconsumed = precisionRound(msg.data.data['12288'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('12288')) {
+               result.energyconsumed = precisionRound(msg.data.data['12288'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('12291')) {
-                 result.energyproduced = precisionRound(msg.data.data['12291'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('12291')) {
+               result.energyproduced = precisionRound(msg.data.data['12291'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('12294')) {
-                 result.reactivesummation = precisionRound(msg.data.data['12294'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('12294')) {
+               result.reactivesummation = precisionRound(msg.data.data['12294'], 2);
+            }
 
-             if (msg.data.data.hasOwnProperty('16408')) {
-                 result.measureserial = precisionRound(msg.data.data['16408'], 2);
-             }
+            if (msg.data.data.hasOwnProperty('16408')) {
+               result.measureserial = precisionRound(msg.data.data['16408'], 2);
+            }
 
-             return result;
-         },
-     },
+            return result;
+        },
+    },
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
