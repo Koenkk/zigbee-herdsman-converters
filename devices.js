@@ -3072,6 +3072,33 @@ const devices = [
 
     // HEIMAN
     {
+        zigbeeModel: ['PIRSensor-N'],
+        model: 'HS3MS',
+        vendor: 'HEIMAN',
+        description: 'Smart Motion Sesnsor',
+        supports: 'Motion',
+        fromZigbee: [fz.heiman_pir],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['DoorSensor-N'],
+        model: 'HS3DS',
+        vendor: 'HEIMAN',
+        description: 'Smart Door Sesnsor',
+        supports: 'Contact',
+        fromZigbee: [fz.heiman_contact],
+        toZigbee: [],
+    },
+     {
+        zigbeeModel: ['WaterSensor-N'],
+        model: 'HS3WL',
+        vendor: 'HEIMAN',
+        description: 'Smart Water Leakage Sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.heiman_water_leak],
+        toZigbee: [],
+    },   
+    {
         zigbeeModel: ['SmartPlug'],
         model: 'HS2SK',
         description: 'Smart metering plug',
