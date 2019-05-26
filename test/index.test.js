@@ -4,7 +4,7 @@ const index = require('../index');
 describe('index.js', () => {
     it('Find device by model ID', () => {
         const device = index.findByZigbeeModel('WaterSensor-N');
-        chai.assert.strictEqual(device.model, 'HS1WL');
+        chai.assert.strictEqual(device.model, 'HS1WL/HS3WL');
     });
 
     it('Find device by model ID with strange characters', () => {
