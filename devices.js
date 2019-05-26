@@ -1370,6 +1370,14 @@ const devices = [
         },
 
     },
+    {
+        zigbeeModel: ['SubstiTube'],
+        model: 'ST8AU-CON',
+        vendor: 'OSRAM',
+        description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
+        extend: generic.light_onoff_brightness,
+    },
+
 
     // Hive
     {
