@@ -1127,6 +1127,18 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    heiman_pir: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                occupancy: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Motion detection
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
     heiman_smoke: {
         cid: 'ssIasZone',
         type: 'statusChange',
