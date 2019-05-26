@@ -3081,24 +3081,6 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['DoorSensor-N'],
-        model: 'HS3DS',
-        vendor: 'HEIMAN',
-        description: 'Smart door sensor',
-        supports: 'contact',
-        fromZigbee: [fz.heiman_contact],
-        toZigbee: [],
-    },
-    {
-        zigbeeModel: ['WaterSensor-N'],
-        model: 'HS3WL',
-        vendor: 'HEIMAN',
-        description: 'Smart water leakage sensor',
-        supports: 'water leak',
-        fromZigbee: [fz.heiman_water_leak],
-        toZigbee: [],
-    },
-    {
         zigbeeModel: ['SmartPlug'],
         model: 'HS2SK',
         description: 'Smart metering plug',
@@ -3194,7 +3176,7 @@ const devices = [
     },
     {
         zigbeeModel: ['DoorSensor-N'],
-        model: 'HS1DS',
+        model: 'HS1DS/HS3DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
@@ -3230,7 +3212,7 @@ const devices = [
     },
     {
         zigbeeModel: ['WaterSensor-N'],
-        model: 'HS1WL',
+        model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
         supports: 'water leak',
