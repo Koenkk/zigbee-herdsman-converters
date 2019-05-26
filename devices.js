@@ -3056,6 +3056,17 @@ const devices = [
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
 
+    // Lupus
+    {
+        zigbeeModel: ['SCM_00.00.03.11TC'],
+        model: '12031',
+        vendor: 'Lupus',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
@@ -3116,15 +3127,6 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },
-    {
-        zigbeeModel: ['WarningDevice'],
-        model: 'HS1WD',
-        description: 'Smart indoor light siren',
-        supports: 'on/off',
-        vendor: 'HEIMAN',
-        fromZigbee: [fz.state],
-        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10', 'SmokeSensor-EM'],
@@ -3199,7 +3201,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['DOOR_TPV13'],
+        zigbeeModel: ['DOOR_TPV13'], // FIX-NEEDED-INVERTED-STATUS
         model: 'HEIMAN-M1',
         vendor: 'HEIMAN',
         description: 'Door sensor',
