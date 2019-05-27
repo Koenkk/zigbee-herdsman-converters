@@ -1129,6 +1129,18 @@ const devices = [
         fromZigbee: [fz.ZigUP_parse, fz.ignore_onoff_change],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
     },
+    {
+        zigbeeModel: ['DIYRUZ_R4_5'],
+        model: 'DIYRUZ_R4_5',
+        vendor: 'Custom devices (DiY)',
+        description: '[DiY 4 Relay + 4 switches + 1 buzz](http://modkam.ru/?p=1054)',
+        supports: 'on/off',
+        fromZigbee: [fz.DNCKAT_S00X_state],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
+        },
+    },
 
     // eCozy
     {
