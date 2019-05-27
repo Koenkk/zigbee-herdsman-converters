@@ -4252,14 +4252,45 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
-    // Meazon Plug and DinRail meters
+    // Meazon Bizy Plug meter
     {
-        zigbeeModel: ['101.301.001649', '102.106.000235', '101.301.001838', '101.301.001802', '101.301.001738',
-            '102.106.001111', '102.106.000348', '101.301.001412', '101.301.001765', '101.301.001814',
-            '102.106.000256', '102.106.001242'],
-        model: 'Plug/DinRail',
+        zigbeeModel: ['101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738',
+            '101.301.001412', '101.301.001765', '101.301.001814', '102.106.000256'],
+        model: 'Plug',
         vendor: 'Meazon',
-        description: 'Plug/DinRail',
+        description: 'Plug meter',
+        supports: 'on/off, power, energy measurement and temperature',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.meazon_meter, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 10);
+            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
+            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
+                maxRepIntval: 300, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('seMetering', coordinator, cb),
+                (cb) => device.foundation('seMetering', 'write',
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Meazon DinRail 1-Phase meter
+    {
+        zigbeeModel: ['102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242'],
+        model: 'DinRail',
+        vendor: 'Meazon',
+        description: 'DinRail meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,

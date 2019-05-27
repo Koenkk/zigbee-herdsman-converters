@@ -2587,7 +2587,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
-
+            // typo on property name to stick with zcl definition
             if (msg.data.data.hasOwnProperty('inletTempreature')) {
                 result.inletTemperature = precisionRound(msg.data.data['inletTempreature'], 2);
             }
