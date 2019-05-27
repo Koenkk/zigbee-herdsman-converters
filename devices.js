@@ -1133,7 +1133,7 @@ const devices = [
         zigbeeModel: ['DIYRUZ_R4_5'],
         model: 'DIYRUZ_R4_5',
         vendor: 'Custom devices (DiY)',
-        description: '[DiY 4 Relay + 4 switches + 1 buzz](http://modkam.ru/?p=1054)',
+        description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
         supports: 'on/off',
         fromZigbee: [fz.DNCKAT_S00X_state],
         toZigbee: [tz.on_off],
