@@ -1520,7 +1520,7 @@ const devices = [
         zigbeeModel: ['RB 145'],
         model: 'RB 145',
         vendor: 'Innr',
-        description: 'E14 Candle',
+        description: 'E14 candle',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1534,14 +1534,14 @@ const devices = [
         zigbeeModel: ['RB 248 T'],
         model: 'RB 248 T',
         vendor: 'Innr',
-        description: 'E14 Candle with white spectrum',
+        description: 'E14 candle with white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['BY 165', 'BY 265'],
         model: 'BY 165',
         vendor: 'Innr',
-        description: 'B22 Bulb dimmable',
+        description: 'B22 bulb dimmable',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1562,7 +1562,7 @@ const devices = [
         zigbeeModel: ['UC 110'],
         model: 'UC 110',
         vendor: 'Innr',
-        description: 'Under Cabinet Light',
+        description: 'Under cabinet light',
         extend: generic.light_onoff_brightness,
     },
     {
