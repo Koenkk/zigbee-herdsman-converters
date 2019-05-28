@@ -3087,6 +3087,32 @@ const devices = [
 
     // HEIMAN
     {
+        zigbeeModel: ['CO_V15'],
+        model: 'HS1CA-M',
+        description: 'Smart Carbon Monoxide Sensor',
+        supports: 'carbon monoxyde',
+        vendor: 'HEIMAN',
+        fromZigbee: [
+            fz.heiman_co,
+            fz.battery_200,
+            fz.ignore_power_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
         zigbeeModel: ['PIRSensor-N'],
         model: 'HS3MS',
         vendor: 'HEIMAN',

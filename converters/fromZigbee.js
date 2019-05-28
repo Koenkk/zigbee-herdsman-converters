@@ -1245,6 +1245,17 @@ const converters = {
             };
         },
     },
+    heiman_co: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                co: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
+            };
+        },
+    },
     JTQJBF01LMBW_gas: {
         cid: 'ssIasZone',
         type: 'statusChange',
