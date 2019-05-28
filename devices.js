@@ -3089,14 +3089,10 @@ const devices = [
     {
         zigbeeModel: ['CO_V15'],
         model: 'HS1CA-M',
-        description: 'Smart Carbon Monoxide Sensor',
-        supports: 'carbon monoxyde',
+        description: 'Smart carbon monoxide sensor',
+        supports: 'carbon monoxide',
         vendor: 'HEIMAN',
-        fromZigbee: [
-            fz.heiman_co,
-            fz.battery_200,
-            fz.ignore_power_change,
-        ],
+        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200, fz.ignore_power_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
