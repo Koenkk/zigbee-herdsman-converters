@@ -152,7 +152,7 @@ const converters = {
             return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
         },
     },
-    YMF40_lockstatus: {
+    generic_lock_operation_event: {
         cid: 'closuresDoorLock',
         type: 'cmdOperationEventNotification',
         convert: (model, msg, publish, options) => {
