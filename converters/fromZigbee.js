@@ -2601,7 +2601,7 @@ const converters = {
             }
 
             if (msg.data.data.hasOwnProperty('8193')) {
-                result.activepower = precisionRound(msg.data.data['8193'], 2);
+                result.power = precisionRound(msg.data.data['8193'], 2);
             }
 
             if (msg.data.data.hasOwnProperty('8196')) {
