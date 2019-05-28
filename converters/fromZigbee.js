@@ -2902,6 +2902,11 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
+    ignore_genLevelCtrl_report: {
+        cid: 'genLevelCtrl',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => null,
+    },
 };
 
 module.exports = converters;

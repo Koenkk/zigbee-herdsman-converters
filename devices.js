@@ -610,7 +610,7 @@ const devices = [
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
