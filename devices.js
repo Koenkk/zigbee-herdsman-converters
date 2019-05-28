@@ -3623,7 +3623,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
+        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3661,7 +3661,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [
             fz.generic_lock,
-            fz.YMF40_lockstatus,
+            fz.generic_lock_operation_event,
             fz.battery_200,
             fz.ignore_power_change,
         ],
@@ -3682,7 +3682,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.YMF40_lockstatus],
+        fromZigbee: [fz.generic_lock_operation_event],
         toZigbee: [tz.generic_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
