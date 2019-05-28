@@ -3818,7 +3818,7 @@ const devices = [
         zigbeeModel: ['3011'],
         model: 'NCZ-3011-HA',
         vendor: 'Nyce',
-        description: 'Door/Window sensor',
+        description: 'Door/window sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
             fz.ignore_basic_report,
@@ -4252,13 +4252,15 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
-    // Meazon Bizy Plug meter
+    // Meazon
     {
-        zigbeeModel: ['101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738',
-            '101.301.001412', '101.301.001765', '101.301.001814'],
-        model: 'Plug',
+        zigbeeModel: [
+            '101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738',
+            '101.301.001412', '101.301.001765', '101.301.001814',
+        ],
+        model: 'MEAZON_BIZY_PLUG',
         vendor: 'Meazon',
-        description: 'Plug meter',
+        description: 'Bizy plug meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
@@ -4284,13 +4286,11 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-
-    // Meazon DinRail 1-Phase meter
     {
         zigbeeModel: ['102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242'],
-        model: 'DinRail',
+        model: 'MEAZON_DINRAIL',
         vendor: 'Meazon',
-        description: 'DinRail meter',
+        description: 'DinRail 1-phase meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
@@ -4316,7 +4316,6 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-
 ];
 
 module.exports = devices.map((device) =>
