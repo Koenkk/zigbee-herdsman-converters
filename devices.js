@@ -3853,6 +3853,30 @@ const devices = [
 
     // Nyce
     {
+        zigbeeModel: ['3011'],
+        model: 'NCZ-3011-HA',
+        vendor: 'Nyce',
+        description: 'Door/window sensor',
+        supports: 'motion, humidity and temperature',
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
+            fz.generic_battery_change, fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.ias_contact_status_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['3043'],
         model: 'NCZ-3043-HA',
         vendor: 'Nyce',
@@ -4264,6 +4288,71 @@ const devices = [
         vendor: 'GMY Smart Bulb',
         description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+
+    // Meazon
+    {
+        zigbeeModel: [
+            '101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738',
+            '101.301.001412', '101.301.001765', '101.301.001814',
+        ],
+        model: 'MEAZON_BIZY_PLUG',
+        vendor: 'Meazon',
+        description: 'Bizy plug meter',
+        supports: 'on/off, power, energy measurement and temperature',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.meazon_meter, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 10);
+            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
+            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
+                maxRepIntval: 300, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('seMetering', coordinator, cb),
+                (cb) => device.foundation('seMetering', 'write',
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242'],
+        model: 'MEAZON_DINRAIL',
+        vendor: 'Meazon',
+        description: 'DinRail 1-phase meter',
+        supports: 'on/off, power, energy measurement and temperature',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.meazon_meter, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 10);
+            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
+            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
+                maxRepIntval: 300, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('seMetering', coordinator, cb),
+                (cb) => device.foundation('seMetering', 'write',
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 ];
 
