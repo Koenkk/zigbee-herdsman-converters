@@ -1524,6 +1524,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['RB 245'],
+        model: 'RB 245',
+        vendor: 'Innr',
+        description: 'E14 Candle',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RB 248 T'],
         model: 'RB 248 T',
         vendor: 'Innr',
