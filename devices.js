@@ -3602,7 +3602,11 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
+        fromZigbee: [
+            fz.generic_lock,
+            fz.YMF40_lockstatus,
+            fz.battery_200,
+        ],
         toZigbee: [tz.generic_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
