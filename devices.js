@@ -1221,7 +1221,9 @@ const devices = [
         model: 'AA68199',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: generic.light_onoff_brightness_colortemp,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.osram_cmds]),
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
     },
     {
         zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
