@@ -1,6 +1,6 @@
 {
   "name": "zigbee-shepherd-converters",
-  "version": "9.0.18",
+  "version": "9.0.19",
   "description": "Collection of device converters to be used with zigbee-shepherd",
   "main": "index.js",
   "files": [
