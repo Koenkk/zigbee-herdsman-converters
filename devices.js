@@ -1015,6 +1015,13 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['LLC014'],
+        model: '7099860PH',
+        vendor: 'Philips',
+        description: 'LivingColors Aura',
+        extend: hue.light_onoff_brightness_colorxy,
+    },
 
     // Belkin
     {
