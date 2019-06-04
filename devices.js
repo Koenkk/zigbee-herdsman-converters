@@ -3346,13 +3346,20 @@ const devices = [
 
     // Calex
     {
-        zigbeeModel: ['EC-Z3.0-CCT '],
+        zigbeeModel: ['EC-Z3.0-CCT'],
         model: '421786',
         vendor: 'Calex',
         description: 'LED A60 Zigbee GLS-lamp',
         extend: generic.light_onoff_brightness,
     },
-
+    {
+        zigbeeModel: ['EC-Z3.0-RGBW'],
+        model: '421792',
+        vendor: 'Calex',
+        description: 'LED A60 Zigbee RGB lamp',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    
     // EcoSmart
     {
         zigbeeModel: ['zhaRGBW'],
