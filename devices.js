@@ -215,6 +215,7 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
+        // eslint-disable-next-line
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'on/off',
         fromZigbee: [
@@ -243,6 +244,7 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
+        // eslint-disable-next-line
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
