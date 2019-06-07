@@ -608,7 +608,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603',
+        model: 'E1603/E1702',
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
