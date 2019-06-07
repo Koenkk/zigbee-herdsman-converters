@@ -1024,6 +1024,13 @@ const devices = [
         description: 'LivingColors Aura',
         extend: hue.light_onoff_brightness_colorxy,
     },
+    {
+        zigbeeModel: ['LTC014'],
+        model: '3216231P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
 
     // Belkin
     {
