@@ -658,7 +658,7 @@ const devices = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
-        supports: 'on, off',
+        supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
             fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
