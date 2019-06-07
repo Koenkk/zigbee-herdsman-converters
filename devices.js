@@ -215,7 +215,8 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
-        description: 'Aqara single key wired wall switch',
+        // eslint-disable-next-line
+        description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'on/off',
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change,
@@ -243,7 +244,8 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
-        description: 'Aqara double key wired wall switch',
+        // eslint-disable-next-line
+        description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
@@ -274,7 +276,7 @@ const devices = [
         zigbeeModel: ['lumi.sens'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
-        description: 'MiJia temperature & humidity sensor ',
+        description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.xiaomi_humidity,
