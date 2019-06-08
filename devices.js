@@ -3201,7 +3201,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['DOOR_TPV13'], // FIX-NEEDED-INVERTED-STATUS
+        zigbeeModel: ['DOOR_TPV13'],
         model: 'HEIMAN-M1',
         vendor: 'HEIMAN',
         description: 'Door sensor',
