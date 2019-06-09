@@ -1453,6 +1453,13 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['TWBulb01US'],
+        model: 'HV-GSCXZB269',
+        vendor: 'Hive',
+        description: 'Active light cool to warm white (E26) ',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Innr
     {
