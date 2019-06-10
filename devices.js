@@ -706,7 +706,7 @@ const devices = [
         description: 'TRADFRI signal repeater',
         supports: '',
         vendor: 'IKEA',
-        fromZigbee: [],
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_diagnostic_change],
         toZigbee: [],
     },
 
