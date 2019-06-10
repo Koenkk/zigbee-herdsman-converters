@@ -2108,6 +2108,28 @@ const devices = [
             });
         },
     },
+     {
+        zigbeeModel: ['FB56+ZSW1IKJ2.5'],
+        model: 'HGZB-043',
+        vendor: 'Nue / 3A',
+        description: 'Smart light switch - 3 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 16, 'center': 17, 'bottom': 18};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep16 = shepherd.find(ieeeAddr, 16);
+            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
+                const ep17 = shepherd.find(ieeeAddr, 17);
+                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], () => {
+                    const ep18 = shepherd.find(ieeeAddr, 18);
+                    execute(ep18, [(cb) => ep18.bind('genOnOff', coordinator, cb)], callback);
+                });
+            });
+        },
+    },
     {
         zigbeeModel: ['FB56+ZSC05HG1.0'],
         model: 'HGZB-04D',
