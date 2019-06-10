@@ -2087,7 +2087,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1IKJ1.7'],
+        zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
