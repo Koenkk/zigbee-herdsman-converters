@@ -3368,7 +3368,7 @@ const devices = [
             ];
 
             execute(device, actions, callback, 1000);
-         },        
+        },
     },
 
     // Oujiabao
