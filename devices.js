@@ -2200,7 +2200,7 @@ const devices = [
         zigbeeModel: ['FNB56-ZCW25FB1.6'],
         model: 'HGZB-06A',
         vendor: 'Nue / 3A',
-        description: 'Zigbee White and Colour Bulb',
+        description: 'Smart 7W E27 light bulb',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
