@@ -968,6 +968,15 @@ const converters = {
             }
         },
     },
+    QBKG04LM_buttons: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.endpoints[0].epId == 4) {
+                return {action: msg.data.data['onOff'] === 1 ? 'release' : 'hold'};
+            }
+        },
+    },
     QBKG04LM_QBKG11LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
