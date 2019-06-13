@@ -973,7 +973,7 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             if (msg.endpoints[0].epId == 4) {
-                return {button_single: msg.data.data['onOff'] === 1 ? 'release' : 'hold'};
+                return {action: msg.data.data['onOff'] === 1 ? 'release' : 'hold'};
             }
         },
     },
