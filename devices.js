@@ -2196,6 +2196,13 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['FNB56-ZCW25FB1.6'],
+        model: 'HGZB-06A',
+        vendor: 'Nue / 3A',
+        description: 'Zigbee White and Colour Bulb',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Smart Home Pty
     {
