@@ -509,6 +509,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
+        model: 'LED1733G7',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
