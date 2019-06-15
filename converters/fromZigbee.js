@@ -1113,7 +1113,10 @@ const converters = {
                 running = msg.data.data['61440'] !== 0;
             }
 
-            const position = precisionRound(msg.data.data['presentValue'], 2);
+            let position = precisionRound(msg.data.data['presentValue'], 2);
+            if (options && options.reverse) {
+                position = 100 - position
+            }
             return {position: position, running: running};
         },
     },
@@ -1127,7 +1130,10 @@ const converters = {
                 running = msg.data.data['61440'] !== 0;
             }
 
-            const position = precisionRound(msg.data.data['presentValue'], 2);
+            let position = precisionRound(msg.data.data['presentValue'], 2);
+            if (options && options.reverse) {
+                position = 100 - position
+            }
             return {position: position, running: running};
         },
     },
