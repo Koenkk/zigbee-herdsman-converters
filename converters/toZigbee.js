@@ -18,6 +18,10 @@ const cfg = {
         manufSpec: 1,
         manufCode: 4151,
     },
+    hue: {
+        manufSpec: 1,
+        manufCode: 4107,
+    },
     osram: {
         manufSpec: 1,
         manufCode: 0x110c,
@@ -1411,6 +1415,40 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    hue_sensitivity: {
+        // motion detect sensitivity, philips specific
+        key: ['motion_sensitivity'],
+        convert: (key, value, message, type, postfix) => {
+            const cid = 'msOccupancySensing'; // 1030
+            const attrId = 48;
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 32,
+                        // hue_sml:
+                        // 0: low, 1: medium, 2: high (default)
+                        // make sure you write to second endpoint!
+                        attrData: value,
+                    }],
+                    cfg: cfg.hue,
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                    }],
+                    cfg: cfg.hue,
                 }];
             }
         },
