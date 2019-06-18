@@ -968,6 +968,15 @@ const converters = {
             }
         },
     },
+    QBKG04LM_buttons: {
+        cid: 'genOnOff',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => {
+            if (msg.endpoints[0].epId == 4) {
+                return {action: msg.data.data['onOff'] === 1 ? 'release' : 'hold'};
+            }
+        },
+    },
     QBKG04LM_QBKG11LM_operation_mode: {
         cid: 'genBasic',
         type: 'devChange',
@@ -1350,32 +1359,37 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
+            const endpoint = msg.endpoints[0];
+            let factor = null;
 
-            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
-                result.power = precisionRound(msg.data.data['instantaneousDemand'], 2);
+            if (endpoint.clusters.has('seMetering')) {
+                const attrs = endpoint.clusters['seMetering'].attrs;
+
+                if (attrs.multiplier && attrs.divisor) {
+                    factor = attrs.multiplier / attrs.divisor;
+                }
             }
 
-            if (msg.data.data.hasOwnProperty('currentSummDelivered') ||
-                msg.data.data.hasOwnProperty('currentSummReceived')) {
-                const endpoint = msg.endpoints[0];
-                if (endpoint.clusters.has('seMetering')) {
-                    const attrs = endpoint.clusters['seMetering'].attrs;
-                    let energyFactor = 1;
-                    if (attrs.multiplier && attrs.divisor) {
-                        energyFactor = attrs.multiplier / attrs.divisor;
-                    }
+            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
+                let power = msg.data.data['instantaneousDemand'];
+                if (factor != null) {
+                    power = (power * factor) * 1000; // kWh to Watt
+                }
+                result.power = precisionRound(power, 2);
+            }
 
-                    result.energy = 0;
-                    if (msg.data.data.hasOwnProperty('currentSummDelivered')) {
-                        const data = msg.data.data['currentSummDelivered'];
-                        const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                        result.energy += value * energyFactor;
-                    }
-                    if (msg.data.data.hasOwnProperty('currentSummReceived')) {
-                        const data = msg.data.data['currentSummReceived'];
-                        const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                        result.energy -= value * energyFactor;
-                    }
+            if (factor != null && (msg.data.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.data.hasOwnProperty('currentSummReceived'))) {
+                result.energy = 0;
+                if (msg.data.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy += value * factor;
+                }
+                if (msg.data.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data.data['currentSummReceived'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy -= value * factor;
                 }
             }
 

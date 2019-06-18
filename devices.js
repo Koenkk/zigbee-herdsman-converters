@@ -215,10 +215,11 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
-        description: 'Aqara single key wired wall switch',
-        supports: 'on/off',
+        // eslint-disable-next-line
+        description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
+        supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change,
+            fz.QBKG04LM_QBKG11LM_state, fz.QBKG04LM_buttons,
             fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -243,7 +244,8 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
-        description: 'Aqara double key wired wall switch',
+        // eslint-disable-next-line
+        description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
@@ -274,7 +276,7 @@ const devices = [
         zigbeeModel: ['lumi.sens'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
-        description: 'MiJia temperature & humidity sensor ',
+        description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
             fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.xiaomi_humidity,
@@ -507,6 +509,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
+        model: 'LED1733G7',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
@@ -606,7 +615,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603',
+        model: 'E1603/E1702',
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
@@ -656,7 +665,7 @@ const devices = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
-        supports: 'on, off',
+        supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
             fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
@@ -704,7 +713,7 @@ const devices = [
         description: 'TRADFRI signal repeater',
         supports: '',
         vendor: 'IKEA',
-        fromZigbee: [],
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_diagnostic_change],
         toZigbee: [],
     },
 
@@ -1022,6 +1031,13 @@ const devices = [
         description: 'LivingColors Aura',
         extend: hue.light_onoff_brightness_colorxy,
     },
+    {
+        zigbeeModel: ['LTC014'],
+        model: '3216231P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
 
     // Belkin
     {
@@ -1214,6 +1230,13 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ CLASSIC A 60 TW',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['CLA60 RGBW Z3'],
+        model: 'AC03647',
+        vendor: 'OSRAM',
+        description: 'SMART+ LED CLASSIC E27 RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         // AA70155 is model number of both bulbs.
@@ -1436,6 +1459,13 @@ const devices = [
             ];
             execute(device, actions, callback);
         },
+    },
+    {
+        zigbeeModel: ['TWBulb01US'],
+        model: 'HV-GSCXZB269',
+        vendor: 'Hive',
+        description: 'Active light cool to warm white (E26) ',
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // Innr
@@ -1795,7 +1825,7 @@ const devices = [
         vendor: 'GE',
         description: 'Plug-in smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1803,6 +1833,7 @@ const devices = [
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
             ];
 
             execute(device, actions, callback);
@@ -2064,7 +2095,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1IKJ1.7'],
+        zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
@@ -2172,6 +2203,13 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['FNB56-ZCW25FB1.6'],
+        model: 'HGZB-06A',
+        vendor: 'Nue / 3A',
+        description: 'Smart 7W E27 light bulb',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Smart Home Pty
@@ -3084,6 +3122,17 @@ const devices = [
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
 
+    // Lupus
+    {
+        zigbeeModel: ['SCM_00.00.03.11TC'],
+        model: '12031',
+        vendor: 'Lupus',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
@@ -3166,15 +3215,6 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },
-    {
-        zigbeeModel: ['WarningDevice'],
-        model: 'HS1WD',
-        description: 'Smart indoor light siren',
-        supports: 'on/off',
-        vendor: 'HEIMAN',
-        fromZigbee: [fz.state],
-        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['SMOK_V16', 'b5db59bfd81e4f1f95dc57fdbba17931', 'SMOK_YDLV10', 'SmokeSensor-EM'],
@@ -3323,6 +3363,28 @@ const devices = [
             execute(device, actions, callback, 1000);
         },
     },
+    {
+        zigbeeModel: ['COSensor-EM'],
+        model: 'HS1CA-E',
+        vendor: 'HEIMAN',
+        description: 'Smart carbon monoxide sensor',
+        supports: 'carbon monoxide',
+        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200, fz.ignore_power_change, fz.ignore_basic_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
 
     // Oujiabao
     {
@@ -3346,11 +3408,18 @@ const devices = [
 
     // Calex
     {
-        zigbeeModel: ['EC-Z3.0-CCT '],
+        zigbeeModel: ['EC-Z3.0-CCT'],
         model: '421786',
         vendor: 'Calex',
         description: 'LED A60 Zigbee GLS-lamp',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['EC-Z3.0-RGBW'],
+        model: '421792',
+        vendor: 'Calex',
+        description: 'LED A60 Zigbee RGB lamp',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // EcoSmart
