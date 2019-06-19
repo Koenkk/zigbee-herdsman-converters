@@ -273,7 +273,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['lumi.sens'],
+        zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia temperature & humidity sensor',
