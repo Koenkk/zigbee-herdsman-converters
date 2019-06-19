@@ -4278,6 +4278,9 @@ const devices = [
 
             execute(device, actions, callback);
         },
+        options: {
+            apsNoAck: true,
+        },
     },
 
     // Iluminize

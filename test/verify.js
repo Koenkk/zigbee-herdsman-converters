@@ -46,7 +46,7 @@ devices.forEach((device) => {
             converterKey,
         );
 
-        assert.strictEqual(5, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
+        assert.strictEqual(6, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
 
     // Check for duplicate zigbee model ids
