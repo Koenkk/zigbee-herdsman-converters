@@ -4256,7 +4256,7 @@ const devices = [
 
     // Hampton Bay
     {
-        zigbeeModel: ['HDC52EastwindFan'],
+        zigbeeModel: ['HDC52EastwindFan','HBUniversalCFRemote'],
         model: '99432',
         vendor: 'Hampton Bay',
         description: 'Universal wink enabled white ceiling fan premier remote control',
@@ -4279,7 +4279,7 @@ const devices = [
             execute(device, actions, callback);
         },
         options: {
-            apsNoAck: true,
+            disFeedbackRsp: true,
         },
     },
 

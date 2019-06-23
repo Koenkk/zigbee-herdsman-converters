@@ -9,12 +9,10 @@ const cfg = {
         manufSpec: 0,
         disDefaultRsp: 0,
     },
-    defaultApsNoAck: {
+    defaultdisFeedbackRsp: {
         manufSpec: 0,
         disDefaultRsp: 0,
-        options: {
-            options: 16,
-        },
+        disFeedbackRsp: true,
     },
     xiaomi: {
         manufSpec: 1,
@@ -69,7 +67,7 @@ const converters = {
                     cmd: value.toLowerCase(),
                     cmdType: 'functional',
                     zclData: {},
-                    cfg: options.apsNoAck ? cfg.defaultApsNoAck : cfg.default,
+                    cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
                     newState: {state: value.toUpperCase()},
                 }];
             } else if (type === 'get') {
@@ -249,7 +247,7 @@ const converters = {
                             level: Number(brightness),
                             transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
                         },
-                        cfg: options.apsNoAck ? cfg.defaultApsNoAck : cfg.default,
+                        cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
                         newState: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
                         readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
                     }];
