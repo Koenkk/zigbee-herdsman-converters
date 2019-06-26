@@ -149,7 +149,9 @@ const converters = {
         cid: 'closuresDoorLock',
         type: ['attReport', 'readRsp', 'devChange'],
         convert: (model, msg, publish, options) => {
-            return {state: msg.data.data.lockState === 2 ? 'UNLOCK' : 'LOCK'};
+            if (msg.data.data.hasOwnProperty('lockState')) {
+                return {state: msg.data.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
+            }
         },
     },
     generic_lock_operation_event: {
