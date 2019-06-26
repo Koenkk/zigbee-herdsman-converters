@@ -1050,6 +1050,10 @@ const converters = {
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
 
+                if (options && options.direction == 'reverse') {
+                    value = 100 - value;
+                }
+
                 return [{
                     cid: 'genAnalogOutput',
                     cmd: 'write',
