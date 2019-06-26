@@ -1491,6 +1491,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['RB 250 C'],
+        model: 'RB 250 C',
+        vendor: 'Innr',
+        description: 'E27 Bulb RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['RB 265'],
         model: 'RB 265',
         vendor: 'Innr',
