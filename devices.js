@@ -444,6 +444,9 @@ const devices = [
             fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ZNCLDJ11LM_control],
+        options: {
+            direction: 'positive',
+        },
     },
     {
         zigbeeModel: ['lumi.relay.c2acn01'],
