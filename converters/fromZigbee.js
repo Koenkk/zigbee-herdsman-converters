@@ -1115,7 +1115,7 @@ const converters = {
 
             let position = precisionRound(msg.data.data['presentValue'], 2);
             if (options && options.direction == 'reverse') {
-                position = 100 - position
+                position = 100 - position;
             }
             return {position: position, running: running};
         },
@@ -1132,7 +1132,7 @@ const converters = {
 
             let position = precisionRound(msg.data.data['presentValue'], 2);
             if (options && options.direction == 'reverse') {
-                position = 100 - position
+                position = 100 - position;
             }
             return {position: position, running: running};
         },
