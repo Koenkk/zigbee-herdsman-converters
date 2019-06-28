@@ -461,7 +461,16 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
     },
-
+    {
+        zigbeeModel: ['lumi.lock.acn02'],
+        model: 'ZNMS12LM',
+        description: 'Aqara S2 Lock',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [fz.ZNMS12LM_closuresDoorLock_change, fz.ZNMS12LM_genBasic_change,
+            fz.ignore_doorlock_change, fz.ignore_basic_change],
+        toZigbee: [],
+    },
     // IKEA
     {
         zigbeeModel: [

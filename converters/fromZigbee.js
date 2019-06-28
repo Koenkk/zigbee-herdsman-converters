@@ -2682,7 +2682,87 @@ const converters = {
             return result;
         },
     },
+    ZNMS12LM_closuresDoorLock_change: {
+        cid: 'closuresDoorLock',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const lockStatusLookup = {
+                1: 'finger_not_match',
+                2: 'password_not_match',
+                3: 'door_open',
+                4: 'door_close',
+                5: 'lock_open',
+                6: 'lock_closed',
+                7: 'finger_add',
+                8: 'finger_delete',
+                9: 'password_add',
+                10: 'password_delete',
+                11: 'latch_open',
+                12: 'latch_close',
+                13: 'ring_bell',
+                14: 'change_language_to',
+                15: 'finger_open',
+                16: 'password_open',
+            };
+            result.user_id = null;
+            result.repeat = null;
+
+            if (msg.data.data['65296']) { // finger/password success
+                const data = msg.data.data['65296'];
+                const command = data.substr(26, 2); // 1 finger open, 2 password open
+                const userId = data.substr(20, 2);
+                const userType = data.substr(24, 1); // 1 admin, 2 user
+                result.event = (lockStatusLookup[14+parseInt(command, 16)] + (userType === '1' ? '_admin' : '_user'));
+                result.user_id = parseInt(userId, 16);
+            } else if (msg.data.data['65297']) { // finger failed or bell
+                const data = msg.data.data['65297'];
+                const times = data.substr(26, 2);
+                const type = data.substr(20, 2); // 00 bell, 40 error finger
+                if (type === '40') {
+                    result.event = lockStatusLookup[1];
+                    result.repeat = parseInt(times, 16);
+                } else if (type === '00') {
+                    result.event = lockStatusLookup[13];
+                    result.repeat = null;
+                }
+            } else if (msg.data.data['65281']) { // password added/delete
+                const data = msg.data.data['65281'];
+                const command = data.substr(14, 2); // 1 add, 2 delete
+                const userId = data.substr(20, 2);
+                result.event = lockStatusLookup[6+parseInt(command, 16)];
+                result.user_id = parseInt(userId, 16);
+                result.repeat = null;
+            } else if (msg.data.data['65522']) { // set languge
+                const data = msg.data.data['65522'];
+                const langId = data.substr(26, 2); // 1 chinese, 2: english
+                result.event = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
+                result.user_id = null;
+                result.repeat = null;
+            } /* below data still could not decode, we will try in the furure:
+             else if (msg.data.data['65269']) {
+                result.unknown_data_65269 = msg.data.data['65269'];
+            } else if (msg.data.data['65526']) {
+                result.unknown_data_65269 = msg.data.data['65526'];
+            }*/
+            return result;
+        },
+    },
+    ZNMS12LM_genBasic_change: {
+        cid: 'genBasic',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data['65281']) {
+                return {basicReport: msg.data.data['65281']};
+            }
+        },
+    },
     // Ignore converters (these message dont need parsing).
+    ignore_analog_ouput_change: {
+        cid: 'genAnalogOutput',
+        type: 'devChange',
+        convert: (model, msg, publish, options) => null,
+    },
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
         type: 'devChange',
