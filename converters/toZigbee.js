@@ -1187,35 +1187,74 @@ const converters = {
     ZNCLDJ11LM_control: {
         key: ['state', 'position'],
         convert: (key, value, message, type, postfix, options) => {
-            if (key === 'state' && value.toLowerCase() === 'stop') {
-                return [{
-                    cid: 'closuresWindowCovering',
-                    cmd: 'stop',
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: cfg.default,
-                }];
-            } else {
+            if (type === 'set') {
+                if (key === 'state' && value.toLowerCase() === 'stop') {
+                    return [{
+                        cid: 'closuresWindowCovering',
+                        cmd: 'stop',
+                        cmdType: 'functional',
+                        zclData: {},
+                        cfg: cfg.default,
+                    }];
+                } else {
+                    const lookup = {
+                        'open': 100,
+                        'close': 0,
+                        'on': 100,
+                        'off': 0,
+                    };
+
+                    value = typeof value === 'string' ? value.toLowerCase() : value;
+                    value = lookup.hasOwnProperty(value) ? lookup[value] : value;
+
+                    return [{
+                        cid: 'genAnalogOutput',
+                        cmd: 'write',
+                        cmdType: 'foundation',
+                        zclData: [{
+                            attrId: 0x0055,
+                            dataType: 0x39,
+                            attrData: value,
+                        }],
+                        cfg: cfg.default,
+                    }];
+                }
+            }
+        },
+    },
+    ZNCLDJ11LM_direction: {
+        key: ['direction'],
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'genBasic';
+
+            if (type === 'set') {
                 const lookup = {
-                    'open': 100,
-                    'close': 0,
-                    'on': 100,
-                    'off': 0,
+                    'positive': '\x00',
+                    'reverse': '\x01',
                 };
 
-                value = typeof value === 'string' ? value.toLowerCase() : value;
-                value = lookup.hasOwnProperty(value) ? lookup[value] : value;
-
+                if (lookup.hasOwnProperty(value)) {
+                    return [{
+                        cid: cid,
+                        cmd: 'write',
+                        cmdType: 'foundation',
+                        zclData: [{
+                            attrId: 0xff28, // presentValue
+                            dataType: 0x10, // dataType
+                            attrData: lookup[value],
+                        }],
+                        cfg: cfg.xiaomi,
+                    }];
+                }
+            } else if (type === 'get') {
                 return [{
-                    cid: 'genAnalogOutput',
-                    cmd: 'write',
+                    cid: cid,
+                    cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: 0x0055,
-                        dataType: 0x39,
-                        attrData: value,
+                        attrId: 0xff28,
                     }],
-                    cfg: cfg.default,
+                    cfg: cfg.xiaomi,
                 }];
             }
         },
