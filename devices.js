@@ -1045,6 +1045,13 @@ const devices = [
         description: 'Hue white ambiance Aurelle rectangle panel light',
         extend: hue.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['1744530P7'],
+        model: '1744530P7',
+        vendor: 'Philips',
+        description: 'Hue Fuzo Outdoor Wall Light',
+        extend: hue.light_onoff_brightness,
+    },
 
     // Belkin
     {
