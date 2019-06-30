@@ -2151,26 +2151,25 @@ const devices = [
             });
         },
     },
-                 
     // This product is not compatible with the HGZB-042 device above as it has a different EP config.
     {
-         zigbeeModel: ['FNB56-ZSW02LX2.0'],
-         model: 'HGZB-42',
-         vendor: 'Nue / 3A',
-         description: 'Smart light switch - 2 gang. ',
-         supports: 'on/off',
-         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
-         toZigbee: [tz.on_off],
-         ep: (device) => {
-         return {'top': 11, 'bottom': 12};
-         },
-         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-         const ep11 = shepherd.find(ieeeAddr, 11);
-         execute(ep11, [(cb) => ep11.bind('genOnOff', coordinator, cb)], () => {
-                 const ep12 = shepherd.find(ieeeAddr, 12);
-                 execute(ep12, [(cb) => ep12.bind('genOnOff', coordinator, cb)], callback);
-                 });
-         },
+        zigbeeModel: ['FNB56-ZSW02LX2.0'],
+        model: 'HGZB-42',
+        vendor: 'Nue / 3A',
+        description: 'Smart light switch - 2 gang. ',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 11, 'bottom': 12};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep11 = shepherd.find(ieeeAddr, 11);
+            execute(ep11, [(cb) => ep11.bind('genOnOff', coordinator, cb)], () => {
+                const ep12 = shepherd.find(ieeeAddr, 12);
+                execute(ep12, [(cb) => ep12.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
     },
     {
         zigbeeModel: ['FB56+ZSW05HG1.2'],
