@@ -2690,72 +2690,100 @@ const converters = {
             const lockStatusLookup = {
                 1: 'finger_not_match',
                 2: 'password_not_match',
-                3: 'door_open',
-                4: 'door_close',
-                5: 'lock_open',
-                6: 'lock_closed',
+                3: 'reverse_lock', // disable open from outside
+                4: 'reverse_lock_cancel', // enable open from outside
+                5: 'locked',
+                6: 'lock_opened',
                 7: 'finger_add',
                 8: 'finger_delete',
                 9: 'password_add',
                 10: 'password_delete',
-                11: 'latch_open',
-                12: 'latch_close',
+                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                12: 'lock_opened_outside', // Open form outside reverse lock disable
                 13: 'ring_bell',
                 14: 'change_language_to',
                 15: 'finger_open',
                 16: 'password_open',
             };
-            result.user_id = null;
+            result.user = null;
             result.repeat = null;
-
-            if (msg.data.data['65296']) { // finger/password success
-                const data = msg.data.data['65296'];
-                const command = data.substr(26, 2); // 1 finger open, 2 password open
-                const userId = data.substr(20, 2);
-                const userType = data.substr(24, 1); // 1 admin, 2 user
-                result.event = (lockStatusLookup[14+parseInt(command, 16)] + (userType === '1' ? '_admin' : '_user'));
-                result.user_id = parseInt(userId, 16);
-            } else if (msg.data.data['65297']) { // finger failed or bell
-                const data = msg.data.data['65297'];
-                const times = data.substr(26, 2);
-                const type = data.substr(20, 2); // 00 bell, 40 error finger
+            if (msg.data.data['65526']) { // lock final status
+                // Convert data back to hex to decode
+                const data = Buffer.from(msg.data.data['65526'], 'ascii').toString('hex');
+                const command = data.substr(6, 4);
+                if (command === '0301') {
+                    result.event = lockStatusLookup[4];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0311') {
+                    result.event = lockStatusLookup[4];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0205') {
+                    result.event = lockStatusLookup[3];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'LOCK';
+                } else if (command === '0215') {
+                    result.event = lockStatusLookup[3];
+                    result.state = 'LOCK';
+                    result.reverse = 'LOCK';
+                } else if (command === '0111') {
+                    result.event = lockStatusLookup[5];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0b00') {
+                    result.event = lockStatusLookup[12];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0c00') {
+                    result.event = lockStatusLookup[11];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                }
+            } else if (msg.data.data['65296']) { // finger/password success
+                const data = Buffer.from(msg.data.data['65296'], 'ascii').toString('hex');
+                const command = data.substr(6, 2); // 1 finger open, 2 password open
+                const userId = data.substr(12, 2);
+                const userType = data.substr(8, 1); // 1 admin, 2 user
+                result.event = (lockStatusLookup[14+parseInt(command, 16)]
+                 + (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
+                result.user = parseInt(userId, 16);
+            } else if (msg.data.data['65297']) { // finger, password failed or bell
+                const data = Buffer.from(msg.data.data['65297'], 'ascii').toString('hex');
+                const times = data.substr(6, 2);
+                const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
                 if (type === '40') {
                     result.event = lockStatusLookup[1];
                     result.repeat = parseInt(times, 16);
                 } else if (type === '00') {
                     result.event = lockStatusLookup[13];
                     result.repeat = null;
+                } else if (type === '02') {
+                    result.event = lockStatusLookup[2];
+                    result.repeat = parseInt(times, 16);
                 }
             } else if (msg.data.data['65281']) { // password added/delete
-                const data = msg.data.data['65281'];
-                const command = data.substr(14, 2); // 1 add, 2 delete
-                const userId = data.substr(20, 2);
+                const data = Buffer.from(msg.data.data['65281'], 'ascii').toString('hex');
+                const command = data.substr(18, 2); // 1 add, 2 delete
+                const userId = data.substr(12, 2);
                 result.event = lockStatusLookup[6+parseInt(command, 16)];
-                result.user_id = parseInt(userId, 16);
+                result.user = parseInt(userId, 16);
                 result.repeat = null;
             } else if (msg.data.data['65522']) { // set languge
-                const data = msg.data.data['65522'];
-                const langId = data.substr(26, 2); // 1 chinese, 2: english
+                const data = Buffer.from(msg.data.data['65522'], 'ascii').toString('hex');
+                const langId = data.substr(6, 2); // 1 chinese, 2: english
                 result.event = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
-                result.user_id = null;
+                result.user = null;
                 result.repeat = null;
-            } /* below data still could not decode, we will try in the furure:
-             else if (msg.data.data['65269']) {
-                result.unknown_data_65269 = msg.data.data['65269'];
-            } else if (msg.data.data['65526']) {
-                result.unknown_data_65269 = msg.data.data['65526'];
-            }*/
+            }
             return result;
         },
     },
     ZNMS12LM_genBasic_change: {
         cid: 'genBasic',
         type: 'attReport',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                return {basicReport: msg.data.data['65281']};
-            }
-        },
+        convert: (model, msg, publish, options) => null,
+        /* Data type 65281 could not decode, we will try in the furure */
     },
     // Ignore converters (these message dont need parsing).
     ignore_analog_ouput_change: {
