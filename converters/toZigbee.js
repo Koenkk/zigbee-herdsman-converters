@@ -2,7 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const zclId = require('zcl-id');
+const zclId = require('zigbee-herdsman/dist/zcl-id');
 
 const cfg = {
     default: {
