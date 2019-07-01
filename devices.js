@@ -1047,9 +1047,9 @@ const devices = [
     },
     {
         zigbeeModel: ['1744530P7'],
-        model: '1744530P7',
+        model: '8718696170625',
         vendor: 'Philips',
-        description: 'Hue Fuzo Outdoor Wall Light',
+        description: 'Hue Fuzo outdoor wall light',
         extend: hue.light_onoff_brightness,
     },
 
