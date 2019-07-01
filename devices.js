@@ -3806,23 +3806,62 @@ const devices = [
     {
         zigbeeModel: [
             'SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
-            'SV01-610-MP-1.0', 'SV01-612-MP-1.0', 'SV02-410-MP-1.3',
+            'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
         ],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position,
-            fz.cover_position_report,
-            fz.generic_temperature,
-            fz.generic_temperature_change,
-            fz.generic_battery,
-            fz.generic_battery_change,
-            fz.keen_home_smart_vent_pressure,
-            fz.keen_home_smart_vent_pressure_report,
-            fz.ignore_onoff_change,
-            fz.ignore_onoff_report,
+            fz.cover_position, fz.cover_position_report, fz.generic_temperature, fz.generic_temperature_change,
+            fz.generic_battery, fz.generic_battery_change, fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report, fz.ignore_onoff_change, fz.ignore_onoff_report,
+        ],
+        toZigbee: [
+            tz.cover_open_close,
+            tz.cover_position,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
+
+                // eslint-disable-next-line
+                // https://github.com/yracine/keenhome.device-type/blob/master/devicetypes/keensmartvent.src/keensmartvent.groovy
+                (cb) => device.report(
+                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb
+                ),
+                (cb) => device.foundation(
+                    'msPressureMeasurement',
+                    'configReport',
+                    [{
+                        direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5,
+                        maxRepIntval: repInterval.HOUR, repChange: 500,
+                    }],
+                    {manufSpec: 1, manufCode: 4443},
+                    cb
+                ),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
+                ),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['SV02-410-MP-1.3'],
+        model: 'SV02',
+        vendor: 'Keen Home',
+        description: 'Smart vent',
+        supports: 'open, close, position, temperature, pressure, battery',
+        fromZigbee: [
+            fz.cover_position, fz.cover_position_report, fz.generic_temperature, fz.generic_temperature_change,
+            fz.generic_battery, fz.generic_battery_change, fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report, fz.ignore_onoff_change, fz.ignore_onoff_report,
         ],
         toZigbee: [
             tz.cover_open_close,
