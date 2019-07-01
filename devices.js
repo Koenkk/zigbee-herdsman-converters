@@ -2151,7 +2151,6 @@ const devices = [
             });
         },
     },
-    // This product is not compatible with the HGZB-042 device above as it has a different EP config.
     {
         zigbeeModel: ['FNB56-ZSW02LX2.0'],
         model: 'HGZB-42',
