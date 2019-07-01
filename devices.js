@@ -2240,12 +2240,11 @@ const devices = [
             }
         },
     },
-    
-  {
+    {
         zigbeeModel: ['GL-G-001Z'],
         model: 'GL-G-001Z',
         vendor: 'Gledopto',
-        description: 'Smart Garden Lamp',
+        description: 'Smart garden lamp',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         ep: (device) => {
             if (device.epList.toString() === '11,12,13') {
@@ -2256,8 +2255,7 @@ const devices = [
                 return {};
             }
         },
-    },  
-    
+    },
     {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
