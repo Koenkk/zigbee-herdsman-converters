@@ -1483,7 +1483,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TWBulb01UK'],
-        model: 'HALIGHTTUNEW-E27-B22',
+        model: 'HV-GSCXZB279 || HV-GSCXZB229',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: generic.light_onoff_brightness_colortemp,
