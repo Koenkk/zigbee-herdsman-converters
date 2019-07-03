@@ -2682,6 +2682,20 @@ const converters = {
             return result;
         },
     },
+    konke_click: {
+        cid: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const value = msg.data.data['onOff'];
+            const lookup = {
+                128: {click: 'single'}, // single click
+                129: {click: 'double'}, // double and many click
+                130: {click: 'long'},   // hold
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',

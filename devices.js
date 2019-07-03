@@ -4564,6 +4564,25 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    // Konke
+    {
+        zigbeeModel: ['3AFE170100510001'],
+        model: '2AJZ4KPKEY',
+        vendor: 'Konke',
+        description: 'Multi-Function Button',
+        supports: 'single click, double click, long click',
+        fromZigbee: [
+            fz.konke_click, fz.ignore_onoff_change
+        ]
+    },
+    {
+        zigbeeModel: ['3AFE14010402000D'],
+        model: '2AJZ4KPBS',
+        vendor: 'Konke',
+        description: 'Motion sensor',
+        supports: '',
+        fromZigbee: []
+    },
 ];
 
 module.exports = devices.map((device) =>
