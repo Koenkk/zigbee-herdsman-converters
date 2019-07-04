@@ -3448,6 +3448,26 @@ const devices = [
             execute(device, actions, callback, 1000);
         },
     },
+    {
+        zigbeeModel: ['WarningDevice'],
+        model: 'HS2WD-E',
+        vendor: 'HEIMAN',
+        description: 'Smart siren',
+        supports: 'warning',
+        fromZigbee: [fz.battery_200, fz.ignore_iaszone_change],
+        toZigbee: [tz.warning],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 0, 3600, 0, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
 
     // Oujiabao
     {
