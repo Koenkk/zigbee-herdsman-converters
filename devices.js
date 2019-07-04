@@ -4572,7 +4572,8 @@ const devices = [
         description: 'Multi-Function Button',
         supports: 'single click, double click, long click',
         fromZigbee: [
-            fz.konke_click, fz.ignore_onoff_change
+            fz.konke_click, fz.ignore_onoff_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500
         ]
     },
     {
@@ -4581,7 +4582,18 @@ const devices = [
         vendor: 'Konke',
         description: 'Motion sensor',
         supports: '',
-        fromZigbee: []
+        fromZigbee: [
+            fz.bosch_ias_zone_motion_status_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+            execute(device, actions, callback);
+        }
     },
 ];
 

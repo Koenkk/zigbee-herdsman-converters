@@ -2696,6 +2696,18 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    generic_change_batteryvoltage_3000_2500: {
+        cid: 'genPowerCfg',
+        type: ['devChange'],
+        convert: (model, msg, publish, options) => {
+            const battery = {max: 3000, min: 2500};
+            const voltage = msg.data.data['batteryVoltage'] * 100;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage,
+            };
+        },
+    },
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
