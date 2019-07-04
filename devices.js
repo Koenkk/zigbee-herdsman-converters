@@ -3454,7 +3454,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart siren',
         supports: 'warning',
-        fromZigbee: [fz.generic_battery_voltage],
+        fromZigbee: [fz.battery_200, fz.ignore_iaszone_change],
         toZigbee: [tz.warning],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);

@@ -151,13 +151,20 @@ const converters = {
                     'very_high': 3,
                 };
 
-                const info = (mode[value.mode] << 4) + ((value.strobe ? 1 : 0) << 2) + (level[value.level]);
+                const values = {
+                    mode: value.mode || 'emergency',
+                    level: value.level || 'medium',
+                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                };
+
+                const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
 
                 return [{
                     cid: 'ssIasWd',
                     cmd: 'startWarning',
                     cmdType: 'functional',
-                    zclData: {startwarninginfo: info, warningduration: value.duration},
+                    zclData: {startwarninginfo: info, warningduration: values.duration},
                     cfg: cfg.default,
                 }];
             }
