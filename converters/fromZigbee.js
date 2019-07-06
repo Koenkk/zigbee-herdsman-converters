@@ -2712,31 +2712,31 @@ const converters = {
                 const data = Buffer.from(msg.data.data['65526'], 'ascii').toString('hex');
                 const command = data.substr(6, 4);
                 if (command === '0301') {
-                    result.event = lockStatusLookup[4];
+                    result.action = lockStatusLookup[4];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (command === '0311') {
-                    result.event = lockStatusLookup[4];
+                    result.action = lockStatusLookup[4];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (command === '0205') {
-                    result.event = lockStatusLookup[3];
+                    result.action = lockStatusLookup[3];
                     result.state = 'UNLOCK';
                     result.reverse = 'LOCK';
                 } else if (command === '0215') {
-                    result.event = lockStatusLookup[3];
+                    result.action = lockStatusLookup[3];
                     result.state = 'LOCK';
                     result.reverse = 'LOCK';
                 } else if (command === '0111') {
-                    result.event = lockStatusLookup[5];
+                    result.action = lockStatusLookup[5];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (command === '0b00') {
-                    result.event = lockStatusLookup[12];
+                    result.action = lockStatusLookup[12];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (command === '0c00') {
-                    result.event = lockStatusLookup[11];
+                    result.action = lockStatusLookup[11];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 }
@@ -2745,7 +2745,7 @@ const converters = {
                 const command = data.substr(6, 2); // 1 finger open, 2 password open
                 const userId = data.substr(12, 2);
                 const userType = data.substr(8, 1); // 1 admin, 2 user
-                result.event = (lockStatusLookup[14+parseInt(command, 16)]
+                result.action = (lockStatusLookup[14+parseInt(command, 16)]
                  + (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
                 result.user = parseInt(userId, 16);
             } else if (msg.data.data['65297']) { // finger, password failed or bell
@@ -2753,26 +2753,26 @@ const converters = {
                 const times = data.substr(6, 2);
                 const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
                 if (type === '40') {
-                    result.event = lockStatusLookup[1];
+                    result.action = lockStatusLookup[1];
                     result.repeat = parseInt(times, 16);
                 } else if (type === '00') {
-                    result.event = lockStatusLookup[13];
+                    result.action = lockStatusLookup[13];
                     result.repeat = null;
                 } else if (type === '02') {
-                    result.event = lockStatusLookup[2];
+                    result.action = lockStatusLookup[2];
                     result.repeat = parseInt(times, 16);
                 }
             } else if (msg.data.data['65281']) { // password added/delete
                 const data = Buffer.from(msg.data.data['65281'], 'ascii').toString('hex');
                 const command = data.substr(18, 2); // 1 add, 2 delete
                 const userId = data.substr(12, 2);
-                result.event = lockStatusLookup[6+parseInt(command, 16)];
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
                 result.user = parseInt(userId, 16);
                 result.repeat = null;
             } else if (msg.data.data['65522']) { // set languge
                 const data = Buffer.from(msg.data.data['65522'], 'ascii').toString('hex');
                 const langId = data.substr(6, 2); // 1 chinese, 2: english
-                result.event = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
+                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
                 result.user = null;
                 result.repeat = null;
             }
