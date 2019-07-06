@@ -3212,7 +3212,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    
+
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
