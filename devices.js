@@ -3195,7 +3195,24 @@ const devices = [
         fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
         toZigbee: [tz.cover_position, tz.cover_open_close],
     },
-
+    {
+        zigbeeModel: ['PSMP5_00.00.03.11TC'],
+        model: '12050',
+        vendor: 'Lupus',
+        description: 'LUPUSEC mains socket with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
