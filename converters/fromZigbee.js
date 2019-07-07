@@ -2682,7 +2682,7 @@ const converters = {
             return result;
         },
     },
-    ZNMS12LM_closuresDoorLock_change: {
+    ZNMS12LM_closuresDoorLock_report: {
         cid: 'closuresDoorLock',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -2779,12 +2779,7 @@ const converters = {
             return result;
         },
     },
-    ZNMS12LM_genBasic_change: {
-        cid: 'genBasic',
-        type: 'attReport',
-        convert: (model, msg, publish, options) => null,
-        /* Data type 65281 could not decode, we will try in the furure */
-    },
+
     // Ignore converters (these message dont need parsing).
     ignore_analog_ouput_change: {
         cid: 'genAnalogOutput',
