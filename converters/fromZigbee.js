@@ -2781,11 +2781,6 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
-    ignore_analog_ouput_change: {
-        cid: 'genAnalogOutput',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
         type: 'devChange',
