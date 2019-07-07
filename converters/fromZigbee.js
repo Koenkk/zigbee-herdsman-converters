@@ -2682,6 +2682,104 @@ const converters = {
             return result;
         },
     },
+    ZNMS12LM_closuresDoorLock_report: {
+        cid: 'closuresDoorLock',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const lockStatusLookup = {
+                1: 'finger_not_match',
+                2: 'password_not_match',
+                3: 'reverse_lock', // disable open from outside
+                4: 'reverse_lock_cancel', // enable open from outside
+                5: 'locked',
+                6: 'lock_opened',
+                7: 'finger_add',
+                8: 'finger_delete',
+                9: 'password_add',
+                10: 'password_delete',
+                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                12: 'lock_opened_outside', // Open form outside reverse lock disable
+                13: 'ring_bell',
+                14: 'change_language_to',
+                15: 'finger_open',
+                16: 'password_open',
+            };
+            result.user = null;
+            result.repeat = null;
+            if (msg.data.data['65526']) { // lock final status
+                // Convert data back to hex to decode
+                const data = Buffer.from(msg.data.data['65526'], 'ascii').toString('hex');
+                const command = data.substr(6, 4);
+                if (command === '0301') {
+                    result.action = lockStatusLookup[4];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0311') {
+                    result.action = lockStatusLookup[4];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0205') {
+                    result.action = lockStatusLookup[3];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'LOCK';
+                } else if (command === '0215') {
+                    result.action = lockStatusLookup[3];
+                    result.state = 'LOCK';
+                    result.reverse = 'LOCK';
+                } else if (command === '0111') {
+                    result.action = lockStatusLookup[5];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0b00') {
+                    result.action = lockStatusLookup[12];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (command === '0c00') {
+                    result.action = lockStatusLookup[11];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                }
+            } else if (msg.data.data['65296']) { // finger/password success
+                const data = Buffer.from(msg.data.data['65296'], 'ascii').toString('hex');
+                const command = data.substr(6, 2); // 1 finger open, 2 password open
+                const userId = data.substr(12, 2);
+                const userType = data.substr(8, 1); // 1 admin, 2 user
+                result.action = (lockStatusLookup[14+parseInt(command, 16)]
+                 + (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
+                result.user = parseInt(userId, 16);
+            } else if (msg.data.data['65297']) { // finger, password failed or bell
+                const data = Buffer.from(msg.data.data['65297'], 'ascii').toString('hex');
+                const times = data.substr(6, 2);
+                const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
+                if (type === '40') {
+                    result.action = lockStatusLookup[1];
+                    result.repeat = parseInt(times, 16);
+                } else if (type === '00') {
+                    result.action = lockStatusLookup[13];
+                    result.repeat = null;
+                } else if (type === '02') {
+                    result.action = lockStatusLookup[2];
+                    result.repeat = parseInt(times, 16);
+                }
+            } else if (msg.data.data['65281']) { // password added/delete
+                const data = Buffer.from(msg.data.data['65281'], 'ascii').toString('hex');
+                const command = data.substr(18, 2); // 1 add, 2 delete
+                const userId = data.substr(12, 2);
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
+                result.user = parseInt(userId, 16);
+                result.repeat = null;
+            } else if (msg.data.data['65522']) { // set languge
+                const data = Buffer.from(msg.data.data['65522'], 'ascii').toString('hex');
+                const langId = data.substr(6, 2); // 1 chinese, 2: english
+                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
+                result.user = null;
+                result.repeat = null;
+            }
+            return result;
+        },
+    },
+
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
