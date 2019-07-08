@@ -3592,8 +3592,11 @@ const devices = [
         model: 'AIRAM-CTR.U',
         vendor: 'Airam',
         description: 'CTR.U remote',
-        supports: 'on/off, brightness up/down click/hold/release',
-        fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.CTR_U_brightness_updown_click, fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene],
+        supports: 'on/off, brightness up/down and click/hold/release',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
+            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene,
+        ],
         toZigbee: [],
     },
 
