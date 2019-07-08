@@ -1936,6 +1936,67 @@ const converters = {
             }
         },
     },
+    CTR_U_brightness_updown_click: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStep',
+        convert: (model, msg, publish, options) => {
+                    const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
+
+            // Save last direction for release event
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            store[deviceID].movemode = direction;
+
+            return {
+                action: `brightness_${direction}_click`,
+                step_size: msg.data.data.stepsize,
+                transition_time: msg.data.data.transtime,
+            };
+        },
+    },
+    CTR_U_brightness_updown_hold: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMove',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+
+            // Save last direction for release event
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            store[deviceID].movemode = direction;
+
+            return {
+                action: `brightness_${direction}_hold`,
+                rate: msg.data.data.rate,
+            };
+        },
+    },
+    CTR_U_brightness_updown_release: {
+        cid: 'genLevelCtrl',
+        type: 'cmdStop',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            if (!store[deviceID]) {
+                return null;
+            }
+
+            const direction = store[deviceID].movemode;
+            return {
+                action: `brightness_${direction}_release`,
+            };
+        },
+    },
+    CTR_U_scene: {
+        cid: 'genScenes',
+        type: 'cmdRecall',
+        convert: (model, msg, publish, options) => {
+            return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
+        },
+    },    
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
