@@ -1940,14 +1940,14 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdStep',
         convert: (model, msg, publish, options) => {
-                    const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
             const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
 
             // Save last direction for release event
             if (!store[deviceID]) {
                 store[deviceID] = {};
             }
-            store[deviceID].movemode = direction;
+            store[deviceID].direction = direction;
 
             return {
                 action: `brightness_${direction}_click`,
@@ -1967,7 +1967,7 @@ const converters = {
             if (!store[deviceID]) {
                 store[deviceID] = {};
             }
-            store[deviceID].movemode = direction;
+            store[deviceID].direction = direction;
 
             return {
                 action: `brightness_${direction}_hold`,
@@ -1984,7 +1984,7 @@ const converters = {
                 return null;
             }
 
-            const direction = store[deviceID].movemode;
+            const direction = store[deviceID].direction;
             return {
                 action: `brightness_${direction}_release`,
             };
@@ -1996,7 +1996,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
         },
-    },    
+    },
     thermostat_dev_change: {
         cid: 'hvacThermostat',
         type: 'devChange',
