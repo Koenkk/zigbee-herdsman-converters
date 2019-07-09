@@ -8,6 +8,10 @@
  * @return {Array} Array that contains the CIE color values for x and y
  */
 function rgbToXY(red, green, blue) {
+    // The RGB values should be between 0 and 1. So convert them.
+    // The RGB color (255, 0, 100) becomes (1.0, 0.0, 0.39)
+    red /= 255; green /= 255; blue /= 255;
+
     // Apply a gamma correction to the RGB values, which makes the color
     // more vivid and more the like the color displayed on the screen of your device
     red = (red > 0.04045) ? Math.pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
