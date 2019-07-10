@@ -4227,56 +4227,57 @@ const devices = [
             // (218.4 units / V = about 22 units per 1/10 V)
             const rmsVoltage = {
                 direction: 0, attrId: 1285, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 22
+                minRepIntval: 10, maxRepIntval: 600, repChange: 22,
             };
 
             // Observed Current Multiplier 72 / Divisor 39321 = 0.001831
             // (546.1 units / A = about 5 units per 1/100 A)
             const rmsCurrent = {
                 direction: 0, attrId: 1288, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 5
+                minRepIntval: 10, maxRepIntval: 600, repChange: 5,
             };
 
             // Observed Power Multiplier 10255 / Divisor 39321 = 0.2608
             // (3.834 units / W = about 1 unit per 1/4 W)
             const activePower = {
                 direction: 0, attrId: 1291, dataType: 41,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 1
+                minRepIntval: 10, maxRepIntval: 600, repChange: 1,
             };
 
-            // Multipliers and Divisors might never change, but report at max 10 min. to ensure first report comes in reasonably promptly
+            // Multipliers and Divisors might never change,
+            // but report at max 10 min. to ensure first report comes in reasonably promptly
             const acVoltageMultiplier = {
                 direction: 0, attrId: 1536, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
             const acVoltageDivisor = {
                 direction: 0, attrId: 1537, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
 
             const acCurrentMultiplier = {
                 direction: 0, attrId: 1538, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
             const acCurrentDivisor = {
                 direction: 0, attrId: 1539, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
 
             const acPowerMultiplier = {
                 direction: 0, attrId: 1540, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
             const acPowerDivisor = {
                 direction: 0, attrId: 1541, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
             };
 
             const electricalCfg = [
                 rmsVoltage, rmsCurrent, activePower,
                 acVoltageMultiplier, acVoltageDivisor,
                 acCurrentMultiplier, acCurrentDivisor,
-                acPowerMultiplier, acPowerDivisor
+                acPowerMultiplier, acPowerDivisor,
             ];
             const actions = [
                 (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
