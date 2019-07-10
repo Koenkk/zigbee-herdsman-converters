@@ -1494,7 +1494,8 @@ const converters = {
             return result;
         },
     },
-    peanut_electrical: {  // SecuriFi PP-WHT-US
+    // SecuriFi PP-WHT-US Peanut Plug
+    peanut_electrical: {
         cid: 'haElectricalMeasurement',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
@@ -1504,10 +1505,10 @@ const converters = {
             // initialize stored defaults with observed values
             if (!store[deviceID]) {
                 store[deviceID] = {
-                    voltageMultiplier: 180, voltageDivisor:39321,
+                    voltageMultiplier: 180, voltageDivisor: 39321,
                     currentMultiplier: 72, currentDivisor: 39321,
                     powerMultiplier: 10255, powerDivisor: 39321,
-                    voltage: 0, current: 0, power: 0
+                    voltage: 0, current: 0, power: 0,
                 };
             }
 
@@ -1533,13 +1534,19 @@ const converters = {
 
             // if raw measurement comes in, apply stored/default multiplier and divisor
             if (msg.data.data.hasOwnProperty('rmsVoltage')) {
-                store[deviceID].voltage = (msg.data.data['rmsVoltage'] * store[deviceID].voltageMultiplier / store[deviceID].voltageDivisor).toFixed(2);
+                store[deviceID].voltage = (msg.data.data['rmsVoltage']
+                    * store[deviceID].voltageMultiplier
+                    / store[deviceID].voltageDivisor).toFixed(2);
             }
             if (msg.data.data.hasOwnProperty('rmsCurrent')) {
-                store[deviceID].current = (msg.data.data['rmsCurrent'] * store[deviceID].currentMultiplier / store[deviceID].currentDivisor).toFixed(2);
+                store[deviceID].current = (msg.data.data['rmsCurrent']
+                    * store[deviceID].currentMultiplier
+                    / store[deviceID].currentDivisor).toFixed(2);
             }
             if (msg.data.data.hasOwnProperty('activePower')) {
-                store[deviceID].power = (msg.data.data['activePower'] * store[deviceID].powerMultiplier / store[deviceID].powerDivisor).toFixed(2);
+                store[deviceID].power = (msg.data.data['activePower']
+                    * store[deviceID].powerMultiplier
+                    / store[deviceID].powerDivisor).toFixed(2);
             }
 
             // return calculated measurements
