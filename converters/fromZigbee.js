@@ -1494,6 +1494,62 @@ const converters = {
             return result;
         },
     },
+    peanut_electrical: {  // SecuriFi PP-WHT-US
+        cid: 'haElectricalMeasurement',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // initialize stored defaults with observed values
+            if (!store[deviceID]) {
+                store[deviceID] = {
+                    voltageMultiplier: 180, voltageDivisor:39321,
+                    currentMultiplier: 72, currentDivisor: 39321,
+                    powerMultiplier: 10255, powerDivisor: 39321,
+                    voltage: 0, current: 0, power: 0
+                };
+            }
+
+            // if new multipliers/divisors come in, replace prior values or defaults
+            if (msg.data.data.hasOwnProperty('acVoltageMultiplier')) {
+                store[deviceID].voltageMultiplier = msg.data.data['acVoltageMultiplier'];
+            }
+            if (msg.data.data.hasOwnProperty('acVoltageDivisor')) {
+                store[deviceID].voltageDivisor = msg.data.data['acVoltageDivisor'];
+            }
+            if (msg.data.data.hasOwnProperty('acCurrentMultiplier')) {
+                store[deviceID].currentMultiplier = msg.data.data['acCurrentMultiplier'];
+            }
+            if (msg.data.data.hasOwnProperty('acCurrentDivisor')) {
+                store[deviceID].currentDivisor = msg.data.data['acCurrentDivisor'];
+            }
+            if (msg.data.data.hasOwnProperty('acPowerMultiplier')) {
+                store[deviceID].powerMultiplier = msg.data.data['acPowerMultiplier'];
+            }
+            if (msg.data.data.hasOwnProperty('acPowerDivisor')) {
+                store[deviceID].powerDivisor = msg.data.data['acPowerDivisor'];
+            }
+
+            // if raw measurement comes in, apply stored/default multiplier and divisor
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                store[deviceID].voltage = (msg.data.data['rmsVoltage'] * store[deviceID].voltageMultiplier / store[deviceID].voltageDivisor).toFixed(2);
+            }
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                store[deviceID].current = (msg.data.data['rmsCurrent'] * store[deviceID].currentMultiplier / store[deviceID].currentDivisor).toFixed(2);
+            }
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                store[deviceID].power = (msg.data.data['activePower'] * store[deviceID].powerMultiplier / store[deviceID].powerDivisor).toFixed(2);
+            }
+
+            // return calculated measurements
+            result.voltage = store[deviceID].voltage;
+            result.current = store[deviceID].current;
+            result.power = store[deviceID].power;
+
+            return result;
+        },
+    },
     STS_PRS_251_presence: {
         cid: 'genBinaryInput',
         type: ['attReport', 'readRsp'],
