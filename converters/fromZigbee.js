@@ -3,6 +3,26 @@
 const debounce = require('debounce');
 const common = require('./common');
 
+/* Decode ASCII string back to Xiaomi Struct data , type: 65281*/
+const parseData = (rawData) => {
+    const data = {};
+    let index = 0;
+    while (index < rawData.length - 2) {
+        const type = rawData.readUInt8(index + 1);
+        const byteLength = (type & 0x7) + 1;
+        const isSigned = Boolean((type >> 3) & 1);
+        // Extract the relevant objects (1) Battery, (3) Plug temparature, (11) Illuminance,
+        // (100) Temperature|On/Off|Brighness, (101) Humidity|Color Temp,
+        // (102) Pressure, (149) Consumption,  (150) Voltage, (152) Power
+        // We can decode all index but for unknown device it may cause crash, so just for current support devices
+        if ([1, 3, 11, 100, 101, 102, 149, 150, 152].includes(rawData.readUInt8(index))) {
+            data[rawData.readUInt8(index)] = rawData[isSigned ? 'readIntLE' : 'readUIntLE'](index + 2, byteLength);
+        }
+        index += byteLength + 2;
+    }
+    return data;
+};
+
 const clickLookup = {
     1: 'single',
     2: 'double',
@@ -352,7 +372,8 @@ const converters = {
             let voltage = null;
 
             if (msg.data.data['65281']) {
-                voltage = msg.data.data['65281']['1'];
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
+                voltage = data['1'];
             } else if (msg.data.data['65282']) {
                 voltage = msg.data.data['65282']['1'].elmVal;
             }
@@ -370,7 +391,10 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                return {illuminance: msg.data.data['65281']['11']};
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
+                if (data.hasOwnProperty('11')) {
+                    return {illuminance: data['11']};
+                }
             }
         },
     },
@@ -379,8 +403,9 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
-                const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
+                const temperature = parseFloat(data['100']) / 100.0;
+                const humidity = parseFloat(data['101']) / 100.0;
                 const result = {};
 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -396,8 +421,8 @@ const converters = {
                 }
 
                 // Check if contains pressure (WSDCGQ11LM only)
-                if (msg.data.data['65281'].hasOwnProperty('102')) {
-                    const pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                if (data.hasOwnProperty('102')) {
+                    const pressure = parseFloat(data['102']) / 100.0;
                     result.pressure = precisionRoundOptions(pressure, options, 'pressure');
                 }
 
@@ -672,7 +697,8 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('65281')) {
-                return {contact: msg.data.data['65281']['100'] === 0};
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
+                return {contact: data['100'] === 0};
             }
         },
     },
@@ -906,7 +932,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
                 return {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(data['152'], 2),
@@ -922,7 +948,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
                 return {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     brightness: data['101'],
@@ -936,7 +962,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
@@ -950,7 +976,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
@@ -1280,9 +1306,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const data = msg.data.data;
             if (data && data['65281']) {
-                const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
-                    return {gas_density: basicAttrs['100']};
+                const data = parseData(Buffer.from(msg.data.data['65281'], 'ascii'));
+                if (data.hasOwnProperty('100')) {
+                    return {gas_density: data['100']};
                 }
             }
         },
