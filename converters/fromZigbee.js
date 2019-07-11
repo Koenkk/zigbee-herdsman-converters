@@ -1514,7 +1514,7 @@ const converters = {
                 if (msg.data.data.hasOwnProperty(key)) {
                     store[deviceID][key] = msg.data.data[key];
                 }
-            })
+            });
 
             // if raw measurement comes in, apply stored/default multiplier and divisor
             if (msg.data.data.hasOwnProperty('rmsVoltage')) {
