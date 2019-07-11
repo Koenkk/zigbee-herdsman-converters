@@ -1494,7 +1494,6 @@ const converters = {
             return result;
         },
     },
-    // SecuriFi PP-WHT-US Peanut Plug
     peanut_electrical: {
         cid: 'haElectricalMeasurement',
         type: ['attReport', 'readRsp'],
