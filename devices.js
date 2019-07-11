@@ -4595,6 +4595,18 @@ const devices = [
             execute(device, actions, callback);
         }
     },
+    // Tuya
+    {
+        zigbeeModel: ['RH3052'],
+        model: 'TT001ZAV20',
+        vendor: 'Tuya',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.xiaomi_humidity, fz.generic_temperature, fz.battery_200,
+            fz.ignore_humidity_change, fz.ignore_temperature_change
+        ]
+    },
 ];
 
 module.exports = devices.map((device) =>

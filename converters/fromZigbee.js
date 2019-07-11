@@ -1190,6 +1190,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const batt = msg.data.data.batteryPercentageRemaining;
             const battLow = msg.data.data.batteryAlarmState;
+            const voltage = msg.data.data.batteryVoltage;
             const results = {};
             if (batt != null) {
                 const value = Math.round(batt/200.0*10000)/100; // Out of 200
@@ -1201,6 +1202,9 @@ const converters = {
                 } else {
                     results['battery_low'] = false;
                 }
+            }
+            if (voltage != null) {
+                results['voltage'] = voltage * 100;
             }
             return results;
         },
