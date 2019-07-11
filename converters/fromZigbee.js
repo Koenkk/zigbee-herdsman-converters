@@ -1494,6 +1494,50 @@ const converters = {
             return result;
         },
     },
+    peanut_electrical: {
+        cid: 'haElectricalMeasurement',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            // initialize stored defaults with observed values
+            if (!store[deviceID]) {
+                store[deviceID] = {
+                    acVoltageMultiplier: 180, acVoltageDivisor: 39321, acCurrentMultiplier: 72,
+                    acCurrentDivisor: 39321, acPowerMultiplier: 10255, acPowerDivisor: 39321,
+                };
+            }
+
+            // if new multipliers/divisors come in, replace prior values or defaults
+            Object.keys(store[deviceID]).forEach((key) => {
+                if (msg.data.data.hasOwnProperty(key)) {
+                    store[deviceID][key] = msg.data.data[key];
+                }
+            });
+
+            // if raw measurement comes in, apply stored/default multiplier and divisor
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = (msg.data.data['rmsVoltage']
+                    * store[deviceID].acVoltageMultiplier
+                    / store[deviceID].acVoltageDivisor).toFixed(2);
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = (msg.data.data['rmsCurrent']
+                    * store[deviceID].acCurrentMultiplier
+                    / store[deviceID].acCurrentDivisor).toFixed(2);
+            }
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = (msg.data.data['activePower']
+                    * store[deviceID].acPowerMultiplier
+                    / store[deviceID].acPowerDivisor).toFixed(2);
+            }
+
+            return result;
+        },
+    },
     STS_PRS_251_presence: {
         cid: 'genBinaryInput',
         type: ['attReport', 'readRsp'],
