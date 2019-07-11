@@ -4615,6 +4615,39 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    //TUYA PIR Sensor RH3040 (ZC-P1)
+    {
+        zigbeeModel: ['RH3040'],
+        model: 'RH3040 - TUYATEC Motion sensor',
+        vendor: 'TUYATEC',
+        description: 'Motion sensor',
+        supports: 'occupancy ',
+        fromZigbee: [
+            fz.RH3040_motion_dev_change,
+            fz.RH3040_motion_status_change,
+            fz.RH3040_battery,
+            fz.RH3040_battery_change,
+            fz.RH3040_voltage,
+            fz.RH3040_voltage_change,
+            fz.ignore_basic_report,
+            fz.ignore_basic_change
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage','batteryPercentageRemaining', 1, 1000, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
