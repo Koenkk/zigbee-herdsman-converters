@@ -2878,12 +2878,12 @@ const converters = {
         },
     },
     RH3040_motion_dev_change: {
-        cid: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
-                const zoneStatus = msg.data.data.zoneStatus;
-                return {
+            cid: 'ssIasZone',
+            type: 'devChange',
+            convert: (model, msg, publish, options) => {
+                    if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
+                            const zoneStatus = msg.data.data.zoneStatus;
+                            return {
                     occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
 					tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
                     battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
