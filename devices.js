@@ -2504,7 +2504,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    
+
     // SmartThings
     {
         zigbeeModel: ['PGC313'],
