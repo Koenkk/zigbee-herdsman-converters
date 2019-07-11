@@ -2878,7 +2878,7 @@ const converters = {
         },
     },
     RH3040_motion_dev_change: {
-	cid: 'ssIasZone',
+        cid: 'ssIasZone',
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
