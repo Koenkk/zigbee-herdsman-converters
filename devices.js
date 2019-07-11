@@ -4643,7 +4643,7 @@ const devices = [
                 (cb) => device.bind('ssIasZone', coordinator, cb),
                 (cb) => device.bind('genIdentify', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage','batteryPercentageRemaining', 1, 1000, 1, cb), 
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 1, 1000, 1, cb),
             ];
             execute(device, actions, callback);
         },
