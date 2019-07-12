@@ -4574,7 +4574,15 @@ const devices = [
         fromZigbee: [
             fz.konke_click, fz.ignore_onoff_change,
             fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500
-        ]
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
     },
     {
         zigbeeModel: ['3AFE14010402000D'],
@@ -4591,6 +4599,8 @@ const devices = [
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
             ];
             execute(device, actions, callback);
         }
