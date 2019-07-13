@@ -4606,7 +4606,7 @@ const devices = [
         zigbeeModel: ['M350ST-W1R-01'],
         model: 'M350STW1',
         vendor: 'Leedarson',
-        description: 'LED PAR16 50 GU10 tunable white',
+        description: 'LED PAR16 50 GU10',
         extend: generic.light_onoff_brightness,
     },
     {
