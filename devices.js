@@ -2483,6 +2483,28 @@ const devices = [
         },
     },
 
+    // ROBB
+    {
+        zigbeeModel: ['ROB_200-004-0'],
+        model: 'ROB_200-004-0',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state, fz.ignore_light_brightness_report],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
     // SmartThings
     {
         zigbeeModel: ['PGC313'],
