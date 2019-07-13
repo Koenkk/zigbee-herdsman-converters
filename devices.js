@@ -941,7 +941,7 @@ const devices = [
         fromZigbee: [
             fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
             fz._324131092621_ignore_stop, fz._324131092621_notification,
-            fz.ignore_power_change, fz.hue_battery,
+            fz.ignore_power_change, fz.generic_battery_remaining,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -977,7 +977,7 @@ const devices = [
         description: 'Hue motion sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
@@ -1013,7 +1013,7 @@ const devices = [
         description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
@@ -2591,7 +2591,7 @@ const devices = [
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change,
             fz.ignore_iaszone_report, fz.generic_ias_zone_motion_dev_change,
-            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2615,7 +2615,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
-            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -3727,7 +3727,7 @@ const devices = [
         fromZigbee: [
             fz.thermostat_dev_change,
             fz.eurotronic_thermostat_dev_change,
-            fz.ignore_thermostat_report, fz.hue_battery, fz.ignore_power_change,
+            fz.ignore_thermostat_report, fz.generic_battery_remaining, fz.ignore_power_change,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -3773,7 +3773,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500,
-            fz.ignore_power_change, fz.bosch_ias_zone_motion_status_change, fz.ignore_iaszone_change,
+            fz.ignore_power_change, fz.generic_ias_zone_occupancy_status_change, fz.ignore_iaszone_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -3798,7 +3798,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
-            fz.generic_batteryvoltage_3000_2500, fz.bosch_ias_zone_motion_status_change,
+            fz.generic_batteryvoltage_3000_2500, fz.generic_ias_zone_occupancy_status_change,
             fz.ignore_iaszone_report, fz.ignore_iaszone_change,
         ],
         toZigbee: [],
@@ -4615,22 +4615,18 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    // TUYA PIR Sensor RH3040 (ZC-P1)
+
+    // TUYATEC
     {
         zigbeeModel: ['RH3040'],
-        model: 'RH3040 - TUYATEC Motion sensor',
+        model: 'RH3040',
         vendor: 'TUYATEC',
-        description: 'Motion sensor',
-        supports: 'occupancy ',
+        description: 'PIR sensor',
+        supports: 'occupancy',
         fromZigbee: [
-            fz.RH3040_motion_dev_change,
-            fz.RH3040_motion_status_change,
-            fz.RH3040_battery,
-            fz.RH3040_battery_change,
-            fz.RH3040_voltage,
-            fz.RH3040_voltage_change,
-            fz.ignore_basic_report,
-            fz.ignore_basic_change,
+            fz.generic_battery_remaining, fz.ignore_power_change, fz.generic_battery_voltage,
+            fz.ignore_basic_report, fz.ignore_basic_change, fz.ignore_iaszone_change,
+            fz.generic_ias_zone_occupancy_status_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {

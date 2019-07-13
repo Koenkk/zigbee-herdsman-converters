@@ -1689,18 +1689,22 @@ const converters = {
             }
         },
     },
-    hue_battery: {
+    generic_battery_remaining: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
+            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'] / 2, 2)};
+            }
         },
     },
     generic_battery_voltage: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {voltage: msg.data.data['batteryVoltage'] / 100};
+            if (msg.data.data.hasOwnProperty('batteryVoltage')) {
+                return {voltage: msg.data.data['batteryVoltage'] / 100};
+            }
         },
     },
     cmd_move: {
@@ -1821,7 +1825,7 @@ const converters = {
             };
         },
     },
-    bosch_ias_zone_motion_status_change: {
+    generic_ias_zone_occupancy_status_change: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
@@ -2840,69 +2844,7 @@ const converters = {
             return result;
         },
     },
-    // TUYA RH3040 motion sensor
-    RH3040_battery: {
-        cid: 'genPowerCfg',
-        type: ['attReport', 'readRsp'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data.data['batteryPercentageRemaining'] *100.00 / 200.00};
-            }
-        },
-    },
-    RH3040_battery_change: {
-        cid: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data.data['batteryPercentageRemaining'] *100.00 / 200.00};
-            }
-        },
-    },
-    RH3040_voltage: {
-        cid: 'genPowerCfg',
-        type: ['attReport', 'readRsp'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryVoltage')) {
-                return {voltage: msg.data.data['batteryVoltage'] * 100.00};
-            }
-        },
-    },
-    RH3040_voltage_change: {
-        cid: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryVoltage')) {
-                return {voltage: msg.data.data['batteryVoltage'] * 100.00};
-            }
-        },
-    },
-    RH3040_motion_dev_change: {
-        cid: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
-                const zoneStatus = msg.data.data.zoneStatus;
-                return {
-                    occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
-                    tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                    battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-                };
-            }
-        },
-    },
-    RH3040_motion_status_change: {
-        cid: 'ssIasZone',
-        type: 'statusChange',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
-            return {
-                occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-            };
-        },
-    },
+
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
         cid: 'hvacFanCtrl',
