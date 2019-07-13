@@ -1733,18 +1733,22 @@ const converters = {
             }
         },
     },
-    hue_battery: {
+    generic_battery_remaining: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'], 2) / 2};
+            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'] / 2, 2)};
+            }
         },
     },
     generic_battery_voltage: {
         cid: 'genPowerCfg',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {voltage: msg.data.data['batteryVoltage'] / 100};
+            if (msg.data.data.hasOwnProperty('batteryVoltage')) {
+                return {voltage: msg.data.data['batteryVoltage'] / 100};
+            }
         },
     },
     cmd_move: {
@@ -1865,7 +1869,7 @@ const converters = {
             };
         },
     },
-    bosch_ias_zone_motion_status_change: {
+    generic_ias_zone_occupancy_status_change: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
