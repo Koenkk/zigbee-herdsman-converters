@@ -2483,11 +2483,11 @@ const devices = [
         },
     },
 
-    // Robbshop
+    // ROBB
     {
         zigbeeModel: ['ROB_200-004-0'],
         model: 'ROB_200-004-0',
-        vendor: 'Robbshop',
+        vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state, fz.ignore_light_brightness_report],
