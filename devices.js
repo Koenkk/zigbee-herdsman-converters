@@ -2272,7 +2272,7 @@ const devices = [
 
     // Smart Home Pty
     {
-        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        zigbeeModel: ['FB56-ZCW11HG1.2', 'FB56-ZCW11HG1.4'],
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
         description: 'RGBW Downlight',
