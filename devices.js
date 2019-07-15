@@ -125,12 +125,6 @@ const execute = (device, actions, callback, delay) => {
                 debug(`Configured '${nextAction.toString()}' with result '${error ? error : 'OK'}'`);
                 if (error) {
                     callback(false, error);{
-        zigbeeModel: ['FB56-ZCW11HG1.4'],
-        model: 'HGZB-07A',
-        vendor: 'Feibit Inc co',
-        description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
                     return;
                 }
                 next();
@@ -1591,13 +1585,7 @@ const devices = [
         description: 'GU10 spot',
         extend: generic.light_onoff_brightness,
     },
-    {{
-        zigbeeModel: ['FB56-ZCW11HG1.4'],
-        model: 'HGZB-07A',
-        vendor: 'Feibit Inc co',
-        description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
+    {
         zigbeeModel: ['RS 225'],
         model: 'RS 225',
         vendor: 'Innr',
@@ -2284,16 +2272,9 @@ const devices = [
 
     // Smart Home Pty
     {
-        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        zigbeeModel: ['FB56-ZCW11HG1.2', 'FB56-ZCW11HG1.4'],
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
-        description: 'RGBW Downlight',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['FB56-ZCW11HG1.4'],
-        model: 'HGZB-07A',
-        vendor: 'Feibit Inc co',
         description: 'RGBW Downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
