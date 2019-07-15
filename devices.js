@@ -124,7 +124,7 @@ const execute = (device, actions, callback, delay) => {
             (error) => {
                 debug(`Configured '${nextAction.toString()}' with result '${error ? error : 'OK'}'`);
                 if (error) {
-                    callback(false, error);{
+                    callback(false, error);
                     return;
                 }
                 next();
