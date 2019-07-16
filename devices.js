@@ -4617,6 +4617,29 @@ const devices = [
             fz.ignore_humidity_change, fz.ignore_temperature_change
         ]
     },
+    // Zemismart
+    {
+        zigbeeModel: ['TS0002'],
+        model: 'ZM-CSW002-D',
+        vendor: 'Zemismart',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
