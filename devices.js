@@ -4605,6 +4605,50 @@ const devices = [
             execute(device, actions, callback);
         }
     },
+    {
+        zigbeeModel: ['3AFE140103020000'],
+        model: '2AJZ4KPFT',
+        vendor: 'Konke',
+        description: 'Temperature and humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.xiaomi_humidity, fz.ignore_humidity_change,
+            fz.generic_batteryvoltage_3000_2500, 
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3AFE130104020015'],
+        model: '2AJZ4KPDR',
+        vendor: 'Konke',
+        description: 'Contact sensor',
+        supports: '',
+        fromZigbee: [
+            fz.heiman_contact,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
+    },
     // Tuya
     {
         zigbeeModel: ['RH3052'],
