@@ -2270,7 +2270,7 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
-        zigbeeModel: ['FNB56-ZCW25FB1.6'],
+        zigbeeModel: ['FNB56-ZCW25FB1.6', 'FNB56-ZCW25FB2.1'],
         model: 'HGZB-06A',
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
