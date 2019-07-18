@@ -729,7 +729,7 @@ const devices = [
     },
 
     // Philips
-        {
+    {
         zigbeeModel: ['LTC012'],
         model: '3306431P7',
         vendor: 'Philips',
