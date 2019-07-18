@@ -735,7 +735,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Struana',
         extend: hue.light_onoff_brightness_colortemp,
-    }, 
+    },
     {
         zigbeeModel: ['LLC012', 'LLC011'],
         model: '7299760PH',
