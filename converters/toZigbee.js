@@ -130,6 +130,46 @@ const converters = {
             }
         },
     },
+    warning: {
+        key: ['warning'],
+        convert: (key, value, message, type, postfix, options) => {
+            if (type === 'set') {
+                const mode = {
+                    'stop': 0,
+                    'burglar': 1,
+                    'fire': 2,
+                    'emergency': 3,
+                    'police_panic': 4,
+                    'fire_panic': 5,
+                    'emergency_panic': 6,
+                };
+
+                const level = {
+                    'low': 0,
+                    'medium': 1,
+                    'high': 2,
+                    'very_high': 3,
+                };
+
+                const values = {
+                    mode: value.mode || 'emergency',
+                    level: value.level || 'medium',
+                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                };
+
+                const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+
+                return [{
+                    cid: 'ssIasWd',
+                    cmd: 'startWarning',
+                    cmdType: 'functional',
+                    zclData: {startwarninginfo: info, warningduration: values.duration},
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
     occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
