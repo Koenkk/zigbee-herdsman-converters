@@ -4726,16 +4726,19 @@ const devices = [
             fz.bosch_ias_zone_motion_status_change,
             fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        // 
+        // configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        //     const device = shepherd.find(ieeeAddr, 1);
+        //     const actions = [
+        //         (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+        //         (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+        //         (cb) => device.bind('genPowerCfg', coordinator, cb),
+        //         (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+        //     ];
+        //     execute(device, actions, callback);
+        // }
     },
     {
         zigbeeModel: ['3AFE140103020000'],
@@ -4770,16 +4773,19 @@ const devices = [
             fz.heiman_contact,
             fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        // 
+        // configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        //     const device = shepherd.find(ieeeAddr, 1);
+        //     const actions = [
+        //         (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+        //         (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+        //         (cb) => device.bind('genPowerCfg', coordinator, cb),
+        //         (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+        //     ];
+        //     execute(device, actions, callback);
+        // }
     },
 
     // TUYATEC
