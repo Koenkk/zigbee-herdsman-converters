@@ -1130,6 +1130,15 @@ const devices = [
         fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta, fz.ignore_onoff_change],
         toZigbee: [],
     },
+	{
+        zigbeeModel: ['LZL4BWHL01 Remote'],
+        model: 'LZL4BWHL01.Remote',
+        vendor: 'Lutron',
+        description: 'Lutron Connected Bulb Remote Control',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
+        toZigbee: [],
+    },
     {
         zigbeeModel: ['DNCKAT_S001'],
         model: 'DNCKATSW001',
