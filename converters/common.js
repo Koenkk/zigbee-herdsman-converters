@@ -44,10 +44,24 @@ const fanMode = {
     'auto': 5,
     'smart': 6,
 };
+const temperatureDisplayMode = {
+    0: 'celsius',
+    1: 'fahrenheit',
+};
+const keypadLockoutMode = {
+    0: 'unlock',
+    1: 'lock1',
+    2: 'lock2',
+    3: 'lock3',
+    4: 'lock4',
+    5: 'lock5',
+};
 
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
     thermostatRunningStates,
     fanMode,
+    temperatureDisplayMode,
+    keypadLockoutMode,
 };

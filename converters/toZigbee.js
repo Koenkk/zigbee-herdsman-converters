@@ -31,6 +31,10 @@ const cfg = {
         manufSpec: 1,
         manufCode: 0x110c,
     },
+    sinope: {
+        manufSpec: 1,
+        manufCode: 0x119C,
+    },
 };
 
 const converters = {
@@ -860,7 +864,27 @@ const converters = {
                     zclData: [{
                         attrId: zclId.attr(cid, attrId).value,
                         dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrData: utils.getKeyByValue(common.temperatureDisplayMode, value, value),
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    thermostat_keypad_lockout: {
+        key: 'keypad_lockout',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'keypadLockout';
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: utils.getKeyByValue(common.keypadLockoutMode, value, value),
                     }],
                     cfg: cfg.default,
                 }];
@@ -1527,6 +1551,121 @@ const converters = {
                         'pincodevalue': '',
                     },
                     cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    // Sinope
+    sinope_thermostat_backlight_autodim_param: {
+        key: 'backlightAutoDimParam',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x0402;
+            if (type === 'set') {
+                const sinopeBacklightAutoDimParam = {
+                    0: 'on demand',
+                    1: 'sensing',
+                };
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x30,
+                        attrData: utils.getKeyByValue(sinopeBacklightAutoDimParam, value, value),
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_enable_outdoor_temperature: {
+        key: 'enableOutdoorTemperature',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0011;
+            if (type === 'set' && value.toLowerCase()=='on') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x21,
+                        // set outdoor temperature timer to 3 hours
+                        attrData: 10800,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            } else if (type === 'set' && value.toLowerCase()=='off') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x21,
+                        // set timer to 30sec in order to disable outdoor temperature
+                        attrData: 30,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_outdoor_temperature: {
+        key: 'thermostatOutdoorTemperature',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0010;
+            if (type === 'set' && value > -100 && value < 100) {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x29,
+                        attrData: value * 100,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_time: {
+        key: 'thermostatTime',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0020;
+            if (type === 'set' && value === '' ) {
+                const thermostatDate = new Date();
+                const thermostatTimeSec = thermostatDate.getTime() / 1000;
+                const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x23,
+                        // Current time in second since 2000-01-01T00:00 in the current time zone
+                        attrData: Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800),
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            } else if (type === 'set' && value !== '' ) {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x23,
+                        attrData: value,
+                    }],
+                    cfg: cfg.sinope,
                 }];
             }
         },
