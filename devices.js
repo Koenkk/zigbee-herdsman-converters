@@ -1761,7 +1761,7 @@ const devices = [
         ]),
     },
     {
-        zigbeeModel: ['LIGHTIFY A19 RGBW'],
+        zigbeeModel: ['LIGHTIFY A19 RGBW', 'A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
