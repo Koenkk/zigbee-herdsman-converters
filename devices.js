@@ -4846,6 +4846,7 @@ const devices = [
             fz.generic_humidity, fz.generic_temperature, fz.battery_200,
             fz.ignore_humidity_change, fz.ignore_temperature_change,
         ],
+        toZigbee: [],
     },
 
     // Zemismart
