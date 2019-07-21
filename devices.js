@@ -4117,6 +4117,16 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['545df2981b704114945f6df1c780515a'],
+        model: 'LVS-ZB15S',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart switch',
+        supports: 'on/off',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
+    },
+
 
     // Stelpro
     {
