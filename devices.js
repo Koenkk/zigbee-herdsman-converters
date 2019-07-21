@@ -4750,7 +4750,7 @@ const devices = [
         zigbeeModel: ['TH1123ZB'],
         model: 'TH1123ZB',
         vendor: 'Sinope',
-        description: 'Zigbee Line Volt thermostat',
+        description: 'Zigbee line volt thermostat',
         supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
         fromZigbee: [
             fz.thermostat_att_report, fz.thermostat_dev_change,
