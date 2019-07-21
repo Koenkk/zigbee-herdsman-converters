@@ -279,7 +279,7 @@ const devices = [
         description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.xiaomi_humidity,
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.generic_humidity,
             fz.ignore_basic_change,
         ],
         toZigbee: [],
@@ -291,7 +291,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.generic_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -4185,7 +4185,7 @@ const devices = [
         description: 'Ceiling motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4210,7 +4210,7 @@ const devices = [
         description: 'Wall motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4235,7 +4235,7 @@ const devices = [
         description: 'Curtain motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4712,16 +4712,17 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
     // Konke
     {
         zigbeeModel: ['3AFE170100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
-        description: 'Multi-Function Button',
-        supports: 'single click, double click, long click',
+        description: 'Multi-function button',
+        supports: 'single, double and long click',
         fromZigbee: [
             fz.konke_click, fz.ignore_onoff_change,
-            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
         ],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -4730,8 +4731,9 @@ const devices = [
                 (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
             ];
             execute(device, actions, callback);
-        }
+        },
     },
+    /*
     {
         zigbeeModel: ['3AFE14010402000D'],
         model: '2AJZ4KPBS',
@@ -4744,18 +4746,18 @@ const devices = [
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        // 
-        // configure: (ieeeAddr, shepherd, coordinator, callback) => {
-        //     const device = shepherd.find(ieeeAddr, 1);
-        //     const actions = [
-        //         (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-        //         (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-        //         (cb) => device.bind('genPowerCfg', coordinator, cb),
-        //         (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-        //     ];
-        //     execute(device, actions, callback);
-        // }
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
     },
+    */
     {
         zigbeeModel: ['3AFE140103020000'],
         model: '2AJZ4KPFT',
@@ -4764,8 +4766,8 @@ const devices = [
         supports: 'temperature and humidity',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change,
-            fz.xiaomi_humidity, fz.ignore_humidity_change,
-            fz.generic_batteryvoltage_3000_2500, 
+            fz.generic_humidity, fz.ignore_humidity_change,
+            fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -4779,6 +4781,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    /*
     {
         zigbeeModel: ['3AFE130104020015'],
         model: '2AJZ4KPDR',
@@ -4791,18 +4794,18 @@ const devices = [
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        // 
-        // configure: (ieeeAddr, shepherd, coordinator, callback) => {
-        //     const device = shepherd.find(ieeeAddr, 1);
-        //     const actions = [
-        //         (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-        //         (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-        //         (cb) => device.bind('genPowerCfg', coordinator, cb),
-        //         (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-        //     ];
-        //     execute(device, actions, callback);
-        // }
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
     },
+    */
 
     // TUYATEC
     {
@@ -4839,10 +4842,11 @@ const devices = [
         description: 'Temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_humidity, fz.generic_temperature, fz.battery_200,
-            fz.ignore_humidity_change, fz.ignore_temperature_change
-        ]
+            fz.generic_humidity, fz.generic_temperature, fz.battery_200,
+            fz.ignore_humidity_change, fz.ignore_temperature_change,
+        ],
     },
+
     // Zemismart
     {
         zigbeeModel: ['TS0002'],
