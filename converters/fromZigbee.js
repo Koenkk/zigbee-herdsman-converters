@@ -558,7 +558,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    xiaomi_humidity: {
+    generic_humidity: {
         cid: 'msRelativeHumidity',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
