@@ -4894,6 +4894,41 @@ const devices = [
         },
     },
 
+    // Sinope
+    {
+        zigbeeModel: ['TH1123ZB'],
+        model: 'TH1123ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee line volt thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genGroups', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 19, 300, 50, cb),
+                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 4, 300, 10, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 15, 300, 40, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
     // Lutron
     {
         zigbeeModel: ['LZL4BWHL01 Remote'],
