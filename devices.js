@@ -4132,8 +4132,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Occupancy Sensor',
         supports: 'occupancy',
-        // fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change],
-        fromZigbee: [fz.battery_200],
+        fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change],
         toZigbee: [],
     },
     {
