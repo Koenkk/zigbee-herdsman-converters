@@ -4118,19 +4118,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['545df2981b704114945f6df1c780515a'],
-        model: 'LVS-ZB15S',
-        vendor: 'LivingWise',
-        description: 'Zigbee smart on/off switch',
-        supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
-        toZigbee: [tz.on_off],
-    },
-    {
         zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
         model: 'LVS-SN10ZW',
         vendor: 'LivingWise',
-        description: 'Occupancy Sensor',
+        description: 'Occupancy sensor',
         supports: 'occupancy',
         fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change],
         toZigbee: [],
@@ -4139,11 +4130,12 @@ const devices = [
         zigbeeModel: ['55e0fa5cdb144ba3a91aefb87c068cff'],
         model: 'LVS-ZB15R',
         vendor: 'LivingWise',
-        description: 'Zigbee smart plug',
+        description: 'Zigbee smart outlet',
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
         toZigbee: [tz.on_off],
     },
+
     // Stelpro
     {
         zigbeeModel: ['ST218'],
