@@ -1555,9 +1555,10 @@ const converters = {
             }
         },
     },
+
     // Sinope
     sinope_thermostat_backlight_autodim_param: {
-        key: 'backlightAutoDimParam',
+        key: 'backlight_auto_dim',
         convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x0402;
@@ -1581,7 +1582,7 @@ const converters = {
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
-        key: 'enableOutdoorTemperature',
+        key: 'enable_outdoor_temperature',
         convert: (key, value, message, type, postfix, options) => {
             const cid = 0xFF01;
             const attrId = 0x0011;
@@ -1615,7 +1616,7 @@ const converters = {
         },
     },
     sinope_thermostat_outdoor_temperature: {
-        key: 'thermostatOutdoorTemperature',
+        key: 'thermostat_outdoor_temperature',
         convert: (key, value, message, type, postfix, options) => {
             const cid = 0xFF01;
             const attrId = 0x0010;
@@ -1635,7 +1636,7 @@ const converters = {
         },
     },
     sinope_thermostat_time: {
-        key: 'thermostatTime',
+        key: 'thermostat_time',
         convert: (key, value, message, type, postfix, options) => {
             const cid = 0xFF01;
             const attrId = 0x0020;
