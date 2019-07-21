@@ -534,7 +534,10 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E27 CWS opal 600lm',
+            'TRADFRI bulb E26 CWS opal 600lm',
+            'TRADFRI bulb E14 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
@@ -4100,6 +4103,15 @@ const devices = [
         ],
     },
     {
+        zigbeeModel: ['545df2981b704114945f6df1c780515a'],
+        model: 'LVS-ZB15S',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart in-wall switch',
+        supports: 'on/off',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
+    },
+    {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
         model: 'LVS-SM10ZW',
         vendor: 'LivingWise',
@@ -4768,6 +4780,16 @@ const devices = [
         },
     },
 
+    // Lutron
+    {
+        zigbeeModel: ['LZL4BWHL01 Remote'],
+        model: 'LZL4BWHL01',
+        vendor: 'Lutron',
+        description: 'Connected bulb remote control',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
