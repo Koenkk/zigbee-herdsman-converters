@@ -2900,7 +2900,7 @@ const converters = {
             const lookup = {
                 128: {click: 'single'}, // single click
                 129: {click: 'double'}, // double and many click
-                130: {click: 'long'},   // hold
+                130: {click: 'long'}, // hold
             };
 
             return lookup[value] ? lookup[value] : null;
