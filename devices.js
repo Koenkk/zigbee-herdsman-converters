@@ -279,7 +279,7 @@ const devices = [
         description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.xiaomi_humidity,
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.generic_humidity,
             fz.ignore_basic_change,
         ],
         toZigbee: [],
@@ -291,7 +291,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.generic_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -4188,7 +4188,7 @@ const devices = [
         description: 'Ceiling motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4213,7 +4213,7 @@ const devices = [
         description: 'Wall motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4238,7 +4238,7 @@ const devices = [
         description: 'Curtain motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -4716,6 +4716,101 @@ const devices = [
         },
     },
 
+    // Konke
+    {
+        zigbeeModel: ['3AFE170100510001'],
+        model: '2AJZ4KPKEY',
+        vendor: 'Konke',
+        description: 'Multi-function button',
+        supports: 'single, double and long click',
+        fromZigbee: [
+            fz.konke_click, fz.ignore_onoff_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    /*
+    {
+        zigbeeModel: ['3AFE14010402000D'],
+        model: '2AJZ4KPBS',
+        vendor: 'Konke',
+        description: 'Motion sensor',
+        supports: '',
+        fromZigbee: [
+            fz.bosch_ias_zone_motion_status_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
+    },
+    */
+    {
+        zigbeeModel: ['3AFE140103020000'],
+        model: '2AJZ4KPFT',
+        vendor: 'Konke',
+        description: 'Temperature and humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.generic_humidity, fz.ignore_humidity_change,
+            fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    /*
+    {
+        zigbeeModel: ['3AFE130104020015'],
+        model: '2AJZ4KPDR',
+        vendor: 'Konke',
+        description: 'Contact sensor',
+        supports: '',
+        fromZigbee: [
+            fz.heiman_contact,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
+    },
+    */
+
     // TUYATEC
     {
         zigbeeModel: ['RH3040'],
@@ -4741,6 +4836,42 @@ const devices = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 1, 1000, 1, cb),
             ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['RH3052'],
+        model: 'TT001ZAV20',
+        vendor: 'TUYATEC',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_humidity, fz.generic_temperature, fz.battery_200,
+            fz.ignore_humidity_change, fz.ignore_temperature_change,
+        ],
+        toZigbee: [],
+    },
+
+    // Zemismart
+    {
+        zigbeeModel: ['TS0002'],
+        model: 'ZM-CSW002-D',
+        vendor: 'Zemismart',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
             execute(device, actions, callback);
         },
     },
