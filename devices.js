@@ -4724,6 +4724,7 @@ const devices = [
             fz.konke_click, fz.ignore_onoff_change,
             fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
         ],
+        toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
