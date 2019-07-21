@@ -1377,6 +1377,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['PAR16 RGBW Z3'],
+        model: 'AC08559',
+        vendor: 'OSRAM',
+        description: 'SMART+ Spot GU10 Multicolor',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['B40 DIM Z3'],
         model: 'AC08562',
         vendor: 'OSRAM',
@@ -1761,7 +1768,7 @@ const devices = [
         ]),
     },
     {
-        zigbeeModel: ['LIGHTIFY A19 RGBW'],
+        zigbeeModel: ['LIGHTIFY A19 RGBW', 'A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
@@ -4093,6 +4100,15 @@ const devices = [
         ],
     },
     {
+        zigbeeModel: ['545df2981b704114945f6df1c780515a'],
+        model: 'LVS-ZB15S',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart in-wall switch',
+        supports: 'on/off',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
+    },
+    {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
         model: 'LVS-SM10ZW',
         vendor: 'LivingWise',
@@ -4849,6 +4865,17 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+
+    // Lutron
+    {
+        zigbeeModel: ['LZL4BWHL01 Remote'],
+        model: 'LZL4BWHL01',
+        vendor: 'Lutron',
+        description: 'Connected bulb remote control',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
+        toZigbee: [],
     },
 ];
 
