@@ -1,4 +1,4 @@
-e strict';
+'usee strict';
 
 const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
@@ -4947,4 +4947,3 @@ const devices = [
 module.exports = devices.map((device) =>
     device.extend ? Object.assign({}, device.extend, device) : device
 );
-
