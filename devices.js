@@ -1,4 +1,4 @@
-'usee strict';
+'use strict';
 
 const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
