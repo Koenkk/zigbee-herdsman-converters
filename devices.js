@@ -901,6 +901,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTC014'],
+        model: '3216231P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
