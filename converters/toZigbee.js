@@ -619,6 +619,34 @@ const converters = {
             }
         },
     },
+    thermostat_occupied_cooling_setpoint: {
+        key: 'occupied_cooling_setpoint',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'occupiedCoolingSetpoint';
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: zclId.attr(cid, attrId).value,
+                        dataType: zclId.attrType(cid, attrId).value,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    }],
+                    cfg: cfg.default,
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
     thermostat_remote_sensing: {
         key: 'remote_sensing',
         convert: (key, value, message, type, postfix, options) => {
