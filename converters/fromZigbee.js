@@ -2933,6 +2933,15 @@ const converters = {
             };
         },
     },
+    generic_device_temperature: {
+        cid: 'genDeviceTempCfg',
+        type: ['devChange'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('currentTemperature')) {
+                return {temperature: msg.data.data.currentTemperature}
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {

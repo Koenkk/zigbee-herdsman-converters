@@ -246,10 +246,11 @@ const devices = [
         vendor: 'Xiaomi',
         // eslint-disable-next-line
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
-        supports: 'release/hold, on/off',
+        supports: 'release/hold, on/off, temperature',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
+            fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
