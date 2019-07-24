@@ -725,10 +725,19 @@ const devices = [
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         description: 'TRADFRI signal repeater',
-        supports: '',
+        supports: 'linkquality',
         vendor: 'IKEA',
-        fromZigbee: [fz.ignore_basic_change, fz.ignore_diagnostic_change],
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.E1746_linkquality],
         toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('genBasic', 'modelId', 3600, 14400, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 
     // Philips

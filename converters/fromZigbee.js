@@ -2906,6 +2906,13 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    E1746_linkquality: {
+        cid: 'genBasic',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            return {linkquality: msg.linkquality};
+        },
+    },
     generic_change_batteryvoltage_3000_2500: {
         cid: 'genPowerCfg',
         type: ['devChange'],
