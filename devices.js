@@ -4132,6 +4132,9 @@ const devices = [
 
             execute(device, actions, callback);
         },
+        options: {
+            disFeedbackRsp: true,
+        },
     },
 
     // LivingWise
