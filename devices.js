@@ -136,42 +136,6 @@ const execute = (device, actions, callback, delay) => {
 };
 
 const devices = [
-    // Zen
-    {
-        zigbeeModel: ['Zen-01'], 
-        model: 'Zen-01-W',
-        vendor: 'Zen', 
-        description: 'Zen Thermostat', 
-        supports: 'temperature, heating/cooling system control', 
-        fromZigbee: [
-            fz.ignore_basic_change, fz.generic_battery_voltage,
-            fz.thermostat_att_report, fz.thermostat_dev_change,
-        ],
-        toZigbee: [
-            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
-            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
-            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
-        ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -2018,15 +1982,6 @@ const devices = [
             fz.ignore_diagnostic_change,
         ]),
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
-    },
-    {
-        zigbeeModel: ['Z01-A19NAE26'],
-        model: 'Z01-A19NAE26',
-        vendor: 'Sengled',
-        description: 'Element Plus (A19)',
-        supports: generic.light_onoff_brightness_colortemp().supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp().fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp().toZigbee,
     },
     {
         zigbeeModel: ['E11-N1EA'],
@@ -4986,6 +4941,43 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
         toZigbee: [],
+    },
+
+    // Zen
+    {
+        zigbeeModel: ['Zen-01'],
+        model: 'Zen-01-W',
+        vendor: 'Zen',
+        description: 'Thermostat',
+        supports: 'temperature, heating/cooling system control',
+        fromZigbee: [
+            fz.ignore_basic_change, fz.generic_battery_voltage,
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
+            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 ];
 
