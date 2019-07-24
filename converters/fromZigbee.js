@@ -2072,6 +2072,10 @@ const converters = {
                 result.unoccupied_heating_setpoint =
                     precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
+            if (typeof msg.data.data['occupiedCoolingSetpoint'] == 'number') {
+                result.occupied_cooling_setpoint =
+                    precisionRound(msg.data.data['occupiedCoolingSetpoint'], 2) / 100;
+            }
             if (typeof msg.data.data['weeklySchedule'] == 'number') {
                 result.weekly_schedule = msg.data.data['weeklySchedule'];
             }
@@ -2131,6 +2135,10 @@ const converters = {
             if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
                 result.unoccupied_heating_setpoint =
                     precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data.data['occupiedCoolingSetpoint'] == 'number') {
+                result.occupied_cooling_setpoint =
+                    precisionRound(msg.data.data['occupiedCoolingSetpoint'], 2) / 100;
             }
             if (typeof msg.data.data['weeklySchedule'] == 'number') {
                 result.weekly_schedule = msg.data.data['weeklySchedule'];
