@@ -2938,7 +2938,7 @@ const converters = {
         type: ['devChange'],
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('currentTemperature')) {
-                return {temperature: msg.data.data.currentTemperature}
+                return {temperature: msg.data.data.currentTemperature};
             }
         },
     },
