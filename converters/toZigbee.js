@@ -1699,6 +1699,36 @@ const converters = {
             }
         },
     },
+	DTB190502A1_LED: {
+        key: ['LED'],
+        convert: (key, value, message, type, postfix, options) => {
+            if (type === 'set') {
+                if (value === 'default') {
+                    value = 1;
+                }
+				const lookup = {
+                'OFF': '0',
+                'ON': '1',
+				};
+				
+				value = lookup[value];
+				//Check for valid data
+				if( ((value >= 0) && value < 2) == false ) value = 0;
+				
+                return [{
+                    cid: 'genBasic',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x4010,
+                        dataType: 0x21,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
 
     /**
      * Ignore converters
