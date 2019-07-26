@@ -1709,7 +1709,7 @@ const converters = {
                 const lookup = {
                     'OFF': '0',
                     'ON': '1',
-                };                
+                };
                 value = lookup[value];
                 // Check for valid data
                 if ( ((value >= 0) && value < 2) == false ) value = 0;
