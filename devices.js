@@ -4996,6 +4996,143 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    
+    // Hej
+    {
+        zigbeeModel: ['HejSW01'],
+        model: 'GLSK3ZB-1711',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 1gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['HejSW02'],
+        model: 'GLSK3ZB-1712',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 2gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW03'],
+        model: 'GLSK3ZB-1713',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 3gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW04'],
+        model: 'GLSK6ZB-1714',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 4gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], callback);
+                    });
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW05'],
+        model: 'GLSK6ZB-1715',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 5gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
+                            const ep5 = shepherd.find(ieeeAddr, 5);
+                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], callback);
+                        });
+                    });
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW06'],
+        model: 'GLSK6ZB-1716',
+        vendor: 'Goqual',
+        description: 'Goqual Zigbee 6gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
+                            const ep5 = shepherd.find(ieeeAddr, 5);
+                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], () => {
+                                const ep6 = shepherd.find(ieeeAddr, 6);
+                                execute(ep6, [(cb) => ep6.bind('genOnOff', coordinator, cb)], callback);
+                            });
+                        });
+                    });
+                });
+            });
+        },
+    },
+    
 ];
 
 module.exports = devices.map((device) =>
