@@ -1216,7 +1216,7 @@ const devices = [
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
     },
-	{
+    {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
         vendor: 'Custom devices (DiY)',

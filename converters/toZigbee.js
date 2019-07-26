@@ -1699,22 +1699,22 @@ const converters = {
             }
         },
     },
-	DTB190502A1_LED: {
+    DTB190502A1_LED: {
         key: ['LED'],
         convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if (value === 'default') {
                     value = 1;
                 }
-				const lookup = {
+                const lookup = {
                 'OFF': '0',
                 'ON': '1',
-				};
-				
-				value = lookup[value];
-				//Check for valid data
-				if( ((value >= 0) && value < 2) == false ) value = 0;
-				
+                };
+                
+                value = lookup[value];
+                //Check for valid data
+                if( ((value >= 0) && value < 2) == false ) value = 0;
+                
                 return [{
                     cid: 'genBasic',
                     cmd: 'write',

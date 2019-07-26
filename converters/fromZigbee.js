@@ -2900,7 +2900,7 @@ const converters = {
             return result;
         },
     },
-	DTB190502A1_parse: {
+    DTB190502A1_parse: {
         cid: 'genOnOff',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
@@ -2908,9 +2908,9 @@ const converters = {
                 '0': 'KEY_SYS',
                 '1': 'KEY_UP',
                 '2': 'KEY_DOWN',
-				'3': 'KEY_NONE',
+                '3': 'KEY_NONE',
             };
-			const lookupLED = {
+            const lookupLED = {
                 '0': 'OFF',
                 '1': 'ON',
             };
