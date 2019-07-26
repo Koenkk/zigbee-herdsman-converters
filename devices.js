@@ -4996,7 +4996,7 @@ const devices = [
             execute(device, actions, callback);
         },
     },
-    
+
     // Hej
     {
         zigbeeModel: ['HejSW01'],
@@ -5110,7 +5110,10 @@ const devices = [
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
         ep: (device) => {
-            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6};
+            return {
+                'top_left': 1, 'center_left': 2, 'bottom_left': 3,
+                'top_right': 4, 'center_right': 5, 'bottom_right': 6,
+            };
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const ep1 = shepherd.find(ieeeAddr, 1);
@@ -5132,7 +5135,6 @@ const devices = [
             });
         },
     },
-    
 ];
 
 module.exports = devices.map((device) =>
