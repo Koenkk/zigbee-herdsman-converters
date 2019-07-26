@@ -1707,14 +1707,12 @@ const converters = {
                     value = 1;
                 }
                 const lookup = {
-                'OFF': '0',
-                'ON': '1',
-                };
-                
+                    'OFF': '0',
+                    'ON': '1',
+                };                
                 value = lookup[value];
-                //Check for valid data
-                if( ((value >= 0) && value < 2) == false ) value = 0;
-                
+                // Check for valid data
+                if ( ((value >= 0) && value < 2) == false ) value = 0;
                 return [{
                     cid: 'genBasic',
                     cmd: 'write',
