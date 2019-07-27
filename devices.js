@@ -2090,11 +2090,25 @@ const devices = [
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+
+            const rmsVoltage = 1285;
+            const rmsCurrent = 1288;
+            const activePower = 1291;
+            const powerFactor = 1296;
+
+            const electricalCfg = [
+                {direction: 0, attrId: rmsVoltage, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: rmsCurrent, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: activePower, dataType: 41, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: powerFactor, dataType: 40, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+            ];
+
             const actions = [
-                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'powerFactor', 10, 1000, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
+                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
             ];
 
             execute(device, actions, callback);
