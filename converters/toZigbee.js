@@ -2,7 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const zclId = require('zigbee-herdsman/dist/zcl-id');
+const Zcl = require('zigbee-herdsman/dist/zcl');
 
 const cfg = {
     default: {
@@ -79,7 +79,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -128,7 +128,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -179,7 +179,7 @@ const converters = {
         key: ['occupancy_timeout'],
         convert: (key, value, message, type, postfix, options) => {
             const cid = 'msOccupancySensing'; // 1030
-            const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
+            const attrId = Zcl.getAttributeLegacy(cid, 'pirOToUDelay').value; // = 16
 
             if (type === 'set') {
                 return [{
@@ -244,7 +244,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -302,14 +302,14 @@ const converters = {
                         cid: 'genOnOff',
                         cmd: 'read',
                         cmdType: 'foundation',
-                        zclData: [{attrId: zclId.attr('genOnOff', 'onOff').value}],
+                        zclData: [{attrId: Zcl.getAttributeLegacy('genOnOff', 'onOff').value}],
                         cfg: cfg.default,
                     },
                     {
                         cid: 'genLevelCtrl',
                         cmd: 'read',
                         cmdType: 'foundation',
-                        zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
+                        zclData: [{attrId: Zcl.getAttributeLegacy('genLevelCtrl', 'currentLevel').value}],
                         cfg: cfg.default,
                     },
                 ];
@@ -347,7 +347,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -428,8 +428,8 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [
-                        {attrId: zclId.attr(cid, 'currentX').value},
-                        {attrId: zclId.attr(cid, 'currentY').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
                     ],
                     cfg: cfg.default,
                 }];
@@ -464,9 +464,9 @@ const converters = {
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [
-                        {attrId: zclId.attr(cid, 'currentX').value},
-                        {attrId: zclId.attr(cid, 'currentY').value},
-                        {attrId: zclId.attr(cid, 'colorTemperature').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'colorTemperature').value},
                     ],
                     cfg: cfg.default,
                 }];
@@ -513,7 +513,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -530,8 +530,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: Math.round(value * 10),
                     }],
                     cfg: cfg.default,
@@ -541,7 +541,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -557,7 +557,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -574,8 +574,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
@@ -585,7 +585,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -602,8 +602,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
@@ -613,7 +613,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -630,8 +630,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
@@ -641,7 +641,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -664,8 +664,8 @@ const converters = {
                         // Bit 1 = 1 – outdoor temperature sensed remotely
                         // Bit 2 = 0 – occupancy sensed internally
                         // Bit 2 = 1 – occupancy sensed remotely
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: value, // TODO: Lookup in Zigbee documentation
                     }],
                     cfg: cfg.default,
@@ -675,7 +675,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -692,8 +692,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value),
                     }],
                     cfg: cfg.default,
@@ -703,7 +703,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -720,8 +720,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostatSystemModes, value, value),
                     }],
                     cfg: cfg.default,
@@ -732,7 +732,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -767,7 +767,7 @@ const converters = {
                     cmd: 'setWeeklySchedule',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: zclId.attrType(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: value, // TODO: Combine attributes in attrData?
                         temperature_setpoint_hold: value.temperature_setpoint_hold,
                         temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
@@ -857,7 +857,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -873,7 +873,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -890,8 +890,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.temperatureDisplayMode, value, value),
                     }],
                     cfg: cfg.default,
@@ -910,8 +910,8 @@ const converters = {
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.keypadLockoutMode, value, value),
                     }],
                     cfg: cfg.default,
@@ -933,7 +933,7 @@ const converters = {
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value, attrData: attrData, dataType: 48}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value, attrData: attrData, dataType: 48}],
                     cfg: cfg.default,
                     newState: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'},
                 }];
@@ -942,7 +942,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -1114,7 +1114,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -1381,7 +1381,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
@@ -1413,7 +1413,7 @@ const converters = {
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }
