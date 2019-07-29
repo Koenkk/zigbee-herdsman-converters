@@ -2900,6 +2900,27 @@ const converters = {
             return result;
         },
     },
+    DTB190502A1_parse: {
+        cid: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const lookupKEY = {
+                '0': 'KEY_SYS',
+                '1': 'KEY_UP',
+                '2': 'KEY_DOWN',
+                '3': 'KEY_NONE',
+            };
+            const lookupLED = {
+                '0': 'OFF',
+                '1': 'ON',
+            };
+            return {
+                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
+                key_state: lookupKEY[msg.data.data['41362']],
+                led_state: lookupLED[msg.data.data['41363']],
+            };
+        },
+    },
     konke_click: {
         cid: 'genOnOff',
         type: ['attReport', 'readRsp'],

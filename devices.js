@@ -1216,6 +1216,15 @@ const devices = [
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
     },
+    {
+        zigbeeModel: ['DTB190502A1'],
+        model: 'DTB190502A1',
+        vendor: 'Custom devices (DiY)',
+        description: '[CC2530 based IO Board https://databyte.ch/?portfolio=zigbee-erstes-board-dtb190502a)',
+        supports: 'switch, buttons',
+        fromZigbee: [fz.DTB190502A1_parse, fz.ignore_onoff_change],
+        toZigbee: [tz.DTB190502A1_LED],
+    },
 
     // eCozy
     {
