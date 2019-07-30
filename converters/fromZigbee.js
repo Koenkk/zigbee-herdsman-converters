@@ -867,6 +867,15 @@ const converters = {
             return {water_leak: msg.data.zoneStatus === 1};
         },
     },
+    SJCGQ11LM_water_leak_interval: {
+        cid: 'genBasic',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.data.hasOwnProperty('65281')) {
+                return {water_leak: msg.data.data['65281']['100'] === 1};
+            }
+        },
+    },
     state: {
         cid: 'genOnOff',
         type: ['attReport', 'readRsp'],
@@ -2960,6 +2969,39 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.data.hasOwnProperty('currentTemperature')) {
                 return {temperature: msg.data.data.currentTemperature};
+            }
+        },
+    },
+    ptvo_switch_state: {
+        cid: 'genOnOff',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const ep = msg.endpoints[0];
+            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const payload = {};
+            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            return payload;
+        },
+    },
+    ptvo_switch_buttons: {
+        cid: 'genMultistateInput',
+        type: 'attReport',
+        convert: (model, msg, publish, options) => {
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
+            const value = msg.data.data['presentValue'];
+
+            const actionLookup = {
+                1: 'single',
+                2: 'double',
+                3: 'tripple',
+                4: 'hold',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
+                return {click: button + (action ? `_${action}` : '')};
             }
         },
     },

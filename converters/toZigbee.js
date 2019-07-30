@@ -1727,6 +1727,50 @@ const converters = {
             }
         },
     },
+    ptvo_switch_trigger: {
+        key: ['trigger', 'interval'],
+        convert: (key, value, message, type, postfix, options) => {
+            console.log('ptvo_switch_trigger:', key, value, message, type, postfix);
+            if (type === 'set') {
+                value = parseInt(value);
+                if (!value) {
+                    return;
+                }
+
+                const cid = 'genOnOff';
+
+                if (key === 'trigger') {
+                    return [{
+                        cid: cid,
+                        cmd: 'onWithTimedOff',
+                        cmdType: 'functional',
+                        zclData: {
+                            ctrlbits: 0,
+                            ontime: value,
+                            offwaittime: 0,
+                        },
+                        cfg: cfg.default,
+                    }];
+                } else if (key === 'interval') {
+                    const attrId = 'onOff';
+                    return [{
+                        cid: cid,
+                        cmd: 'configReport',
+                        cmdType: 'foundation',
+                        zclData: [{
+                            direction: 0,
+                            dataType: zclId.attrType(cid, attrId).value,
+                            attrData: value,
+                            minRepIntval: value,
+                            maxRepIntval: value,
+                        }],
+                        cfg: cfg.default,
+                    }];
+                }
+            }
+            return;
+        },
+    },
 
     /**
      * Ignore converters
