@@ -1759,7 +1759,8 @@ const converters = {
                         cmdType: 'foundation',
                         zclData: [{
                             direction: 0,
-                            dataType: zclId.attrType(cid, attrId).value,
+                            attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                            dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                             attrData: value,
                             minRepIntval: value,
                             maxRepIntval: value,
