@@ -3005,6 +3005,30 @@ const converters = {
             }
         },
     },
+    keypad20states: {
+        cid: 'genOnOff',
+        type: ['devChange', 'attReport'],
+        convert: (model, msg, publish, options) => {
+            const ep = msg.endpoints[0];
+            const button = getKey(model.ep(ep.device), ep.epId);
+            const state = msg.data.data['onOff'] === 1 ? true : false;
+            if (button) {
+                return {[button]: state};
+            }
+        },
+    },
+    keypad20_battery: {
+        cid: 'genPowerCfg',
+        type: ['devChange', 'attReport'],
+        convert: (model, msg, publish, options) => {
+            const battery = {max: 3000, min: 2100};
+            const voltage = msg.data.data['mainsVoltage'] /10;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage,
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {

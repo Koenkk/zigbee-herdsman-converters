@@ -1222,8 +1222,8 @@ const devices = [
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
     },
     {
-        zigbeeModel: ['DIYRUZ_R4_5'],
-        model: 'DIYRUZ_R4_5',
+        zigbeeModel: ['DIYRuZ_R4_5'],
+        model: 'DIYRuZ_R4_5',
         vendor: 'Custom devices (DiY)',
         description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
         supports: 'on/off',
@@ -1231,6 +1231,23 @@ const devices = [
         toZigbee: [tz.on_off],
         ep: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
+        },
+    },
+    {
+        zigbeeModel: ['DIYRuZ_KEYPAD20'],
+        model: 'DIYRuZ_KEYPAD20',
+        vendor: 'Custom devices (DiY)',
+        description: '[DiY 20 button keypad](http://modkam.ru/?p=1114)',
+        supports: 'click',
+        fromZigbee: [fz.keypad20states, fz.keypad20_battery],
+        toZigbee: [],
+        ep: (device) => {
+            return {
+                'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4, 'btn_5': 5,
+                'btn_6': 6, 'btn_7': 7, 'btn_8': 8, 'btn_9': 9, 'btn_10': 10,
+                'btn_11': 11, 'btn_12': 12, 'btn_13': 13, 'btn_14': 14, 'btn_15': 15,
+                'btn_16': 16, 'btn_17': 17, 'btn_18': 18, 'btn_19': 19, 'btn_20': 20,
+            };
         },
     },
     {
