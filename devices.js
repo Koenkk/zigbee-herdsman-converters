@@ -1239,14 +1239,14 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[DiY 20 button keypad](http://modkam.ru/?p=1114)',
         supports: 'click',
-        fromZigbee: [fz.keypad20states,fz.keypad20_battery],
+        fromZigbee: [fz.keypad20states, fz.keypad20_battery],
         toZigbee: [],
         ep: (device) => {
             return {
-                'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4,'btn_5': 5,
-                'btn_6': 6, 'btn_7': 7, 'btn_8': 8,'btn_9': 9, 'btn_10': 10,
-                'btn_11': 11, 'btn_12': 12,'btn_13': 13, 'btn_14': 14, 'btn_15': 15,
-                'btn_16': 16,'btn_17': 17, 'btn_18': 18, 'btn_19': 19, 'btn_20': 20
+                'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4, 'btn_5': 5,
+                'btn_6': 6, 'btn_7': 7, 'btn_8': 8, 'btn_9': 9, 'btn_10': 10,
+                'btn_11': 11, 'btn_12': 12, 'btn_13': 13, 'btn_14': 14, 'btn_15': 15,
+                'btn_16': 16, 'btn_17': 17, 'btn_18': 18, 'btn_19': 19, 'btn_20': 20,
             };
         },
     },
