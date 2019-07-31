@@ -1894,6 +1894,34 @@ const converters = {
             };
         },
     },
+    generic_ias_zone_occupancy_status_change_no_off_msg: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
+            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
+            const deviceID = msg.endpoints[0].device.ieeeAddr;
+
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {
+                occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+            };
+        },
+    },
     generic_ias_zone_motion_dev_change: {
         cid: 'ssIasZone',
         type: 'devChange',

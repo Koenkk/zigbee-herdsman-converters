@@ -4209,11 +4209,11 @@ const devices = [
     },
     {
         zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
-        model: 'LVS-SN10ZW',
+        model: 'LVS-SN10ZW_SN11',
         vendor: 'LivingWise',
         description: 'Occupancy sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change],
+        fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change_no_off_msg],
         toZigbee: [],
     },
     {
