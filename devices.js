@@ -1240,6 +1240,7 @@ const devices = [
         description: '[DiY 20 button keypad](http://modkam.ru/?p=1114)',
         supports: 'click',
         fromZigbee: [fz.keypad20states,fz.keypad20_battery],
+        toZigbee: [],
         ep: (device) => {
             return {
                 'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4,'btn_5': 5,
