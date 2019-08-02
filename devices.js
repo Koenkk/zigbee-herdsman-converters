@@ -5210,6 +5210,24 @@ const devices = [
             });
         },
     },
+    {
+        zigbeeModel: ['PM-C140-ZB'],
+        model: 'PM-C140-ZB',
+        vendor: 'DAWON DNS',
+        description: 'IOT Remote Control Smart Buried-type outlet',
+        supports: 'on/off power and energy measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.generic_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
