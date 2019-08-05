@@ -1917,6 +1917,13 @@ const devices = [
 
     // GE
     {
+        zigbeeModel: ['SoftWhite'],
+        model: 'PSB19-SW27',
+        vendor: 'GE',
+        description: 'Link smart LED light bulb, A19 soft white (2700K)',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
