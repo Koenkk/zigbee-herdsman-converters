@@ -5269,6 +5269,16 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // CREE
+    {
+        zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
+        model: 'Connected A-19 60W Equivalent',
+        vendor: 'CREE',
+        description: 'Connected bulb',
+        extend: generic.light_onoff_brightness,
+    },
+
 ];
 
 module.exports = devices.map((device) =>
