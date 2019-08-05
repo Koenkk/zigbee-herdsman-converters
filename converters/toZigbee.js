@@ -37,6 +37,16 @@ const cfg = {
     },
 };
 
+function getTransition(message, options) {
+    if (message.hasOwnProperty('transition')) {
+        return message.transition;
+    } else if (options.hasOwnProperty('transition')) {
+        return options.transition;
+    } else {
+        return 0;
+    }
+}
+
 const converters = {
     /**
      * Generic
@@ -232,7 +242,7 @@ const converters = {
                         cmdType: 'functional',
                         zclData: {
                             level: Number(value),
-                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                            transtime: getTransition(message, options) * 10,
                         },
                         cfg: cfg.default,
                         newState: {brightness: Number(value)},
@@ -259,7 +269,7 @@ const converters = {
                 const brightnessValue = message.hasOwnProperty('brightness') ?
                     message.brightness : message.brightness_percent;
                 const hasState = message.hasOwnProperty('state');
-                const hasTrasition = message.hasOwnProperty('transition');
+                const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
                 const state = hasState ? message.state.toLowerCase() : null;
 
                 if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
@@ -283,17 +293,19 @@ const converters = {
                         brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                     }
 
+                    const transition = getTransition(message, options);
+
                     return [{
                         cid: 'genLevelCtrl',
                         cmd: 'moveToLevelWithOnOff',
                         cmdType: 'functional',
                         zclData: {
                             level: Number(brightness),
-                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                            transtime: transition * 10,
                         },
                         cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
                         newState: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
+                        readAfterWriteTime: transition * 1000,
                     }];
                 }
             } else if (type === 'get') {
@@ -336,7 +348,7 @@ const converters = {
                     cmdType: 'functional',
                     zclData: {
                         colortemp: value,
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                        transtime: getTransition(message, options) * 10,
                     },
                     cfg: cfg.default,
                     newState: {color_temp: value},
@@ -387,7 +399,7 @@ const converters = {
                 }
 
                 const zclData = {
-                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                    transtime: getTransition(message, options) * 10,
                 };
 
                 let newState = null;
