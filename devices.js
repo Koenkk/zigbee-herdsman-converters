@@ -5278,7 +5278,6 @@ const devices = [
         description: 'Connected bulb',
         extend: generic.light_onoff_brightness,
     },
-
 ];
 
 module.exports = devices.map((device) =>
