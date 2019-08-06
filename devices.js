@@ -2129,7 +2129,7 @@ const devices = [
 
     // JIAWEN
     {
-        zigbeeModel: ['FB56-ZCW08KU1.1'],
+        zigbeeModel: ['FB56-ZCW08KU1.1','FB56-ZCW08KU1.0'],
         model: 'K2RGBW01',
         vendor: 'JIAWEN',
         description: 'Wireless Bulb E27 9W RGBW',
