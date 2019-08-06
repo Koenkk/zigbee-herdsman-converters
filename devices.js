@@ -2888,7 +2888,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['water'],
+        zigbeeModel: ['IM6001-WLP01'],
         model: 'IM6001-WLP01',
         vendor: 'SmartThings',
         description: 'Water leak Sensor',
