@@ -213,14 +213,16 @@ const converters = {
             const isPosition = (key === 'position');
             const cid = 'closuresWindowCovering';
             const attrId = isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage';
-            value = 100 - value; // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas HomeAssistant etc. work the other way round
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            value = 100 - value;
 
             if (type === 'set') {
                 return [{
                     cid: cid,
                     cmdType: 'functional',
                     cmd: isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                    zclData: isPosition ? { percentageliftvalue: value } : { percentagetiltvalue: value },
+                    zclData: isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
                     cfg: cfg.default,
                 }];
             } else if (type === 'get') {
@@ -228,7 +230,7 @@ const converters = {
                     cid: cid,
                     cmdType: 'foundation',
                     cmd: 'read',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
                 }];
             }

@@ -2652,8 +2652,9 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas HomeAssistant etc. work the other way round
-            // ubisys J1 will report 255 if lift or tilt positions are not known
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // ubisys J1 will report 255 if lift or tilt positions are not known.
             if (msg.data.data.hasOwnProperty('currentPositionLiftPercentage')) {
                 const liftPercentage = msg.data.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;

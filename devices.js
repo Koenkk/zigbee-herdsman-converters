@@ -5318,7 +5318,7 @@ const devices = [
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);  // metering
+            const device = shepherd.find(ieeeAddr, 3); // metering
             const actions = [
                 (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
             ];
@@ -5337,7 +5337,7 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 5);  // metering
+            const device = shepherd.find(ieeeAddr, 5); // metering
             const actions = [
                 (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
             ];
@@ -5350,10 +5350,13 @@ const devices = [
         vendor: 'ubisys',
         description: 'Universal Dimmer D1',
         supports: 'on/off, brightness, power measurement',
-        fromZigbee: [fz.state, fz.brightness_report, fz.ignore_onoff_change, fz.ignore_light_brightness_change, fz.generic_power, fz.ignore_metering_change],
+        fromZigbee: [
+            fz.state, fz.brightness_report, fz.ignore_onoff_change, fz.ignore_light_brightness_change,
+            fz.generic_power, fz.ignore_metering_change
+        ],
         toZigbee: [tz.light_onoff_brightness],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 4);  // metering
+            const device = shepherd.find(ieeeAddr, 4); // metering
             const actions = [
                 (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
             ];
