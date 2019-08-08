@@ -671,7 +671,7 @@ const converters = {
         cid: 'genBasic',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('65281')) {
+            if (msg.data.data.hasOwnProperty('65281') && msg.data.data['65281'].hasOwnProperty('100')) {
                 return {contact: msg.data.data['65281']['100'] === 0};
             }
         },
@@ -871,7 +871,7 @@ const converters = {
         cid: 'genBasic',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('65281')) {
+            if (msg.data.data.hasOwnProperty('65281') && msg.data.data['65281'].hasOwnProperty('100')) {
                 return {water_leak: msg.data.data['65281']['100'] === 1};
             }
         },
