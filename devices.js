@@ -5308,12 +5308,12 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-    // ubisys
+    // Ubisys
     {
         zigbeeModel: ['S1 (5501)', 'S1-R (5601)'],
         model: 'S1',
-        vendor: 'ubisys',
-        description: 'Power Switch S1',
+        vendor: 'Ubisys',
+        description: 'Power switch S1',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
@@ -5328,8 +5328,8 @@ const devices = [
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
         model: 'S2',
-        vendor: 'ubisys',
-        description: 'Power Switch S2',
+        vendor: 'Ubisys',
+        description: 'Power switch S2',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
@@ -5347,12 +5347,12 @@ const devices = [
     {
         zigbeeModel: ['D1 (5503)', 'D1-R (5603)'],
         model: 'D1',
-        vendor: 'ubisys',
-        description: 'Universal Dimmer D1',
+        vendor: 'Ubisys',
+        description: 'Universal dimmer D1',
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [
             fz.state, fz.brightness_report, fz.ignore_onoff_change, fz.ignore_light_brightness_change,
-            fz.generic_power, fz.ignore_metering_change
+            fz.generic_power, fz.ignore_metering_change,
         ],
         toZigbee: [tz.light_onoff_brightness],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5366,8 +5366,8 @@ const devices = [
     {
         zigbeeModel: ['J1 (5502)', 'J1-R (5602)'],
         model: 'J1',
-        vendor: 'ubisys',
-        description: 'Shutter Control J1',
+        vendor: 'Ubisys',
+        description: 'Shutter control J1',
         supports: 'open, close, stop, position, tilt',
         fromZigbee: [fz.closuresWindowCovering_report_pos_and_tilt, fz.ignore_closuresWindowCovering_change],
         toZigbee: [tz.cover_control, tz.cover_gotopercentage],
