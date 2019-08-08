@@ -4829,6 +4829,13 @@ const devices = [
         description: 'LED E27 tunable white',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['LED_E27_OWDT'],
+        model: 'ZA806SQ1TCF',
+        vendor: 'Leedarson',
+        description: 'LED E27 tunable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // GMY
     {
