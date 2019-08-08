@@ -4165,7 +4165,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3'],
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',
