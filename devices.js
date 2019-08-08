@@ -1818,6 +1818,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['RT RGBW'],
+        model: '73741',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED adjustable color RT 5/6',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LIGHTIFY BR Tunable White'],
         model: '73740',
         vendor: 'Sylvania',
