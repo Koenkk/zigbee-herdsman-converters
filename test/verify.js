@@ -46,12 +46,12 @@ devices.forEach((device) => {
             converterKey,
         );
 
-        assert.strictEqual(5, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
+        assert.strictEqual(6, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
 
     // Check for duplicate zigbee model ids
     device.zigbeeModel.forEach((m) => {
-        if (foundZigbeeModels.includes(m)) {
+        if (foundZigbeeModels.includes(m.toLowerCase())) {
             assert.fail(`Duplicate zigbee model ${m}`);
         }
     });
@@ -59,6 +59,6 @@ devices.forEach((device) => {
     // Check for duplicate model ids
     assert(!foundModels.includes(device.model), `Duplicate model ${device.model}`);
 
-    foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel);
+    foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
     foundModels.push(device.model);
 });
