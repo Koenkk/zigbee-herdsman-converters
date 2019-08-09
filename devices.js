@@ -1607,6 +1607,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['RF 265'],
+        model: 'RF 265',
+        vendor: 'Innr',
+        description: 'E27 bulb filament clear',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RB 278 T'],
         model: 'RB 278 T',
         vendor: 'Innr',
