@@ -799,7 +799,7 @@ const converters = {
         cid: 'msIlluminanceMeasurement',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            const illuminance = msg.data.data['measuredValue']
+            const illuminance = msg.data.data['measuredValue'];
             const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
             return {illuminance: calIlluminance};
         },
