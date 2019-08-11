@@ -804,7 +804,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const illuminance = msg.data.data['measuredValue'];
-            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance'); 
+            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
             // calibration value must be for 10000lux!
             return {illuminance: calIlluminance};
         },
