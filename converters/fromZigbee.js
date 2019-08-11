@@ -32,7 +32,10 @@ const precisionRound = (number, precision) => {
 
 const calibrateOptions = (number, options, type) => {
     const key = `${type}_calibration`;
-    const calibrationOffset = options && options.hasOwnProperty(key) ? options[key] : 0;
+    var calibrationOffset = options && options.hasOwnProperty(key) ? options[key] : 0;
+    if (type == 'illuminance') { // linear calibration offset (option value for 10000lux), 0=no offset, 5000=half offset,..
+        calibrationOffset = calibrationOffset/10000 * number;
+    }
     return number + calibrationOffset;
 };
 
@@ -800,7 +803,7 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const illuminance = msg.data.data['measuredValue'];
-            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
+            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance'); // calibration value must be for 10000lux!
             return {illuminance: calIlluminance};
         },
     },
