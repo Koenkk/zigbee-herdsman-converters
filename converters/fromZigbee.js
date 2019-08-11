@@ -708,11 +708,11 @@ const converters = {
                 result.color = {};
 
                 if (msg.data.data['currentX']) {
-                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 3);
+                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 4);
                 }
 
                 if (msg.data.data['currentY']) {
-                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 4);
                 }
 
                 if (msg.data.data['currentSaturation']) {
@@ -750,11 +750,11 @@ const converters = {
                 result.color = {};
 
                 if (msg.data.data['currentX']) {
-                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 3);
+                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 4);
                 }
 
                 if (msg.data.data['currentY']) {
-                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 3);
+                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 4);
                 }
 
                 if (msg.data.data['currentSaturation']) {
