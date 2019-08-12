@@ -2322,15 +2322,6 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW05HG1.2'],
-        model: 'HGZB-01A/02A',
-        vendor: 'Nue / 3A',
-        description: 'Smart 1 gang wall or in-wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change],
-        toZigbee: [tz.on_off],
-    },
-    {
         zigbeeModel: ['FB56+ZSW1GKJ2.5'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
@@ -2352,13 +2343,6 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW23HG1.1'],
-        model: 'HGZB-01A',
-        vendor: 'Nue / 3A',
-        description: 'Smart light controller',
-        extend: generic.light_onoff_brightness,
-    },
-    {
         zigbeeModel: ['FNB56-ZCW25FB1.9'],
         model: 'XY12S-15',
         vendor: 'Nue / 3A',
@@ -2366,7 +2350,16 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['FNB56-ZSC01LX1.2'],
+        zigbeeModel: ['FNB56-ZSW23HG1.1', 'LXN56-LC27LX1.1'],
+        model: 'HGZB-01A',
+        vendor: 'Nue / 3A',
+        description: 'Smart in-wall switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2'],
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
