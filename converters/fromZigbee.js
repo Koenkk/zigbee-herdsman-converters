@@ -34,8 +34,9 @@ const calibrateOptions = (number, options, type) => {
     const key = `${type}_calibration`;
     let calibrationOffset = options && options.hasOwnProperty(key) ? options[key] : 0;
     if (type == 'illuminance') {
-        // linear calibration offset (option value for 10000lux), 0=no offset, 5000=half offset,..
-        calibrationOffset = calibrationOffset/10000 * number;
+        // linear calibration because measured value is zero based
+        // +/- percent
+        calibrationOffset = Math.round(number * calibrationOffset / 100);
     }
     return number + calibrationOffset;
 };
@@ -805,7 +806,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const illuminance = msg.data.data['measuredValue'];
             const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
-            // calibration value must be for 10000lux!
+            // calibration value in +/- percent!
             return {illuminance: calIlluminance};
         },
     },
