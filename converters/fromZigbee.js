@@ -2859,7 +2859,7 @@ const converters = {
             return result;
         },
     },
-    ZNMS12LM_closuresDoorLock_report: {
+    ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
         cid: 'closuresDoorLock',
         type: 'attReport',
         convert: (model, msg, publish, options) => {
@@ -2881,6 +2881,7 @@ const converters = {
                 14: 'change_language_to',
                 15: 'finger_open',
                 16: 'password_open',
+                17: 'door_closed',
             };
             result.user = null;
             result.repeat = null;
@@ -2888,32 +2889,66 @@ const converters = {
                 // Convert data back to hex to decode
                 const data = Buffer.from(msg.data.data['65526'], 'ascii').toString('hex');
                 const command = data.substr(6, 4);
-                if (command === '0301') {
+                if (
+                    command === '0301' // ZNMS12LM
+                    || command === '0341' // ZNMS13LM
+                ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
-                } else if (command === '0311') {
+                } else if (
+                    command === '0311' // ZNMS12LM
+                    || command === '0351' // ZNMS13LM
+                ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
-                } else if (command === '0205') {
+                } else if (
+                    command === '0205' // ZNMS12LM
+                    || command === '0245' // ZNMS13LM
+                ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'UNLOCK';
                     result.reverse = 'LOCK';
-                } else if (command === '0215') {
+                } else if (
+                    command === '0215' // ZNMS12LM
+                    || command === '0255' // ZNMS13LM
+                    || command === '1355' // ZNMS13LM
+                ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'LOCK';
                     result.reverse = 'LOCK';
-                } else if (command === '0111') {
+                } else if (
+                    command === '0111' // ZNMS12LM
+                    || command === '1351' // ZNMS13LM locked from inside
+                    || command === '1451' // ZNMS13LM locked from outside
+                ) {
                     result.action = lockStatusLookup[5];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
-                } else if (command === '0b00') {
+                } else if (
+                    command === '0b00' // ZNMS12LM
+                    || command === '0640' // ZNMS13LM
+                    ||command === '0600' // ZNMS13LM
+
+                ) {
                     result.action = lockStatusLookup[12];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
-                } else if (command === '0c00') {
+                } else if (
+                    command === '0c00' // ZNMS12LM
+                    || command === '2300' // ZNMS13LM
+                    || command === '0540' // ZNMS13LM
+                    || command === '0440' // ZNMS13LM
+                ) {
                     result.action = lockStatusLookup[11];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '2400' // ZNMS13LM door closed from insed
+                    || command === '2401' // ZNMS13LM door closed from outside
+                ) {
+                    result.action = lockStatusLookup[17];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 }
