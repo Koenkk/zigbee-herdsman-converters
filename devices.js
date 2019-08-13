@@ -1327,6 +1327,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['PAR16 DIM Z3'],
+        model: 'AC08560',
+        vendor: 'OSRAM',
+        description: 'SMART+ LED PAR16 GU10',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW Z3'],
         model: 'AC03647',
         vendor: 'OSRAM',
