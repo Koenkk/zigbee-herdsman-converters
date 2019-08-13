@@ -30,6 +30,17 @@ const precisionRound = (number, precision) => {
     return Math.round(number * factor) / factor;
 };
 
+const calibrateOptions = (number, options, type) => {
+    const key = `${type}_calibration`;
+    let calibrationOffset = options && options.hasOwnProperty(key) ? options[key] : 0;
+    if (type == 'illuminance') {
+        // linear calibration because measured value is zero based
+        // +/- percent
+        calibrationOffset = Math.round(number * calibrationOffset / 100);
+    }
+    return number + calibrationOffset;
+};
+
 const toPercentage = (value, min, max) => {
     if (value > max) {
         value = max;
@@ -447,7 +458,8 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
-            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+            const calTemperature = calibrateOptions(temperature, options, 'temperature');
+            return {temperature: precisionRoundOptions(calTemperature, options, 'temperature')};
         },
     },
     generic_temperature_change: {
@@ -455,7 +467,8 @@ const converters = {
         type: 'devChange',
         convert: (model, msg, publish, options) => {
             const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
-            return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+            const calTemperature = calibrateOptions(temperature, options, 'temperature');
+            return {temperature: precisionRoundOptions(calTemperature, options, 'temperature')};
         },
     },
     xiaomi_temperature: {
@@ -791,7 +804,10 @@ const converters = {
         cid: 'msIlluminanceMeasurement',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {illuminance: msg.data.data['measuredValue']};
+            const illuminance = msg.data.data['measuredValue'];
+            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
+            // calibration value in +/- percent!
+            return {illuminance: calIlluminance};
         },
     },
     generic_pressure: {
@@ -799,7 +815,8 @@ const converters = {
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
             const pressure = parseFloat(msg.data.data['measuredValue']);
-            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+            const calPressure = calibrateOptions(pressure, options, 'pressure');
+            return {pressure: precisionRoundOptions(calPressure, options, 'pressure')};
         },
     },
     WXKG02LM_click: {
