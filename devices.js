@@ -3123,15 +3123,9 @@ const devices = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) =>
-                    device.report(
-                        'genPowerCfg',
-                        'batteryPercentageRemaining',
-                        repInterval.MINUTE,
-                        repInterval.MAX,
-                        1,
-                        cb
-                    ),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.MINUTE, repInterval.MAX, 1, cb
+                ),
             ];
 
             execute(device, actions, callback);
