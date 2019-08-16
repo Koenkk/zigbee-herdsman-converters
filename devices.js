@@ -664,7 +664,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
-        model: 'E1524',
+        model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         supports:
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
