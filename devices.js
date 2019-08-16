@@ -3089,7 +3089,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change, fz.generic_battery],
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change, fz.generic_battery_remaining],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
