@@ -3101,13 +3101,15 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change, fz.generic_battery_remaining],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg','batteryPercentageRemaining', repInterval.MINUTE, repInterval.MAX, 1, cb),                
             ];
 
             execute(device, actions, callback);
