@@ -472,7 +472,19 @@ const devices = [
         supports: 'report: open, close, operation',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.ZNMS12LM_closuresDoorLock_report, fz.ignore_basic_report,
+            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
+            fz.ignore_doorlock_change, fz.ignore_basic_change,
+        ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.lock.acn03'],
+        model: 'ZNMS13LM',
+        description: 'Aqara S2 Lock Pro',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
             fz.ignore_doorlock_change, fz.ignore_basic_change,
         ],
         toZigbee: [],
