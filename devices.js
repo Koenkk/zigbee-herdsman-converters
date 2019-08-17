@@ -1119,6 +1119,13 @@ const devices = [
         description: 'Hue Fuzo outdoor wall light',
         extend: hue.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['1743630P7'],
+        model: '17436/30/P7',
+        vendor: 'Philips',
+        description: 'Hue Welcome white flood light',
+        extend: hue.light_onoff_brightness,
+    },
 
     // Belkin
     {
