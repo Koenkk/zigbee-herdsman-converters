@@ -3425,6 +3425,17 @@ const devices = [
 
     // Lupus
     {
+        zigbeeModel: ['RH3052'],
+        model: '12134',
+        vendor: 'Lupus',
+        description: 'temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature,
+                     fz.generic_humidity, fz.battery_200,
+                     fz.ignore_temperature_change, fz.ignore_basic_change],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['SCM_00.00.03.11TC'],
         model: '12031',
         vendor: 'Lupus',
