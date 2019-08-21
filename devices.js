@@ -1035,7 +1035,7 @@ const devices = [
         fromZigbee: [
             fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
-            fz.ignore_temperature_change,
+            fz.ignore_temperature_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         ep: (device) => {
