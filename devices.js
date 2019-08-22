@@ -3574,14 +3574,14 @@ const devices = [
             const cfg = {
                 direction: 0, attrId: 33, dataType: 32, minRepIntval: 10, maxRepIntval: repInterval.MAX, repChange: 0,
             };
-    
+
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
-    
+            
             execute(device, actions, callback, 1000);
         },
     },
