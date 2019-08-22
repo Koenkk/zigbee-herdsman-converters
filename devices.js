@@ -3581,7 +3581,7 @@ const devices = [
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
-
+            
             execute(device, actions, callback, 1000);
         },
     },
