@@ -2099,7 +2099,7 @@ const devices = [
         ]),
         toZigbee: generic.light_onoff_brightness.toZigbee,
     },
-{
+    {
         zigbeeModel: ['Z01-A19NAE26', 'Z01-A60EAE27'],
         model: 'Z01-A19NAE26/Z01-A60EAE27',
         vendor: 'Sengled',
