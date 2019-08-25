@@ -2,38 +2,23 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const Zcl = require('zigbee-herdsman/dist/zcl');
 
-const cfg = {
-    default: {
-        manufSpec: 0,
-        disDefaultRsp: 0,
-    },
-    defaultdisFeedbackRsp: {
-        manufSpec: 0,
-        disDefaultRsp: 0,
-        disFeedbackRsp: true,
-    },
+const options = {
     xiaomi: {
-        manufSpec: 1,
-        disDefaultRsp: 1,
-        manufCode: 0x115F,
-    },
-    eurotronic: {
-        manufSpec: 1,
-        manufCode: 4151,
-    },
-    hue: {
-        manufSpec: 1,
-        manufCode: 4107,
+        manufacturerCode: 0x115F,
+        disableDefaultResponse: true,
     },
     osram: {
-        manufSpec: 1,
-        manufCode: 0x110c,
+        manufacturerCode: 0x110c,
+    },
+    eurotronic: {
+        manufacturerCode: 4151,
+    },
+    hue: {
+        manufacturerCode: 4107,
     },
     sinope: {
-        manufSpec: 1,
-        manufCode: 0x119C,
+        manufacturerCode: 0x119C,
     },
 };
 
@@ -47,146 +32,109 @@ function getTransition(message, options) {
     }
 }
 
+// Entity is expected to be either a zigbee-herdsman group or endpoint
+
+// Meta is expect to contain:
+// {
+//   message: the full message, used for e.g. {brightness; transition;}
+//   options: {disableFeedback: skip waiting for feedback, e.g. Hampton Bay 99432 doesn't respond}
+//   endpoint_name: name of the endpoint, used for e.g. livolo where left and right is
+//                  seperated by transition time instead of separte endpoint
+// }
+
 const converters = {
     /**
      * Generic
      */
     factory_reset: {
         key: ['reset'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                return [{
-                    cid: 'genBasic',
-                    cmd: 'resetFactDefault',
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genBasic', 'resetFactDefault', {});
         },
     },
     on_off: {
         key: ['state'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genOnOff';
-            const attrId = 'onOff';
-
-            if (type === 'set') {
-                if (typeof value !== 'string') {
-                    return;
-                }
-
-                return [{
-                    cid: cid,
-                    cmd: value.toLowerCase(),
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
-                    newState: {state: value.toUpperCase()},
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genOnOff', value.toLowerCase(), {});
+            return {state: {state: value.toUpperCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
         },
     },
     cover_open_close: {
         key: ['state'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if (typeof value !== 'string') {
-                    return;
-                }
-
-                const positionByState = {
-                    'open': 100,
-                    'close': 0,
-                };
-
-                value = positionByState[value.toLowerCase()];
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
             }
 
-            return converters.cover_position.convert(key, value, message, type, postfix, options);
+            const positionByState = {
+                'open': 100,
+                'close': 0,
+            };
+
+            value = positionByState[value.toLowerCase()];
+            return await converters.cover_position.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.cover_position.convertGet(entity, key, meta);
         },
     },
     cover_position: {
         key: ['position'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genLevelCtrl';
-            const attrId = 'currentLevel';
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(
+                'genLevelCtrl',
+                'currentLevel',
+                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0}
+            );
 
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'moveToLevelWithOnOff',
-                    cmdType: 'functional',
-                    zclData: {
-                        level: Math.round(Number(value) * 2.55).toString(),
-                        transtime: 0,
-                    },
-                    cfg: cfg.default,
-                    newState: {position: value},
-                    readAfterWriteTime: 0,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+            return {state: {position: value}, readAfterWriteTime: 0};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
     warning: {
         key: ['warning'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                const mode = {
-                    'stop': 0,
-                    'burglar': 1,
-                    'fire': 2,
-                    'emergency': 3,
-                    'police_panic': 4,
-                    'fire_panic': 5,
-                    'emergency_panic': 6,
-                };
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {
+                'stop': 0,
+                'burglar': 1,
+                'fire': 2,
+                'emergency': 3,
+                'police_panic': 4,
+                'fire_panic': 5,
+                'emergency_panic': 6,
+            };
 
-                const level = {
-                    'low': 0,
-                    'medium': 1,
-                    'high': 2,
-                    'very_high': 3,
-                };
+            const level = {
+                'low': 0,
+                'medium': 1,
+                'high': 2,
+                'very_high': 3,
+            };
 
-                const values = {
-                    mode: value.mode || 'emergency',
-                    level: value.level || 'medium',
-                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
-                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
-                };
+            const values = {
+                mode: value.mode || 'emergency',
+                level: value.level || 'medium',
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                duration: value.hasOwnProperty('duration') ? value.duration : 10,
+            };
 
-                const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
 
-                return [{
-                    cid: 'ssIasWd',
-                    cmd: 'startWarning',
-                    cmdType: 'functional',
-                    zclData: {startwarninginfo: info, warningduration: values.duration},
-                    cfg: cfg.default,
-                }];
-            }
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: values.duration}
+            );
         },
     },
     cover_control: {
         key: ['state'],
-        convert: (key, value, message, type, postfix, options) => {
+        convertSet: async (entity, key, value, meta) => {
             const zclCmdLookup = {
                 'open': 'upOpen',
                 'close': 'downClose',
@@ -195,309 +143,197 @@ const converters = {
                 'off': 'downClose',
             };
 
-            const zclCmd = zclCmdLookup[value.toLowerCase()];
-            if (zclCmd) {
-                return [{
-                    cid: 'closuresWindowCovering',
-                    cmdType: 'functional',
-                    cmd: zclCmd,
-                    zclData: {},
-                    cfg: cfg.default,
-                }];
-            }
+            await entity.command('closuresWindowCovering', zclCmdLookup[value.toLowerCase()], {});
         },
     },
     cover_gotopercentage: {
         key: ['position', 'tilt'],
-        convert: (key, value, message, type, postfix, options) => {
+        convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
-            const cid = 'closuresWindowCovering';
-            const attrId = isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage';
             // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
             // HomeAssistant etc. work the other way round.
             value = 100 - value;
 
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmdType: 'functional',
-                    cmd: isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                    zclData: isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmdType: 'foundation',
-                    cmd: 'read',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+            await entity.command(
+                'closuresWindowCovering',
+                isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
+                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+            );
+        },
+        convertGet: async (entity, key, meta) => {
+            const isPosition = (key === 'position');
+            await entity.read(
+                'closuresWindowCovering',
+                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']
+            );
         },
     },
     occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'msOccupancySensing'; // 1030
-            const attrId = Zcl.getAttributeLegacy(cid, 'pirOToUDelay').value; // = 16
-
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 33, // uint16
-                        // hue_sml001:
-                        // in seconds, minimum 10 seconds, <10 values result
-                        // in 10 seconds delay
-                        // make sure you write to second endpoint!
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                    }],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('msOccupancySensing', {pirOToUDelay: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genLevelCtrl';
-            const attrId = 'currentLevel';
-
-            if (type === 'set') {
-                if (key === 'brightness_percent') {
-                    value = Math.round(Number(value) * 2.55).toString();
-                }
-
-                if (Number(value) === 0) {
-                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix, options);
-                    converted[0].newState.brightness = 0;
-                    return converted;
-                } else {
-                    return [{
-                        cid: cid,
-                        cmd: 'moveToLevel',
-                        cmdType: 'functional',
-                        zclData: {
-                            level: Number(value),
-                            transtime: getTransition(message, options) * 10,
-                        },
-                        cfg: cfg.default,
-                        newState: {brightness: Number(value)},
-                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                    }];
-                }
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            const {message, options} = meta;
+            if (key === 'brightness_percent') {
+                value = Math.round(Number(value) * 2.55).toString();
             }
+
+            if (Number(value) === 0) {
+                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
+                result.state.brightness = 0;
+                return result;
+            } else {
+                const payload = {level: Number(value), transtime: getTransition(message, options) * 10};
+                await entity.command('genLevelCtrl', 'moveToLevel', payload);
+                const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
+                return {state: {brightness: Number(value)}, readAfterWriteTime};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
     light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                const hasBrightness = message.hasOwnProperty('brightness') ||
-                                        message.hasOwnProperty('brightness_percent');
-                const brightnessValue = message.hasOwnProperty('brightness') ?
-                    message.brightness : message.brightness_percent;
-                const hasState = message.hasOwnProperty('state');
-                const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
-                const state = hasState ? message.state.toLowerCase() : null;
+        convertSet: async (entity, key, value, meta) => {
+            const {message, options} = meta;
+            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
+            const brightnessValue = message.hasOwnProperty('brightness') ?
+                message.brightness : message.brightness_percent;
+            const hasState = message.hasOwnProperty('state');
+            const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
+            const state = hasState ? message.state.toLowerCase() : null;
 
-                if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
-                    const converted = converters.on_off.convert('state', state, message, 'set', postfix, options);
-                    if (state === 'on') {
-                        converted[0].readAfterWriteTime = 0;
-                    }
-                    return converted;
-                } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix, options);
-                    converted[0].newState.brightness = 0;
-                    return converted;
-                } else {
-                    let brightness = 0;
-
-                    if (hasState && !hasBrightness && state == 'on') {
-                        brightness = 255;
-                    } else if (message.hasOwnProperty('brightness')) {
-                        brightness = message.brightness;
-                    } else if (message.hasOwnProperty('brightness_percent')) {
-                        brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
-                    }
-
-                    const transition = getTransition(message, options);
-
-                    return [{
-                        cid: 'genLevelCtrl',
-                        cmd: 'moveToLevelWithOnOff',
-                        cmdType: 'functional',
-                        zclData: {
-                            level: Number(brightness),
-                            transtime: transition * 10,
-                        },
-                        cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
-                        newState: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                        readAfterWriteTime: transition * 1000,
-                    }];
+            if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
+                const result = await converters.on_off.convertSet(entity, 'state', state, options);
+                if (state === 'on') {
+                    result.readAfterWriteTime = 0;
                 }
-            } else if (type === 'get') {
-                return [
-                    {
-                        cid: 'genOnOff',
-                        cmd: 'read',
-                        cmdType: 'foundation',
-                        zclData: [{attrId: Zcl.getAttributeLegacy('genOnOff', 'onOff').value}],
-                        cfg: cfg.default,
-                    },
-                    {
-                        cid: 'genLevelCtrl',
-                        cmd: 'read',
-                        cmdType: 'foundation',
-                        zclData: [{attrId: Zcl.getAttributeLegacy('genLevelCtrl', 'currentLevel').value}],
-                        cfg: cfg.default,
-                    },
-                ];
+                return result;
+            } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
+                const result = await converters.on_off.convertSet(entity, 'state', 'off', options);
+                result.state.brightness = 0;
+                return result;
+            } else {
+                const transition = getTransition(message, options);
+                let brightness = 0;
+
+                if (hasState && !hasBrightness && state == 'on') {
+                    brightness = 255;
+                } else if (message.hasOwnProperty('brightness')) {
+                    brightness = message.brightness;
+                } else if (message.hasOwnProperty('brightness_percent')) {
+                    brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
+                }
+
+                await entity.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {level: Number(brightness), transtime: transition * 10}
+                );
+                return {
+                    state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
+                    readAfterWriteTime: transition * 1000,
+                };
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+            await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'lightingColorCtrl';
-            const attrId = 'colorTemperature';
+        convertSet: async (entity, key, value, meta) => {
+            const {message, options} = meta;
 
-            if (type === 'set') {
-                if (key === 'color_temp_percent') {
-                    value = Number(value) * 3.46;
-                    value = Math.round(value + 154).toString();
-                }
-
-                value = Number(value);
-
-                return [{
-                    cid: cid,
-                    cmd: 'moveToColorTemp',
-                    cmdType: 'functional',
-                    zclData: {
-                        colortemp: value,
-                        transtime: getTransition(message, options) * 10,
-                    },
-                    cfg: cfg.default,
-                    newState: {color_temp: value},
-                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
+            if (key === 'color_temp_percent') {
+                value = Number(value) * 3.46;
+                value = Math.round(value + 154).toString();
             }
+
+            value = Number(value);
+            const payload = {colortemp: value, transtime: getTransition(message, options) * 10};
+            await entity.command('lightingColorCtrl', 'colorTemperature', payload);
+            const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
+            return {state: {color_temp: value}, readAfterWriteTime};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['colorTemperature']);
         },
     },
     light_color: {
         key: ['color'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'lightingColorCtrl';
-
-            if (type === 'set') {
-                // Check if we need to convert from RGB to XY and which cmd to use
-                let cmd;
-                if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
-                    const xy = utils.rgbToXY(value.r, value.g, value.b);
-                    value.x = xy.x;
-                    value.y = xy.y;
-                } else if (value.hasOwnProperty('rgb')) {
-                    const rgb = value.rgb.split(',').map((i) => parseInt(i));
-                    const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
-                    value.x = xy.x;
-                    value.y = xy.y;
-                } else if (value.hasOwnProperty('hex')) {
-                    const xy = utils.hexToXY(value.hex);
-                    value.x = xy.x;
-                    value.y = xy.y;
-                } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
-                    value.hue = value.hue * (65535 / 360);
-                    value.saturation = value.saturation * (2.54);
-                    cmd = 'enhancedMoveToHueAndSaturation';
-                } else if (value.hasOwnProperty('hue')) {
-                    value.hue = value.hue * (65535 / 360);
-                    cmd = 'enhancedMoveToHue';
-                } else if (value.hasOwnProperty('saturation')) {
-                    value.saturation = value.saturation * (2.54);
-                    cmd = 'moveToSaturation';
-                }
-
-                const zclData = {
-                    transtime: getTransition(message, options) * 10,
-                };
-
-                let newState = null;
-                switch (cmd) {
-                case 'enhancedMoveToHueAndSaturation':
-                    zclData.enhancehue = value.hue;
-                    zclData.saturation = value.saturation;
-                    zclData.direction = value.direction || 0;
-                    break;
-                case 'enhancedMoveToHue':
-                    zclData.enhancehue = value.hue;
-                    zclData.direction = value.direction || 0;
-                    break;
-
-                case 'moveToSaturation':
-                    zclData.saturation = value.saturation;
-                    break;
-
-                default:
-                    cmd = 'moveToColor';
-                    newState = {color: {x: value.x, y: value.y}};
-                    zclData.colorx = Math.round(value.x * 65535);
-                    zclData.colory = Math.round(value.y * 65535);
-                }
-
-                return [{
-                    cid: cid,
-                    cmd: cmd,
-                    cmdType: 'functional',
-                    zclData: zclData,
-                    cfg: cfg.default,
-                    newState: newState,
-                    readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [
-                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
-                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
-                    ],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            // Check if we need to convert from RGB to XY and which cmd to use
+            const {message, options} = meta;
+            let cmd;
+            if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
+                const xy = utils.rgbToXY(value.r, value.g, value.b);
+                value.x = xy.x;
+                value.y = xy.y;
+            } else if (value.hasOwnProperty('rgb')) {
+                const rgb = value.rgb.split(',').map((i) => parseInt(i));
+                const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
+                value.x = xy.x;
+                value.y = xy.y;
+            } else if (value.hasOwnProperty('hex')) {
+                const xy = utils.hexToXY(value.hex);
+                value.x = xy.x;
+                value.y = xy.y;
+            } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
+                value.hue = value.hue * (65535 / 360);
+                value.saturation = value.saturation * (2.54);
+                cmd = 'enhancedMoveToHueAndSaturation';
+            } else if (value.hasOwnProperty('hue')) {
+                value.hue = value.hue * (65535 / 360);
+                cmd = 'enhancedMoveToHue';
+            } else if (value.hasOwnProperty('saturation')) {
+                value.saturation = value.saturation * (2.54);
+                cmd = 'moveToSaturation';
             }
+
+            const zclData = {
+                transtime: getTransition(message, options) * 10,
+            };
+
+            let newState = null;
+            switch (cmd) {
+            case 'enhancedMoveToHueAndSaturation':
+                zclData.enhancehue = value.hue;
+                zclData.saturation = value.saturation;
+                zclData.direction = value.direction || 0;
+                break;
+            case 'enhancedMoveToHue':
+                zclData.enhancehue = value.hue;
+                zclData.direction = value.direction || 0;
+                break;
+
+            case 'moveToSaturation':
+                zclData.saturation = value.saturation;
+                break;
+
+            default:
+                cmd = 'moveToColor';
+                newState = {color: {x: value.x, y: value.y}};
+                zclData.colorx = Math.round(value.x * 65535);
+                zclData.colory = Math.round(value.y * 65535);
+            }
+
+            await entity.command('lightingColorCtrl', cmd, zclData);
+            const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
+            return {state: newState, readAfterWriteTime};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['currentX', 'currentY']);
         },
     },
     light_color_colortemp: {
@@ -514,502 +350,214 @@ const converters = {
           * converter is used to do just that.
          */
         key: ['color', 'color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'lightingColorCtrl';
-            if (type === 'set') {
-                if (key == 'color') {
-                    return converters.light_color.convert(key, value, message, type, postfix, options);
-                } else if (key == 'color_temp' || key == 'color_temp_percent') {
-                    return converters.light_colortemp.convert(key, value, message, type, postfix, options);
-                }
-            } else if (type == 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [
-                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
-                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
-                        {attrId: Zcl.getAttributeLegacy(cid, 'colorTemperature').value},
-                    ],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'color') {
+                return await converters.light_color.convertSet(entity, key, value, meta);
+            } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                return await converters.light_colortemp.convertSet(entity, key, value, meta);
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'colorTemperature']);
         },
     },
     light_alert: {
         key: ['alert', 'flash'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genIdentify';
-            if (type === 'set') {
-                const lookup = {
-                    'select': 0x00,
-                    'lselect': 0x01,
-                    'none': 0xFF,
-                };
-                if (key === 'flash') {
-                    if (value === 2) {
-                        value = 'select';
-                    } else if (value === 10) {
-                        value = 'lselect';
-                    }
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {
+                'select': 0x00,
+                'lselect': 0x01,
+                'none': 0xFF,
+            };
+            if (key === 'flash') {
+                if (value === 2) {
+                    value = 'select';
+                } else if (value === 10) {
+                    value = 'lselect';
                 }
-                return [{
-                    cid: cid,
-                    cmd: 'triggerEffect',
-                    cmdType: 'functional',
-                    zclData: {
-                        effectid: lookup[value.toLowerCase()],
-                        effectvariant: 0x01,
-                    },
-                    cfg: cfg.default,
-                }];
             }
+
+            const payload = {effectid: lookup[value.toLowerCase()], effectvariant: 0x01};
+            await entity.command('genIdentify', 'triggerEffect', payload);
         },
     },
     thermostat_local_temperature: {
         key: 'local_temperature',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'localTemp';
-            if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['localTemp']);
         },
     },
     thermostat_local_temperature_calibration: {
         key: 'local_temperature_calibration',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'localTemperatureCalibration';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: Math.round(value * 10),
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['localTemperatureCalibration']);
         },
     },
     thermostat_occupancy: {
         key: 'occupancy',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'ocupancy';
-            if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['ocupancy']);
         },
     },
     thermostat_occupied_heating_setpoint: {
         key: 'occupied_heating_setpoint',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'occupiedHeatingSetpoint';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
         },
     },
     thermostat_unoccupied_heating_setpoint: {
         key: 'unoccupied_heating_setpoint',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'unoccupiedHeatingSetpoint';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['unoccupiedHeatingSetpoint']);
         },
     },
     thermostat_occupied_cooling_setpoint: {
         key: 'occupied_cooling_setpoint',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'occupiedCoolingSetpoint';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedCoolingSetpoint']);
         },
     },
     thermostat_remote_sensing: {
         key: 'remote_sensing',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'remoteSensing';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        // Bit 0 = 0 – local temperature sensed internally
-                        // Bit 0 = 1 – local temperature sensed remotely
-                        // Bit 1 = 0 – outdoor temperature sensed internally
-                        // Bit 1 = 1 – outdoor temperature sensed remotely
-                        // Bit 2 = 0 – occupancy sensed internally
-                        // Bit 2 = 1 – occupancy sensed remotely
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: value, // TODO: Lookup in Zigbee documentation
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {remoteSensing: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['remoteSensing']);
         },
     },
     thermostat_control_sequence_of_operation: {
         key: 'control_sequence_of_operation',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'ctrlSeqeOfOper';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value),
-                    }],
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const ctrlSeqeOfOper = utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value);
+            await entity.write('hvacThermostat', {ctrlSeqeOfOper});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
         },
     },
     thermostat_system_mode: {
         key: 'system_mode',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'systemMode';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.thermostatSystemModes, value, value),
-                    }],
-                    cfg: cfg.default,
-                    readAfterWriteTime: 250,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
+            await entity.write('hvacThermostat', {systemMode});
+            return {readAfterWriteTime: 250};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['systemMode']);
         },
     },
     thermostat_setpoint_raise_lower: {
         key: 'setpoint_raise_lower',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'setpointRaiseLower',
-                    cmdType: 'functional',
-                    zclData: {
-                        mode: value.mode,
-                        amount: Math.round(value.amount) * 100,
-                    },
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
+            await entity.command('hvacThermostat', 'setpointRaiseLower', payload);
         },
     },
     thermostat_weekly_schedule: {
         key: 'weekly_schedule',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'weeklySchedule';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'setWeeklySchedule',
-                    cmdType: 'functional',
-                    zclData: {
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: value, // TODO: Combine attributes in attrData?
-                        temperature_setpoint_hold: value.temperature_setpoint_hold,
-                        temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
-                        thermostat_programming_operation_mode: value.thermostat_programming_operation_mode,
-                        thermostat_running_state: value.thermostat_running_state,
-                    },
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'getWeeklySchedule',
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                temperature_setpoint_hold: value.temperature_setpoint_hold,
+                temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
+                thermostat_programming_operation_mode: value.thermostat_programming_operation_mode,
+                thermostat_running_state: value.thermostat_running_state,
+            };
+            await entity.command('hvacThermostat', 'setWeeklySchedule', payload);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('hvacThermostat', 'getWeeklySchedule', {});
         },
     },
     thermostat_clear_weekly_schedule: {
         key: 'clear_weekly_schedule',
-        attr: [],
-        convert: (key, value, message, type, postfix, options) => {
-            return [{
-                cid: 'hvacThermostat',
-                cmd: 'clearWeeklySchedule',
-                type: 'functional',
-                zclData: {},
-            }];
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('hvacThermostat', 'clearWeeklySchedule', {});
         },
     },
     thermostat_relay_status_log: {
         key: 'relay_status_log',
-        attr: [],
-        convert: (key, value, message, type, postfix, options) => {
-            return [{
-                cid: 'hvacThermostat',
-                cmd: 'getRelayStatusLog',
-                type: 'functional',
-                zclData: {},
-            }];
+        convertGet: async (entity, key, meta) => {
+            await entity.command('hvacThermostat', 'getRelayStatusLog', {});
         },
     },
     thermostat_weekly_schedule_rsp: {
         key: 'weekly_schedule_rsp',
-        attr: [],
-        convert: (key, value, message, type, postfix, options) => {
-            return [{
-                cid: 'hvacThermostat',
-                cmd: 'getWeeklyScheduleRsp',
-                type: 'functional',
-                zclData: {
-                    number_of_transitions: value.numoftrans, // TODO: Lookup in Zigbee documentation
-                    day_of_week: value.dayofweek,
-                    mode: value.mode,
-                    thermoseqmode: value.thermoseqmode,
-                },
-            }];
+        convertGet: async (entity, key, meta) => {
+            const payload = {
+                number_of_transitions: meta.message[key].numoftrans, // TODO: Lookup in Zigbee documentation
+                day_of_week: meta.message[key].dayofweek,
+                mode: meta.message[key].mode,
+                thermoseqmode: meta.message[key].thermoseqmode,
+            };
+            await entity.command('hvacThermostat', 'getWeeklyScheduleRsp', payload);
         },
     },
     thermostat_relay_status_log_rsp: {
         key: 'relay_status_log_rsp',
         attr: [],
-        convert: (key, value, message, type, postfix, options) => {
-            return [{
-                cid: 'hvacThermostat',
-                cmd: 'getRelayStatusLogRsp',
-                type: 'functional',
-                zclData: {
-                    time_of_day: value.timeofday, // TODO: Lookup in Zigbee documentation
-                    relay_status: value.relaystatus,
-                    local_temperature: value.localtemp,
-                    humidity: value.humidity,
-                    setpoint: value.setpoint,
-                    unread_entries: value.unreadentries,
-                },
-            }];
+        convertGet: async (entity, key, meta) => {
+            const payload = {
+                time_of_day: meta.message[key].timeofday, // TODO: Lookup in Zigbee documentation
+                relay_status: meta.message[key].relaystatus,
+                local_temperature: meta.message[key].localtemp,
+                humidity: meta.message[key].humidity,
+                setpoint: meta.message[key].setpoint,
+                unread_entries: meta.message[key].unreadentries,
+            };
+            await entity.command('hvacThermostat', 'getRelayStatusLogRsp', payload);
         },
     },
     thermostat_running_mode: {
         key: 'running_mode',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'runningMode';
-            if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['runningMode']);
         },
     },
     thermostat_running_state: {
         key: 'running_state',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 'runningState';
-            if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['runningState']);
         },
     },
     thermostat_temperature_display_mode: {
         key: 'temperature_display_mode',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacUserInterfaceCfg';
-            const attrId = 'tempDisplayMode';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.temperatureDisplayMode, value, value),
-                    }],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const tempDisplayMode = utils.getKeyByValue(common.temperatureDisplayMode, value, value);
+            await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
         },
     },
     thermostat_keypad_lockout: {
         key: 'keypad_lockout',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacUserInterfaceCfg';
-            const attrId = 'keypadLockout';
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                        attrData: utils.getKeyByValue(common.keypadLockoutMode, value, value),
-                    }],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKeyByValue(common.keypadLockoutMode, value, value);
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
         },
     },
     fan_mode: {
         key: ['fan_mode', 'fan_state'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacFanCtrl';
-            const attrId = 'fanMode';
-
-            if (type === 'set') {
-                value = value.toLowerCase();
-                const attrData = common.fanMode[value];
-
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value, attrData: attrData, dataType: 48}],
-                    cfg: cfg.default,
-                    newState: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'},
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const fanMode = common.fanMode[value.toLowerCase()];
+            await entity.write('hvacFanCtrl', {fanMode});
+            return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacFanCtrl', ['fanMode']);
         },
     },
 
@@ -1018,102 +566,48 @@ const converters = {
      */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genBasic';
-            const attrId = 0xFF0D;
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {
+                'low': 0x15,
+                'medium': 0x0B,
+                'high': 0x01,
+            };
 
-            if (type === 'set') {
-                const lookup = {
-                    'low': 0x15,
-                    'medium': 0x0B,
-                    'high': 0x01,
-                };
-
-                if (lookup.hasOwnProperty(value)) {
-                    return [{
-                        cid: cid,
-                        cmd: 'write',
-                        cmdType: 'foundation',
-                        zclData: [{
-                            attrId: attrId,
-                            dataType: 0x20,
-                            attrData: lookup[value],
-                        }],
-                        cfg: cfg.xiaomi,
-                    }];
-                }
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.xiaomi,
-                }];
+            if (lookup.hasOwnProperty(value)) {
+                await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, options.xiaomi);
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0xFF0D], options.xiaomi);
         },
     },
     JTQJBF01LMBW_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'ssIasZone';
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {
+                'low': 0x04010000,
+                'medium': 0x04020000,
+                'high': 0x04030000,
+            };
 
-            if (type === 'set') {
-                const lookup = {
-                    'low': 0x04010000,
-                    'medium': 0x04020000,
-                    'high': 0x04030000,
-                };
 
-                if (lookup.hasOwnProperty(value)) {
-                    return [{
-                        cid: cid,
-                        cmd: 'write',
-                        cmdType: 'foundation',
-                        zclData: [{
-                            attrId: 0xFFF1, // presentValue
-                            dataType: 0x23, // dataType
-                            attrData: lookup[value],
-                        }],
-                        cfg: cfg.xiaomi,
-                    }];
-                }
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0xFFF0, // presentValue
-                        dataType: 0x39, // dataType
-                    }],
-                    cfg: cfg.xiaomi,
-                }];
+            if (lookup.hasOwnProperty(value)) {
+                await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, options.xiaomi);
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasZone', [0xFFF0], options.xiaomi);
         },
     },
     JTQJBF01LMBW_selfest: {
         key: ['selftest'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                return [{
-                    cid: 'ssIasZone',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0xFFF1, // presentValue
-                        dataType: 0x23, // dataType
-                        attrData: 0x03010000,
-                    }],
-                    cfg: cfg.xiaomi,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options.xiaomi);
         },
     },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genBasic';
+        convertSet: async (entity, key, value, meta) => {
             const lookupAttrId = {
                 'single': 0xFF22,
                 'left': 0xFF22,
@@ -1131,70 +625,40 @@ const converters = {
             } else {
                 button = 'single';
             }
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: lookupAttrId[button],
-                        dataType: 0x20,
-                        attrData: lookupState[value.state],
-                    }],
-                    cfg: cfg.xiaomi,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: lookupAttrId[button],
-                        dataType: 0x20,
-                    }],
-                    cfg: cfg.xiaomi,
-                }];
+
+            const payload = {};
+            payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
+
+            await entity.write('genBasic', payload, options.xiaomi);
+        },
+        convertGet: async (entity, key, meta) => {
+            const lookupAttrId = {
+                'single': 0xFF22,
+                'left': 0xFF22,
+                'right': 0xFF23,
+            };
+
+            let button;
+            if (meta.message[key].hasOwnProperty('button')) {
+                button = meta.message[key].button;
+            } else {
+                button = 'single';
             }
+
+            await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
         },
     },
     STS_PRS_251_beep: {
         key: ['beep'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'genIdentify';
-            const attrId = 'identifyTime';
-
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'identify',
-                    cmdType: 'functional',
-                    zclData: {
-                        identifytime: value,
-                    },
-                    cfg: cfg.default,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genIdentify', 'identifyTime', {identifytime: value});
         },
     },
     ZNCLDJ11LM_control: {
         key: ['state', 'position'],
-        convert: (key, value, message, type, postfix, options) => {
+        convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
-                return [{
-                    cid: 'closuresWindowCovering',
-                    cmd: 'stop',
-                    cmdType: 'functional',
-                    zclData: {},
-                    cfg: cfg.default,
-                }];
+                await entity.command('closuresWindowCovering', 'stop', {});
             } else {
                 const lookup = {
                     'open': 100,
@@ -1206,316 +670,166 @@ const converters = {
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
 
-                return [{
-                    cid: 'genAnalogOutput',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x0055,
-                        dataType: 0x39,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                }];
+                const payload = {0x0055: {value, type: 0x39}};
+                await entity.write('genAnalogOutput', payload);
             }
         },
     },
     osram_cmds: {
         key: ['osram_set_transition', 'osram_remember_state'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if ( key === 'osram_set_transition' ) {
-                    if (value) {
-                        const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
-                        return [{
-                            cid: 'genLevelCtrl',
-                            cmd: 'write',
-                            cmdType: 'foundation',
-                            zclData: [{
-                                attrId: 0x0012,
-                                dataType: 0x21,
-                                attrData: transition,
-                            }, {attrId: 0x0013,
-                                dataType: 0x21,
-                                attrData: transition,
-                            }],
-                            cfg: cfg.default,
-                        }];
-                    }
-                } else if ( key == 'osram_remember_state' ) {
-                    if (value === true) {
-                        return [{
-                            cid: 'manuSpecificOsram',
-                            cmd: 'saveStartupParams',
-                            cmdType: 'functional',
-                            zclData: {},
-                            cfg: cfg.osram,
-                        }];
-                    } else if ( value === false ) {
-                        return [{
-                            cid: 'manuSpecificOsram',
-                            cmd: 'resetStartupParams',
-                            cmdType: 'functional',
-                            zclData: {},
-                            cfg: cfg.osram,
-                        }];
-                    }
+        convertSet: async (entity, key, value, meta) => {
+            if ( key === 'osram_set_transition' ) {
+                if (value) {
+                    const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
+                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
+                    await entity.write('genLevelCtrl', payload);
+                }
+            } else if ( key == 'osram_remember_state' ) {
+                if (value === true) {
+                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, options.osram);
+                } else if ( value === false ) {
+                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, options.osram);
                 }
             }
         },
     },
     eurotronic_system_mode: {
         key: 'eurotronic_system_mode',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x4008;
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        // Bit 0 = ? (default 1)
-                        // Bit 2 = Boost
-                        // Bit 4 = Window open
-                        // Bit 7 = Child protection
-                        attrId: attrId,
-                        dataType: 0x22,
-                        attrData: value,
-                    }],
-                    cfg: cfg.eurotronic,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.eurotronic,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4008: {value, type: 0x22}};
+            await entity.write('hvacThermostat', payload, options.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4008], options.eurotronic);
         },
     },
     eurotronic_error_status: {
         key: 'eurotronic_error_status',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x4002;
-            if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.eurotronic,
-                }];
-            }
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4002], options.eurotronic);
         },
     },
     eurotronic_current_heating_setpoint: {
         key: 'current_heating_setpoint',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x4003;
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x29,
-                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
-                    }],
-                    cfg: cfg.eurotronic,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.eurotronic,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4003: {
+                    value: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    type: 0x29,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4003], options.eurotronic);
         },
     },
     eurotronic_valve_position: {
         key: 'eurotronic_valve_position',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x4001;
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x20,
-                        attrData: value,
-                    }],
-                    cfg: cfg.eurotronic,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.eurotronic,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4001: {value, type: 0x20}};
+            await entity.write('hvacThermostat', payload, options.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4001], options.eurotronic);
         },
     },
     eurotronic_trv_mode: {
         key: 'eurotronic_trv_mode',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x4000;
-            if (type === 'set') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x30,
-                        attrData: value,
-                    }],
-                    cfg: cfg.eurotronic,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: attrId}],
-                    cfg: cfg.eurotronic,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4000: {value, type: 0x30}};
+            await entity.write('hvacThermostat', payload, options.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4000], options.eurotronic);
         },
     },
     livolo_switch_on_off: {
         key: ['state'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if (typeof value !== 'string') {
-                    return;
-                }
-
-                postfix = postfix || 'left';
-
-                const cid = 'genLevelCtrl';
-                let state = value.toLowerCase();
-                let channel = 1;
-
-                if (state === 'on') {
-                    state = 108;
-                } else if (state === 'off') {
-                    state = 1;
-                } else {
-                    return;
-                }
-
-                if (postfix === 'left') {
-                    channel = 1.0;
-                } else if (postfix === 'right') {
-                    channel = 2.0;
-                } else {
-                    return;
-                }
-
-                return [{
-                    cid: cid,
-                    cmd: 'moveToLevelWithOnOff',
-                    cmdType: 'functional',
-                    zclData: {
-                        level: state,
-                        transtime: channel,
-                    },
-                    cfg: cfg.default,
-                    newState: {state: value.toUpperCase()},
-                    readAfterWriteTime: 250,
-                }];
-            } else if (type === 'get') {
-                const cid = 'genOnOff';
-                const attrId = 'onOff';
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
             }
+
+            const postfix = meta.endpoint_name || 'left';
+            let state = value.toLowerCase();
+            let channel = 1;
+
+            if (state === 'on') {
+                state = 108;
+            } else if (state === 'off') {
+                state = 1;
+            } else {
+                return;
+            }
+
+            if (postfix === 'left') {
+                channel = 1.0;
+            } else if (postfix === 'right') {
+                channel = 2.0;
+            } else {
+                return;
+            }
+
+            await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: state, transtime: channel});
+            return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff'], options.eurotronic);
         },
     },
     generic_lock: {
         key: ['state'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'closuresDoorLock';
-            const attrId = 'lockState';
-
-            if (type === 'set') {
-                if (typeof value !== 'string') {
-                    return;
-                }
-
-                return [{
-                    cid: cid,
-                    cmd: `${value.toLowerCase()}Door`,
-                    cmdType: 'functional',
-                    zclData: {
-                        'pincodevalue': '',
-                    },
-                    cfg: cfg.default,
-                    readAfterWriteTime: 200,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('closuresDoorLock', `${value.toLowerCase()}Door`, {'pincodevalue': ''});
+            return {readAfterWriteTime: 200};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', ['lockState']);
         },
     },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (message && message.hasOwnProperty('transition')) {
-                message.transition = message.transition * 3.3;
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
             }
 
-            return converters.light_onoff_brightness.convert(key, value, message, type, postfix, options);
+            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
         },
     },
     gledopto_light_color_colortemp: {
         key: ['color', 'color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (message && message.hasOwnProperty('transition')) {
-                message.transition = message.transition * 3.3;
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
             }
 
-            return converters.light_color_colortemp.convert(key, value, message, type, postfix, options);
+            return await converters.light_color_colortemp.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_color_colortemp.convertGet(entity, key, meta);
         },
     },
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (message && message.hasOwnProperty('transition')) {
-                message.transition = message.transition * 3.3;
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
             }
 
-            return converters.light_colortemp.convert(key, value, message, type, postfix, options);
+            return await converters.light_colortemp.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_colortemp.convertGet(entity, key, meta);
         },
     },
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
-        convert: (key, value, message, type, postfix, options) => {
+        convertSet: async (entity, key, value, meta) => {
             const lookup = {
                 'default': 0x01,
                 'on': 0x01,
@@ -1523,317 +837,208 @@ const converters = {
                 'recover': 0xff,
             };
 
-            if (type === 'set') {
-                return [{
-                    cid: 'genOnOff',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4003,
-                        dataType: 0x30,
-                        attrData: lookup[value],
-                    }],
-                    cfg: cfg.default,
-                }];
-            }
+            const payload = {
+                0x4003: {
+                    value: lookup[value],
+                    type: 0x30,
+                },
+            };
+            await entity.write('genOnOff', payload, options.hue);
         },
     },
     hue_power_on_brightness: {
         key: ['hue_power_on_brightness'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if (value === 'default') {
-                    value = 255;
-                }
-                return [{
-                    cid: 'genLevelCtrl',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4000,
-                        dataType: 0x20,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'default') {
+                value = 255;
             }
+
+            const payload = {
+                0x4000: {
+                    value,
+                    type: 0x20,
+                },
+            };
+            await entity.write('genLevelCtrl', payload, options.hue);
         },
     },
     hue_power_on_color_temperature: {
         key: ['hue_power_on_color_temperature'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if (value === 'default') {
-                    value = 366;
-                }
-                return [{
-                    cid: 'lightingColorCtrl',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4010,
-                        dataType: 0x21,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'default') {
+                value = 366;
             }
+
+            const payload = {
+                0x4010: {
+                    value,
+                    type: 0x21,
+                },
+            };
+            await entity.write('lightingColorCtrl', payload, options.hue);
         },
     },
     hue_motion_sensitivity: {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'msOccupancySensing'; // 1030
-            const attrId = 48;
-            if (type === 'set') {
-                // hue_sml:
-                // 0: low, 1: medium, 2: high (default)
-                // make sure you write to second endpoint!
-                const lookup = {
-                    'low': 0,
-                    'medium': 1,
-                    'high': 2,
-                };
+        convertSet: async (entity, key, value, meta) => {
+            // hue_sml:
+            // 0: low, 1: medium, 2: high (default)
+            // make sure you write to second endpoint!
+            const lookup = {
+                'low': 0,
+                'medium': 1,
+                'high': 2,
+            };
 
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 32,
-                        attrData: lookup[value],
-                    }],
-                    cfg: cfg.hue,
-                }];
-            } else if (type === 'get') {
-                return [{
-                    cid: cid,
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                    }],
-                    cfg: cfg.hue,
-                }];
-            }
+
+            const payload = {
+                48: {
+                    value: lookup[value],
+                    type: 32,
+                },
+            };
+            await entity.write('msOccupancySensing', payload, options.hue);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', [48], options.hue);
         },
     },
     ZigUP_lock: {
         key: ['led'],
-        convert: (key, value, message, type, postfix, options) => {
+        convertSet: async (entity, key, value, meta) => {
             const lookup = {
                 'off': 'lockDoor',
                 'on': 'unlockDoor',
                 'toggle': 'toggleDoor',
             };
-            const cid = 'closuresDoorLock';
 
-            if (type === 'set') {
-                if (typeof value !== 'string') {
-                    return;
-                }
-
-                return [{
-                    cid: cid,
-                    cmd: lookup[value],
-                    cmdType: 'functional',
-                    zclData: {
-                        'pincodevalue': '',
-                    },
-                    cfg: cfg.default,
-                }];
-            }
+            await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
 
     // Sinope
     sinope_thermostat_backlight_autodim_param: {
         key: 'backlight_auto_dim',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 'hvacThermostat';
-            const attrId = 0x0402;
-            if (type === 'set') {
-                const sinopeBacklightAutoDimParam = {
-                    0: 'on demand',
-                    1: 'sensing',
-                };
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x30,
-                        attrData: utils.getKeyByValue(sinopeBacklightAutoDimParam, value, value),
-                    }],
-                    cfg: cfg.default,
-                }];
-            }
+        convertSet: async (entity, key, value, meta) => {
+            const sinopeBacklightAutoDimParam = {
+                0: 'on demand',
+                1: 'sensing',
+            };
+
+            const payload = {
+                0x0402: {
+                    value: utils.getKeyByValue(sinopeBacklightAutoDimParam, value, value),
+                    type: 0x30,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.hue);
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
         key: 'enable_outdoor_temperature',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 0xFF01;
-            const attrId = 0x0011;
-            if (type === 'set' && value.toLowerCase()=='on') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x21,
-                        // set outdoor temperature timer to 3 hours
-                        attrData: 10800,
-                    }],
-                    cfg: cfg.sinope,
-                }];
-            } else if (type === 'set' && value.toLowerCase()=='off') {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x21,
+        convertSet: async (entity, key, value, meta) => {
+            if (value.toLowerCase() == 'on') {
+                const payload = {
+                    0x0011: {
+                        value: 10800,
+                        type: 0x21,
+                    },
+                };
+                await entity.write(0xFF01, payload, options.sinope);
+            } else if (value.toLowerCase()=='off') {
+                const payload = {
+                    0x0011: {
                         // set timer to 30sec in order to disable outdoor temperature
-                        attrData: 30,
-                    }],
-                    cfg: cfg.sinope,
-                }];
+                        value: 30,
+                        type: 0x21,
+                    },
+                };
+                await entity.write(0xFF01, payload, options.sinope);
             }
         },
     },
     sinope_thermostat_outdoor_temperature: {
         key: 'thermostat_outdoor_temperature',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 0xFF01;
-            const attrId = 0x0010;
-            if (type === 'set' && value > -100 && value < 100) {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x29,
-                        attrData: value * 100,
-                    }],
-                    cfg: cfg.sinope,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (value > -100 && value < 100) {
+                const payload = {
+                    0x0010: {
+                        value: value * 100,
+                        type: 0x29,
+                    },
+                };
+                await entity.write(0xFF01, payload, options.sinope);
             }
         },
     },
     sinope_thermostat_time: {
         key: 'thermostat_time',
-        convert: (key, value, message, type, postfix, options) => {
-            const cid = 0xFF01;
-            const attrId = 0x0020;
-            if (type === 'set' && value === '' ) {
+        convertSet: async (entity, key, value, meta) => {
+            if (value === '') {
                 const thermostatDate = new Date();
                 const thermostatTimeSec = thermostatDate.getTime() / 1000;
                 const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x23,
-                        // Current time in second since 2000-01-01T00:00 in the current time zone
-                        attrData: Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800),
-                    }],
-                    cfg: cfg.sinope,
-                }];
-            } else if (type === 'set' && value !== '' ) {
-                return [{
-                    cid: cid,
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: attrId,
-                        dataType: 0x23,
-                        attrData: value,
-                    }],
-                    cfg: cfg.sinope,
-                }];
+
+                const payload = {
+                    0x0020: {
+                        value: Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800),
+                        type: 0x23,
+                    },
+                };
+                await entity.write(0xFF01, payload, options.sinope);
+            } else if (value !== '') {
+                const payload = {
+                    0x0020: {
+                        value,
+                        type: 0x23,
+                    },
+                };
+                await entity.write(0xFF01, payload, options.sinope);
             }
         },
     },
     DTB190502A1_LED: {
         key: ['LED'],
-        convert: (key, value, message, type, postfix, options) => {
-            if (type === 'set') {
-                if (value === 'default') {
-                    value = 1;
-                }
-                const lookup = {
-                    'OFF': '0',
-                    'ON': '1',
-                };
-                value = lookup[value];
-                // Check for valid data
-                if ( ((value >= 0) && value < 2) == false ) value = 0;
-                return [{
-                    cid: 'genBasic',
-                    cmd: 'write',
-                    cmdType: 'foundation',
-                    zclData: [{
-                        attrId: 0x4010,
-                        dataType: 0x21,
-                        attrData: value,
-                    }],
-                    cfg: cfg.default,
-                }];
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'default') {
+                value = 1;
             }
+            const lookup = {
+                'OFF': '0',
+                'ON': '1',
+            };
+            value = lookup[value];
+            // Check for valid data
+            if ( ((value >= 0) && value < 2) == false ) value = 0;
+
+            const payload = {
+                0x4010: {
+                    value,
+                    type: 0x21,
+                },
+            };
+
+            await entity.write('genBasic', payload);
         },
     },
     ptvo_switch_trigger: {
         key: ['trigger', 'interval'],
-        convert: (key, value, message, type, postfix, options) => {
-            console.log('ptvo_switch_trigger:', key, value, message, type, postfix);
-            if (type === 'set') {
-                value = parseInt(value);
-                if (!value) {
-                    return;
-                }
-
-                const cid = 'genOnOff';
-
-                if (key === 'trigger') {
-                    return [{
-                        cid: cid,
-                        cmd: 'onWithTimedOff',
-                        cmdType: 'functional',
-                        zclData: {
-                            ctrlbits: 0,
-                            ontime: value,
-                            offwaittime: 0,
-                        },
-                        cfg: cfg.default,
-                    }];
-                } else if (key === 'interval') {
-                    const attrId = 'onOff';
-                    return [{
-                        cid: cid,
-                        cmd: 'configReport',
-                        cmdType: 'foundation',
-                        zclData: [{
-                            direction: 0,
-                            attrId: Zcl.getAttributeLegacy(cid, attrId).value,
-                            dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
-                            attrData: value,
-                            minRepIntval: value,
-                            maxRepIntval: value,
-                        }],
-                        cfg: cfg.default,
-                    }];
-                }
+        convertSet: async (entity, key, value, meta) => {
+            value = parseInt(value);
+            if (!value) {
+                return;
             }
-            return;
+
+            if (key === 'trigger') {
+                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: value, offwaittime: 0});
+            } else if (key === 'interval') {
+                await entity.configureReporting('genOnOff', [{
+                    attribute: 'onOff',
+                    minimumReportInterval: value,
+                    maximumReportInterval: value,
+                }]);
+            }
         },
     },
 
@@ -1843,7 +1048,8 @@ const converters = {
     ignore_transition: {
         key: ['transition'],
         attr: [],
-        convert: (key, value, message, type, postfix, options) => null,
+        convertSet: async (entity, key, value, meta) => {
+        },
     },
 };
 

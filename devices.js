@@ -207,7 +207,7 @@ const devices = [
             fz.WXKG02LM_click_multistate, fz.ignore_multistate_change,
         ],
         toZigbee: [],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 1, 'right': 2, 'both': 3};
         },
     },
@@ -223,7 +223,7 @@ const devices = [
             fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
     },
@@ -253,7 +253,7 @@ const devices = [
             fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
     },
@@ -269,7 +269,7 @@ const devices = [
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
     },
@@ -475,7 +475,7 @@ const devices = [
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change,
         ],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
     },
@@ -1038,7 +1038,7 @@ const devices = [
             fz.ignore_temperature_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
-        ep: (device) => {
+        endpoint: (device) => {
             return {
                 '': 2, // default
                 'ep1': 1,
@@ -1074,7 +1074,7 @@ const devices = [
             fz.ignore_temperature_change,
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
-        ep: (device) => {
+        endpoint: (device) => {
             return {
                 '': 2, // default
                 'ep1': 1,
@@ -1196,7 +1196,7 @@ const devices = [
             fz.ignore_basic_change, fz.ignore_onoff_change, fz.ignore_multistate_change,
         ],
         toZigbee: [tz.on_off, tz.ptvo_switch_trigger],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
     },
@@ -1217,7 +1217,7 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
     },
@@ -1229,7 +1229,7 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
     },
@@ -1241,7 +1241,7 @@ const devices = [
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
         },
     },
@@ -1262,7 +1262,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.DNCKAT_S00X_state],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
     },
@@ -1274,7 +1274,7 @@ const devices = [
         supports: 'click',
         fromZigbee: [fz.keypad20states, fz.keypad20_battery],
         toZigbee: [],
-        ep: (device) => {
+        endpoint: (device) => {
             return {
                 'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4, 'btn_5': 5,
                 'btn_6': 6, 'btn_7': 7, 'btn_8': 8, 'btn_9': 9, 'btn_10': 10,
@@ -2278,7 +2278,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2300,7 +2300,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 16, 'center': 17, 'bottom': 18};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2331,7 +2331,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2350,7 +2350,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 11, 'bottom': 12};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2378,7 +2378,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.nue_power_state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 12, 'right': 11};
         },
     },
@@ -2447,7 +2447,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2473,7 +2473,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee Smart WW/CW GU10',
         extend: gledopto.light_onoff_brightness_colortemp,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2489,7 +2489,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW Dimmer',
         extend: gledopto.light_onoff_brightness_colortemp,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2505,7 +2505,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2521,7 +2521,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 4W E14 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2537,7 +2537,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart garden lamp',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2553,7 +2553,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 6W E27 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2569,7 +2569,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -2585,7 +2585,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13') {
@@ -2601,7 +2601,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13') {
@@ -2624,7 +2624,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee 10W floodlight RGB CCT',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             if (device.epList.toString() === '11,12,13') {
                 return {'': 12};
             } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
@@ -3943,7 +3943,7 @@ const devices = [
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        ep: (device) => {
+        endpoint: (device) => {
             return {
                 '': 2,
             };
@@ -4640,7 +4640,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5102,7 +5102,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5218,7 +5218,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5237,7 +5237,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5259,7 +5259,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5284,7 +5284,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5312,7 +5312,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {
                 'top_left': 1, 'center_left': 2, 'bottom_left': 3,
                 'top_right': 4, 'center_right': 5, 'bottom_right': 6,
@@ -5393,7 +5393,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
-        ep: (device) => {
+        endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
