@@ -842,6 +842,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LST003'],
+        model: '9290018187B',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip Outdoor',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },    
+    {
         zigbeeModel: ['LCA002'],
         model: '9290022166',
         vendor: 'Philips',
