@@ -262,7 +262,7 @@ const converters = {
 
             value = Number(value);
             const payload = {colortemp: value, transtime: getTransition(message, options) * 10};
-            await entity.command('lightingColorCtrl', 'colorTemperature', payload);
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload);
             const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
             return {state: {color_temp: value}, readAfterWriteTime};
         },
