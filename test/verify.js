@@ -20,18 +20,14 @@ devices.forEach((device) => {
         device.model,
     );
 
+    assert.strictEqual(device.fromZigbee.length, new Set(device.fromZigbee).size)
+
     // Verify fromConverters
     Object.keys(device.fromZigbee).forEach((converterKey) => {
         const converter = device.fromZigbee[converterKey];
 
         const keys = Object.keys(converter);
-        if (keys.includes('cid')) {
-            verifyKeys(['cid', 'type', 'convert'], keys, converterKey);
-        } else if (keys.includes('cmd')) {
-            verifyKeys(['cmd', 'convert'], keys, converterKey);
-        } else {
-            assert.fail(`${converterKey}: missing ['cid', 'type'] or ['cmd']`)
-        }
+        verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
 
         assert.strictEqual(4, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
     });
@@ -41,12 +37,14 @@ devices.forEach((device) => {
         const converter = device.toZigbee[converterKey];
 
         verifyKeys(
-            ['key', 'convert'],
+            ['key'],
             Object.keys(converter),
             converterKey,
         );
 
-        assert.strictEqual(6, converter.convert.length, `${converterKey}: convert() invalid arguments length`);
+        if (converter.converSet) {
+            assert.strictEqual(4, converter.convertSet.length, `${converterKey}: convert() invalid arguments length`);
+        }
     });
 
     // Check for duplicate zigbee model ids

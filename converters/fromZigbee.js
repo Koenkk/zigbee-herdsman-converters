@@ -93,7 +93,7 @@ const getKey = (object, value) => {
 const store = {};
 
 const ictcg1 = (model, msg, publish, options, action) => {
-    const deviceID = msg.endpoints[0].device.ieeeAddr;
+    const deviceID = msg.device.ieeeAddr;
     const payload = {};
 
     if (!store[deviceID]) {
@@ -114,12 +114,12 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
     if (action === 'move') {
         s.since = Date.now();
-        const direction = msg.data.data.movemode === 1 ? 'left' : 'right';
+        const direction = msg.data.movemode === 1 ? 'left' : 'right';
         s.direction = direction;
         payload.action = `rotate_${direction}`;
     } else if (action === 'stop' || action === 'level') {
         if (action === 'level') {
-            s.value = msg.data.data.level;
+            s.value = msg.data.level;
             const direction = s.value === 0 ? 'left' : 'right';
             payload.action = `rotate_${direction}_quick`;
         } else {
@@ -150,18 +150,18 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             return {
-                power: msg.data.data['activePower'] / 10,
-                current: msg.data.data['rmsCurrent'] / 100,
-                voltage: msg.data.data['rmsVoltage'] / 100,
+                power: msg.data['activePower'] / 10,
+                current: msg.data['rmsCurrent'] / 100,
+                voltage: msg.data['rmsVoltage'] / 100,
             };
         },
     },
     generic_lock: {
         cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse', 'devChange'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('lockState')) {
-                return {state: msg.data.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
+            if (msg.data.hasOwnProperty('lockState')) {
+                return {state: msg.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
             }
         },
     },
@@ -170,9 +170,9 @@ const converters = {
         type: 'commandOperationEventNotification',
         convert: (model, msg, publish, options) => {
             return {
-                state: msg.data.data['opereventcode'] == 2 ? 'UNLOCK' : 'LOCK',
-                user: msg.data.data['userid'],
-                source: msg.data.data['opereventsrc'],
+                state: msg.data['opereventcode'] == 2 ? 'UNLOCK' : 'LOCK',
+                user: msg.data['userid'],
+                source: msg.data['opereventsrc'],
             };
         },
     },
@@ -222,14 +222,14 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
-            return {click: msg.data.data.groupid};
+            return {click: msg.data.groupid};
         },
     },
     bitron_power: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {power: parseFloat(msg.data.data['instantaneousDemand']) / 10.0};
+            return {power: parseFloat(msg.data['instantaneousDemand']) / 10.0};
         },
     },
     bitron_occupancy: {
@@ -240,7 +240,7 @@ const converters = {
             // Therefore we need to publish the no_motion detected by ourselves.
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timer because motion is detected and set a new one.
             if (store[deviceID]) {
@@ -260,34 +260,17 @@ const converters = {
     },
     bitron_battery_att_report: {
         cluster: 'genPowerCfg',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data['batteryVoltage'] == 'number') {
+            if (typeof msg.data['batteryVoltage'] == 'number') {
                 const battery = {max: 3200, min: 2500};
-                const voltage = msg.data.data['batteryVoltage'] * 100;
+                const voltage = msg.data['batteryVoltage'] * 100;
                 result.battery = toPercentage(voltage, battery.min, battery.max);
                 result.voltage = voltage;
             }
-            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
-            }
-            return result;
-        },
-    },
-    bitron_battery_dev_change: {
-        cluster: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-            if (typeof msg.data.data['batteryVoltage'] == 'number') {
-                const battery = {max: 3200, min: 2500};
-                const voltage = msg.data.data['batteryVoltage'] * 100;
-                result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage;
-            }
-            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
+            if (typeof msg.data['batteryAlarmState'] == 'number') {
+                result.battery_alarm_state = msg.data['batteryAlarmState'];
             }
             return result;
         },
@@ -297,47 +280,22 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
+            if (typeof msg.data['localTemp'] == 'number') {
+                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
             }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
+            if (typeof msg.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
+                    precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
+            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
                 result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-            if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state = msg.data.data['runningState'];
+            if (typeof msg.data['runningState'] == 'number') {
+                result.running_state = msg.data['runningState'];
             }
-            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
-            }
-            return result;
-        },
-    },
-    bitron_thermostat_dev_change: {
-        cluster: 'hvacThermostat',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['runningState'] == 'number') {
-                result.running_state = msg.data.data['runningState'];
-            }
-            if (typeof msg.data.data['batteryAlarmState'] == 'number') {
-                result.battery_alarm_state = msg.data.data['batteryAlarmState'];
+            if (typeof msg.data['batteryAlarmState'] == 'number') {
+                result.battery_alarm_state = msg.data['batteryAlarmState'];
             }
             return result;
         },
@@ -346,7 +304,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
-            return {click: msg.data.data.sceneid};
+            return {click: msg.data.sceneid};
         },
     },
     smartthings_contact: {
@@ -362,10 +320,10 @@ const converters = {
         convert: (model, msg, publish, options) => {
             let voltage = null;
 
-            if (msg.data.data['65281']) {
-                voltage = msg.data.data['65281']['1'];
-            } else if (msg.data.data['65282']) {
-                voltage = msg.data.data['65282']['1'].elmVal;
+            if (msg.data['65281']) {
+                voltage = msg.data['65281']['1'];
+            } else if (msg.data['65282']) {
+                voltage = msg.data['65282']['1'].elmVal;
             }
 
             if (voltage) {
@@ -380,8 +338,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                return {illuminance: msg.data.data['65281']['11']};
+            if (msg.data['65281']) {
+                return {illuminance: msg.data['65281']['11']};
             }
         },
     },
@@ -389,9 +347,9 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                const temperature = parseFloat(msg.data.data['65281']['100']) / 100.0;
-                const humidity = parseFloat(msg.data.data['65281']['101']) / 100.0;
+            if (msg.data['65281']) {
+                const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
+                const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
                 const result = {};
 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -407,8 +365,8 @@ const converters = {
                 }
 
                 // Check if contains pressure (WSDCGQ11LM only)
-                if (msg.data.data['65281'].hasOwnProperty('102')) {
-                    const pressure = parseFloat(msg.data.data['65281']['102']) / 100.0;
+                if (msg.data['65281'].hasOwnProperty('102')) {
+                    const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
                     result.pressure = precisionRoundOptions(pressure, options, 'pressure');
                 }
 
@@ -420,8 +378,8 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            const state = msg.data.data['onOff'];
+            const deviceID = msg.device.ieeeAddr;
+            const state = msg.data['onOff'];
 
             if (!store[deviceID]) {
                 store[deviceID] = {};
@@ -447,7 +405,7 @@ const converters = {
                     publish({click: 'single'});
                 }
             } else {
-                const clicks = msg.data.data['32768'];
+                const clicks = msg.data['32768'];
                 const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
                 publish({click: payload});
             }
@@ -457,16 +415,7 @@ const converters = {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
-            const calTemperature = calibrateOptions(temperature, options, 'temperature');
-            return {temperature: precisionRoundOptions(calTemperature, options, 'temperature')};
-        },
-    },
-    generic_temperature_change: {
-        cluster: 'msTemperatureMeasurement',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const calTemperature = calibrateOptions(temperature, options, 'temperature');
             return {temperature: precisionRoundOptions(calTemperature, options, 'temperature')};
         },
@@ -475,7 +424,7 @@ const converters = {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const temperature = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
@@ -509,7 +458,7 @@ const converters = {
             presentValue = x + 256 = push/slide cube while side x is on top
             presentValue = x + 512 = double tap while side x is on top
             */
-            const value = msg.data.data['presentValue'];
+            const value = msg.data['presentValue'];
             let action = null;
 
             if (value === 0) action = {'action': 'shake'};
@@ -533,7 +482,7 @@ const converters = {
             Source: https://github.com/kirovilya/ioBroker.zigbee
             presentValue = rotation angle left < 0, right > 0
             */
-            const value = msg.data.data['presentValue'];
+            const value = msg.data['presentValue'];
             return {
                 action: value < 0 ? 'rotate_left' : 'rotate_right',
                 angle: Math.floor(value * 100) / 100,
@@ -544,7 +493,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const value = msg.data.data['presentValue'];
+            const value = msg.data['presentValue'];
             const lookup = {
                 1: {click: 'single'}, // single click
                 2: {click: 'double'}, // double click
@@ -560,7 +509,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const value = msg.data.data['presentValue'];
+            const value = msg.data['presentValue'];
             const lookup = {
                 1: {click: 'single'}, // single click
                 2: {click: 'double'}, // double click
@@ -575,7 +524,7 @@ const converters = {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const humidity = parseFloat(msg.data.data['measuredValue']) / 100.0;
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
@@ -592,9 +541,9 @@ const converters = {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.occupancy === 0) {
+            if (msg.data.occupancy === 0) {
                 return {occupancy: false};
-            } else if (msg.data.data.occupancy === 1) {
+            } else if (msg.data.occupancy === 1) {
                 return {occupancy: true};
             }
         },
@@ -603,8 +552,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options) => {
-            const timeout = msg.data.data.ontime / 10;
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const timeout = msg.data.ontime / 10;
+            const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timer because motion is detected and set a new one.
             if (store[deviceID]) {
@@ -629,7 +578,7 @@ const converters = {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.occupancy !== 1) {
+            if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/467
                 return;
@@ -639,7 +588,7 @@ const converters = {
             // Therefore we need to publish the no_motion detected by ourselves.
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timers because motion is detected and set a new one.
             if (store[deviceID]) {
@@ -677,105 +626,54 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.data['onOff'] === 0};
+            return {contact: msg.data['onOff'] === 0};
         },
     },
     xiaomi_contact_interval: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('65281') && msg.data.data['65281'].hasOwnProperty('100')) {
-                return {contact: msg.data.data['65281']['100'] === 0};
-            }
-        },
-    },
-    brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('currentLevel')) {
-                return {brightness: msg.data.data['currentLevel']};
+            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
+                return {contact: msg.data['65281']['100'] === 0};
             }
         },
     },
     color_colortemp: {
         cluster: 'lightingColorCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-
-            if (msg.data.data['colorTemperature']) {
-                result.color_temp = msg.data.data['colorTemperature'];
-            }
-
-            if (msg.data.data['colorMode']) {
-                result.color_mode = msg.data.data['colorMode'];
-            }
-
-            if (
-                msg.data.data['currentX']
-                || msg.data.data['currentY']
-                || msg.data.data['currentSaturation']
-                || msg.data.data['enhancedCurrentHue']
-            ) {
-                result.color = {};
-
-                if (msg.data.data['currentX']) {
-                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 4);
-                }
-
-                if (msg.data.data['currentY']) {
-                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 4);
-                }
-
-                if (msg.data.data['currentSaturation']) {
-                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
-                }
-
-                if (msg.data.data['enhancedCurrentHue']) {
-                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
-                }
-            }
-
-            return result;
-        },
-    },
-    color_colortemp_report: {
-        cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
 
-            if (msg.data.data['colorTemperature']) {
-                result.color_temp = msg.data.data['colorTemperature'];
+            if (msg.data['colorTemperature']) {
+                result.color_temp = msg.data['colorTemperature'];
             }
 
-            if (msg.data.data['colorMode']) {
-                result.color_mode = msg.data.data['colorMode'];
+            if (msg.data['colorMode']) {
+                result.color_mode = msg.data['colorMode'];
             }
 
             if (
-                msg.data.data['currentX']
-                || msg.data.data['currentY']
-                || msg.data.data['currentSaturation']
-                || msg.data.data['enhancedCurrentHue']
+                msg.data['currentX']
+                || msg.data['currentY']
+                || msg.data['currentSaturation']
+                || msg.data['enhancedCurrentHue']
             ) {
                 result.color = {};
 
-                if (msg.data.data['currentX']) {
-                    result.color.x = precisionRound(msg.data.data['currentX'] / 65535, 4);
+                if (msg.data['currentX']) {
+                    result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
                 }
 
-                if (msg.data.data['currentY']) {
-                    result.color.y = precisionRound(msg.data.data['currentY'] / 65535, 4);
+                if (msg.data['currentY']) {
+                    result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
                 }
 
-                if (msg.data.data['currentSaturation']) {
-                    result.color.saturation = precisionRound(msg.data.data['currentSaturation'] / 2.54, 1);
+                if (msg.data['currentSaturation']) {
+                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 1);
                 }
 
-                if (msg.data.data['enhancedCurrentHue']) {
-                    result.color.hue = precisionRound(msg.data.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                if (msg.data['enhancedCurrentHue']) {
+                    result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
 
@@ -786,7 +684,7 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const data = msg.data.data;
+            const data = msg.data;
             let clicks;
 
             if (data.onOff) {
@@ -804,7 +702,7 @@ const converters = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const illuminance = msg.data.data['measuredValue'];
+            const illuminance = msg.data['measuredValue'];
             const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
             // calibration value in +/- percent!
             return {illuminance: calIlluminance};
@@ -814,7 +712,7 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const pressure = parseFloat(msg.data.data['measuredValue']);
+            const pressure = parseFloat(msg.data['measuredValue']);
             const calPressure = calibrateOptions(pressure, options, 'pressure');
             return {pressure: precisionRoundOptions(calPressure, options, 'pressure')};
         },
@@ -823,17 +721,15 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            return {click: getKey(model.ep(ep.device), ep.epId)};
+            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
         },
     },
     WXKG02LM_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const button = getKey(model.ep(ep.device), ep.epId);
-            const value = msg.data.data['presentValue'];
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
 
             const actionLookup = {
                 0: 'long',
@@ -859,8 +755,8 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options) => {
-            const action = msg.data.data['armmode'];
-            delete msg.data.data['armmode'];
+            const action = msg.data['armmode'];
+            delete msg.data['armmode'];
             const modeLookup = {
                 0: 'home',
                 2: 'sleep',
@@ -873,7 +769,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options) => {
-            delete msg.data.data['armmode'];
+            delete msg.data['armmode'];
             return {action: 'panic'};
         },
     },
@@ -888,8 +784,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('65281') && msg.data.data['65281'].hasOwnProperty('100')) {
-                return {water_leak: msg.data.data['65281']['100'] === 1};
+            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
+                return {water_leak: msg.data['65281']['100'] === 1};
             }
         },
     },
@@ -897,26 +793,8 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('onOff')) {
-                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    },
-    state_report: {
-        cluster: 'genOnOff',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('onOff')) {
-                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    },
-    state_change: {
-        cluster: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('onOff')) {
-                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
     },
@@ -924,15 +802,15 @@ const converters = {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {power: precisionRound(msg.data.data['presentValue'], 2)};
+            return {power: precisionRound(msg.data['presentValue'], 2)};
         },
     },
     xiaomi_plug_state: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
                 return {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(data['152'], 2),
@@ -947,8 +825,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
                 return {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     brightness: data['101'],
@@ -961,8 +839,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
@@ -975,8 +853,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65281']) {
-                const data = msg.data.data['65281'];
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
@@ -989,8 +867,8 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['61440']) {
-                return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            if (msg.data['61440']) {
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             } else {
                 return {click: 'single'};
             }
@@ -998,24 +876,24 @@ const converters = {
     },
     QBKG04LM_buttons: {
         cluster: 'genOnOff',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.endpoints[0].epId == 4) {
-                return {action: msg.data.data['onOff'] === 1 ? 'release' : 'hold'};
+            if (msg.endpoint.ID == 4) {
+                return {action: msg.data['onOff'] === 1 ? 'release' : 'hold'};
             }
         },
     },
     QBKG04LM_QBKG11LM_operation_mode: {
         cluster: 'genBasic',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const mappingMode = {
                 0x12: 'control_relay',
                 0xFE: 'decoupled',
             };
             const key = '65314';
-            if (msg.data.data.hasOwnProperty(key)) {
-                const mode = mappingMode[msg.data.data[key]];
+            if (msg.data.hasOwnProperty(key)) {
+                const mode = mappingMode[msg.data[key]];
                 return {operation_mode: mode};
             }
         },
@@ -1024,15 +902,14 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['61440']) {
-                const ep = msg.endpoints[0];
-                const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            if (msg.data['61440']) {
+                const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
                 const payload = {};
-                payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             } else {
                 const mapping = {4: 'left', 5: 'right', 6: 'both'};
-                const button = mapping[msg.endpoints[0].epId];
+                const button = mapping[msg.endpoint.ID];
                 return {click: button};
             }
         },
@@ -1041,9 +918,9 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if ([1, 2].includes(msg.data.data.presentValue)) {
+            if ([1, 2].includes(msg.data.presentValue)) {
                 const times = {1: 'single', 2: 'double'};
-                return {click: times[msg.data.data.presentValue]};
+                return {click: times[msg.data.presentValue]};
             }
         },
     },
@@ -1051,30 +928,30 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if ([1, 2].includes(msg.data.data.presentValue)) {
+            if ([1, 2].includes(msg.data.presentValue)) {
                 const mapping = {5: 'left', 6: 'right', 7: 'both'};
                 const times = {1: 'single', 2: 'double'};
-                const button = mapping[msg.endpoints[0].epId];
-                return {click: `${button}_${times[msg.data.data.presentValue]}`};
+                const button = mapping[msg.endpoint.ID];
+                return {click: `${button}_${times[msg.data.presentValue]}`};
             }
         },
     },
     QBKG03LM_buttons: {
         cluster: 'genOnOff',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const mapping = {4: 'left', 5: 'right'};
-            const button = mapping[msg.endpoints[0].epId];
+            const button = mapping[msg.endpoint.ID];
             if (button) {
                 const payload = {};
-                payload[`button_${button}`] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+                payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
             }
         },
     },
     QBKG03LM_QBKG12LM_operation_mode: {
         cluster: 'genBasic',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const mappingButton = {
                 '65314': 'left',
@@ -1086,9 +963,9 @@ const converters = {
                 0xFE: 'decoupled',
             };
             for (const key in mappingButton) {
-                if (msg.data.data.hasOwnProperty(key)) {
+                if (msg.data.hasOwnProperty(key)) {
                     const payload = {};
-                    const mode = mappingMode[msg.data.data[key]];
+                    const mode = mappingMode[msg.data[key]];
                     payload[`operation_mode_${mappingButton[key]}`] = mode;
                     return payload;
                 }
@@ -1099,8 +976,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data['65328']) {
-                const data = msg.data.data['65328'];
+            if (msg.data['65328']) {
+                const data = msg.data['65328'];
                 const state = data.substr(2, 2);
                 const action = data.substr(4, 2);
                 const keynum = data.substr(6, 2);
@@ -1129,31 +1006,17 @@ const converters = {
             }
         },
     },
-    ZNCLDJ11LM_curtain_genAnalogOutput_change: {
-        cluster: 'genAnalogOutput',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            let running = false;
-
-            if (msg.data.data['61440']) {
-                running = msg.data.data['61440'] !== 0;
-            }
-
-            const position = precisionRound(msg.data.data['presentValue'], 2);
-            return {position: position, running: running};
-        },
-    },
-    ZNCLDJ11LM_curtain_genAnalogOutput_report: {
+    ZNCLDJ11LM_curtain_genAnalogOutput: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             let running = false;
 
-            if (msg.data.data['61440']) {
-                running = msg.data.data['61440'] !== 0;
+            if (msg.data['61440']) {
+                running = msg.data['61440'] !== 0;
             }
 
-            const position = precisionRound(msg.data.data['presentValue'], 2);
+            const position = precisionRound(msg.data['presentValue'], 2);
             return {position: position, running: running};
         },
     },
@@ -1191,14 +1054,14 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.armmode != null) {
+            if (msg.data.armmode != null) {
                 const lookup = {
                     0: 'disarm',
                     1: 'arm_partial_zones',
                     3: 'arm_all_zones',
                 };
 
-                const value = msg.data.data.armmode;
+                const value = msg.data.armmode;
                 return {action: lookup[value] || `armmode_${value}`};
             }
         },
@@ -1214,9 +1077,9 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const batt = msg.data.data.batteryPercentageRemaining;
-            const battLow = msg.data.data.batteryAlarmState;
-            const voltage = msg.data.data.batteryVoltage;
+            const batt = msg.data.batteryPercentageRemaining;
+            const battLow = msg.data.batteryAlarmState;
+            const voltage = msg.data.batteryVoltage;
             const results = {};
             if (batt != null) {
                 const value = Math.round(batt/200.0*10000)/100; // Out of 200
@@ -1237,10 +1100,10 @@ const converters = {
     },
     heiman_smoke_enrolled: {
         cluster: 'ssIasZone',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const zoneId = msg.data.data.zoneId;
-            const zoneState = msg.data.data.zoneState;
+            const zoneId = msg.data.zoneId;
+            const zoneState = msg.data.zoneState;
             const results = {};
             if (zoneState) {
                 results['enrolled'] = true;
@@ -1308,7 +1171,7 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const data = msg.data.data;
+            const data = msg.data;
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
                 if (basicAttrs.hasOwnProperty('100')) {
@@ -1319,9 +1182,9 @@ const converters = {
     },
     JTQJBF01LMBW_sensitivity: {
         cluster: 'ssIasZone',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const data = msg.data.data;
+            const data = msg.data;
             const lookup = {
                 '1': 'low',
                 '2': 'medium',
@@ -1349,17 +1212,17 @@ const converters = {
                 3: 'drop',
             };
 
-            if (msg.data.data['85']) {
-                const data = msg.data.data['85'];
+            if (msg.data['85']) {
+                const data = msg.data['85'];
                 result.action = vibrationLookup[data];
             }
-            if (msg.data.data['1283']) {
-                const data = msg.data.data['1283'];
+            if (msg.data['1283']) {
+                const data = msg.data['1283'];
                 result.angle = data;
             }
 
-            if (msg.data.data['1288']) {
-                const data = msg.data.data['1288'];
+            if (msg.data['1288']) {
+                const data = msg.data['1288'];
 
                 // array interpretation:
                 // 12 bit two's complement sign extended integer
@@ -1391,35 +1254,34 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            const endpoint = msg.endpoints[0];
             let factor = null;
 
-            if (endpoint.clusters.has('seMetering')) {
-                const attrs = endpoint.clusters['seMetering'].attrs;
+            if (msg.endpoint.clusters['seMetering']) {
+                const attrs = msg.endpoint.clusters['seMetering'].attributes;
 
                 if (attrs.multiplier && attrs.divisor) {
                     factor = attrs.multiplier / attrs.divisor;
                 }
             }
 
-            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
-                let power = msg.data.data['instantaneousDemand'];
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                let power = msg.data['instantaneousDemand'];
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
                 result.power = precisionRound(power, 2);
             }
 
-            if (factor != null && (msg.data.data.hasOwnProperty('currentSummDelivered') ||
-                msg.data.data.hasOwnProperty('currentSummReceived'))) {
+            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.hasOwnProperty('currentSummReceived'))) {
                 result.energy = 0;
-                if (msg.data.data.hasOwnProperty('currentSummDelivered')) {
-                    const data = msg.data.data['currentSummDelivered'];
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
                     result.energy += value * factor;
                 }
-                if (msg.data.data.hasOwnProperty('currentSummReceived')) {
-                    const data = msg.data.data['currentSummReceived'];
+                if (msg.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
                     result.energy -= value * factor;
                 }
@@ -1432,14 +1294,14 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {state: true, led_state: msg.data.data['onOff'] === 1};
+            return {state: true, led_state: msg.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
         cluster: 'genBinaryValue',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const data = msg.data.data;
+            const data = msg.data;
             return {
                 description: data['description'],
                 type: data['inactiveText'],
@@ -1451,21 +1313,19 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
             const payload = {};
-            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
         },
     },
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const key = `button_${getKey(model.ep(ep.device), ep.epId)}`;
+            const key = `button_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
             const payload = {};
-            payload[key] = msg.data.data['onOff'] === 1 ? 'release' : 'hold';
+            payload[key] = msg.data['onOff'] === 1 ? 'release' : 'hold';
             return payload;
         },
     },
@@ -1480,14 +1340,14 @@ const converters = {
             };
 
             return {
-                state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
-                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
-                external_temperature: precisionRound(msg.data.data['41362'], 1),
-                external_humidity: precisionRound(msg.data.data['41363'], 1),
-                s0_counts: msg.data.data['41364'],
-                adc_volt: precisionRound(msg.data.data['41365'], 3),
-                dig_input: msg.data.data['41366'],
-                reason: lookup[msg.data.data['41367']],
+                state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
+                cpu_temperature: precisionRound(msg.data['41361'], 2),
+                external_temperature: precisionRound(msg.data['41362'], 1),
+                external_humidity: precisionRound(msg.data['41363'], 1),
+                s0_counts: msg.data['41364'],
+                adc_volt: precisionRound(msg.data['41365'], 3),
+                dig_input: msg.data['41366'],
+                reason: lookup[msg.data['41367']],
             };
         },
     },
@@ -1496,10 +1356,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             return {
-                power: msg.data.data['activePower'],
-                current: msg.data.data['rmsCurrent'],
-                voltage: msg.data.data['rmsVoltage'],
-                power_factor: msg.data.data['powerFactor'],
+                power: msg.data['activePower'],
+                current: msg.data['rmsCurrent'],
+                voltage: msg.data['rmsVoltage'],
+                power_factor: msg.data['powerFactor'],
             };
         },
     },
@@ -1509,16 +1369,16 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const result = {};
 
-            if (msg.data.data.hasOwnProperty('activePower')) {
-                result.power = msg.data.data['activePower'];
+            if (msg.data.hasOwnProperty('activePower')) {
+                result.power = msg.data['activePower'];
             }
 
-            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
-                result.current = msg.data.data['rmsCurrent'] / 1000;
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data['rmsCurrent'] / 1000;
             }
 
-            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = msg.data.data['rmsVoltage'];
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data['rmsVoltage'];
             }
 
             return result;
@@ -1529,7 +1389,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
 
             // initialize stored defaults with observed values
             if (!store[deviceID]) {
@@ -1541,26 +1401,26 @@ const converters = {
 
             // if new multipliers/divisors come in, replace prior values or defaults
             Object.keys(store[deviceID]).forEach((key) => {
-                if (msg.data.data.hasOwnProperty(key)) {
-                    store[deviceID][key] = msg.data.data[key];
+                if (msg.data.hasOwnProperty(key)) {
+                    store[deviceID][key] = msg.data[key];
                 }
             });
 
             // if raw measurement comes in, apply stored/default multiplier and divisor
-            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = (msg.data.data['rmsVoltage']
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = (msg.data['rmsVoltage']
                     * store[deviceID].acVoltageMultiplier
                     / store[deviceID].acVoltageDivisor).toFixed(2);
             }
 
-            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
-                result.current = (msg.data.data['rmsCurrent']
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                result.current = (msg.data['rmsCurrent']
                     * store[deviceID].acCurrentMultiplier
                     / store[deviceID].acCurrentDivisor).toFixed(2);
             }
 
-            if (msg.data.data.hasOwnProperty('activePower')) {
-                result.power = (msg.data.data['activePower']
+            if (msg.data.hasOwnProperty('activePower')) {
+                result.power = (msg.data['activePower']
                     * store[deviceID].acPowerMultiplier
                     / store[deviceID].acPowerDivisor).toFixed(2);
             }
@@ -1574,7 +1434,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timer because presence is detected and set a new one.
             if (store.hasOwnProperty(deviceID)) {
@@ -1595,7 +1455,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const battery = {max: 3000, min: 2500};
-            const voltage = msg.data.data['batteryVoltage'] * 100;
+            const voltage = msg.data['batteryVoltage'] * 100;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
                 voltage: voltage,
@@ -1604,7 +1464,7 @@ const converters = {
     },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             return {action: 'beeping'};
         },
@@ -1630,9 +1490,9 @@ const converters = {
                 return payLoad;
             };
 
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
             let button = null;
-            switch (msg.data.data['button']) {
+            switch (msg.data['button']) {
             case 1:
                 button = 'on';
                 break;
@@ -1647,7 +1507,7 @@ const converters = {
                 break;
             }
             let type = null;
-            switch (msg.data.data['type']) {
+            switch (msg.data['type']) {
             case 0:
                 type = 'press';
                 break;
@@ -1749,17 +1609,8 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data.data['batteryPercentageRemaining']};
-            }
-        },
-    },
-    generic_battery_change: {
-        cluster: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data.data['batteryPercentageRemaining']};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: msg.data['batteryPercentageRemaining']};
             }
         },
     },
@@ -1767,8 +1618,8 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: precisionRound(msg.data.data['batteryPercentageRemaining'] / 2, 2)};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2)};
             }
         },
     },
@@ -1776,8 +1627,8 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('batteryVoltage')) {
-                return {voltage: msg.data.data['batteryVoltage'] / 100};
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                return {voltage: msg.data['batteryVoltage'] / 100};
             }
         },
     },
@@ -1786,8 +1637,8 @@ const converters = {
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
             ictcg1(model, msg, publish, options, 'move');
-            const direction = msg.data.data.movemode === 1 ? 'left' : 'right';
-            return {action: `rotate_${direction}`, rate: msg.data.data.rate};
+            const direction = msg.data.movemode === 1 ? 'left' : 'right';
+            return {action: `rotate_${direction}`, rate: msg.data.rate};
         },
     },
     cmd_move_with_onoff: {
@@ -1795,8 +1646,8 @@ const converters = {
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options) => {
             ictcg1(model, msg, publish, options, 'move');
-            const direction = msg.data.data.movemode === 1 ? 'left' : 'right';
-            return {action: `rotate_${direction}`, rate: msg.data.data.rate};
+            const direction = msg.data.movemode === 1 ? 'left' : 'right';
+            return {action: `rotate_${direction}`, rate: msg.data.rate};
         },
     },
     cmd_stop: {
@@ -1820,15 +1671,15 @@ const converters = {
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
             ictcg1(model, msg, publish, options, 'level');
-            const direction = msg.data.data.level === 0 ? 'left' : 'right';
-            return {action: `rotate_${direction}_quick`, level: msg.data.data.level};
+            const direction = msg.data.level === 0 ? 'left' : 'right';
+            return {action: `rotate_${direction}_quick`, level: msg.data.level};
         },
     },
     iris_3210L_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {power: msg.data.data['activePower'] / 10.0};
+            return {power: msg.data['activePower'] / 10.0};
         },
     },
     iris_3320L_contact: {
@@ -1842,11 +1693,10 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const button = getKey(model.ep(ep.device), ep.epId);
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
             if (button) {
                 const payload = {};
-                payload[`state_${button}`] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             }
         },
@@ -1855,10 +1705,9 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
             const payload = {};
-            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
         },
     },
@@ -1867,24 +1716,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             return {
-                power: msg.data.data['activePower'],
-                current: msg.data.data['rmsCurrent'],
-                voltage: msg.data.data['rmsVoltage'],
+                power: msg.data['activePower'],
+                current: msg.data['rmsCurrent'],
+                voltage: msg.data['rmsVoltage'],
             };
-        },
-    },
-    ias_zone_motion_dev_change: {
-        cluster: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.zoneType === 0x000D) { // type 0x000D = motion sensor
-                const zoneStatus = msg.data.data.zoneStatus;
-                return {
-                    occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
-                    tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                    battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-                };
-            }
         },
     },
     ias_zone_motion_status_change: {
@@ -1918,7 +1753,7 @@ const converters = {
             const zoneStatus = msg.data.zoneStatus;
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
 
             if (store[deviceID]) {
                 clearTimeout(store[deviceID]);
@@ -1939,28 +1774,6 @@ const converters = {
             };
         },
     },
-    generic_ias_zone_motion_dev_change: {
-        cluster: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
-            return {
-                occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-            };
-        },
-    },
-    ias_contact_dev_change: {
-        cluster: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
-            return {
-                contact: !((zoneStatus & 1) > 0),
-            };
-        },
-    },
     ias_contact_status_change: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1971,12 +1784,12 @@ const converters = {
             };
         },
     },
-    brightness_report: {
+    brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('currentLevel')) {
-                return {brightness: msg.data.data['currentLevel']};
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data['currentLevel']};
             }
         },
     },
@@ -1984,7 +1797,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.data.zoneStatus;
+            const zoneStatus = msg.data.zoneStatus;
             return {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
@@ -1993,19 +1806,9 @@ const converters = {
     },
     st_leak: {
         cluster: 'ssIasZone',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.data.zoneStatus;
-            return {
-                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
-            };
-        },
-    },
-    st_leak_change: {
-        cluster: 'ssIasZone',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.data.zoneStatus;
+            const zoneStatus = msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
             };
@@ -2034,7 +1837,7 @@ const converters = {
             };
 
             if (msg.data.hasOwnProperty('data')) {
-                const zoneStatus = msg.data.data.zoneStatus;
+                const zoneStatus = msg.data.zoneStatus;
                 return {click: buttonStates[zoneStatus]};
             } else {
                 const zoneStatus = msg.data.zoneStatus;
@@ -2046,8 +1849,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
+            const deviceID = msg.device.ieeeAddr;
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
 
             // Save last direction for release event
             if (!store[deviceID]) {
@@ -2057,8 +1860,8 @@ const converters = {
 
             return {
                 action: `brightness_${direction}_click`,
-                step_size: msg.data.data.stepsize,
-                transition_time: msg.data.data.transtime,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2066,8 +1869,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+            const deviceID = msg.device.ieeeAddr;
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
 
             // Save last direction for release event
             if (!store[deviceID]) {
@@ -2077,7 +1880,7 @@ const converters = {
 
             return {
                 action: `brightness_${direction}_hold`,
-                rate: msg.data.data.rate,
+                rate: msg.data.rate,
             };
         },
     },
@@ -2085,7 +1888,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 return null;
             }
@@ -2100,71 +1903,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
-            return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
-        },
-    },
-    thermostat_dev_change: {
-        cluster: 'hvacThermostat',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data.data['occupancy'] == 'number') {
-                result.occupancy = msg.data.data['occupancy'];
-            }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint =
-                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['occupiedCoolingSetpoint'] == 'number') {
-                result.occupied_cooling_setpoint =
-                    precisionRound(msg.data.data['occupiedCoolingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule = msg.data.data['weeklySchedule'];
-            }
-            if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount = msg.data.data['setpointChangeAmount'] / 100;
-            }
-            if (typeof msg.data.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source = msg.data.data['setpointChangeSource'];
-            }
-            if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp = msg.data.data['setpointChangeSourceTimeStamp'];
-            }
-            if (typeof msg.data.data['remoteSensing'] == 'number') {
-                result.remote_sensing = msg.data.data['remoteSensing'];
-            }
-            const ctrl = msg.data.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
-            }
-            const smode = msg.data.data['systemMode'];
-            if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
-                result.system_mode = common.thermostatSystemModes[smode];
-            }
-            const rmode = msg.data.data['runningMode'];
-            if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
-                result.running_mode = common.thermostatSystemModes[rmode];
-            }
-            const state = msg.data.data['runningState'];
-            if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
-                result.running_state = common.thermostatRunningStates[state];
-            }
-            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
-            }
-            return result;
+            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },
     thermostat_att_report: {
@@ -2172,85 +1911,85 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data.data['localTemp'], 2) / 100;
+            if (typeof msg.data['localTemp'] == 'number') {
+                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
             }
-            if (typeof msg.data.data['localTemperatureCalibration'] == 'number') {
+            if (typeof msg.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration =
-                    precisionRound(msg.data.data['localTemperatureCalibration'], 2) / 10;
+                    precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
-            if (typeof msg.data.data['occupancy'] == 'number') {
-                result.occupancy = msg.data.data['occupancy'];
+            if (typeof msg.data['occupancy'] == 'number') {
+                result.occupancy = msg.data['occupancy'];
             }
-            if (typeof msg.data.data['occupiedHeatingSetpoint'] == 'number') {
+            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
                 result.occupied_heating_setpoint =
-                    precisionRound(msg.data.data['occupiedHeatingSetpoint'], 2) / 100;
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-            if (typeof msg.data.data['unoccupiedHeatingSetpoint'] == 'number') {
+            if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
                 result.unoccupied_heating_setpoint =
-                    precisionRound(msg.data.data['unoccupiedHeatingSetpoint'], 2) / 100;
+                    precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
-            if (typeof msg.data.data['occupiedCoolingSetpoint'] == 'number') {
+            if (typeof msg.data['occupiedCoolingSetpoint'] == 'number') {
                 result.occupied_cooling_setpoint =
-                    precisionRound(msg.data.data['occupiedCoolingSetpoint'], 2) / 100;
+                    precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
-            if (typeof msg.data.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule = msg.data.data['weeklySchedule'];
+            if (typeof msg.data['weeklySchedule'] == 'number') {
+                result.weekly_schedule = msg.data['weeklySchedule'];
             }
-            if (typeof msg.data.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount = msg.data.data['setpointChangeAmount'] / 100;
+            if (typeof msg.data['setpointChangeAmount'] == 'number') {
+                result.setpoint_change_amount = msg.data['setpointChangeAmount'] / 100;
             }
-            if (typeof msg.data.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source = msg.data.data['setpointChangeSource'];
+            if (typeof msg.data['setpointChangeSource'] == 'number') {
+                result.setpoint_change_source = msg.data['setpointChangeSource'];
             }
-            if (typeof msg.data.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp = msg.data.data['setpointChangeSourceTimeStamp'];
+            if (typeof msg.data['setpointChangeSourceTimeStamp'] == 'number') {
+                result.setpoint_change_source_timestamp = msg.data['setpointChangeSourceTimeStamp'];
             }
-            if (typeof msg.data.data['remoteSensing'] == 'number') {
-                result.remote_sensing = msg.data.data['remoteSensing'];
+            if (typeof msg.data['remoteSensing'] == 'number') {
+                result.remote_sensing = msg.data['remoteSensing'];
             }
-            const ctrl = msg.data.data['ctrlSeqeOfOper'];
+            const ctrl = msg.data['ctrlSeqeOfOper'];
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
                 result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
             }
-            const smode = msg.data.data['systemMode'];
+            const smode = msg.data['systemMode'];
             if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
                 result.system_mode = common.thermostatSystemModes[smode];
             }
-            const rmode = msg.data.data['runningMode'];
+            const rmode = msg.data['runningMode'];
             if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
                 result.running_mode = common.thermostatSystemModes[rmode];
             }
-            const state = msg.data.data['runningState'];
+            const state = msg.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
                 result.running_state = common.thermostatRunningStates[state];
             }
-            if (typeof msg.data.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = msg.data.data['pIHeatingDemand'];
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = msg.data['pIHeatingDemand'];
             }
             return result;
         },
     },
-    eurotronic_thermostat_dev_change: {
+    eurotronic_thermostat: {
         cluster: 'hvacThermostat',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            if (typeof msg.data.data[0x4003] == 'number') {
+            if (typeof msg.data[0x4003] == 'number') {
                 result.current_heating_setpoint =
-                    precisionRound(msg.data.data[0x4003], 2) / 100;
+                    precisionRound(msg.data[0x4003], 2) / 100;
             }
-            if (typeof msg.data.data[0x4008] == 'number') {
-                result.eurotronic_system_mode = msg.data.data[0x4008];
+            if (typeof msg.data[0x4008] == 'number') {
+                result.eurotronic_system_mode = msg.data[0x4008];
             }
-            if (typeof msg.data.data[0x4002] == 'number') {
-                result.eurotronic_error_status = msg.data.data[0x4002];
+            if (typeof msg.data[0x4002] == 'number') {
+                result.eurotronic_error_status = msg.data[0x4002];
             }
-            if (typeof msg.data.data[0x4000] == 'number') {
-                result.eurotronic_trv_mode = msg.data.data[0x4000];
+            if (typeof msg.data[0x4000] == 'number') {
+                result.eurotronic_trv_mode = msg.data[0x4000];
             }
-            if (typeof msg.data.data[0x4001] == 'number') {
-                result.eurotronic_valve_position = msg.data.data[0x4001];
+            if (typeof msg.data[0x4001] == 'number') {
+                result.eurotronic_valve_position = msg.data[0x4001];
             }
             return result;
         },
@@ -2273,11 +2012,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.data.stepmode === 1 ? 'down' : 'up';
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             return {
                 action: `brightness_${direction}_click`,
-                step_size: msg.data.data.stepsize,
-                transition_time: msg.data.data.transtime,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2285,8 +2024,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
-            const direction = msg.data.data.movemode === 1 ? 'down' : 'up';
+            const deviceID = msg.device.ieeeAddr;
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
 
             // Save last direction for release event
             if (!store[deviceID]) {
@@ -2296,7 +2035,7 @@ const converters = {
 
             return {
                 action: `brightness_${direction}_hold`,
-                rate: msg.data.data.rate,
+                rate: msg.data.rate,
             };
         },
     },
@@ -2304,7 +2043,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.endpoints[0].device.ieeeAddr;
+            const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 return null;
             }
@@ -2319,7 +2058,7 @@ const converters = {
         cluster: 'genBasic',
         type: 'commandWrite',
         convert: (model, msg, publish, options) => {
-            return {action: `scene${msg.data.data[0].attrData}`};
+            return {action: `scene${msg.data[0].attrData}`};
         },
     },
     tint404011_move_to_color_temp: {
@@ -2328,8 +2067,8 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: `color_temp`,
-                action_color_temperature: msg.data.data.colortemp,
-                transition_time: msg.data.data.transtime,
+                action_color_temperature: msg.data.colortemp,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2339,11 +2078,11 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action_color: {
-                    x: precisionRound(msg.data.data.colorx / 65535, 3),
-                    y: precisionRound(msg.data.data.colory / 65535, 3),
+                    x: precisionRound(msg.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.colory / 65535, 3),
                 },
                 action: 'color_wheel',
-                transition_time: msg.data.data.transtime,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2365,12 +2104,12 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.value === 2) {
+            if (msg.data.value === 2) {
                 // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
                 return;
             }
 
-            const direction = msg.data.data.value === 257 ? 'left' : 'right';
+            const direction = msg.data.value === 257 ? 'left' : 'right';
             return {action: `arrow_${direction}_click`};
         },
     },
@@ -2378,8 +2117,8 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.data.value === 3329 ? 'left' : 'right';
-            store[msg.endpoints[0].device.ieeeAddr] = direction;
+            const direction = msg.data.value === 3329 ? 'left' : 'right';
+            store[msg.device.ieeeAddr] = direction;
             return {action: `arrow_${direction}_hold`};
         },
     },
@@ -2387,10 +2126,10 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
         convert: (model, msg, publish, options) => {
-            const direction = store[msg.endpoints[0].device.ieeeAddr];
+            const direction = store[msg.device.ieeeAddr];
             if (direction) {
-                delete store[msg.endpoints[0].device.ieeeAddr];
-                return {action: `arrow_${direction}_release`, duration: msg.data.data.value / 1000};
+                delete store[msg.device.ieeeAddr];
+                return {action: `arrow_${direction}_release`, duration: msg.data.value / 1000};
             }
         },
     },
@@ -2436,17 +2175,15 @@ const converters = {
             return {action: `brightness_down_release`};
         },
     },
-    livolo_switch_dev_change: {
+    livolo_switch_state: {
         cluster: 'genOnOff',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const status = msg.data.data.onOff;
+            const status = msg.data.onOff;
             const payload = {};
             payload['state_left'] = status & 1 ? 'ON' : 'OFF';
             payload['state_right'] = status & 2 ? 'ON' : 'OFF';
-            if (msg.endpoints[0].hasOwnProperty('linkquality')) {
-                payload['linkquality'] = msg.endpoints[0].linkquality;
-            }
+            payload['linkquality'] = msg.linkquality;
             return payload;
         },
     },
@@ -2468,7 +2205,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.data.stepmode === 0 ? 'up' : 'down';
+            const direction = msg.data.stepmode === 0 ? 'up' : 'down';
             return {action: `${direction}`};
         },
     },
@@ -2476,87 +2213,59 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'on', action_group: msg.groupid};
+            return {action: 'on', action_group: msg.groupID};
         },
     },
     ZYCT202_off: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options) => {
-            return {action: 'off', action_group: msg.groupid};
+            return {action: 'off', action_group: msg.groupID};
         },
     },
     ZYCT202_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            return {action: 'stop', action_group: msg.groupid};
+            return {action: 'stop', action_group: msg.groupID};
         },
     },
     ZYCT202_up_down: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
-            const value = msg.data.data['movemode'];
+            const value = msg.data['movemode'];
             let action = null;
-            if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupid};
-            else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupid};
+            if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupID};
+            else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupID};
             return action ? action : null;
         },
     },
     cover_position: {
         cluster: 'genLevelCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            const currentLevel = msg.data.data['currentLevel'];
-            const position = Math.round(Number(currentLevel) / 2.55).toString();
-            const state = position > 0 ? 'OPEN' : 'CLOSE';
-            return {state: state, position: position};
-        },
-    },
-    cover_position_report: {
-        cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const currentLevel = msg.data.data['currentLevel'];
+            const currentLevel = msg.data['currentLevel'];
             const position = Math.round(Number(currentLevel) / 2.55).toString();
             const state = position > 0 ? 'OPEN' : 'CLOSE';
             return {state: state, position: position};
         },
     },
-    cover_state_report: {
+    cover_state: {
         cluster: 'genOnOff',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('onOff')) {
-                return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
-            }
-        },
-    },
-    cover_state_change: {
-        cluster: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('onOff')) {
-                return {state: msg.data.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
             }
         },
     },
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => {
-            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
-            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
-            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
-        },
-    },
-    keen_home_smart_vent_pressure_report: {
-        cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
-            const pressure = parseFloat(msg.data.data['32']) / 1000.0;
+            const pressure = parseFloat(msg.data['32']) / 1000.0;
             return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
         },
     },
@@ -2590,7 +2299,7 @@ const converters = {
                 2: 'down_release',
             };
 
-            return {action: map[msg.endpoints[0].epId]};
+            return {action: map[msg.endpoint.ID]};
         },
     },
     AC0251100NJ_cmdMove: {
@@ -2604,7 +2313,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.movemode === 0) {
+            if (msg.data.movemode === 0) {
                 return {action: 'circle_release'};
             }
         },
@@ -2661,7 +2370,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {position: msg.data.data.currentPositionLiftPercentage};
+            return {position: msg.data.currentPositionLiftPercentage};
         },
     },
     closuresWindowCovering_report_pos_and_tilt: {
@@ -2672,12 +2381,12 @@ const converters = {
             // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
             // HomeAssistant etc. work the other way round.
             // ubisys J1 will report 255 if lift or tilt positions are not known.
-            if (msg.data.data.hasOwnProperty('currentPositionLiftPercentage')) {
-                const liftPercentage = msg.data.data['currentPositionLiftPercentage'];
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
             }
-            if (msg.data.data.hasOwnProperty('currentPositionTiltPercentage')) {
-                const tiltPercentage = msg.data.data['currentPositionTiltPercentage'];
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
+                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
                 result.tilt = tiltPercentage <= 100 ? (100 - tiltPercentage) : null;
             }
             return result;
@@ -2685,9 +2394,9 @@ const converters = {
     },
     generic_fan_mode: {
         cluster: 'hvacFanCtrl',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const key = getKey(common.fanMode, msg.data.data.fanMode);
+            const key = getKey(common.fanMode, msg.data.fanMode);
             return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
         },
     },
@@ -2696,7 +2405,7 @@ const converters = {
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
             return {
-                action: `select_${msg.data.data.sceneid}`,
+                action: `select_${msg.data.sceneid}`,
             };
         },
     },
@@ -2720,9 +2429,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: 'down',
-                step_mode: msg.data.data.stepmode,
-                step_size: msg.data.data.stepsize,
-                transition_time: msg.data.data.transtime,
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2732,9 +2441,9 @@ const converters = {
         convert: (model, msg, publish, options) => {
             return {
                 action: 'up',
-                step_mode: msg.data.data.stepmode,
-                step_size: msg.data.data.stepsize,
-                transition_time: msg.data.data.transtime,
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
             };
         },
     },
@@ -2751,7 +2460,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options) => {
-            const button = msg.endpoints[0].epId;
+            const button = msg.endpoint.ID;
             if (button) {
                 return {click: `${button}_on`};
             }
@@ -2761,7 +2470,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options) => {
-            const button = msg.endpoints[0].epId;
+            const button = msg.endpoint.ID;
             if (button) {
                 return {click: `${button}_off`};
             }
@@ -2771,8 +2480,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
-            const button = msg.endpoints[0].epId;
-            const direction = msg.data.data.movemode == 0 ? 'up' : 'down';
+            const button = msg.endpoint.ID;
+            const direction = msg.data.movemode == 0 ? 'up' : 'down';
             if (button) {
                 return {click: `${button}_${direction}`};
             }
@@ -2782,8 +2491,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options) => {
-            const button = msg.endpoints[0].epId;
-            const direction = msg.data.data.movemode == 0 ? 'up' : 'down';
+            const button = msg.endpoint.ID;
+            const direction = msg.data.movemode == 0 ? 'up' : 'down';
             if (button) {
                 return {click: `${button}_${direction}`};
             }
@@ -2793,7 +2502,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options) => {
-            const button = msg.endpoints[0].epId;
+            const button = msg.endpoint.ID;
             if (button) {
                 return {click: `${button}_stop`};
             }
@@ -2803,15 +2512,15 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
-            return {click: `scene_${msg.data.data.groupid}_${msg.data.data.sceneid}`};
+            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },
     SZ_ESW01_AU_power: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('instantaneousDemand')) {
-                return {power: precisionRound(msg.data.data['instantaneousDemand'] / 1000, 2)};
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                return {power: precisionRound(msg.data['instantaneousDemand'] / 1000, 2)};
             }
         },
     },
@@ -2821,56 +2530,56 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const result = {};
             // typo on property name to stick with zcl definition
-            if (msg.data.data.hasOwnProperty('inletTempreature')) {
-                result.inletTemperature = precisionRound(msg.data.data['inletTempreature'], 2);
+            if (msg.data.hasOwnProperty('inletTempreature')) {
+                result.inletTemperature = precisionRound(msg.data['inletTempreature'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('status')) {
-                result.status = precisionRound(msg.data.data['status'], 2);
+            if (msg.data.hasOwnProperty('status')) {
+                result.status = precisionRound(msg.data['status'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8192')) {
-                result.linefrequency = precisionRound((parseFloat(msg.data.data['8192'])) / 100.0, 2);
+            if (msg.data.hasOwnProperty('8192')) {
+                result.linefrequency = precisionRound((parseFloat(msg.data['8192'])) / 100.0, 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8193')) {
-                result.power = precisionRound(msg.data.data['8193'], 2);
+            if (msg.data.hasOwnProperty('8193')) {
+                result.power = precisionRound(msg.data['8193'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8196')) {
-                result.voltage = precisionRound(msg.data.data['8196'], 2);
+            if (msg.data.hasOwnProperty('8196')) {
+                result.voltage = precisionRound(msg.data['8196'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8213')) {
-                result.voltage = precisionRound(msg.data.data['8213'], 2);
+            if (msg.data.hasOwnProperty('8213')) {
+                result.voltage = precisionRound(msg.data['8213'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8199')) {
-                result.current = precisionRound(msg.data.data['8199'], 2);
+            if (msg.data.hasOwnProperty('8199')) {
+                result.current = precisionRound(msg.data['8199'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8216')) {
-                result.current = precisionRound(msg.data.data['8216'], 2);
+            if (msg.data.hasOwnProperty('8216')) {
+                result.current = precisionRound(msg.data['8216'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('8202')) {
-                result.reactivepower = precisionRound(msg.data.data['8202'], 2);
+            if (msg.data.hasOwnProperty('8202')) {
+                result.reactivepower = precisionRound(msg.data['8202'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('12288')) {
-                result.energyconsumed = precisionRound(msg.data.data['12288'], 2);
+            if (msg.data.hasOwnProperty('12288')) {
+                result.energyconsumed = precisionRound(msg.data['12288'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('12291')) {
-                result.energyproduced = precisionRound(msg.data.data['12291'], 2);
+            if (msg.data.hasOwnProperty('12291')) {
+                result.energyproduced = precisionRound(msg.data['12291'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('12294')) {
-                result.reactivesummation = precisionRound(msg.data.data['12294'], 2);
+            if (msg.data.hasOwnProperty('12294')) {
+                result.reactivesummation = precisionRound(msg.data['12294'], 2);
             }
 
-            if (msg.data.data.hasOwnProperty('16408')) {
-                result.measureserial = precisionRound(msg.data.data['16408'], 2);
+            if (msg.data.hasOwnProperty('16408')) {
+                result.measureserial = precisionRound(msg.data['16408'], 2);
             }
 
             return result;
@@ -2878,7 +2587,7 @@ const converters = {
     },
     ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
             const lockStatusLookup = {
@@ -2902,9 +2611,9 @@ const converters = {
             };
             result.user = null;
             result.repeat = null;
-            if (msg.data.data['65526']) { // lock final status
+            if (msg.data['65526']) { // lock final status
                 // Convert data back to hex to decode
-                const data = Buffer.from(msg.data.data['65526'], 'ascii').toString('hex');
+                const data = Buffer.from(msg.data['65526'], 'ascii').toString('hex');
                 const command = data.substr(6, 4);
                 if (
                     command === '0301' // ZNMS12LM
@@ -2969,16 +2678,16 @@ const converters = {
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 }
-            } else if (msg.data.data['65296']) { // finger/password success
-                const data = Buffer.from(msg.data.data['65296'], 'ascii').toString('hex');
+            } else if (msg.data['65296']) { // finger/password success
+                const data = Buffer.from(msg.data['65296'], 'ascii').toString('hex');
                 const command = data.substr(6, 2); // 1 finger open, 2 password open
                 const userId = data.substr(12, 2);
                 const userType = data.substr(8, 1); // 1 admin, 2 user
                 result.action = (lockStatusLookup[14+parseInt(command, 16)]
                  + (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
                 result.user = parseInt(userId, 16);
-            } else if (msg.data.data['65297']) { // finger, password failed or bell
-                const data = Buffer.from(msg.data.data['65297'], 'ascii').toString('hex');
+            } else if (msg.data['65297']) { // finger, password failed or bell
+                const data = Buffer.from(msg.data['65297'], 'ascii').toString('hex');
                 const times = data.substr(6, 2);
                 const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
                 if (type === '40') {
@@ -2991,15 +2700,15 @@ const converters = {
                     result.action = lockStatusLookup[2];
                     result.repeat = parseInt(times, 16);
                 }
-            } else if (msg.data.data['65281']) { // password added/delete
-                const data = Buffer.from(msg.data.data['65281'], 'ascii').toString('hex');
+            } else if (msg.data['65281']) { // password added/delete
+                const data = Buffer.from(msg.data['65281'], 'ascii').toString('hex');
                 const command = data.substr(18, 2); // 1 add, 2 delete
                 const userId = data.substr(12, 2);
                 result.action = lockStatusLookup[6+parseInt(command, 16)];
                 result.user = parseInt(userId, 16);
                 result.repeat = null;
-            } else if (msg.data.data['65522']) { // set languge
-                const data = Buffer.from(msg.data.data['65522'], 'ascii').toString('hex');
+            } else if (msg.data['65522']) { // set languge
+                const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
                 const langId = data.substr(6, 2); // 1 chinese, 2: english
                 result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
                 result.user = null;
@@ -3023,9 +2732,9 @@ const converters = {
                 '1': 'ON',
             };
             return {
-                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
-                key_state: lookupKEY[msg.data.data['41362']],
-                led_state: lookupLED[msg.data.data['41363']],
+                cpu_temperature: precisionRound(msg.data['41361'], 2),
+                key_state: lookupKEY[msg.data['41362']],
+                led_state: lookupLED[msg.data['41363']],
             };
         },
     },
@@ -3033,7 +2742,7 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const value = msg.data.data['onOff'];
+            const value = msg.data['onOff'];
             const lookup = {
                 128: {click: 'single'}, // single click
                 129: {click: 'double'}, // double and many click
@@ -3050,45 +2759,31 @@ const converters = {
             return {linkquality: msg.linkquality};
         },
     },
-    generic_change_batteryvoltage_3000_2500: {
-        cluster: 'genPowerCfg',
-        type: ['devChange'],
-        convert: (model, msg, publish, options) => {
-            const battery = {max: 3000, min: 2500};
-            const voltage = msg.data.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage,
-            };
-        },
-    },
     generic_device_temperature: {
         cluster: 'genDeviceTempCfg',
-        type: ['devChange'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            if (msg.data.data.hasOwnProperty('currentTemperature')) {
-                return {temperature: msg.data.data.currentTemperature};
+            if (msg.data.hasOwnProperty('currentTemperature')) {
+                return {temperature: msg.data.currentTemperature};
             }
         },
     },
     ptvo_switch_state: {
         cluster: 'genOnOff',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const key = `state_${getKey(model.ep(ep.device), ep.epId)}`;
+            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
             const payload = {};
-            payload[key] = msg.data.data['onOff'] === 1 ? 'ON' : 'OFF';
+            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
         },
     },
     ptvo_switch_buttons: {
         cluster: 'genMultistateInput',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const button = getKey(model.ep(ep.device), ep.epId);
-            const value = msg.data.data['presentValue'];
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
 
             const actionLookup = {
                 1: 'single',
@@ -3106,11 +2801,10 @@ const converters = {
     },
     keypad20states: {
         cluster: 'genOnOff',
-        type: ['devChange', 'attributeReport'],
+        type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options) => {
-            const ep = msg.endpoints[0];
-            const button = getKey(model.ep(ep.device), ep.epId);
-            const state = msg.data.data['onOff'] === 1 ? true : false;
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const state = msg.data['onOff'] === 1 ? true : false;
             if (button) {
                 return {[button]: state};
             }
@@ -3118,10 +2812,10 @@ const converters = {
     },
     keypad20_battery: {
         cluster: 'genPowerCfg',
-        type: ['devChange', 'attributeReport'],
+        type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options) => {
             const battery = {max: 3000, min: 2100};
-            const voltage = msg.data.data['mainsVoltage'] /10;
+            const voltage = msg.data['mainsVoltage'] /10;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
                 voltage: voltage,
@@ -3130,49 +2824,14 @@ const converters = {
     },
 
     // Ignore converters (these message dont need parsing).
-    ignore_fan_change: {
-        cluster: 'hvacFanCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_light_brightness_change: {
-        cluster: 'genLevelCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_doorlock_change: {
-        cluster: 'closuresDoorLock',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_onoff_change: {
-        cluster: 'genOnOff',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_onoff_report: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_basic_change: {
-        cluster: 'genBasic',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_basic_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_illuminance_change: {
-        cluster: 'msIlluminanceMeasurement',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_occupancy_change: {
-        cluster: 'msOccupancySensing',
-        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_illuminance_report: {
@@ -3185,19 +2844,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_temperature_change: {
-        cluster: 'msTemperatureMeasurement',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_temperature_report: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_humidity_change: {
-        cluster: 'msRelativeHumidity',
-        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_humidity_report: {
@@ -3205,19 +2854,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_pressure_change: {
-        cluster: 'msPressureMeasurement',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_pressure_report: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_analog_change: {
-        cluster: 'genAnalogInput',
-        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_analog_report: {
@@ -3230,29 +2869,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_multistate_change: {
-        cluster: 'genMultistateInput',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_power_change: {
-        cluster: 'genPowerCfg',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_power_report: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_metering_change: {
-        cluster: 'seMetering',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_electrical_change: {
-        cluster: 'haElectricalMeasurement',
-        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_light_brightness_report: {
@@ -3265,19 +2884,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_closuresWindowCovering_change: {
-        cluster: 'closuresWindowCovering',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_closuresWindowCovering_report: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_thermostat_change: {
-        cluster: 'hvacThermostat',
-        type: 'devChange',
         convert: (model, msg, publish, options) => null,
     },
     ignore_thermostat_report: {
@@ -3285,19 +2894,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_genGroups_devChange: {
-        cluster: 'genGroups',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_iaszone_attreport: {
         cluster: 'ssIasZone',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_iaszone_change: {
-        cluster: 'ssIasZone',
-        type: 'devChange',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_iaszone_statuschange: {
@@ -3340,34 +2939,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
-    ignore_poll_ctrl_change: {
-        cluster: 'genPollCtrl',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_genIdentify_change: {
-        cluster: 'genIdentify',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_diagnostic_change: {
-        cluster: 'haDiagnostic',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_genScenes_change: {
-        cluster: 'genScenes',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
-    ignore_lightLink_change: {
-        cluster: 'lightLink',
-        type: 'devChange',
-        convert: (model, msg, publish, options) => null,
-    },
     ignore_genLevelCtrl_report: {
         cluster: 'genLevelCtrl',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
     },
 };
