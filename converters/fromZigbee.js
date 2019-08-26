@@ -3247,7 +3247,7 @@ const converters = {
     },
     ignore_metering_change: {
         cid: 'seMetering',
-        type: 'devChange',
+        type: ['devChange', 'attReport'],
         convert: (model, msg, publish, options) => null,
     },
     ignore_electrical_change: {

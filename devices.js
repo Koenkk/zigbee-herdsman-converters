@@ -2119,6 +2119,18 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['Z01-A60EAE27'],
+        model: 'Z01-A60EAE27',
+        vendor: 'Sengled',
+        description: 'Element Plus (A60)',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['E11-N1EA'],
         model: 'E11-N1EA',
         vendor: 'Sengled',
