@@ -5439,6 +5439,24 @@ const devices = [
         fromZigbee: [fz.closuresWindowCovering_report_pos_and_tilt, fz.ignore_closuresWindowCovering_change],
         toZigbee: [tz.cover_control, tz.cover_gotopercentage],
     },
+
+    // Zigbee OnOff Controller
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'SA-003-Zigbee',
+        vendor: 'eWeLink',
+        description: 'Zigbee OnOff Controller',
+        supports: 'on/off power',
+        fromZigbee: [fz.state_change, fz.state],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
