@@ -1,6 +1,5 @@
 'use strict';
 
-const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
@@ -8,6 +7,7 @@ const repInterval = {
     MAX: 62000,
     HOUR: 3600,
     MINUTE: 60,
+    MINUTES_5: 60,
 };
 
 const hasEndpoints = (device, endpoints) => {
@@ -18,6 +18,285 @@ const hasEndpoints = (device, endpoints) => {
         }
     }
     return true;
+};
+
+const bind = async (endpoint, target, clusters) => {
+    for (const cluster of clusters) {
+        await endpoint.bind(cluster, target);
+    }
+};
+
+const configureReporting = {
+    batteryPercentageRemaining: async (endpoint) => {
+        const payload = [{
+            attribute: 'batteryPercentageRemaining',
+            minimumReportInterval: repInterval.HOUR,
+            maximumReportInterval: repInterval.MAX,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('genPowerCfg', payload);
+    },
+    batteryVoltage: async (endpoint) => {
+        const payload = [{
+            attribute: 'batteryVoltage',
+            minimumReportInterval: repInterval.HOUR,
+            maximumReportInterval: repInterval.MAX,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('genPowerCfg', payload);
+    },
+    batteryAlarmState: async (endpoint) => {
+        const payload = [{
+            attribute: 'batteryAlarmState',
+            minimumReportInterval: repInterval.HOUR,
+            maximumReportInterval: repInterval.MAX,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('genPowerCfg', payload);
+    },
+    onOff: async (endpoint) => {
+        const payload = [{
+            attribute: 'onOff',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('genOnOff', payload);
+    },
+    lockState: async (endpoint) => {
+        const payload = [{
+            attribute: 'lockState',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('closuresDoorLock', payload);
+    },
+    brightness: async (endpoint) => {
+        const payload = [{
+            attribute: 'currentLevel',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('genLevelCtrl', payload);
+    },
+    occupancy: async (endpoint) => {
+        const payload = [{
+            attribute: 'occupancy',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('msOccupancySensing', payload);
+    },
+    temperature: async (endpoint) => {
+        const payload = [{
+            attribute: 'measuredValue',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('msTemperatureMeasurement', payload);
+    },
+    pressure: async (endpoint) => {
+        const payload = [{
+            attribute: 'measuredValue',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('msPressureMeasurement', payload);
+    },
+    illuminance: async (endpoint) => {
+        const payload = [{
+            attribute: 'measuredValue',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('msIlluminanceMeasurement', payload);
+    },
+    instantaneousDemand: async (endpoint) => {
+        const payload = [{
+            attribute: 'instantaneousDemand',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('seMetering', payload);
+    },
+    currentSummDelivered: async (endpoint) => {
+        const payload = [{
+            attribute: 'currentSummDelivered',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('seMetering', payload);
+    },
+    currentSummReceived: async (endpoint) => {
+        const payload = [{
+            attribute: 'currentSummReceived',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('seMetering', payload);
+    },
+    thermostatTemperature: async (endpoint) => {
+        const payload = [{
+            attribute: 'localTemp',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatTemperatureCalibration: async (endpoint) => {
+        const payload = [{
+            attribute: 'localTemperatureCalibration',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatOccupiedHeatingSetpoint: async (endpoint) => {
+        const payload = [{
+            attribute: 'occupiedHeatingSetpoint',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatPIHeatingDemand: async (endpoint) => {
+        const payload = [{
+            attribute: 'pIHeatingDemand',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatRunningState: async (endpoint) => {
+        const payload = [{
+            attribute: 'runningState',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    presentValue: async (endpoint) => {
+        const payload = [{
+            attribute: 'presentValue',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.MINUTE,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('genBinaryInput', payload);
+    },
+    activePower: async (endpoint) => {
+        const payload = [{
+            attribute: 'activePower',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    rmsCurrent: async (endpoint) => {
+        const payload = [{
+            attribute: 'rmsCurrent',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    rmsVoltage: async (endpoint) => {
+        const payload = [{
+            attribute: 'rmsVoltage',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    powerFactor: async (endpoint) => {
+        const payload = [{
+            attribute: 'powerFactor',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acVoltageMultiplier: async (endpoint) => {
+        const payload = [{
+            attribute: 'acVoltageMultiplier',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acVoltageDivisor: async (endpoint) => {
+        const payload = [{
+            attribute: 'acVoltageDivisor',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acCurrentMultiplier: async (endpoint) => {
+        const payload = [{
+            attribute: 'acCurrentMultiplier',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acCurrentDivisor: async (endpoint) => {
+        const payload = [{
+            attribute: 'acCurrentDivisor',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acPowerMultiplier: async (endpoint) => {
+        const payload = [{
+            attribute: 'acPowerMultiplier',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    acPowerDivisor: async (endpoint) => {
+        const payload = [{
+            attribute: 'acPowerDivisor',
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+    fanMode: async (endpoint) => {
+        const payload = [{
+            attribute: 'fanMode',
+            minimumReportInterval: 0,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacFanCtrl', payload);
+    },
 };
 
 const generic = {
@@ -92,41 +371,6 @@ const hue = {
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat(tzHuePowerOnBehavior),
     },
-};
-
-const foundationCfg = {manufSpec: 0, disDefaultRsp: 0};
-
-const execute = (device, actions, callback, delay) => {
-    if (!device) {
-        callback(false, 'No device');
-        return;
-    }
-    delay || (delay = 300);
-    const len = actions.length;
-    let nextActionIndex = 0;
-
-    const next = () => {
-        if (nextActionIndex === len) {
-            callback(true, '');
-            return;
-        }
-
-        const nextAction = actions[nextActionIndex++];
-
-        setTimeout(nextAction,
-            delay,
-            (error) => {
-                debug(`Configured '${nextAction.toString()}' with result '${error ? error : 'OK'}'`);
-                if (error) {
-                    callback(false, error);
-                    return;
-                }
-                next();
-            }
-        );
-    };
-
-    next();
 };
 
 const devices = [
@@ -584,18 +828,10 @@ const devices = [
             fz.cmd_move_to_level_with_onoff, fz.generic_battery,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
-            };
-
-            const actions = [
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -648,15 +884,10 @@ const devices = [
         vendor: 'IKEA',
         fromZigbee: [fz.state, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -673,18 +904,10 @@ const devices = [
             fz.generic_battery, fz.E1524_hold,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
-            };
-
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -698,18 +921,10 @@ const devices = [
             fz.E1743_brightness_stop, fz.generic_battery,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
-            };
-
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -720,18 +935,10 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.generic_battery, fz.E1525_occupancy],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 0, maxRepIntval: repInterval.MAX, repChange: 0,
-            };
-
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -742,14 +949,10 @@ const devices = [
         vendor: 'IKEA',
         fromZigbee: [fz.E1746_linkquality],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-
-            const actions = [
-                (cb) => device.report('genBasic', 'modelId', 3600, 14400, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
+            await endpoint.configureReporting('genBasic', payload);
         },
     },
 
@@ -983,30 +1186,15 @@ const devices = [
             fz.generic_battery_remaining,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb),
-                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
-            ];
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
-            execute(ep1, actions, (result) => {
-                if (result) {
-                    const ep2 = shepherd.find(ieeeAddr, 2);
-                    const actions = [
-                        (cb) => ep2.foundation('genBasic', 'write',
-                            [{attrId: 0x0031, dataType: 0x19, attrData: 0x000B}],
-                            {manufSpec: 1, disDefaultRsp: 1, manufCode: 0x100B}, cb),
-                        (cb) => ep2.bind('manuSpecificPhilips', coordinator, cb),
-                        (cb) => ep2.bind('genPowerCfg', coordinator, cb),
-                        (cb) => ep2.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                    ];
-
-                    execute(ep2, actions, callback);
-                } else {
-                    callback(result);
-                }
-            });
+            const endpoint2 = device.getEndpoint(2);
+            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            await endpoint2.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
+            await bind(endpoint2, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint2);
         },
     },
     {
@@ -1028,21 +1216,14 @@ const devices = [
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 2);
-
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.bind('msOccupancySensing', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.occupancy(endpoint);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.illuminance(endpoint);
         },
     },
     {
@@ -1064,21 +1245,14 @@ const devices = [
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 2);
-
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msIlluminanceMeasurement', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.bind('msOccupancySensing', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-                (cb) => device.report('msOccupancySensing', 'occupancy', 0, 600, null, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.report('msIlluminanceMeasurement', 'measuredValue', 0, 600, null, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.occupancy(endpoint);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.illuminance(endpoint);
         },
     },
     {
@@ -1132,13 +1306,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 85);
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(85);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -1149,12 +1320,9 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 85);
-            const actions = [
-                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(85);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -1292,21 +1460,14 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
             tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const actions = [
-                // from https://github.com/ckpt-martin/Hubitat/blob/master/eCozy/eCozy-ZigBee-Thermostat-Driver.groovy
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            const binds = [
+                'genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat',
+                'hvacUserInterfaceCfg',
             ];
-
-            execute(device, actions, callback);
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
         },
     },
 
@@ -1413,15 +1574,10 @@ const devices = [
         vendor: 'OSRAM',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -1484,17 +1640,11 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -1517,24 +1667,15 @@ const devices = [
             fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            const ep2 = shepherd.find(ieeeAddr, 2);
-            const ep3 = shepherd.find(ieeeAddr, 3);
-
-            const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb),
-                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
-                (cb) => ep2.bind('genOnOff', coordinator, cb),
-                (cb) => ep2.bind('genLevelCtrl', coordinator, cb),
-                (cb) => ep3.bind('genLevelCtrl', coordinator, cb),
-                (cb) => ep3.bind('lightingColorCtrl', coordinator, cb),
-                (cb) => ep1.bind('genPowerCfg', coordinator, cb),
-                (cb) => ep1.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
-            ];
-            execute(ep1, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await bind(endpoint3, coordinatorEndpoint, ['genLevelCtrl', 'lightingColorCtrl']);
+            await configureReporting.batteryVoltage(endpoint1);
         },
-
     },
     {
         zigbeeModel: ['SubstiTube'],
@@ -1571,15 +1712,11 @@ const devices = [
             fz.generic_temperature,
         ],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 9);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -1809,30 +1946,13 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.SP120_power, fz.state],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const activePower = {
-                direction: 0, attrId: 1291, dataType: 41, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
-            };
-
-            const rmsCurrent = {
-                direction: 0, attrId: 1288, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 100,
-            };
-
-            const rmsVoltage = {
-                direction: 0, attrId: 1285, dataType: 33, minRepIntval: 1, maxRepIntval: 300, repChange: 1,
-            };
-
-            const electricalCfg = [rmsCurrent, rmsVoltage, activePower];
-            const actions = [
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
-                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
         },
     },
 
@@ -1902,15 +2022,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -1965,15 +2080,10 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -1984,16 +2094,11 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -2004,15 +2109,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -2023,15 +2123,10 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -2095,15 +2190,6 @@ const devices = [
         supports: 'panic, home, away, sleep',
         fromZigbee: [fz.KEF1PA_arm, fz.KEF1PA_panic],
         toZigbee: [tz.factory_reset],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 250);
-        },
     },
     {
         zigbeeModel: ['SWO-WDS1PA'],
@@ -2113,15 +2199,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_status_change],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
 
     // JIAWEN
@@ -2142,30 +2219,14 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.Z809A_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-
-            const rmsVoltage = 1285;
-            const rmsCurrent = 1288;
-            const activePower = 1291;
-            const powerFactor = 1296;
-
-            const electricalCfg = [
-                {direction: 0, attrId: rmsVoltage, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
-                {direction: 0, attrId: rmsCurrent, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
-                {direction: 0, attrId: activePower, dataType: 41, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
-                {direction: 0, attrId: powerFactor, dataType: 40, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
-            ];
-
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
-                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.powerFactor(endpoint);
         },
     },
 
@@ -2224,15 +2285,10 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
-                    const ep3 = shepherd.find(ieeeAddr, 3);
-                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -2246,15 +2302,10 @@ const devices = [
         endpoint: (device) => {
             return {'top': 16, 'center': 17, 'bottom': 18};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep16 = shepherd.find(ieeeAddr, 16);
-            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
-                const ep17 = shepherd.find(ieeeAddr, 17);
-                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], () => {
-                    const ep18 = shepherd.find(ieeeAddr, 18);
-                    execute(ep18, [(cb) => ep18.bind('genOnOff', coordinator, cb)], callback);
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -2277,12 +2328,9 @@ const devices = [
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep16 = shepherd.find(ieeeAddr, 16);
-            execute(ep16, [(cb) => ep16.bind('genOnOff', coordinator, cb)], () => {
-                const ep17 = shepherd.find(ieeeAddr, 17);
-                execute(ep17, [(cb) => ep17.bind('genOnOff', coordinator, cb)], callback);
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -2296,12 +2344,9 @@ const devices = [
         endpoint: (device) => {
             return {'top': 11, 'bottom': 12};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep11 = shepherd.find(ieeeAddr, 11);
-            execute(ep11, [(cb) => ep11.bind('genOnOff', coordinator, cb)], () => {
-                const ep12 = shepherd.find(ieeeAddr, 12);
-                execute(ep12, [(cb) => ep12.bind('genOnOff', coordinator, cb)], callback);
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(12), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -2587,16 +2632,10 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state, fz.ignore_light_brightness_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -2621,14 +2660,10 @@ const devices = [
             fz.STS_PRS_251_beeping,
         ],
         toZigbee: [tz.STS_PRS_251_beep],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('genBinaryInput', 'presentValue', 10, 30, 1, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.presentValue(endpoint);
         },
     },
     {
@@ -2642,17 +2677,11 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -2665,19 +2694,10 @@ const devices = [
             fz.generic_temperature, fz.smartsense_multi,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 23,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint);
         },
     },
     {
@@ -2688,15 +2708,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_report],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -2711,17 +2726,11 @@ const devices = [
             fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2735,17 +2744,11 @@ const devices = [
             fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2759,17 +2762,11 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2783,21 +2780,11 @@ const devices = [
             fz.ias_contact_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 255,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2811,17 +2798,11 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500, fz.ias_contact_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2835,17 +2816,11 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500, fz.ignore_iaszone_attreport,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2865,15 +2840,11 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2887,16 +2858,6 @@ const devices = [
             fz.st_leak, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['3315-S'],
@@ -2909,21 +2870,11 @@ const devices = [
             fz.st_leak, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 255,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2937,21 +2888,11 @@ const devices = [
             fz.st_leak, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 255,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2965,21 +2906,11 @@ const devices = [
             fz.st_leak, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 255,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -2996,14 +2927,6 @@ const devices = [
             fz.ignore_temperature_report,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-            execute(device, actions, callback);
-        },
     },
 
     // Trust
@@ -3018,14 +2941,9 @@ const devices = [
             fz.ZYCT202_on, fz.ZYCT202_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -3043,15 +2961,6 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_zone_motion_status_change],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['CSW_ADUROLIGHT'],
@@ -3061,18 +2970,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_status_change, fz.generic_battery_remaining],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report(
-                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.MINUTE, repInterval.MAX, 1, cb
-                ),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
@@ -3117,12 +3018,9 @@ const devices = [
         supports: 'click',
         fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
     },
     {
@@ -3133,16 +3031,6 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.bitron_occupancy],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['902010/25'],
@@ -3152,13 +3040,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.bitron_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -3176,24 +3061,18 @@ const devices = [
             tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.thermostat_temperature_display_mode,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 1200, 3600, 0, cb),
-                (cb) => device.report('hvacThermostat', 'localTemperatureCalibration', 1, 0, 0, cb),
-                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 1, 0, 1, cb),
-                (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 43200, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 0, 1, cb),
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
-
-            execute(device, actions, callback);
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatTemperatureCalibration(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatRunningState(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
 
@@ -3206,13 +3085,9 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state, fz.iris_3210L_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.activePower(endpoint);
         },
     },
     {
@@ -3226,17 +3101,11 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 1000, 0, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -3247,14 +3116,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.iris_3320L_contact],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-            execute(device, actions, callback, 1000);
-        },
     },
 
     // ksentry
@@ -3278,15 +3139,11 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
 
@@ -3333,18 +3190,13 @@ const devices = [
         supports: 'switch and power meter',
         fromZigbee: [fz.state, fz.RZHAC_4256251_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
         },
     },
 
@@ -3377,13 +3229,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.bitron_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
 
@@ -3425,18 +3274,11 @@ const devices = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
         },
     },
     {
@@ -3456,18 +3298,13 @@ const devices = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.state, fz.HS2SK_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 1, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 1, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 1, 1000, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
         },
     },
     {
@@ -3483,18 +3320,11 @@ const devices = [
 
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
         },
     },
     {
@@ -3505,20 +3335,10 @@ const devices = [
         supports: 'smoke',
         fromZigbee: [fz.heiman_smoke, fz.battery_200],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {
-                direction: 0, attrId: 33, dataType: 32, minRepIntval: 10, maxRepIntval: repInterval.MAX, repChange: 0,
-            };
-
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -3529,15 +3349,6 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.heiman_gas],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
     {
         zigbeeModel: ['GASSensor-EN'],
@@ -3547,15 +3358,6 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.heiman_gas],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
     {
         zigbeeModel: ['DoorSensor-N'],
@@ -3583,15 +3385,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.heiman_contact],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
     {
         zigbeeModel: ['WaterSensor-N'],
@@ -3610,15 +3403,6 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
     {
         zigbeeModel: ['RC_V14'],
@@ -3631,15 +3415,6 @@ const devices = [
             fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
     {
         zigbeeModel: ['COSensor-EM'],
@@ -3649,18 +3424,11 @@ const devices = [
         supports: 'carbon monoxide',
         fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
         },
     },
     {
@@ -3671,16 +3439,10 @@ const devices = [
         supports: 'warning',
         fromZigbee: [fz.battery_200],
         toZigbee: [tz.warning],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 0, 3600, 0, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
@@ -3693,15 +3455,6 @@ const devices = [
         supports: 'gas and carbon monoxide',
         fromZigbee: [fz.OJBCR701YZ_statuschange],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
-        },
     },
 
     // Calex
@@ -3760,18 +3513,11 @@ const devices = [
         description: 'LED OP A60 ZB 9W/827 E27',
         extend: generic.light_onoff_brightness,
         fromZigbee: [fz.brightness, fz.state],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 0, maxRepIntval: 1000, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
         },
     },
     {
@@ -3859,16 +3605,11 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 9);
-            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 5, repChange: 0};
-            const actions = [
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 1, 5, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
 
@@ -3893,14 +3634,9 @@ const devices = [
         supports: 'on, off, up, down',
         fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
 
@@ -3923,18 +3659,16 @@ const devices = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_remote_sensing,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 1, 1200, 25, cb),
-                (cb) => device.foundation('hvacThermostat', 'configReport', [{
-                    direction: 0, attrId: 0x4003, dataType: 41, minRepIntval: 0,
-                    maxRepIntval: 600, repChange: 25}], {manufSpec: 1, manufCode: 4151}, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await configureReporting.thermostatTemperature(endpoint);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4003, type: 41},
+                minimumReportInterval: 0,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 25,
+            }]);
         },
     },
 
@@ -3963,18 +3697,11 @@ const devices = [
             fz.generic_ias_zone_occupancy_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 60, 58000, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 1800, 3600, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -3989,20 +3716,11 @@ const devices = [
             fz.ignore_iaszone_report,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 5);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report(
-                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE, repInterval.MAX, 0, cb
-                ),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(5);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
 
@@ -4024,14 +3742,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -4042,14 +3756,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.generic_lock, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -4065,14 +3775,10 @@ const devices = [
 
         ],
         toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -4083,17 +3789,11 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.generic_lock_operation_event],
         toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, 3, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 3, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
-
     },
 
     // Keen Home
@@ -4115,35 +3815,13 @@ const devices = [
             tz.cover_open_close,
             tz.cover_position,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
-
-                // eslint-disable-next-line
-                // https://github.com/yracine/keenhome.device-type/blob/master/devicetypes/keensmartvent.src/keensmartvent.groovy
-                (cb) => device.report(
-                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb
-                ),
-                (cb) => device.foundation(
-                    'msPressureMeasurement',
-                    'configReport',
-                    [{
-                        direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5,
-                        maxRepIntval: repInterval.HOUR, repChange: 500,
-                    }],
-                    {manufSpec: 1, manufCode: 4443},
-                    cb
-                ),
-                (cb) => device.report(
-                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
-                ),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.pressure(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -4161,35 +3839,13 @@ const devices = [
             tz.cover_open_close,
             tz.cover_position,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
-
-                // eslint-disable-next-line
-                // https://github.com/yracine/keenhome.device-type/blob/master/devicetypes/keensmartvent.src/keensmartvent.groovy
-                (cb) => device.report(
-                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb
-                ),
-                (cb) => device.foundation(
-                    'msPressureMeasurement',
-                    'configReport',
-                    [{
-                        direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5,
-                        maxRepIntval: repInterval.HOUR, repChange: 500,
-                    }],
-                    {manufSpec: 1, manufCode: 4443},
-                    cb
-                ),
-                (cb) => device.report(
-                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
-                ),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.pressure(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
@@ -4202,18 +3858,11 @@ const devices = [
         supports: 'open, close, position, battery',
         fromZigbee: [fz.cover_position, fz.generic_battery],
         toZigbee: [tz.cover_open_close, tz.cover_position],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', repInterval.MINUTE, repInterval.HOUR * 12, 0, cb),
-                (cb) => device.report(
-                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
-                ),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.brightness(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
@@ -4226,15 +3875,10 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
         options: {
             disFeedbackRsp: true,
@@ -4271,15 +3915,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_status_change],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
@@ -4311,18 +3946,14 @@ const devices = [
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 25);
-            const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genGroups', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(25);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
             ];
-            execute(device, actions, callback);
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
         },
     },
 
@@ -4340,15 +3971,6 @@ const devices = [
             fz.ias_zone_motion_status_change, fz.ias_contact_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['3043'],
@@ -4363,15 +3985,6 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['3041'],
@@ -4386,15 +3999,6 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['3045'],
@@ -4409,15 +4013,6 @@ const devices = [
             fz.ias_zone_motion_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
 
     // Securifi
@@ -4429,74 +4024,19 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.peanut_electrical],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-
-            // Observed Voltage Multiplier 180 / Divisor 39321 = 0.004578
-            // (218.4 units / V = about 22 units per 1/10 V)
-            const rmsVoltage = {
-                direction: 0, attrId: 1285, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 22,
-            };
-
-            // Observed Current Multiplier 72 / Divisor 39321 = 0.001831
-            // (546.1 units / A = about 5 units per 1/100 A)
-            const rmsCurrent = {
-                direction: 0, attrId: 1288, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 5,
-            };
-
-            // Observed Power Multiplier 10255 / Divisor 39321 = 0.2608
-            // (3.834 units / W = about 1 unit per 1/4 W)
-            const activePower = {
-                direction: 0, attrId: 1291, dataType: 41,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 1,
-            };
-
-            // Multipliers and Divisors might never change,
-            // but report at max 10 min. to ensure first report comes in reasonably promptly
-            const acVoltageMultiplier = {
-                direction: 0, attrId: 1536, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-            const acVoltageDivisor = {
-                direction: 0, attrId: 1537, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-
-            const acCurrentMultiplier = {
-                direction: 0, attrId: 1538, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-            const acCurrentDivisor = {
-                direction: 0, attrId: 1539, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-
-            const acPowerMultiplier = {
-                direction: 0, attrId: 1540, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-            const acPowerDivisor = {
-                direction: 0, attrId: 1541, dataType: 33,
-                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
-            };
-
-            const electricalCfg = [
-                rmsVoltage, rmsCurrent, activePower,
-                acVoltageMultiplier, acVoltageDivisor,
-                acCurrentMultiplier, acCurrentDivisor,
-                acPowerMultiplier, acPowerDivisor,
-            ];
-            const actions = [
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
-                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.acVoltageMultiplier(endpoint);
+            await configureReporting.acVoltageDivisor(endpoint);
+            await configureReporting.acCurrentMultiplier(endpoint);
+            await configureReporting.acCurrentDivisor(endpoint);
+            await configureReporting.acPowerMultiplier(endpoint);
+            await configureReporting.acPowerDivisor(endpoint);
         },
     },
 
@@ -4518,14 +4058,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.visonic_contact],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 0}, cb),
-            ];
-            execute(device, actions, callback);
-        },
     },
 
     // Sunricher
@@ -4572,21 +4104,16 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            const ep2 = shepherd.find(ieeeAddr, 2);
-            const ep3 = shepherd.find(ieeeAddr, 3);
-            const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb),
-                (cb) => ep1.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => ep2.bind('genOnOff', coordinator, cb),
-                (cb) => ep2.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => ep3.bind('genOnOff', coordinator, cb),
-                (cb) => ep3.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(ep1, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint2);
+            await bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint3);
         },
     },
 
@@ -4599,14 +4126,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
-                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
@@ -4622,30 +4145,16 @@ const devices = [
             fz.generic_power,
         ],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => ep1.bind('genOnOff', coordinator, cb),
-                (cb) => ep1.report('genOnOff', 'onOff', 10, 30, 1, cb),
-            ];
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
 
-            execute(ep1, actions, (result) => {
-                if (result) {
-                    const ep10 = shepherd.find(ieeeAddr, 10);
-                    const actions = [
-                        (cb) => ep10.report('seMetering', 'instantaneousDemand', 10, 300, 10, cb),
-                        (cb) => ep10.report('seMetering', 'currentSummDelivered', 10, 300, [0, 1], cb),
-                        (cb) => ep10.report('seMetering', 'currentSummReceived', 10, 300, [0, 1], cb),
-                        (cb) => ep10.read('seMetering', 'unitOfMeasure', cb),
-                        (cb) => ep10.read('seMetering', 'multiplier', cb),
-                        (cb) => ep10.read('seMetering', 'divisor', cb),
-                    ];
-
-                    execute(ep10, actions, callback);
-                } else {
-                    callback(result);
-                }
-            });
+            const endpoint10 = device.getEndpoint(10);
+            await configureReporting.instantaneousDemand(endpoint10);
+            await configureReporting.currentSummDelivered(endpoint10);
+            await configureReporting.currentSummReceived(endpoint10);
+            await endpoint10.read('seMetering', ['unitOfMeasure', 'multiplier', 'divisor']);
         },
     },
 
@@ -4671,18 +4180,12 @@ const devices = [
             fz.generic_fan_mode,
         ]),
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
-                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
-                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'hvacFanCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+            await configureReporting.fanMode(endpoint);
         },
         options: {
             disFeedbackRsp: true,
@@ -4707,15 +4210,10 @@ const devices = [
         vendor: 'Anchor',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -4745,15 +4243,10 @@ const devices = [
             fz.ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -4766,16 +4259,11 @@ const devices = [
         supports: 'on/off, power consumption',
         fromZigbee: [fz.state, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
 
@@ -4833,23 +4321,19 @@ const devices = [
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 10);
-            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
-            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
-                maxRepIntval: 300, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('seMetering', coordinator, cb),
-                (cb) => device.foundation('seMetering', 'write',
-                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
-                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
-                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
-                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            const options = {manufacturerCode: 4406, disableDefaultResponse: false};
+            await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
+            await configureReporting.onOff(endpoint);
+            await endpoint.configureReporting('seMetering', [{
+                attribute: {ID: 0x2000, type: 0x29},
+                minimumReportInterval: 1,
+                maximumReportInterval: repInterval.MINUTES_5,
+                reportableChange: 1,
+            }], options);
         },
     },
     {
@@ -4863,23 +4347,19 @@ const devices = [
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 10);
-            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
-            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
-                maxRepIntval: 300, repChange: 1};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
-                (cb) => device.bind('seMetering', coordinator, cb),
-                (cb) => device.foundation('seMetering', 'write',
-                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
-                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
-                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
-                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            const options = {manufacturerCode: 4406, disableDefaultResponse: false};
+            await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
+            await configureReporting.onOff(endpoint);
+            await endpoint.configureReporting('seMetering', [{
+                attribute: {ID: 0x2000, type: 0x29},
+                minimumReportInterval: 1,
+                maximumReportInterval: repInterval.MINUTES_5,
+                reportableChange: 1,
+            }], options);
         },
     },
 
@@ -4895,13 +4375,10 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     /*
@@ -4917,7 +4394,7 @@ const devices = [
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        configure: async (device, coordinatorEndpoint) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
@@ -4941,15 +4418,11 @@ const devices = [
             fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.temperature(endpoint);
         },
     },
     /*
@@ -4965,7 +4438,7 @@ const devices = [
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+        configure: async (device, coordinatorEndpoint) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
@@ -4991,19 +4464,10 @@ const devices = [
             fz.generic_ias_zone_occupancy_status_change,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('ssIasZone', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 1, 1000, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -5030,15 +4494,10 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -5060,20 +4519,16 @@ const devices = [
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genGroups', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 19, 300, 50, cb),
-                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 4, 300, 10, cb),
-                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 15, 300, 40, cb),
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
             ];
-            execute(device, actions, callback);
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
 
@@ -5108,20 +4563,13 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
             tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
         ],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const actions = [
-                (cb) => device.bind('genBasic', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
-                (cb) => device.bind('genPollCtrl', coordinator, cb),
-                (cb) => device.bind('hvacThermostat', coordinator, cb),
-                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            const binds = [
+                'genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
-
-            execute(device, actions, callback);
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
         },
     },
 
@@ -5146,12 +4594,9 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], callback);
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -5165,15 +4610,10 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
-                    const ep3 = shepherd.find(ieeeAddr, 3);
-                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -5187,18 +4627,11 @@ const devices = [
         endpoint: (device) => {
             return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
-                    const ep3 = shepherd.find(ieeeAddr, 3);
-                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
-                        const ep4 = shepherd.find(ieeeAddr, 4);
-                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], callback);
-                    });
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -5212,21 +4645,12 @@ const devices = [
         endpoint: (device) => {
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
-                    const ep3 = shepherd.find(ieeeAddr, 3);
-                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
-                        const ep4 = shepherd.find(ieeeAddr, 4);
-                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
-                            const ep5 = shepherd.find(ieeeAddr, 5);
-                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], callback);
-                        });
-                    });
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -5243,24 +4667,13 @@ const devices = [
                 'top_right': 4, 'center_right': 5, 'bottom_right': 6,
             };
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const ep1 = shepherd.find(ieeeAddr, 1);
-            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
-                const ep2 = shepherd.find(ieeeAddr, 2);
-                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
-                    const ep3 = shepherd.find(ieeeAddr, 3);
-                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
-                        const ep4 = shepherd.find(ieeeAddr, 4);
-                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
-                            const ep5 = shepherd.find(ieeeAddr, 5);
-                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], () => {
-                                const ep6 = shepherd.find(ieeeAddr, 6);
-                                execute(ep6, [(cb) => ep6.bind('genOnOff', coordinator, cb)], callback);
-                            });
-                        });
-                    });
-                });
-            });
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
         },
     },
 
@@ -5273,14 +4686,10 @@ const devices = [
         supports: 'on/off, power and energy measurement',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
 
@@ -5302,12 +4711,9 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.state, fz.generic_power],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3); // metering
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -5321,12 +4727,9 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 5); // metering
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(5);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -5340,12 +4743,9 @@ const devices = [
             fz.generic_power,
         ],
         toZigbee: [tz.light_onoff_brightness],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 4); // metering
-            const actions = [
-                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
-            ];
-            execute(device, actions, callback);
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(4);
+            await configureReporting.instantaneousDemand(endpoint);
         },
     },
     {
