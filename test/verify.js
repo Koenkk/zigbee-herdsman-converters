@@ -20,6 +20,10 @@ devices.forEach((device) => {
         device.model,
     );
 
+    if (device.configure && (!device.meta || !device.meta.configureKey)) {
+        assert.fail(`${device.model} requires configureKey because it has configure`);
+    }
+
     assert.strictEqual(device.fromZigbee.length, new Set(device.fromZigbee).size)
 
     // Verify fromConverters
