@@ -311,7 +311,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.zoneStatus === 48};
+            return {contact: msg.data.zonestatus === 48};
         },
     },
     xiaomi_battery_3v: {
@@ -777,7 +777,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            return {water_leak: msg.data.zoneStatus === 1};
+            return {water_leak: msg.data.zonestatus === 1};
         },
     },
     SJCGQ11LM_water_leak_interval: {
@@ -1024,14 +1024,14 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            return {smoke: msg.data.zoneStatus === 1};
+            return {smoke: msg.data.zonestatus === 1};
         },
     },
     heiman_pir: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 occupancy: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Motion detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
@@ -1043,7 +1043,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
@@ -1118,7 +1118,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
@@ -1129,7 +1129,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
@@ -1141,7 +1141,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
@@ -1153,7 +1153,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 carbon_monoxide: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
@@ -1164,7 +1164,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            return {gas: msg.data.zoneStatus === 1};
+            return {gas: msg.data.zonestatus === 1};
         },
     },
     JTQJBF01LMBW_gas_density: {
@@ -1686,7 +1686,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            return {contact: msg.data.zoneStatus === 36};
+            return {contact: msg.data.zonestatus === 36};
         },
     },
     nue_power_state: {
@@ -1726,7 +1726,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
@@ -1738,7 +1738,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
@@ -1750,7 +1750,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
             const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
             const deviceID = msg.device.ieeeAddr;
@@ -1778,7 +1778,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
             };
@@ -1797,7 +1797,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
@@ -1808,7 +1808,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
             };
@@ -1818,7 +1818,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0), // Bit 0 = Alarm: Contact detection
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
@@ -1837,10 +1837,10 @@ const converters = {
             };
 
             if (msg.data.hasOwnProperty('data')) {
-                const zoneStatus = msg.data.zoneStatus;
+                const zoneStatus = msg.data.zonestatus;
                 return {click: buttonStates[zoneStatus]};
             } else {
-                const zoneStatus = msg.data.zoneStatus;
+                const zoneStatus = msg.data.zonestatus;
                 return {click: buttonStates[zoneStatus]};
             }
         },
@@ -2341,7 +2341,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0), // Bit 1 = Alarm: Contact detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
