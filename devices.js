@@ -5440,13 +5440,13 @@ const devices = [
         toZigbee: [tz.cover_control, tz.cover_gotopercentage],
     },
 
-    // Zigbee OnOff Controller
+    // Lingan
     {
         zigbeeModel: ['SA-003-Zigbee'],
-        model: 'SA-003-Zigbee',
-        vendor: 'eWeLink',
-        description: 'Zigbee OnOff Controller',
-        supports: 'on/off power',
+        model: 'DZ4743-00B',
+        vendor: 'Lingan',
+        description: 'Zigbee OnOff controller',
+        supports: 'on/off',
         fromZigbee: [fz.state_change, fz.state],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
