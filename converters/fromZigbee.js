@@ -3128,6 +3128,13 @@ const converters = {
             };
         },
     },
+    dimmer_passthru_brightness: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'setbrightness', brightness: msg.data.data.level};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_fan_change: {
