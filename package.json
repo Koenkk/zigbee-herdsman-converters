@@ -1,7 +1,7 @@
 {
-  "name": "zigbee-shepherd-converters",
+  "name": "zigbee-herdsman-converters",
   "version": "10.2.4",
-  "description": "Collection of device converters to be used with zigbee-shepherd",
+  "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
     "/index.js",
