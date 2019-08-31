@@ -32,12 +32,10 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
   "dependencies": {
-    "zigbee-herdsman": "^0.4.0",
-    "debounce": "*",
-    "debug": "3.2.6",
-    "chai": "*"
+    "debounce": "^1.2.0"
   },
   "devDependencies": {
+    "chai": "*",
     "eslint": "*",
     "eslint-config-google": "*",
     "mocha": "*"
