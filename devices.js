@@ -1140,6 +1140,13 @@ const devices = [
         description: 'Hue Welcome white flood light',
         extend: hue.light_onoff_brightness,
     },
+    {
+      zigbeeModel: ['LCS001'],
+      model: '1741830P7',
+      vendor: 'Philips',
+      description: 'Hue Lily outdoor spot light',
+      extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Belkin
     {
