@@ -926,6 +926,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTW017'],
+        model: '915005587401',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LCW001'],
         model: '4090130P7',
         vendor: 'Philips',
