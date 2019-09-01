@@ -246,8 +246,11 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
-            await entity.read('genLevelCtrl', ['currentLevel']);
+            if (key.toLowerCase() === 'state') {
+                return converters.on_off.convertGet(entity, key, meta);
+            } else {
+                await entity.read('genLevelCtrl', ['currentLevel']);
+            }
         },
     },
     light_colortemp: {
