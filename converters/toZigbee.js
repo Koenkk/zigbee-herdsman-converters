@@ -246,9 +246,16 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (key.toLowerCase() === 'state') {
-                return converters.on_off.convertGet(entity, key, meta);
+            if (meta.message) {
+                if (meta.message.hasOwnProperty('brightness')) {
+                    await entity.read('genLevelCtrl', ['currentLevel']);
+                }
+                if (meta.message.hasOwnProperty('state')) {
+                    await converters.on_off.convertGet(entity, key, meta);
+
+                }
             } else {
+                await converters.on_off.convertGet(entity, key, meta);
                 await entity.read('genLevelCtrl', ['currentLevel']);
             }
         },
