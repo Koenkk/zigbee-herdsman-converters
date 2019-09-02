@@ -1203,6 +1203,9 @@ const devices = [
             await bind(endpoint2, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint2);
         },
+        endpoint: (device) => {
+            return {'ep1': 1, 'ep2': 2};
+        },
     },
     {
         zigbeeModel: ['SML001'],
