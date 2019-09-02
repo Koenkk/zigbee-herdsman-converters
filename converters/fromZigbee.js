@@ -1479,6 +1479,13 @@ const converters = {
                 '2': 'dig-in',
             };
 
+            let ds18b20Id = null;
+            let ds18b20Value = null;
+            if (msg.data.data['41368']) {
+                ds18b20Id = msg.data.data['41368'].split(':')[0];
+                ds18b20Value = precisionRound(msg.data.data['41368'].split(':')[1], 2);
+            }
+
             return {
                 state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
                 cpu_temperature: precisionRound(msg.data.data['41361'], 2),
@@ -1488,6 +1495,7 @@ const converters = {
                 adc_volt: precisionRound(msg.data.data['41365'], 3),
                 dig_input: msg.data.data['41366'],
                 reason: lookup[msg.data.data['41367']],
+                [`${ds18b20Id}`]: ds18b20Value,
             };
         },
     },
