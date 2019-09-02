@@ -252,7 +252,6 @@ const converters = {
                 }
                 if (meta.message.hasOwnProperty('state')) {
                     await converters.on_off.convertGet(entity, key, meta);
-
                 }
             } else {
                 await converters.on_off.convertGet(entity, key, meta);
