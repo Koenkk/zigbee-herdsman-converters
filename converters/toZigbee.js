@@ -1603,7 +1603,7 @@ const converters = {
                     zclData: [{
                         attrId: attrId,
                         dataType: 32,
-                        attrData: lookup[value],
+                        attrData: typeof value === 'string' ? lookup[value] : value,
                     }],
                     cfg: cfg.hue,
                 }];
