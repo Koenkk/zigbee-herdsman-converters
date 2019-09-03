@@ -134,6 +134,30 @@ const ictcg1 = (model, msg, publish, options, action) => {
     s.publish(payload);
 };
 
+const ratelimitedDimmer = (model, msg, publish, options) => {
+    const deviceID = msg.endpoints[0].device.ieeeAddr;
+    const payload = {};
+    let duration = 0;
+
+    if (!store[deviceID]) {
+        store[deviceID] = {lastmsg: false};
+    }
+    const s = store[deviceID];
+
+    if (s.lastmsg) {
+        duration = Date.now() - s.lastmsg;
+    } else {
+        s.lastmsg = Date.now();
+    }
+
+    if (duration > 500) {
+        s.lastmsg = Date.now();
+        payload.action = 'setbrightness';
+        payload.brightness = msg.data.data.level;
+        publish(payload);
+    }
+};
+
 const holdUpdateBrightness324131092621 = (deviceID) => {
     if (store[deviceID] && store[deviceID].brightnessSince && store[deviceID].brightnessDirection) {
         const duration = Date.now() - store[deviceID].brightnessSince;
@@ -3132,7 +3156,7 @@ const converters = {
         cid: 'genLevelCtrl',
         type: 'cmdMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'setbrightness', brightness: msg.data.data.level};
+            ratelimitedDimmer(model, msg, publish, options);
         },
     },
 
