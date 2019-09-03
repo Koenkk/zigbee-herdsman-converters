@@ -2355,7 +2355,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSC05HG1.0'],
+        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2'],
         model: 'HGZB-04D',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
