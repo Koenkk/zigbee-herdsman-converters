@@ -3368,9 +3368,9 @@ const devices = [
         },
     },
 
-    // ksentry
+    // ksentry, SHZONS
     {
-        zigbeeModel: ['Lamp_01'],
+        zigbeeModel: ['Lamp_01', 'SA-003-Zigbee'],
         model: 'KS-SM001',
         vendor: 'Ksentry Electronics',
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
