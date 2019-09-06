@@ -1221,7 +1221,7 @@ const devices = [
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
             return {
-                '': 2, // default
+                'default': 2, // default
                 'ep1': 1,
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
@@ -1251,7 +1251,7 @@ const devices = [
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
             return {
-                '': 2, // default
+                'default': 2, // default
                 'ep1': 1,
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
@@ -2467,9 +2467,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else if (hasEndpoints(device, [11, 12, 13, 15])) {
                 return {
                     'rgb': 12,
@@ -2493,9 +2493,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2509,9 +2509,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2525,9 +2525,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2541,9 +2541,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2557,9 +2557,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2573,9 +2573,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2589,9 +2589,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2605,9 +2605,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2621,9 +2621,9 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -2644,9 +2644,9 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
-                return {'': 12};
+                return {'default': 12};
             } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
-                return {'': 11};
+                return {'default': 11};
             } else {
                 return {};
             }
@@ -3685,7 +3685,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             return {
-                '': 2,
+                'default': 2,
             };
         },
     },
