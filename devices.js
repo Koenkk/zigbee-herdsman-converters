@@ -543,6 +543,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
+        model: 'LED1837R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
         model: 'LED1536G5',
         vendor: 'IKEA',
