@@ -777,6 +777,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
+        model: 'LED1837R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
         vendor: 'IKEA',
@@ -797,7 +804,7 @@ const devices = [
             'TRADFRI bulb E14 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
+        description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colorxy,
     },
     {
@@ -815,6 +822,13 @@ const devices = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm'],
+        model: 'LED1736G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, white spectrum, clear',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
@@ -1034,6 +1048,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LST003'],
+        model: '9290018187B',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip Outdoor',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LCA002'],
         model: '9290022166',
         vendor: 'Philips',
@@ -1097,10 +1118,24 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTA002'],
+        model: '9290022167',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E26/E27',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LTW017'],
+        model: '915005587401',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore light',
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
@@ -1294,6 +1329,13 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Welcome white flood light',
         extend: hue.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['LCS001'],
+        model: '1741830P7',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor spot light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Belkin
@@ -2185,6 +2227,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['Z01-A60EAE27'],
+        model: 'Z01-A60EAE27',
+        vendor: 'Sengled',
+        description: 'Element Plus (A60)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['E11-N1EA'],
         model: 'E11-N1EA',
         vendor: 'Sengled',
@@ -2337,7 +2386,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSC05HG1.0'],
+        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2'],
         model: 'HGZB-04D',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
@@ -2380,7 +2429,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1GKJ2.5'],
+        zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
@@ -4859,6 +4908,36 @@ const devices = [
         supports: 'open, close, stop, position, tilt',
         fromZigbee: [fz.closuresWindowCovering_report_pos_and_tilt],
         toZigbee: [tz.cover_control, tz.cover_gotopercentage],
+    },
+
+    // Lingan
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'DZ4743-00B',
+        vendor: 'Lingan',
+        description: 'Zigbee OnOff controller',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
+    // Lutron
+    {
+        zigbeeModel: ['Z3-1BRL'],
+        model: 'Z3-1BRL',
+        vendor: 'Lutron',
+        description: 'Aurora smart bulb dimmer',
+        supports: 'brightness',
+        fromZigbee: [fz.dimmer_passthru_brightness],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+        },
     },
 ];
 

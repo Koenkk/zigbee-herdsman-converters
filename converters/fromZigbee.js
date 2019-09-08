@@ -134,6 +134,30 @@ const ictcg1 = (model, msg, publish, options, action) => {
     s.publish(payload);
 };
 
+const ratelimitedDimmer = (model, msg, publish, options) => {
+    const deviceID = msg.device.ieeeAddr;
+    const payload = {};
+    let duration = 0;
+
+    if (!store[deviceID]) {
+        store[deviceID] = {lastmsg: false};
+    }
+    const s = store[deviceID];
+
+    if (s.lastmsg) {
+        duration = Date.now() - s.lastmsg;
+    } else {
+        s.lastmsg = Date.now();
+    }
+
+    if (duration > 500) {
+        s.lastmsg = Date.now();
+        payload.action = 'brightness';
+        payload.brightness = msg.data.level;
+        publish(payload);
+    }
+};
+
 const holdUpdateBrightness324131092621 = (deviceID) => {
     if (store[deviceID] && store[deviceID].brightnessSince && store[deviceID].brightnessDirection) {
         const duration = Date.now() - store[deviceID].brightnessSince;
@@ -1339,6 +1363,13 @@ const converters = {
                 '2': 'dig-in',
             };
 
+            let ds18b20Id = null;
+            let ds18b20Value = null;
+            if (msg.data.data['41368']) {
+                ds18b20Id = msg.data.data['41368'].split(':')[0];
+                ds18b20Value = precisionRound(msg.data.data['41368'].split(':')[1], 2);
+            }
+
             return {
                 state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
                 cpu_temperature: precisionRound(msg.data['41361'], 2),
@@ -1348,6 +1379,7 @@ const converters = {
                 adc_volt: precisionRound(msg.data['41365'], 3),
                 dig_input: msg.data['41366'],
                 reason: lookup[msg.data['41367']],
+                [`${ds18b20Id}`]: ds18b20Value,
             };
         },
     },
@@ -2820,6 +2852,13 @@ const converters = {
                 battery: toPercentage(voltage, battery.min, battery.max),
                 voltage: voltage,
             };
+        },
+    },
+    dimmer_passthru_brightness: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            ratelimitedDimmer(model, msg, publish, options);
         },
     },
 

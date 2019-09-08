@@ -903,7 +903,7 @@ const converters = {
 
             const payload = {
                 48: {
-                    value: lookup[value],
+                    value: typeof value === 'string' ? lookup[value] : value,
                     type: 32,
                 },
             };
