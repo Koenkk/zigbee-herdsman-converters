@@ -11,6 +11,7 @@
     "rules": {
         "require-jsdoc": "off",
         "indent": ["error", 4],
+        "no-prototype-builtins": "off",
         "max-len": ["error", { "code": 120 }]
     }
 }

@@ -35,9 +35,33 @@ const thermostatRunningStates = {
     14: 'cool',
     15: 'cool',
 };
+const fanMode = {
+    'off': 0,
+    'low': 1,
+    'medium': 2,
+    'high': 3,
+    'on': 4,
+    'auto': 5,
+    'smart': 6,
+};
+const temperatureDisplayMode = {
+    0: 'celsius',
+    1: 'fahrenheit',
+};
+const keypadLockoutMode = {
+    0: 'unlock',
+    1: 'lock1',
+    2: 'lock2',
+    3: 'lock3',
+    4: 'lock4',
+    5: 'lock5',
+};
 
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
     thermostatRunningStates,
+    fanMode,
+    temperatureDisplayMode,
+    keypadLockoutMode,
 };

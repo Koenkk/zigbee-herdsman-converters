@@ -2,12 +2,17 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const zclId = require('zcl-id');
+const Zcl = require('zigbee-herdsman/dist/zcl');
 
 const cfg = {
     default: {
         manufSpec: 0,
         disDefaultRsp: 0,
+    },
+    defaultdisFeedbackRsp: {
+        manufSpec: 0,
+        disDefaultRsp: 0,
+        disFeedbackRsp: true,
     },
     xiaomi: {
         manufSpec: 1,
@@ -18,11 +23,29 @@ const cfg = {
         manufSpec: 1,
         manufCode: 4151,
     },
+    hue: {
+        manufSpec: 1,
+        manufCode: 4107,
+    },
     osram: {
         manufSpec: 1,
         manufCode: 0x110c,
     },
+    sinope: {
+        manufSpec: 1,
+        manufCode: 0x119C,
+    },
 };
+
+function getTransition(message, options) {
+    if (message.hasOwnProperty('transition')) {
+        return message.transition;
+    } else if (options.hasOwnProperty('transition')) {
+        return options.transition;
+    } else {
+        return 0;
+    }
+}
 
 const converters = {
     /**
@@ -30,21 +53,21 @@ const converters = {
      */
     factory_reset: {
         key: ['reset'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
-                return {
+                return [{
                     cid: 'genBasic',
                     cmd: 'resetFactDefault',
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     on_off: {
         key: ['state'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genOnOff';
             const attrId = 'onOff';
 
@@ -53,28 +76,28 @@ const converters = {
                     return;
                 }
 
-                return {
+                return [{
                     cid: cid,
                     cmd: value.toLowerCase(),
                     cmdType: 'functional',
                     zclData: {},
-                    cfg: cfg.default,
+                    cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
                     newState: {state: value.toUpperCase()},
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     cover_open_close: {
         key: ['state'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if (typeof value !== 'string') {
                     return;
@@ -88,49 +111,140 @@ const converters = {
                 value = positionByState[value.toLowerCase()];
             }
 
-            return converters.cover_position.convert(key, value, message, type, postfix);
+            return converters.cover_position.convert(key, value, message, type, postfix, options);
         },
     },
     cover_position: {
         key: ['position'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
 
             if (type === 'set') {
-                value = Math.round(Number(value) * 2.55).toString();
-                return {
+                return [{
                     cid: cid,
                     cmd: 'moveToLevelWithOnOff',
                     cmdType: 'functional',
                     zclData: {
-                        level: value,
+                        level: Math.round(Number(value) * 2.55).toString(),
                         transtime: 0,
                     },
                     cfg: cfg.default,
                     newState: {position: value},
                     readAfterWriteTime: 0,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    warning: {
+        key: ['warning'],
+        convert: (key, value, message, type, postfix, options) => {
+            if (type === 'set') {
+                const mode = {
+                    'stop': 0,
+                    'burglar': 1,
+                    'fire': 2,
+                    'emergency': 3,
+                    'police_panic': 4,
+                    'fire_panic': 5,
+                    'emergency_panic': 6,
                 };
+
+                const level = {
+                    'low': 0,
+                    'medium': 1,
+                    'high': 2,
+                    'very_high': 3,
+                };
+
+                const values = {
+                    mode: value.mode || 'emergency',
+                    level: value.level || 'medium',
+                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                };
+
+                const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+
+                return [{
+                    cid: 'ssIasWd',
+                    cmd: 'startWarning',
+                    cmdType: 'functional',
+                    zclData: {startwarninginfo: info, warningduration: values.duration},
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    cover_control: {
+        key: ['state'],
+        convert: (key, value, message, type, postfix, options) => {
+            const zclCmdLookup = {
+                'open': 'upOpen',
+                'close': 'downClose',
+                'stop': 'stop',
+                'on': 'upOpen',
+                'off': 'downClose',
+            };
+
+            const zclCmd = zclCmdLookup[value.toLowerCase()];
+            if (zclCmd) {
+                return [{
+                    cid: 'closuresWindowCovering',
+                    cmdType: 'functional',
+                    cmd: zclCmd,
+                    zclData: {},
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    cover_gotopercentage: {
+        key: ['position', 'tilt'],
+        convert: (key, value, message, type, postfix, options) => {
+            const isPosition = (key === 'position');
+            const cid = 'closuresWindowCovering';
+            const attrId = isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage';
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            value = 100 - value;
+
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmdType: 'functional',
+                    cmd: isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
+                    zclData: isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                    cfg: cfg.default,
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmdType: 'foundation',
+                    cmd: 'read',
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
+                    cfg: cfg.default,
+                }];
             }
         },
     },
     occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'msOccupancySensing'; // 1030
-            const attrId = zclId.attr(cid, 'pirOToUDelay').value; // = 16
+            const attrId = Zcl.getAttributeLegacy(cid, 'pirOToUDelay').value; // = 16
 
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -144,9 +258,9 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
@@ -154,13 +268,13 @@ const converters = {
                         attrId: attrId,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genLevelCtrl';
             const attrId = 'currentLevel';
 
@@ -170,55 +284,55 @@ const converters = {
                 }
 
                 if (Number(value) === 0) {
-                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix);
-                    converted.newState.brightness = 0;
+                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix, options);
+                    converted[0].newState.brightness = 0;
                     return converted;
                 } else {
-                    return {
+                    return [{
                         cid: cid,
                         cmd: 'moveToLevel',
                         cmdType: 'functional',
                         zclData: {
                             level: Number(value),
-                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                            transtime: getTransition(message, options) * 10,
                         },
                         cfg: cfg.default,
                         newState: {brightness: Number(value)},
                         readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                    };
+                    }];
                 }
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 const hasBrightness = message.hasOwnProperty('brightness') ||
                                         message.hasOwnProperty('brightness_percent');
                 const brightnessValue = message.hasOwnProperty('brightness') ?
                     message.brightness : message.brightness_percent;
                 const hasState = message.hasOwnProperty('state');
-                const hasTrasition = message.hasOwnProperty('transition');
+                const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
                 const state = hasState ? message.state.toLowerCase() : null;
 
                 if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
-                    const converted = converters.on_off.convert('state', state, message, 'set', postfix);
+                    const converted = converters.on_off.convert('state', state, message, 'set', postfix, options);
                     if (state === 'on') {
-                        converted.readAfterWriteTime = 0;
+                        converted[0].readAfterWriteTime = 0;
                     }
                     return converted;
                 } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix);
-                    converted.newState.brightness = 0;
+                    const converted = converters.on_off.convert('state', 'off', message, 'set', postfix, options);
+                    converted[0].newState.brightness = 0;
                     return converted;
                 } else {
                     let brightness = 0;
@@ -231,33 +345,44 @@ const converters = {
                         brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                     }
 
-                    return {
+                    const transition = getTransition(message, options);
+
+                    return [{
                         cid: 'genLevelCtrl',
                         cmd: 'moveToLevelWithOnOff',
                         cmdType: 'functional',
                         zclData: {
                             level: Number(brightness),
-                            transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                            transtime: transition * 10,
                         },
-                        cfg: cfg.default,
+                        cfg: options.disFeedbackRsp ? cfg.defaultdisFeedbackRsp : cfg.default,
                         newState: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                        readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                    };
+                        readAfterWriteTime: transition * 1000,
+                    }];
                 }
             } else if (type === 'get') {
-                return {
-                    cid: 'genLevelCtrl',
-                    cmd: 'read',
-                    cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr('genLevelCtrl', 'currentLevel').value}],
-                    cfg: cfg.default,
-                };
+                return [
+                    {
+                        cid: 'genOnOff',
+                        cmd: 'read',
+                        cmdType: 'foundation',
+                        zclData: [{attrId: Zcl.getAttributeLegacy('genOnOff', 'onOff').value}],
+                        cfg: cfg.default,
+                    },
+                    {
+                        cid: 'genLevelCtrl',
+                        cmd: 'read',
+                        cmdType: 'foundation',
+                        zclData: [{attrId: Zcl.getAttributeLegacy('genLevelCtrl', 'currentLevel').value}],
+                        cfg: cfg.default,
+                    },
+                ];
             }
         },
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'lightingColorCtrl';
             const attrId = 'colorTemperature';
 
@@ -269,32 +394,32 @@ const converters = {
 
                 value = Number(value);
 
-                return {
+                return [{
                     cid: cid,
                     cmd: 'moveToColorTemp',
                     cmdType: 'functional',
                     zclData: {
                         colortemp: value,
-                        transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                        transtime: getTransition(message, options) * 10,
                     },
                     cfg: cfg.default,
                     newState: {color_temp: value},
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     light_color: {
         key: ['color'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'lightingColorCtrl';
 
             if (type === 'set') {
@@ -326,7 +451,7 @@ const converters = {
                 }
 
                 const zclData = {
-                    transtime: message.hasOwnProperty('transition') ? message.transition * 10 : 0,
+                    transtime: getTransition(message, options) * 10,
                 };
 
                 let newState = null;
@@ -352,7 +477,7 @@ const converters = {
                     zclData.colory = Math.round(value.y * 65535);
                 }
 
-                return {
+                return [{
                     cid: cid,
                     cmd: cmd,
                     cmdType: 'functional',
@@ -360,18 +485,18 @@ const converters = {
                     cfg: cfg.default,
                     newState: newState,
                     readAfterWriteTime: message.hasOwnProperty('transition') ? message.transition * 1000 : 0,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [
-                        {attrId: zclId.attr(cid, 'currentX').value},
-                        {attrId: zclId.attr(cid, 'currentY').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
                     ],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
@@ -389,32 +514,32 @@ const converters = {
           * converter is used to do just that.
          */
         key: ['color', 'color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'lightingColorCtrl';
             if (type === 'set') {
                 if (key == 'color') {
-                    return converters.light_color.convert(key, value, message, type, postfix);
+                    return converters.light_color.convert(key, value, message, type, postfix, options);
                 } else if (key == 'color_temp' || key == 'color_temp_percent') {
-                    return converters.light_colortemp.convert(key, value, message, type, postfix);
+                    return converters.light_colortemp.convert(key, value, message, type, postfix, options);
                 }
             } else if (type == 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [
-                        {attrId: zclId.attr(cid, 'currentX').value},
-                        {attrId: zclId.attr(cid, 'currentY').value},
-                        {attrId: zclId.attr(cid, 'colorTemperature').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentX').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'currentY').value},
+                        {attrId: Zcl.getAttributeLegacy(cid, 'colorTemperature').value},
                     ],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     light_alert: {
         key: ['alert', 'flash'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genIdentify';
             if (type === 'set') {
                 const lookup = {
@@ -429,7 +554,7 @@ const converters = {
                         value = 'lselect';
                     }
                 }
-                return {
+                return [{
                     cid: cid,
                     cmd: 'triggerEffect',
                     cmdType: 'functional',
@@ -438,133 +563,161 @@ const converters = {
                         effectvariant: 0x01,
                     },
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_local_temperature: {
         key: 'local_temperature',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemp';
             if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_local_temperature_calibration: {
         key: 'local_temperature_calibration',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'localTemperatureCalibration';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: Math.round(value * 10),
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_occupancy: {
         key: 'occupancy',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'ocupancy';
             if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_occupied_heating_setpoint: {
         key: 'occupied_heating_setpoint',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'occupiedHeatingSetpoint';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_unoccupied_heating_setpoint: {
         key: 'unoccupied_heating_setpoint',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'unoccupiedHeatingSetpoint';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
+            }
+        },
+    },
+    thermostat_occupied_cooling_setpoint: {
+        key: 'occupied_cooling_setpoint',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacThermostat';
+            const attrId = 'occupiedCoolingSetpoint';
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
+                        attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    }],
+                    cfg: cfg.default,
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
+                    cfg: cfg.default,
+                }];
             }
         },
     },
     thermostat_remote_sensing: {
         key: 'remote_sensing',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'remoteSensing';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -575,113 +728,110 @@ const converters = {
                         // Bit 1 = 1 – outdoor temperature sensed remotely
                         // Bit 2 = 0 – occupancy sensed internally
                         // Bit 2 = 1 – occupancy sensed remotely
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: value, // TODO: Lookup in Zigbee documentation
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_control_sequence_of_operation: {
         key: 'control_sequence_of_operation',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'ctrlSeqeOfOper';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value),
                     }],
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_system_mode: {
         key: 'system_mode',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'systemMode';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: utils.getKeyByValue(common.thermostatSystemModes, value, value),
                     }],
                     cfg: cfg.default,
                     readAfterWriteTime: 250,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_setpoint_raise_lower: {
         key: 'setpoint_raise_lower',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
-            const attrId = 'setpointRaiseLower';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'setpointRaiseLower',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: zclId.attrType(cid, attrId).value,
-                        attrData: Math.round(value) * 100, // TODO: Combine mode and amount in attrData?
                         mode: value.mode,
                         amount: Math.round(value.amount) * 100,
                     },
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_weekly_schedule: {
         key: 'weekly_schedule',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'weeklySchedule';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'setWeeklySchedule',
                     cmdType: 'functional',
                     zclData: {
-                        dataType: zclId.attrType(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
                         attrData: value, // TODO: Combine attributes in attrData?
                         temperature_setpoint_hold: value.temperature_setpoint_hold,
                         temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
@@ -689,47 +839,47 @@ const converters = {
                         thermostat_running_state: value.thermostat_running_state,
                     },
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'getWeeklySchedule',
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_clear_weekly_schedule: {
         key: 'clear_weekly_schedule',
         attr: [],
-        convert: (key, value, message, type, postfix) => {
-            return {
+        convert: (key, value, message, type, postfix, options) => {
+            return [{
                 cid: 'hvacThermostat',
                 cmd: 'clearWeeklySchedule',
                 type: 'functional',
                 zclData: {},
-            };
+            }];
         },
     },
     thermostat_relay_status_log: {
         key: 'relay_status_log',
         attr: [],
-        convert: (key, value, message, type, postfix) => {
-            return {
+        convert: (key, value, message, type, postfix, options) => {
+            return [{
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLog',
                 type: 'functional',
                 zclData: {},
-            };
+            }];
         },
     },
     thermostat_weekly_schedule_rsp: {
         key: 'weekly_schedule_rsp',
         attr: [],
-        convert: (key, value, message, type, postfix) => {
-            return {
+        convert: (key, value, message, type, postfix, options) => {
+            return [{
                 cid: 'hvacThermostat',
                 cmd: 'getWeeklyScheduleRsp',
                 type: 'functional',
@@ -739,14 +889,14 @@ const converters = {
                     mode: value.mode,
                     thermoseqmode: value.thermoseqmode,
                 },
-            };
+            }];
         },
     },
     thermostat_relay_status_log_rsp: {
         key: 'relay_status_log_rsp',
         attr: [],
-        convert: (key, value, message, type, postfix) => {
-            return {
+        convert: (key, value, message, type, postfix, options) => {
+            return [{
                 cid: 'hvacThermostat',
                 cmd: 'getRelayStatusLogRsp',
                 type: 'functional',
@@ -758,58 +908,107 @@ const converters = {
                     setpoint: value.setpoint,
                     unread_entries: value.unreadentries,
                 },
-            };
+            }];
         },
     },
     thermostat_running_mode: {
         key: 'running_mode',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'runningMode';
             if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_running_state: {
         key: 'running_state',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 'runningState';
             if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     thermostat_temperature_display_mode: {
         key: 'temperature_display_mode',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacUserInterfaceCfg';
             const attrId = 'tempDisplayMode';
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
                     zclData: [{
-                        attrId: zclId.attr(cid, attrId).value,
-                        dataType: zclId.attrType(cid, attrId).value,
-                        attrData: value,
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
+                        attrData: utils.getKeyByValue(common.temperatureDisplayMode, value, value),
                     }],
                     cfg: cfg.default,
-                };
+                }];
+            }
+        },
+    },
+    thermostat_keypad_lockout: {
+        key: 'keypad_lockout',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacUserInterfaceCfg';
+            const attrId = 'keypadLockout';
+            if (type === 'set') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                        dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
+                        attrData: utils.getKeyByValue(common.keypadLockoutMode, value, value),
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacFanCtrl';
+            const attrId = 'fanMode';
+
+            if (type === 'set') {
+                value = value.toLowerCase();
+                const attrData = common.fanMode[value];
+
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value, attrData: attrData, dataType: 48}],
+                    cfg: cfg.default,
+                    newState: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'},
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
+                    cfg: cfg.default,
+                }];
             }
         },
     },
@@ -819,7 +1018,7 @@ const converters = {
      */
     DJT11LM_vibration_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genBasic';
             const attrId = 0xFF0D;
 
@@ -831,7 +1030,7 @@ const converters = {
                 };
 
                 if (lookup.hasOwnProperty(value)) {
-                    return {
+                    return [{
                         cid: cid,
                         cmd: 'write',
                         cmdType: 'foundation',
@@ -841,22 +1040,22 @@ const converters = {
                             attrData: lookup[value],
                         }],
                         cfg: cfg.xiaomi,
-                    };
+                    }];
                 }
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.xiaomi,
-                };
+                }];
             }
         },
     },
     JTQJBF01LMBW_sensitivity: {
         key: ['sensitivity'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'ssIasZone';
 
             if (type === 'set') {
@@ -867,7 +1066,7 @@ const converters = {
                 };
 
                 if (lookup.hasOwnProperty(value)) {
-                    return {
+                    return [{
                         cid: cid,
                         cmd: 'write',
                         cmdType: 'foundation',
@@ -877,10 +1076,10 @@ const converters = {
                             attrData: lookup[value],
                         }],
                         cfg: cfg.xiaomi,
-                    };
+                    }];
                 }
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
@@ -889,15 +1088,15 @@ const converters = {
                         dataType: 0x39, // dataType
                     }],
                     cfg: cfg.xiaomi,
-                };
+                }];
             }
         },
     },
     JTQJBF01LMBW_selfest: {
         key: ['selftest'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
-                return {
+                return [{
                     cid: 'ssIasZone',
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -907,13 +1106,13 @@ const converters = {
                         attrData: 0x03010000,
                     }],
                     cfg: cfg.xiaomi,
-                };
+                }];
             }
         },
     },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genBasic';
             const lookupAttrId = {
                 'single': 0xFF22,
@@ -933,7 +1132,7 @@ const converters = {
                 button = 'single';
             }
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -943,9 +1142,9 @@ const converters = {
                         attrData: lookupState[value.state],
                     }],
                     cfg: cfg.xiaomi,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
@@ -954,18 +1153,18 @@ const converters = {
                         dataType: 0x20,
                     }],
                     cfg: cfg.xiaomi,
-                };
+                }];
             }
         },
     },
     STS_PRS_251_beep: {
         key: ['beep'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'genIdentify';
             const attrId = 'identifyTime';
 
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'identify',
                     cmdType: 'functional',
@@ -973,29 +1172,29 @@ const converters = {
                         identifytime: value,
                     },
                     cfg: cfg.default,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     ZNCLDJ11LM_control: {
         key: ['state', 'position'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
-                return {
+                return [{
                     cid: 'closuresWindowCovering',
                     cmd: 'stop',
                     cmdType: 'functional',
                     zclData: {},
                     cfg: cfg.default,
-                };
+                }];
             } else {
                 const lookup = {
                     'open': 100,
@@ -1007,7 +1206,7 @@ const converters = {
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
 
-                return {
+                return [{
                     cid: 'genAnalogOutput',
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1017,18 +1216,18 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     osram_cmds: {
         key: ['osram_set_transition', 'osram_remember_state'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if ( key === 'osram_set_transition' ) {
                     if (value) {
                         const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
-                        return {
+                        return [{
                             cid: 'genLevelCtrl',
                             cmd: 'write',
                             cmdType: 'foundation',
@@ -1041,25 +1240,25 @@ const converters = {
                                 attrData: transition,
                             }],
                             cfg: cfg.default,
-                        };
+                        }];
                     }
                 } else if ( key == 'osram_remember_state' ) {
                     if (value === true) {
-                        return {
+                        return [{
                             cid: 'manuSpecificOsram',
                             cmd: 'saveStartupParams',
                             cmdType: 'functional',
                             zclData: {},
                             cfg: cfg.osram,
-                        };
+                        }];
                     } else if ( value === false ) {
-                        return {
+                        return [{
                             cid: 'manuSpecificOsram',
                             cmd: 'resetStartupParams',
                             cmdType: 'functional',
                             zclData: {},
                             cfg: cfg.osram,
-                        };
+                        }];
                     }
                 }
             }
@@ -1067,11 +1266,11 @@ const converters = {
     },
     eurotronic_system_mode: {
         key: 'eurotronic_system_mode',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x4008;
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1085,41 +1284,41 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
-                };
+                }];
             }
         },
     },
     eurotronic_error_status: {
         key: 'eurotronic_error_status',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x4002;
             if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
-                };
+                }];
             }
         },
     },
     eurotronic_current_heating_setpoint: {
         key: 'current_heating_setpoint',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x4003;
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1129,25 +1328,25 @@ const converters = {
                         attrData: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
                     }],
                     cfg: cfg.eurotronic,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
-                };
+                }];
             }
         },
     },
     eurotronic_valve_position: {
         key: 'eurotronic_valve_position',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x4001;
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1157,25 +1356,25 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
-                };
+                }];
             }
         },
     },
     eurotronic_trv_mode: {
         key: 'eurotronic_trv_mode',
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'hvacThermostat';
             const attrId = 0x4000;
             if (type === 'set') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1185,21 +1384,21 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.eurotronic,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
                     zclData: [{attrId: attrId}],
                     cfg: cfg.eurotronic,
-                };
+                }];
             }
         },
     },
     livolo_switch_on_off: {
         key: ['state'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if (typeof value !== 'string') {
                     return;
@@ -1227,7 +1426,7 @@ const converters = {
                     return;
                 }
 
-                return {
+                return [{
                     cid: cid,
                     cmd: 'moveToLevelWithOnOff',
                     cmdType: 'functional',
@@ -1238,23 +1437,23 @@ const converters = {
                     cfg: cfg.default,
                     newState: {state: value.toUpperCase()},
                     readAfterWriteTime: 250,
-                };
+                }];
             } else if (type === 'get') {
                 const cid = 'genOnOff';
                 const attrId = 'onOff';
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
-    YRD426NRSC_lock: {
+    generic_lock: {
         key: ['state'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const cid = 'closuresDoorLock';
             const attrId = 'lockState';
 
@@ -1263,7 +1462,7 @@ const converters = {
                     return;
                 }
 
-                return {
+                return [{
                     cid: cid,
                     cmd: `${value.toLowerCase()}Door`,
                     cmdType: 'functional',
@@ -1272,51 +1471,51 @@ const converters = {
                     },
                     cfg: cfg.default,
                     readAfterWriteTime: 200,
-                };
+                }];
             } else if (type === 'get') {
-                return {
+                return [{
                     cid: cid,
                     cmd: 'read',
                     cmdType: 'foundation',
-                    zclData: [{attrId: zclId.attr(cid, attrId).value}],
+                    zclData: [{attrId: Zcl.getAttributeLegacy(cid, attrId).value}],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (message && message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
             }
 
-            return converters.light_onoff_brightness.convert(key, value, message, type, postfix);
+            return converters.light_onoff_brightness.convert(key, value, message, type, postfix, options);
         },
     },
     gledopto_light_color_colortemp: {
         key: ['color', 'color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix) => {
-            if (message.hasOwnProperty('transition')) {
+        convert: (key, value, message, type, postfix, options) => {
+            if (message && message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
             }
 
-            return converters.light_color_colortemp.convert(key, value, message, type, postfix);
+            return converters.light_color_colortemp.convert(key, value, message, type, postfix, options);
         },
     },
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        convert: (key, value, message, type, postfix) => {
-            if (message.hasOwnProperty('transition')) {
+        convert: (key, value, message, type, postfix, options) => {
+            if (message && message.hasOwnProperty('transition')) {
                 message.transition = message.transition * 3.3;
             }
 
-            return converters.light_colortemp.convert(key, value, message, type, postfix);
+            return converters.light_colortemp.convert(key, value, message, type, postfix, options);
         },
     },
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             const lookup = {
                 'default': 0x01,
                 'on': 0x01,
@@ -1325,7 +1524,7 @@ const converters = {
             };
 
             if (type === 'set') {
-                return {
+                return [{
                     cid: 'genOnOff',
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1335,18 +1534,18 @@ const converters = {
                         attrData: lookup[value],
                     }],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     hue_power_on_brightness: {
         key: ['hue_power_on_brightness'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if (value === 'default') {
                     value = 255;
                 }
-                return {
+                return [{
                     cid: 'genLevelCtrl',
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1356,18 +1555,18 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             }
         },
     },
     hue_power_on_color_temperature: {
         key: ['hue_power_on_color_temperature'],
-        convert: (key, value, message, type, postfix) => {
+        convert: (key, value, message, type, postfix, options) => {
             if (type === 'set') {
                 if (value === 'default') {
                     value = 366;
                 }
-                return {
+                return [{
                     cid: 'lightingColorCtrl',
                     cmd: 'write',
                     cmdType: 'foundation',
@@ -1377,8 +1576,264 @@ const converters = {
                         attrData: value,
                     }],
                     cfg: cfg.default,
-                };
+                }];
             }
+        },
+    },
+    hue_motion_sensitivity: {
+        // motion detect sensitivity, philips specific
+        key: ['motion_sensitivity'],
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'msOccupancySensing'; // 1030
+            const attrId = 48;
+            if (type === 'set') {
+                // hue_sml:
+                // 0: low, 1: medium, 2: high (default)
+                // make sure you write to second endpoint!
+                const lookup = {
+                    'low': 0,
+                    'medium': 1,
+                    'high': 2,
+                };
+
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 32,
+                        attrData: typeof value === 'string' ? lookup[value] : value,
+                    }],
+                    cfg: cfg.hue,
+                }];
+            } else if (type === 'get') {
+                return [{
+                    cid: cid,
+                    cmd: 'read',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                    }],
+                    cfg: cfg.hue,
+                }];
+            }
+        },
+    },
+    ZigUP_lock: {
+        key: ['led'],
+        convert: (key, value, message, type, postfix, options) => {
+            const lookup = {
+                'off': 'lockDoor',
+                'on': 'unlockDoor',
+                'toggle': 'toggleDoor',
+            };
+            const cid = 'closuresDoorLock';
+
+            if (type === 'set') {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                return [{
+                    cid: cid,
+                    cmd: lookup[value],
+                    cmdType: 'functional',
+                    zclData: {
+                        'pincodevalue': '',
+                    },
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+
+    // Sinope
+    sinope_thermostat_backlight_autodim_param: {
+        key: 'backlight_auto_dim',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 'hvacThermostat';
+            const attrId = 0x0402;
+            if (type === 'set') {
+                const sinopeBacklightAutoDimParam = {
+                    0: 'on demand',
+                    1: 'sensing',
+                };
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x30,
+                        attrData: utils.getKeyByValue(sinopeBacklightAutoDimParam, value, value),
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_enable_outdoor_temperature: {
+        key: 'enable_outdoor_temperature',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0011;
+            if (type === 'set' && value.toLowerCase()=='on') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x21,
+                        // set outdoor temperature timer to 3 hours
+                        attrData: 10800,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            } else if (type === 'set' && value.toLowerCase()=='off') {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x21,
+                        // set timer to 30sec in order to disable outdoor temperature
+                        attrData: 30,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_outdoor_temperature: {
+        key: 'thermostat_outdoor_temperature',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0010;
+            if (type === 'set' && value > -100 && value < 100) {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x29,
+                        attrData: value * 100,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            }
+        },
+    },
+    sinope_thermostat_time: {
+        key: 'thermostat_time',
+        convert: (key, value, message, type, postfix, options) => {
+            const cid = 0xFF01;
+            const attrId = 0x0020;
+            if (type === 'set' && value === '' ) {
+                const thermostatDate = new Date();
+                const thermostatTimeSec = thermostatDate.getTime() / 1000;
+                const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x23,
+                        // Current time in second since 2000-01-01T00:00 in the current time zone
+                        attrData: Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800),
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            } else if (type === 'set' && value !== '' ) {
+                return [{
+                    cid: cid,
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: attrId,
+                        dataType: 0x23,
+                        attrData: value,
+                    }],
+                    cfg: cfg.sinope,
+                }];
+            }
+        },
+    },
+    DTB190502A1_LED: {
+        key: ['LED'],
+        convert: (key, value, message, type, postfix, options) => {
+            if (type === 'set') {
+                if (value === 'default') {
+                    value = 1;
+                }
+                const lookup = {
+                    'OFF': '0',
+                    'ON': '1',
+                };
+                value = lookup[value];
+                // Check for valid data
+                if ( ((value >= 0) && value < 2) == false ) value = 0;
+                return [{
+                    cid: 'genBasic',
+                    cmd: 'write',
+                    cmdType: 'foundation',
+                    zclData: [{
+                        attrId: 0x4010,
+                        dataType: 0x21,
+                        attrData: value,
+                    }],
+                    cfg: cfg.default,
+                }];
+            }
+        },
+    },
+    ptvo_switch_trigger: {
+        key: ['trigger', 'interval'],
+        convert: (key, value, message, type, postfix, options) => {
+            console.log('ptvo_switch_trigger:', key, value, message, type, postfix);
+            if (type === 'set') {
+                value = parseInt(value);
+                if (!value) {
+                    return;
+                }
+
+                const cid = 'genOnOff';
+
+                if (key === 'trigger') {
+                    return [{
+                        cid: cid,
+                        cmd: 'onWithTimedOff',
+                        cmdType: 'functional',
+                        zclData: {
+                            ctrlbits: 0,
+                            ontime: value,
+                            offwaittime: 0,
+                        },
+                        cfg: cfg.default,
+                    }];
+                } else if (key === 'interval') {
+                    const attrId = 'onOff';
+                    return [{
+                        cid: cid,
+                        cmd: 'configReport',
+                        cmdType: 'foundation',
+                        zclData: [{
+                            direction: 0,
+                            attrId: Zcl.getAttributeLegacy(cid, attrId).value,
+                            dataType: Zcl.getAttributeTypeLegacy(cid, attrId).value,
+                            attrData: value,
+                            minRepIntval: value,
+                            maxRepIntval: value,
+                        }],
+                        cfg: cfg.default,
+                    }];
+                }
+            }
+            return;
         },
     },
 
@@ -1388,7 +1843,7 @@ const converters = {
     ignore_transition: {
         key: ['transition'],
         attr: [],
-        convert: (key, value, message, type, postfix) => null,
+        convert: (key, value, message, type, postfix, options) => null,
     },
 };
 

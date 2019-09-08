@@ -10,39 +10,41 @@ const repInterval = {
     MINUTE: 60,
 };
 
-const coordinatorGroup = 99;
+const defaultIgnoreConverters = [
+    fz.ignore_genGroups_devChange, fz.ignore_genIdentify_change, fz.ignore_genScenes_change,
+    fz.ignore_diagnostic_change, fz.ignore_lightLink_change, fz.ignore_basic_change,
+];
 
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
         fromZigbee: [
             fz.ignore_light_brightness_change, fz.state_change, fz.state, fz.brightness_report,
-            fz.ignore_genGroups_devChange, fz.ignore_basic_change,
-        ],
+        ].concat(defaultIgnoreConverters),
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
-            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
-        ],
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report,
+        ].concat(defaultIgnoreConverters),
         toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
-            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
-        ],
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report,
+        ].concat(defaultIgnoreConverters),
         toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [
-            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state, fz.ignore_basic_change,
-            fz.brightness_report, fz.color_colortemp_report, fz.ignore_genGroups_devChange,
-        ],
+            fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report,
+        ].concat(defaultIgnoreConverters),
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
@@ -213,10 +215,11 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
-        description: 'Aqara single key wired wall switch',
-        supports: 'on/off',
+        // eslint-disable-next-line
+        description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
+        supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.ignore_onoff_change,
+            fz.QBKG04LM_QBKG11LM_state, fz.QBKG04LM_buttons,
             fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -232,7 +235,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.QBKG04LM_QBKG11LM_operation_mode,
-            fz.ignore_onoff_change, fz.ignore_basic_change,
+            fz.ignore_onoff_change, fz.ignore_basic_change, fz.QBKG11LM_click,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_analog_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -241,11 +244,13 @@ const devices = [
         zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
-        description: 'Aqara double key wired wall switch',
-        supports: 'release/hold, on/off',
+        // eslint-disable-next-line
+        description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
+        supports: 'release/hold, on/off, temperature',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
+            fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         ep: (device) => {
@@ -260,7 +265,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
-            fz.ignore_analog_change, fz.ignore_basic_change,
+            fz.ignore_analog_change, fz.ignore_basic_change, fz.QBKG12LM_click,
             fz.ignore_multistate_report, fz.ignore_multistate_change, fz.ignore_onoff_change, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -269,13 +274,13 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['lumi.sens'],
+        zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
-        description: 'MiJia temperature & humidity sensor ',
+        description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.xiaomi_humidity,
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.generic_humidity,
             fz.ignore_basic_change,
         ],
         toZigbee: [],
@@ -287,7 +292,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.xiaomi_humidity, fz.generic_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.generic_humidity, fz.generic_pressure,
             fz.ignore_basic_change, fz.ignore_temperature_change, fz.ignore_humidity_change,
             fz.ignore_pressure_change, fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
@@ -344,7 +349,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone, fz.ignore_basic_change],
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone,
+            fz.SJCGQ11LM_water_leak_interval, fz.ignore_basic_change,
+        ],
         toZigbee: [],
     },
     {
@@ -363,6 +371,20 @@ const devices = [
         zigbeeModel: ['lumi.plug'],
         model: 'ZNCZ02LM',
         description: 'Mi power plug ZigBee',
+        supports: 'on/off, power measurement',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_onoff_change,
+            fz.ignore_basic_change, fz.ignore_analog_change, fz.ignore_occupancy_report,
+            fz.ignore_illuminance_report, fz.ignore_temperature_change,
+            fz.ignore_humidity_change, fz.ignore_pressure_change,
+        ],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['lumi.plug.mitw01'],
+        model: 'ZNCZ03LM',
+        description: 'Mi power plug ZigBee TW',
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
@@ -457,7 +479,30 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
     },
-
+    {
+        zigbeeModel: ['lumi.lock.acn02'],
+        model: 'ZNMS12LM',
+        description: 'Aqara S2 Lock',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
+            fz.ignore_doorlock_change, fz.ignore_basic_change,
+        ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.lock.acn03'],
+        model: 'ZNMS13LM',
+        description: 'Aqara S2 Lock Pro',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
+            fz.ignore_doorlock_change, fz.ignore_basic_change,
+        ],
+        toZigbee: [],
+    },
     // IKEA
     {
         zigbeeModel: [
@@ -505,6 +550,20 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
+        model: 'LED1837R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
+        model: 'LED1733G7',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
         model: 'LED1622G12',
         vendor: 'IKEA',
@@ -512,10 +571,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E27 CWS opal 600lm',
+            'TRADFRI bulb E26 CWS opal 600lm',
+            'TRADFRI bulb E14 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
+        description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colorxy,
     },
     {
@@ -533,6 +595,13 @@ const devices = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm'],
+        model: 'LED1736G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, white spectrum, clear',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
@@ -604,11 +673,11 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603',
+        model: 'E1603/E1702',
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        fromZigbee: [fz.ignore_onoff_change, fz.state, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -623,7 +692,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
-        model: 'E1524',
+        model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         supports:
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
@@ -654,7 +723,7 @@ const devices = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
-        supports: 'on, off',
+        supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
             fz.E1743_brightness_stop, fz.generic_battery, fz.ignore_power_change,
@@ -667,7 +736,6 @@ const devices = [
             };
 
             const actions = [
-                (cb) => device.bind('genOnOff', coordinatorGroup, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
@@ -701,13 +769,29 @@ const devices = [
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         description: 'TRADFRI signal repeater',
-        supports: '',
+        supports: 'linkquality',
         vendor: 'IKEA',
-        fromZigbee: [],
+        fromZigbee: [fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.E1746_linkquality],
         toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('genBasic', 'modelId', 3600, 14400, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
     },
 
     // Philips
+    {
+        zigbeeModel: ['LTC012'],
+        model: '3306431P7',
+        vendor: 'Philips',
+        description: 'Hue Struana',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
     {
         zigbeeModel: ['LLC012', 'LLC011'],
         model: '7299760PH',
@@ -772,6 +856,20 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LST003'],
+        model: '9290018187B',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip Outdoor',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['LCA002'],
+        model: '9290022166',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance E26',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016'],
         model: '9290012573A',
         vendor: 'Philips',
@@ -828,10 +926,24 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTA002'],
+        model: '9290022167',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E26/E27',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LTW017'],
+        model: '915005587401',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore light',
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
@@ -863,6 +975,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTC013'],
+        model: '3216131P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
@@ -877,11 +996,25 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['LTP003'],
+        zigbeeModel: ['LTP003', 'LTP001'],
         model: '4033930P7',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Fair',
         extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['LWF002'],
+        model: '9290011370B',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27',
+        extend: hue.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['LWB015'],
+        model: '046677476816',
+        vendor: 'Philips',
+        description: 'Hue white PAR38 outdoor',
+        extend: hue.light_onoff_brightness,
     },
     {
         zigbeeModel: ['LLC010'],
@@ -895,11 +1028,11 @@ const devices = [
         model: '324131092621',
         vendor: 'Philips',
         description: 'Hue dimmer switch',
-        supports: 'on/off',
+        supports: 'on/off, brightness, up/down/hold/release, click count',
         fromZigbee: [
             fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
             fz._324131092621_ignore_stop, fz._324131092621_notification,
-            fz.ignore_power_change, fz.hue_battery,
+            fz.ignore_power_change, fz.generic_battery_remaining,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -935,11 +1068,11 @@ const devices = [
         description: 'Hue motion sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
-            fz.ignore_temperature_change,
+            fz.ignore_temperature_change, fz.ignore_basic_change, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         ep: (device) => {
             return {
                 '': 2, // default
@@ -971,11 +1104,11 @@ const devices = [
         description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.hue_battery, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
             fz.ignore_occupancy_change, fz.generic_illuminance, fz.ignore_illuminance_change,
             fz.ignore_temperature_change,
         ],
-        toZigbee: [tz.occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         ep: (device) => {
             return {
                 '': 2, // default
@@ -1000,6 +1133,41 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['LLC014'],
+        model: '7099860PH',
+        vendor: 'Philips',
+        description: 'LivingColors Aura',
+        extend: hue.light_onoff_brightness_colorxy,
+    },
+    {
+        zigbeeModel: ['LTC014'],
+        model: '3216231P5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['1744530P7'],
+        model: '8718696170625',
+        vendor: 'Philips',
+        description: 'Hue Fuzo outdoor wall light',
+        extend: hue.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['1743630P7'],
+        model: '17436/30/P7',
+        vendor: 'Philips',
+        description: 'Hue Welcome white flood light',
+        extend: hue.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['LCS001'],
+        model: '1741830P7',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor spot light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Belkin
     {
@@ -1022,11 +1190,31 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 85);
-            execute(device, [(cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb)], callback);
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['ZB-RelayControl-1.0.0'],
+        model: 'SWITCH EDP RE:DY',
+        vendor: 'EDP',
+        description: 're:dy switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 85);
+            const actions = [
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
         },
     },
 
@@ -1038,7 +1226,21 @@ const devices = [
         description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
         supports: 'state, description, type, rssi',
         fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta, fz.ignore_onoff_change],
-        toZigbee: [],
+        toZigbee: [tz.ptvo_switch_trigger],
+    },
+    {
+        zigbeeModel: ['ptvo.switch'],
+        model: 'ptvo.switch',
+        vendor: 'Custom devices (DiY)',
+        description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
+        supports: 'hold, single, double and triple click, on/off',
+        fromZigbee: [fz.ptvo_switch_state, fz.ptvo_switch_buttons,
+            fz.ignore_basic_change, fz.ignore_onoff_change, fz.ignore_multistate_change,
+        ],
+        toZigbee: [tz.on_off, tz.ptvo_switch_trigger],
+        ep: (device) => {
+            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
+        },
     },
     {
         zigbeeModel: ['DNCKAT_S001'],
@@ -1084,6 +1286,53 @@ const devices = [
         ep: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
         },
+    },
+    {
+        zigbeeModel: ['ZigUP'],
+        model: 'ZigUP',
+        vendor: 'Custom devices (DiY)',
+        description: '[CC2530 based ZigBee relais, switch, sensor and router](https://github.com/formtapez/ZigUP/)',
+        supports: 'relais, RGB-stripe, sensors, S0-counter, ADC, digital I/O',
+        fromZigbee: [fz.ZigUP_parse, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
+    },
+    {
+        zigbeeModel: ['DIYRuZ_R4_5'],
+        model: 'DIYRuZ_R4_5',
+        vendor: 'Custom devices (DiY)',
+        description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
+        supports: 'on/off',
+        fromZigbee: [fz.DNCKAT_S00X_state],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
+        },
+    },
+    {
+        zigbeeModel: ['DIYRuZ_KEYPAD20'],
+        model: 'DIYRuZ_KEYPAD20',
+        vendor: 'Custom devices (DiY)',
+        description: '[DiY 20 button keypad](http://modkam.ru/?p=1114)',
+        supports: 'click',
+        fromZigbee: [fz.keypad20states, fz.keypad20_battery],
+        toZigbee: [],
+        ep: (device) => {
+            return {
+                'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4, 'btn_5': 5,
+                'btn_6': 6, 'btn_7': 7, 'btn_8': 8, 'btn_9': 9, 'btn_10': 10,
+                'btn_11': 11, 'btn_12': 12, 'btn_13': 13, 'btn_14': 14, 'btn_15': 15,
+                'btn_16': 16, 'btn_17': 17, 'btn_18': 18, 'btn_19': 19, 'btn_20': 20,
+            };
+        },
+    },
+    {
+        zigbeeModel: ['DTB190502A1'],
+        model: 'DTB190502A1',
+        vendor: 'Custom devices (DiY)',
+        description: '[CC2530 based IO Board https://databyte.ch/?portfolio=zigbee-erstes-board-dtb190502a)',
+        supports: 'switch, buttons',
+        fromZigbee: [fz.DTB190502A1_parse, fz.ignore_onoff_change],
+        toZigbee: [tz.DTB190502A1_LED],
     },
 
     // eCozy
@@ -1153,6 +1402,20 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['PAR16 DIM Z3'],
+        model: 'AC08560',
+        vendor: 'OSRAM',
+        description: 'SMART+ LED PAR16 GU10',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['CLA60 RGBW Z3'],
+        model: 'AC03647',
+        vendor: 'OSRAM',
+        description: 'SMART+ LED CLASSIC E27 RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         // AA70155 is model number of both bulbs.
         zigbeeModel: ['LIGHTIFY A19 Tunable White', 'Classic A60 TW'],
         model: 'AA70155',
@@ -1165,7 +1428,9 @@ const devices = [
         model: 'AA68199',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: generic.light_onoff_brightness_colortemp,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.osram_cmds]),
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
     },
     {
         zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
@@ -1257,6 +1522,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['PAR16 RGBW Z3'],
+        model: 'AC08559',
+        vendor: 'OSRAM',
+        description: 'SMART+ Spot GU10 Multicolor',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['B40 DIM Z3'],
         model: 'AC08562',
         vendor: 'OSRAM',
@@ -1299,26 +1571,41 @@ const devices = [
         model: 'AC0251100NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
-        supports: 'on/off, brightness',
+        supports: 'circle, up, down and hold/release',
         fromZigbee: [
-            fz.AC0251100NJ_on, fz.AC0251100NJ_off, fz.AC0251100NJ_on_hold, fz.AC0251100NJ_off_hold,
-            fz.AC0251100NJ_release, fz.AC0251100NJ_circle, fz.AC0251100NJ_circle_release,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_cmdOn, fz.AC0251100NJ_cmdMoveWithOnOff, fz.AC0251100NJ_cmdStop,
+            fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
+            fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const ep2 = shepherd.find(ieeeAddr, 2);
+            const ep3 = shepherd.find(ieeeAddr, 3);
+
             const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.bind('lightingColorCtrl', coordinator, cb),
-                (cb) => device.bind('genLevelCtrl', coordinator, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
+                (cb) => ep1.bind('genOnOff', coordinator, cb),
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep2.bind('genOnOff', coordinator, cb),
+                (cb) => ep2.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep3.bind('genLevelCtrl', coordinator, cb),
+                (cb) => ep3.bind('lightingColorCtrl', coordinator, cb),
+                (cb) => ep1.bind('genPowerCfg', coordinator, cb),
+                (cb) => ep1.report('genPowerCfg', 'batteryVoltage', 900, 3600, 0, cb),
             ];
-            execute(device, actions, callback);
+            execute(ep1, actions, callback);
         },
 
     },
+    {
+        zigbeeModel: ['SubstiTube'],
+        model: 'ST8AU-CON',
+        vendor: 'OSRAM',
+        description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
+        extend: generic.light_onoff_brightness,
+    },
+
 
     // Hive
     {
@@ -1336,7 +1623,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['SLP2b'],
+        zigbeeModel: ['SLP2b', 'SLP2c'],
         model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',
@@ -1357,62 +1644,90 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['TWBulb01US'],
+        model: 'HV-GSCXZB269',
+        vendor: 'Hive',
+        description: 'Active light cool to warm white (E26) ',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['TWBulb01UK'],
+        model: 'HV-GSCXZB279_HV-GSCXZB229',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (E27 & B22)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Innr
     {
         zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
         vendor: 'Innr',
-        description: 'E27 Bulb RGBW',
+        description: 'E27 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['BY 185 C'],
         model: 'BY 185 C',
         vendor: 'Innr',
-        description: 'B22 Bulb RGBW',
+        description: 'B22 bulb RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['RB 250 C'],
+        model: 'RB 250 C',
+        vendor: 'Innr',
+        description: 'E14 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['RB 265'],
         model: 'RB 265',
         vendor: 'Innr',
-        description: 'E27 Bulb',
+        description: 'E27 bulb',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['RF 265'],
+        model: 'RF 265',
+        vendor: 'Innr',
+        description: 'E27 bulb filament clear',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RB 278 T'],
         model: 'RB 278 T',
         vendor: 'Innr',
-        description: 'E27 Bulb',
+        description: 'E27 bulb',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',
-        description: 'E27 Bulb RGBW',
+        description: 'E27 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['BY 285 C'],
         model: 'BY 285 C',
         vendor: 'Innr',
-        description: 'B22 Bulb RGBW',
+        description: 'B22 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['RB 165'],
         model: 'RB 165',
         vendor: 'Innr',
-        description: 'E27 Bulb',
+        description: 'E27 bulb',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RB 175 W'],
         model: 'RB 175 W',
         vendor: 'Innr',
-        description: 'E27 Bulb warm dimming',
+        description: 'E27 bulb warm dimming',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1426,14 +1741,14 @@ const devices = [
         zigbeeModel: ['RS 122'],
         model: 'RS 122',
         vendor: 'Innr',
-        description: 'GU10 Spot',
+        description: 'GU10 spot',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RS 125'],
         model: 'RS 125',
         vendor: 'Innr',
-        description: 'GU10 Spot',
+        description: 'GU10 spot',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1447,28 +1762,49 @@ const devices = [
         zigbeeModel: ['RS 128 T'],
         model: 'RS 128 T',
         vendor: 'Innr',
-        description: 'GU10 Spot 350 lm, dimmable, white spectrum',
+        description: 'GU10 spot 350 lm, dimmable, white spectrum',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['RS 228 T'],
+        model: 'RS 228 T',
+        vendor: 'Innr',
+        description: 'GU10 spot 350 lm, dimmable, white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['RB 145'],
         model: 'RB 145',
         vendor: 'Innr',
-        description: 'E14 Candle',
+        description: 'E14 candle',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['RB 245'],
+        model: 'RB 245',
+        vendor: 'Innr',
+        description: 'E14 candle',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['RB 248 T'],
         model: 'RB 248 T',
         vendor: 'Innr',
-        description: 'E14 Candle with white spectrum',
+        description: 'E14 candle with white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['RF 263'],
+        model: 'RF 263',
+        vendor: 'Innr',
+        description: 'E27 filament bulb dimmable',
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['BY 165', 'BY 265'],
         model: 'BY 165',
         vendor: 'Innr',
-        description: 'B22 Bulb dimmable',
+        description: 'B22 bulb dimmable',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1489,7 +1825,7 @@ const devices = [
         zigbeeModel: ['UC 110'],
         model: 'UC 110',
         vendor: 'Innr',
-        description: 'Under Cabinet Light',
+        description: 'Under cabinet light',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -1571,6 +1907,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['RT RGBW'],
+        model: '73741',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED adjustable color RT 5/6',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LIGHTIFY BR Tunable White'],
         model: '73740',
         vendor: 'Sylvania',
@@ -1578,7 +1921,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['LIGHTIFY BR RGBW'],
+        zigbeeModel: ['LIGHTIFY BR RGBW', 'BR30 RGBW'],
         model: '73739',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
@@ -1587,11 +1930,11 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
-            fz.ignore_genscenes_change,
+            fz.ignore_genScenes_change,
         ]),
     },
     {
-        zigbeeModel: ['LIGHTIFY A19 RGBW'],
+        zigbeeModel: ['LIGHTIFY A19 RGBW', 'A19 RGBW'],
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
@@ -1616,7 +1959,8 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
             fz.ignore_genIdentify_change,
             fz.ignore_diagnostic_change,
-            fz.ignore_genscenes_change,
+            fz.ignore_genScenes_change,
+            fz.ignore_light_color_colortemp_report,
         ]),
     },
     {
@@ -1659,8 +2003,22 @@ const devices = [
         description: 'LIGHTIFY LED gardenspot mini RGB',
         extend: generic.light_onoff_brightness_colorxy,
     },
+    {
+        zigbeeModel: ['PAR38 W 10 year'],
+        model: '74580',
+        vendor: 'Sylvania',
+        description: 'Smart Home soft white PAR38 outdoor bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // GE
+    {
+        zigbeeModel: ['SoftWhite'],
+        model: 'PSB19-SW27',
+        vendor: 'GE',
+        description: 'Link smart LED light bulb, A19 soft white (2700K)',
+        extend: generic.light_onoff_brightness,
+    },
     {
         zigbeeModel: ['ZLL Light'],
         model: '22670',
@@ -1693,7 +2051,7 @@ const devices = [
         vendor: 'GE',
         description: 'Plug-in smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
@@ -1701,6 +2059,7 @@ const devices = [
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
                 (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
             ];
 
             execute(device, actions, callback);
@@ -1795,6 +2154,18 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
     },
     {
+        zigbeeModel: ['Z01-A60EAE27'],
+        model: 'Z01-A60EAE27',
+        vendor: 'Sengled',
+        description: 'Element Plus (A60)',
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.ignore_metering_change,
+            fz.ignore_diagnostic_change,
+        ]),
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee,
+    },
+    {
         zigbeeModel: ['E11-N1EA'],
         model: 'E11-N1EA',
         vendor: 'Sengled',
@@ -1866,7 +2237,7 @@ const devices = [
 
     // JIAWEN
     {
-        zigbeeModel: ['FB56-ZCW08KU1.1'],
+        zigbeeModel: ['FB56-ZCW08KU1.1', 'FB56-ZCW08KU1.0'],
         model: 'K2RGBW01',
         vendor: 'JIAWEN',
         description: 'Wireless Bulb E27 9W RGBW',
@@ -1884,11 +2255,25 @@ const devices = [
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+
+            const rmsVoltage = 1285;
+            const rmsCurrent = 1288;
+            const activePower = 1291;
+            const powerFactor = 1296;
+
+            const electricalCfg = [
+                {direction: 0, attrId: rmsVoltage, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: rmsCurrent, dataType: 33, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: activePower, dataType: 41, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+                {direction: 0, attrId: powerFactor, dataType: 40, minRepIntval: 10, maxRepIntval: 1000, repChange: 1},
+            ];
+
             const actions = [
-                (cb) => device.report('haElectricalMeasurement', 'rmsVoltage', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'rmsCurrent', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'activePower', 10, 1000, 1, cb),
-                (cb) => device.report('haElectricalMeasurement', 'powerFactor', 10, 1000, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('haElectricalMeasurement', coordinator, cb),
+                (cb) => device.foundation('haElectricalMeasurement', 'configReport', electricalCfg, foundationCfg, cb),
             ];
 
             execute(device, actions, callback);
@@ -1933,6 +2318,13 @@ const devices = [
         fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
+        zigbeeModel: ['LXN56-DC27LX1.1'],
+        model: 'LXZB-02A',
+        vendor: 'Nue / 3A',
+        description: 'Smart light controller',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['FNB56-ZSW03LX2.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
@@ -1955,7 +2347,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1IKJ1.7'],
+        zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
@@ -1977,7 +2369,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSC05HG1.0'],
+        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2'],
         model: 'HGZB-04D',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
@@ -2005,16 +2397,26 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW05HG1.2'],
-        model: 'HGZB-01A/02A',
+        zigbeeModel: ['FNB56-ZSW02LX2.0'],
+        model: 'HGZB-42',
         vendor: 'Nue / 3A',
-        description: 'Smart 1 gang wall or in-wall switch',
+        description: 'Smart light switch - 2 gang. ',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 11, 'bottom': 12};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep11 = shepherd.find(ieeeAddr, 11);
+            execute(ep11, [(cb) => ep11.bind('genOnOff', coordinator, cb)], () => {
+                const ep12 = shepherd.find(ieeeAddr, 12);
+                execute(ep12, [(cb) => ep12.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
     },
     {
-        zigbeeModel: ['FB56+ZSW1GKJ2.5'],
+        zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
@@ -2035,14 +2437,23 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW23HG1.1'],
-        model: 'HGZB-01A',
+        zigbeeModel: ['FNB56-ZCW25FB1.9'],
+        model: 'XY12S-15',
         vendor: 'Nue / 3A',
-        description: 'Smart light controller',
-        extend: generic.light_onoff_brightness,
+        description: 'Smart light controller RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['FNB56-ZSC01LX1.2'],
+        zigbeeModel: ['FNB56-ZSW23HG1.1', 'LXN56-LC27LX1.1'],
+        model: 'HGZB-01A',
+        vendor: 'Nue / 3A',
+        description: 'Smart in-wall switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2'],
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
@@ -2057,10 +2468,17 @@ const devices = [
         fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['FNB56-ZCW25FB1.6', 'FNB56-ZCW25FB2.1'],
+        model: 'HGZB-06A',
+        vendor: 'Nue / 3A',
+        description: 'Smart 7W E27 light bulb',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Smart Home Pty
     {
-        zigbeeModel: ['FB56-ZCW11HG1.2'],
+        zigbeeModel: ['FB56-ZCW11HG1.2', 'FB56-ZCW11HG1.4'],
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
         description: 'RGBW Downlight',
@@ -2168,6 +2586,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GL-G-001Z'],
+        model: 'GL-G-001Z',
+        vendor: 'Gledopto',
+        description: 'Smart garden lamp',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        ep: (device) => {
+            if (device.epList.toString() === '11,12,13') {
+                return {'': 12};
+            } else if (device.epList.toString() === '10,11,13' || device.epList.toString() === '11,13') {
+                return {'': 11};
+            } else {
+                return {};
+            }
+        },
+    },
+    {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
@@ -2252,6 +2686,28 @@ const devices = [
             } else {
                 return {};
             }
+        },
+    },
+
+    // ROBB
+    {
+        zigbeeModel: ['ROB_200-004-0'],
+        model: 'ROB_200-004-0',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.ignore_onoff_change, fz.state, fz.ignore_light_brightness_report],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
@@ -2363,7 +2819,7 @@ const devices = [
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change,
             fz.ignore_iaszone_report, fz.generic_ias_zone_motion_dev_change,
-            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2387,7 +2843,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ias_zone_motion_dev_change,
-            fz.bosch_ias_zone_motion_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -2480,6 +2936,30 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['multi'],
+        model: 'IM6001-MPP01',
+        vendor: 'SmartThings',
+        description: 'Multipurpose sensor (2018 model)',
+        supports: 'contact',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.st_contact_status_change,
+            fz.generic_batteryvoltage_3000_2500, fz.ignore_iaszone_change, fz.ignore_iaszone_attreport,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 30, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
         /**
          * Note: humidity not (yet) implemented, as this seems to use proprietary cluster
          * see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
@@ -2508,11 +2988,61 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['IM6001-WLP01'],
+        model: 'IM6001-WLP01',
+        vendor: 'SmartThings',
+        description: 'Water leak sensor',
+        supports: 'water leak',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500, fz.ignore_diagnostic_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 30, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['3315-S'],
         model: '3315-S',
         vendor: 'SmartThings',
         description: 'Water sensor',
         supports: 'water and temperature',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
+            fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {
+                    enrollrspcode: 1,
+                    zoneid: 255,
+                }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['water'],
+        model: 'F-WTR-UK-V2',
+        vendor: 'SmartThings',
+        description: 'Water leak sensor (2018 model)',
+        supports: 'water leak and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
             fz.st_leak, fz.st_leak_change, fz.generic_batteryvoltage_3000_2500,
@@ -2646,13 +3176,17 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change],
+        fromZigbee: [fz.ias_contact_dev_change, fz.ias_contact_status_change, fz.generic_battery_remaining],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.MINUTE, repInterval.MAX, 1, cb
+                ),
             ];
 
             execute(device, actions, callback);
@@ -2660,6 +3194,15 @@ const devices = [
     },
 
     // Paulmann
+    {
+        zigbeeModel: ['Switch Controller '],
+        model: '50043',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee Cephei Switch Controller',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.state_change],
+        toZigbee: [tz.on_off],
+    },
     {
         zigbeeModel: ['Dimmablelight '],
         model: '50045',
@@ -2743,7 +3286,8 @@ const devices = [
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
             fz.ignore_basic_change, fz.bitron_thermostat_att_report,
-            fz.bitron_thermostat_dev_change, fz.bitron_battery,
+            fz.bitron_thermostat_dev_change, fz.bitron_battery_att_report,
+            fz.bitron_battery_dev_change,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
@@ -2756,11 +3300,10 @@ const devices = [
                 (cb) => device.bind('genBasic', coordinator, cb),
                 (cb) => device.bind('genPowerCfg', coordinator, cb),
                 (cb) => device.bind('genIdentify', coordinator, cb),
-                (cb) => device.bind('genTime', coordinator, cb),
                 (cb) => device.bind('genPollCtrl', coordinator, cb),
                 (cb) => device.bind('hvacThermostat', coordinator, cb),
                 (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
-                (cb) => device.report('hvacThermostat', 'localTemp', 300, 3600, 0, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 1200, 3600, 0, cb),
                 (cb) => device.report('hvacThermostat', 'localTemperatureCalibration', 1, 0, 0, cb),
                 (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 1, 0, 1, cb),
                 (cb) => device.report('hvacThermostat', 'runningState', 1, 0, 0, cb),
@@ -2901,7 +3444,7 @@ const devices = [
 
     // Centralite Swiss Plug
     {
-        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
+        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC', '4257050-ZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
@@ -2923,6 +3466,45 @@ const devices = [
         },
     },
 
+    // Blaupunkt
+    {
+        zigbeeModel: ['SCM-R_00.00.03.15TC'],
+        model: 'SCM-S1',
+        vendor: 'Blaupunkt',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+
+    // Lupus
+    {
+        zigbeeModel: ['SCM_00.00.03.11TC'],
+        model: '12031',
+        vendor: 'Lupus',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+    {
+        zigbeeModel: ['PSMP5_00.00.03.11TC'],
+        model: '12050',
+        vendor: 'Lupus',
+        description: 'LUPUSEC mains socket with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.bitron_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
     // Climax
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
@@ -2933,8 +3515,57 @@ const devices = [
         fromZigbee: [fz.state_change],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['SCM-3_00.00.03.15'],
+        model: 'SCM-5ZBS',
+        vendor: 'Climax',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_report, fz.cover_position, fz.cover_state_change, fz.cover_state_report],
+        toZigbee: [tz.cover_position, tz.cover_open_close],
+    },
+    {
+        zigbeeModel: ['PSM_00.00.00.35TC'],
+        model: 'PSM-29ZBSR',
+        vendor: 'Climax',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state_report, fz.state_change],
+        toZigbee: [tz.on_off],
+    },
 
     // HEIMAN
+    {
+        zigbeeModel: ['CO_V15'],
+        model: 'HS1CA-M',
+        description: 'Smart carbon monoxide sensor',
+        supports: 'carbon monoxide',
+        vendor: 'HEIMAN',
+        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200, fz.ignore_power_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['PIRSensor-N'],
+        model: 'HS3MS',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.heiman_pir],
+        toZigbee: [],
+    },
     {
         zigbeeModel: ['SmartPlug'],
         model: 'HS2SK',
@@ -2990,13 +3621,19 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke],
+        fromZigbee: [fz.heiman_smoke, fz.battery_200, fz.ignore_power_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {
+                direction: 0, attrId: 33, dataType: 32, minRepIntval: 10, maxRepIntval: repInterval.MAX, repChange: 0,
+            };
+
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.foundation('genPowerCfg', 'configReport', [cfg], foundationCfg, cb),
             ];
 
             execute(device, actions, callback, 1000);
@@ -3021,8 +3658,35 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GASSensor-EN'],
+        model: 'HS1CG-M',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
         zigbeeModel: ['DoorSensor-N'],
-        model: 'HS1DS',
+        model: 'HS1DS/HS3DS',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.heiman_contact],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['DOOR_TPV13'],
+        model: 'HEIMAN-M1',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
@@ -3049,12 +3713,30 @@ const devices = [
     },
     {
         zigbeeModel: ['WaterSensor-N'],
-        model: 'HS1WL',
+        model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
         supports: 'water leak',
         fromZigbee: [fz.heiman_water_leak],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['WaterSensor-EM'],
+        model: 'HS1-WL-E',
+        vendor: 'HEIMAN',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.heiman_water_leak],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
     },
     {
         zigbeeModel: ['RC_V14'],
@@ -3072,6 +3754,48 @@ const devices = [
             const actions = [
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['COSensor-EM'],
+        model: 'HS1CA-E',
+        vendor: 'HEIMAN',
+        description: 'Smart carbon monoxide sensor',
+        supports: 'carbon monoxide',
+        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery_200, fz.ignore_power_change, fz.ignore_basic_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                // Time is in seconds. 65535 means no report. 65534 is max value: 18 hours, 12 minutes 14 seconds.
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 65534, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryAlarmState', 1, 65534, 1, cb),
+            ];
+
+            execute(device, actions, callback, 1000);
+        },
+    },
+    {
+        zigbeeModel: ['WarningDevice'],
+        model: 'HS2WD-E',
+        vendor: 'HEIMAN',
+        description: 'Smart siren',
+        supports: 'warning',
+        fromZigbee: [fz.battery_200, fz.ignore_iaszone_change],
+        toZigbee: [tz.warning],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 0, 3600, 0, cb),
             ];
 
             execute(device, actions, callback, 1000);
@@ -3100,11 +3824,18 @@ const devices = [
 
     // Calex
     {
-        zigbeeModel: ['EC-Z3.0-CCT '],
+        zigbeeModel: ['EC-Z3.0-CCT'],
         model: '421786',
         vendor: 'Calex',
         description: 'LED A60 Zigbee GLS-lamp',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['EC-Z3.0-RGBW'],
+        model: '421792',
+        vendor: 'Calex',
+        description: 'LED A60 Zigbee RGB lamp',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // EcoSmart
@@ -3130,6 +3861,13 @@ const devices = [
         vendor: 'EcoSmart',
         description: 'A19 soft white bulb',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['zhaTunW'],
+        model: 'D1542',
+        vendor: 'EcoSmart',
+        description: 'GU10 adjustable white bulb',
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // Airam
@@ -3158,9 +3896,12 @@ const devices = [
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
         model: 'AIRAM-CTR.U',
         vendor: 'Airam',
-        description: 'CTR.U remote (can only be used to control the Airam 4713407 bulb)',
-        supports: 'on/off',
-        fromZigbee: [],
+        description: 'CTR.U remote',
+        supports: 'on/off, brightness up/down and click/hold/release',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
+            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene,
+        ],
         toZigbee: [],
     },
 
@@ -3178,6 +3919,15 @@ const devices = [
         vendor: 'Paul Neuhaus',
         description: 'Q-FLAG LED Panel, Smart-Home RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['NLG-plug '],
+        model: '100.425.90',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-PLUG adapter plug with night orientation light',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_change],
+        toZigbee: [tz.on_off],
     },
 
     // iCasa
@@ -3213,6 +3963,7 @@ const devices = [
         fromZigbee: [
             fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
             fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
+            fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
         ],
         toZigbee: [],
     },
@@ -3281,7 +4032,7 @@ const devices = [
         fromZigbee: [
             fz.thermostat_dev_change,
             fz.eurotronic_thermostat_dev_change,
-            fz.ignore_thermostat_report, fz.hue_battery, fz.ignore_power_change,
+            fz.ignore_thermostat_report, fz.generic_battery_remaining, fz.ignore_power_change,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -3327,7 +4078,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.generic_batteryvoltage_3000_2500,
-            fz.ignore_power_change, fz.bosch_ias_zone_motion_status_change, fz.ignore_iaszone_change,
+            fz.ignore_power_change, fz.generic_ias_zone_occupancy_status_change, fz.ignore_iaszone_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -3352,7 +4103,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.ignore_power_change,
-            fz.generic_batteryvoltage_3000_2500, fz.bosch_ias_zone_motion_status_change,
+            fz.generic_batteryvoltage_3000_2500, fz.generic_ias_zone_occupancy_status_change,
             fz.ignore_iaszone_report, fz.ignore_iaszone_change,
         ],
         toZigbee: [],
@@ -3389,11 +4140,10 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.YRD426NRSC_lock, fz.battery_200],
-        toZigbee: [tz.YRD426NRSC_lock],
+        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
-
             const actions = [
                 (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
                 (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
@@ -3402,11 +4152,72 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['YRD226 TSDB'],
+        model: 'YRD226HA2619',
+        vendor: 'Yale',
+        description: 'Assure lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.generic_lock, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['YRD256 TSDB'],
+        model: 'YRD256HA20BP',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [
+            fz.generic_lock,
+            fz.generic_lock_operation_event,
+            fz.battery_200,
+            fz.ignore_power_change,
+        ],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['iZBModule01'],
+        model: 'YMF40',
+        vendor: 'Yale',
+        description: 'Real living lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.generic_lock_operation_event],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, 3, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, 3, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+
+    },
 
     // Keen Home
     {
         zigbeeModel: [
-            'SV01-410-MP-1.0', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
+            'SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
             'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
         ],
         model: 'SV01',
@@ -3414,16 +4225,55 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position,
-            fz.cover_position_report,
-            fz.generic_temperature,
-            fz.generic_temperature_change,
-            fz.generic_battery,
-            fz.generic_battery_change,
-            fz.keen_home_smart_vent_pressure,
-            fz.keen_home_smart_vent_pressure_report,
-            fz.ignore_onoff_change,
-            fz.ignore_onoff_report,
+            fz.cover_position, fz.cover_position_report, fz.generic_temperature, fz.generic_temperature_change,
+            fz.generic_battery, fz.generic_battery_change, fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report, fz.ignore_onoff_change, fz.ignore_onoff_report,
+        ],
+        toZigbee: [
+            tz.cover_open_close,
+            tz.cover_position,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.bind('msPressureMeasurement', coordinator, cb),
+
+                // eslint-disable-next-line
+                // https://github.com/yracine/keenhome.device-type/blob/master/devicetypes/keensmartvent.src/keensmartvent.groovy
+                (cb) => device.report(
+                    'msTemperatureMeasurement', 'measuredValue', repInterval.MINUTE * 2, repInterval.HOUR, 50, cb
+                ),
+                (cb) => device.foundation(
+                    'msPressureMeasurement',
+                    'configReport',
+                    [{
+                        direction: 0, attrId: 32, dataType: 34, minRepIntval: repInterval.MINUTE * 5,
+                        maxRepIntval: repInterval.HOUR, repChange: 500,
+                    }],
+                    {manufSpec: 1, manufCode: 4443},
+                    cb
+                ),
+                (cb) => device.report(
+                    'genPowerCfg', 'batteryPercentageRemaining', repInterval.HOUR, repInterval.HOUR * 12, 0, cb
+                ),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3'],
+        model: 'SV02',
+        vendor: 'Keen Home',
+        description: 'Smart vent',
+        supports: 'open, close, position, temperature, pressure, battery',
+        fromZigbee: [
+            fz.cover_position, fz.cover_position_report, fz.generic_temperature, fz.generic_temperature_change,
+            fz.generic_battery, fz.generic_battery_change, fz.keen_home_smart_vent_pressure,
+            fz.keen_home_smart_vent_pressure_report, fz.ignore_onoff_change, fz.ignore_onoff_report,
         ],
         toZigbee: [
             tz.cover_open_close,
@@ -3504,6 +4354,9 @@ const devices = [
 
             execute(device, actions, callback);
         },
+        options: {
+            disFeedbackRsp: true,
+        },
     },
 
     // LivingWise
@@ -3518,6 +4371,15 @@ const devices = [
             fz.state, fz.brightness, fz.ignore_light_brightness_report, fz.ignore_onoff_change,
             fz.ignore_genIdentify,
         ],
+    },
+    {
+        zigbeeModel: ['545df2981b704114945f6df1c780515a'],
+        model: 'LVS-ZB15S',
+        vendor: 'LivingWise',
+        description: 'ZigBee smart in-wall switch',
+        supports: 'on/off',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
     },
     {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
@@ -3536,6 +4398,24 @@ const devices = [
 
             execute(device, actions, callback);
         },
+    },
+    {
+        zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
+        model: 'LVS-SN10ZW_SN11',
+        vendor: 'LivingWise',
+        description: 'Occupancy sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change_no_off_msg],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['55e0fa5cdb144ba3a91aefb87c068cff'],
+        model: 'LVS-ZB15R',
+        vendor: 'LivingWise',
+        description: 'Zigbee smart outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_basic_report, fz.ignore_basic_change],
+        toZigbee: [tz.on_off],
     },
 
     // Stelpro
@@ -3566,13 +4446,87 @@ const devices = [
 
     // Nyce
     {
+        zigbeeModel: ['3011'],
+        model: 'NCZ-3011-HA',
+        vendor: 'Nyce',
+        description: 'Door/window sensor',
+        supports: 'motion, humidity and temperature',
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
+            fz.generic_battery_change, fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.ias_contact_status_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['3043'],
         model: 'NCZ-3043-HA',
         vendor: 'Nyce',
-        description: 'Motion sensor',
+        description: 'Ceiling motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.xiaomi_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
+            fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
+            fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.generic_battery_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3041'],
+        model: 'NCZ-3041-HA',
+        vendor: 'Nyce',
+        description: 'Wall motion sensor',
+        supports: 'motion, humidity and temperature',
+        fromZigbee: [
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
+            fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
+            fz.ignore_iaszone_change,
+            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
+            fz.ias_zone_motion_status_change, fz.generic_battery, fz.generic_battery_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['3045'],
+        model: 'NCZ-3045-HA',
+        vendor: 'Nyce',
+        description: 'Curtain motion sensor',
+        supports: 'motion, humidity and temperature',
+        fromZigbee: [
+            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
             fz.generic_temperature_change, fz.generic_battery_change, fz.ignore_humidity_change,
             fz.ignore_iaszone_change,
@@ -3598,15 +4552,68 @@ const devices = [
         vendor: 'Securifi',
         description: 'Peanut Smart Plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.ignore_electrical_change, fz.state, fz.ignore_onoff_change],
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.peanut_electrical, fz.ignore_electrical_change],
         toZigbee: [tz.on_off],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const onOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const rmsCurrent = {
-                direction: 0, attrId: 1288, dataType: 33, minRepIntval: 0, maxRepIntval: 3, repChange: 0,
+
+            // Observed Voltage Multiplier 180 / Divisor 39321 = 0.004578
+            // (218.4 units / V = about 22 units per 1/10 V)
+            const rmsVoltage = {
+                direction: 0, attrId: 1285, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 22,
             };
-            const electricalCfg = [rmsCurrent];
+
+            // Observed Current Multiplier 72 / Divisor 39321 = 0.001831
+            // (546.1 units / A = about 5 units per 1/100 A)
+            const rmsCurrent = {
+                direction: 0, attrId: 1288, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 5,
+            };
+
+            // Observed Power Multiplier 10255 / Divisor 39321 = 0.2608
+            // (3.834 units / W = about 1 unit per 1/4 W)
+            const activePower = {
+                direction: 0, attrId: 1291, dataType: 41,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 1,
+            };
+
+            // Multipliers and Divisors might never change,
+            // but report at max 10 min. to ensure first report comes in reasonably promptly
+            const acVoltageMultiplier = {
+                direction: 0, attrId: 1536, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+            const acVoltageDivisor = {
+                direction: 0, attrId: 1537, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+
+            const acCurrentMultiplier = {
+                direction: 0, attrId: 1538, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+            const acCurrentDivisor = {
+                direction: 0, attrId: 1539, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+
+            const acPowerMultiplier = {
+                direction: 0, attrId: 1540, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+            const acPowerDivisor = {
+                direction: 0, attrId: 1541, dataType: 33,
+                minRepIntval: 10, maxRepIntval: 600, repChange: 0,
+            };
+
+            const electricalCfg = [
+                rmsVoltage, rmsCurrent, activePower,
+                acVoltageMultiplier, acVoltageDivisor,
+                acCurrentMultiplier, acCurrentDivisor,
+                acPowerMultiplier, acPowerDivisor,
+            ];
             const actions = [
                 (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
                 (cb) => device.bind('genOnOff', coordinator, cb),
@@ -3628,6 +4635,23 @@ const devices = [
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['MCT-340 E'],
+        model: 'MCT-340 E',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 0}, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 
     // Sunricher
     {
@@ -3644,6 +4668,20 @@ const devices = [
         model: 'HLD812-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['HOMA1002'],
+        model: 'HLC610-Z',
+        vendor: 'Shenzhen Homa',
+        description: 'Wireless dimmable controller',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['HOMA1031'],
+        model: 'HLC821-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
 
@@ -3674,6 +4712,26 @@ const devices = [
             ];
 
             execute(ep1, actions, callback);
+        },
+    },
+
+    // Danalock
+    {
+        zigbeeModel: ['V3-BTZB'],
+        model: 'V3-BTZB',
+        vendor: 'Danalock',
+        description: 'BT/ZB smartlock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200, fz.ignore_power_change],
+        toZigbee: [tz.generic_lock],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.report('closuresDoorLock', 'lockState', 0, repInterval.HOUR, 0, cb),
+                (cb) => device.report('genPowerCfg', 'batteryPercentageRemaining', 0, repInterval.MAX, 0, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
 
@@ -3713,6 +4771,755 @@ const devices = [
                     callback(result);
                 }
             });
+        },
+    },
+
+    // Third Reality
+    {
+        zigbeeModel: ['3RSS008Z'],
+        model: '3RSS008Z',
+        vendor: 'Third Reality',
+        description: 'RealitySwitch Plus',
+        supports: 'on/off, battery',
+        fromZigbee: [
+            fz.ignore_onoff_change, fz.state, fz.ignore_genIdentify_change,
+            fz.ignore_basic_change,
+        ],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+    },
+
+    // Hampton Bay
+    {
+        zigbeeModel: ['HDC52EastwindFan', 'HBUniversalCFRemote'],
+        model: '99432',
+        vendor: 'Hampton Bay',
+        description: 'Universal wink enabled white ceiling fan premier remote control',
+        supports: 'on/off, brightness, fan_mode and fan_state',
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
+            fz.ignore_fan_change, fz.generic_fan_mode,
+        ]),
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 1000, 0, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.report('genLevelCtrl', 'currentLevel', 0, 1000, 0, cb),
+                (cb) => device.bind('hvacFanCtrl', coordinator, cb),
+                (cb) => device.report('hvacFanCtrl', 'fanMode', 0, 1000, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+        options: {
+            disFeedbackRsp: true,
+        },
+    },
+
+    // Iluminize
+    {
+        zigbeeModel: ['DIM Lighting'],
+        model: '511.10',
+        vendor: 'Iluminize',
+        description: 'Zigbee LED-Controller ',
+        extend: generic.light_onoff_brightness,
+    },
+
+    // Anchor
+    {
+        zigbeeModel: ['FB56-SKT17AC1.4'],
+        model: '67200BL',
+        description: 'Vetaar smart plug',
+        supports: 'on/off',
+        vendor: 'Anchor',
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Gira
+    {
+        zigbeeModel: [' Remote'],
+        model: '2430-100',
+        vendor: 'Gira',
+        description: 'ZigBee Light Link wall transmitter',
+        supports: 'action',
+        fromZigbee: [
+            fz.GIRA2430_scene_click, fz.GIRA2430_on_click, fz.GIRA2430_off_click, fz.GIRA2430_down_hold,
+            fz.GIRA2430_up_hold, fz.GIRA2430_stop,
+        ],
+        toZigbee: [],
+    },
+
+    // RGB genie
+    {
+        zigbeeModel: ['ZGRC-KEY-013'],
+        model: 'ZGRC-KEY-013',
+        vendor: 'RGB Genie',
+        description: '3 Zone remote and dimmer',
+        supports: 'click',
+        fromZigbee: [
+            fz.generic_battery, fz.ZGRC013_brightness_onoff, fz.ZGRC013_brightness, fz.ZGRC013_brightness_stop,
+            fz.ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Sercomm
+    {
+        zigbeeModel: ['SZ-ESW01-AU'],
+        model: 'SZ-ESW01-AU',
+        vendor: 'Sercomm',
+        description: 'Telstra smart plug',
+        supports: 'on/off, power consumption',
+        fromZigbee: [fz.state, fz.state_change, fz.SZ_ESW01_AU_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Leedarson
+    {
+        zigbeeModel: ['LED_GU10_OWDT'],
+        model: 'ZM350STW1TCF',
+        vendor: 'Leedarson',
+        description: 'LED PAR16 50 GU10 tunable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['M350ST-W1R-01'],
+        model: 'M350STW1',
+        vendor: 'Leedarson',
+        description: 'LED PAR16 50 GU10',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZHA-DimmableLight'],
+        model: 'A806S-Q1R',
+        vendor: 'Leedarson',
+        description: 'LED E27 tunable white',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['LED_E27_OWDT'],
+        model: 'ZA806SQ1TCF',
+        vendor: 'Leedarson',
+        description: 'LED E27 tunable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+
+    // GMY
+    {
+        zigbeeModel: ['CCT box'],
+        model: 'B07KG5KF5R',
+        vendor: 'GMY Smart Bulb',
+        description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+
+    // Meazon
+    {
+        zigbeeModel: [
+            '101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738',
+            '101.301.001412', '101.301.001765', '101.301.001814',
+        ],
+        model: 'MEAZON_BIZY_PLUG',
+        vendor: 'Meazon',
+        description: 'Bizy plug meter',
+        supports: 'on/off, power, energy measurement and temperature',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.meazon_meter, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 10);
+            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
+            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
+                maxRepIntval: 300, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('seMetering', coordinator, cb),
+                (cb) => device.foundation('seMetering', 'write',
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242'],
+        model: 'MEAZON_DINRAIL',
+        vendor: 'Meazon',
+        description: 'DinRail 1-phase meter',
+        supports: 'on/off, power, energy measurement and temperature',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.ignore_onoff_change,
+            fz.meazon_meter, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 10);
+            const onOff = {direction: 0, attrId: 0, dataType: 0x10, minRepIntval: 0x0001, maxRepIntval: 0xfffe};
+            const linefrequency = {direction: 0, attrId: 0x2000, dataType: 0x29, minRepIntval: 0x0001,
+                maxRepIntval: 300, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [onOff], foundationCfg, cb),
+                (cb) => device.bind('seMetering', coordinator, cb),
+                (cb) => device.foundation('seMetering', 'write',
+                    [{attrId: 0x1005, dataType: 25, attrData: 0x063e}],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+                (cb) => device.foundation('seMetering', 'configReport', [linefrequency],
+                    {manufSpec: 1, disDefaultRsp: 0, manufCode: 4406}, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Konke
+    {
+        zigbeeModel: ['3AFE170100510001'],
+        model: '2AJZ4KPKEY',
+        vendor: 'Konke',
+        description: 'Multi-function button',
+        supports: 'single, double and long click',
+        fromZigbee: [
+            fz.konke_click, fz.ignore_onoff_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    /*
+    {
+        zigbeeModel: ['3AFE14010402000D'],
+        model: '2AJZ4KPBS',
+        vendor: 'Konke',
+        description: 'Motion sensor',
+        supports: '',
+        fromZigbee: [
+            fz.bosch_ias_zone_motion_status_change,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
+    },
+    */
+    {
+        zigbeeModel: ['3AFE140103020000'],
+        model: '2AJZ4KPFT',
+        vendor: 'Konke',
+        description: 'Temperature and humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_temperature, fz.ignore_temperature_change,
+            fz.generic_humidity, fz.ignore_humidity_change,
+            fz.generic_batteryvoltage_3000_2500,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 150, 300, 0.5, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    /*
+    {
+        zigbeeModel: ['3AFE130104020015'],
+        model: '2AJZ4KPDR',
+        vendor: 'Konke',
+        description: 'Contact sensor',
+        supports: '',
+        fromZigbee: [
+            fz.heiman_contact,
+            fz.generic_change_batteryvoltage_3000_2500, fz.generic_batteryvoltage_3000_2500,
+        ],
+        // TODO: Not fully supported - need to be configured correctly. Look at
+        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
+            ];
+            execute(device, actions, callback);
+        }
+    },
+    */
+
+    // TUYATEC
+    {
+        zigbeeModel: ['RH3040'],
+        model: 'RH3040',
+        vendor: 'TUYATEC',
+        description: 'PIR sensor',
+        supports: 'occupancy',
+        fromZigbee: [
+            fz.generic_battery_remaining, fz.ignore_power_change, fz.generic_battery_voltage,
+            fz.ignore_basic_report, fz.ignore_basic_change, fz.ignore_iaszone_change,
+            fz.generic_ias_zone_occupancy_status_change,
+        ],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('ssIasZone', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.report('genPowerCfg', 'batteryVoltage', 'batteryPercentageRemaining', 1, 1000, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['RH3052'],
+        model: 'TT001ZAV20',
+        vendor: 'TUYATEC',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_humidity, fz.generic_temperature, fz.battery_200,
+            fz.ignore_humidity_change, fz.ignore_temperature_change,
+        ],
+        toZigbee: [],
+    },
+
+    // Zemismart
+    {
+        zigbeeModel: ['TS0002'],
+        model: 'ZM-CSW002-D',
+        vendor: 'Zemismart',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Sinope
+    {
+        zigbeeModel: ['TH1123ZB'],
+        model: 'TH1123ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee line volt thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genGroups', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 19, 300, 50, cb),
+                (cb) => device.report('hvacThermostat', 'pIHeatingDemand', 4, 300, 10, cb),
+                (cb) => device.report('hvacThermostat', 'occupiedHeatingSetpoint', 15, 300, 40, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
+    // Lutron
+    {
+        zigbeeModel: ['LZL4BWHL01 Remote'],
+        model: 'LZL4BWHL01',
+        vendor: 'Lutron',
+        description: 'Connected bulb remote control',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
+        toZigbee: [],
+    },
+
+    // Zen
+    {
+        zigbeeModel: ['Zen-01'],
+        model: 'Zen-01-W',
+        vendor: 'Zen',
+        description: 'Thermostat',
+        supports: 'temperature, heating/cooling system control',
+        fromZigbee: [
+            fz.ignore_basic_change, fz.generic_battery_voltage,
+            fz.thermostat_att_report, fz.thermostat_dev_change,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
+            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+        ],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const actions = [
+                (cb) => device.bind('genBasic', coordinator, cb),
+                (cb) => device.bind('genPowerCfg', coordinator, cb),
+                (cb) => device.bind('genIdentify', coordinator, cb),
+                (cb) => device.bind('genTime', coordinator, cb),
+                (cb) => device.bind('genPollCtrl', coordinator, cb),
+                (cb) => device.bind('hvacThermostat', coordinator, cb),
+                (cb) => device.bind('hvacUserInterfaceCfg', coordinator, cb),
+                (cb) => device.report('hvacThermostat', 'localTemp', 5, 30, 0, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // Hej
+    {
+        zigbeeModel: ['HejSW01'],
+        model: 'GLSK3ZB-1711',
+        vendor: 'Hej',
+        description: 'Goqual 1 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['HejSW02'],
+        model: 'GLSK3ZB-1712',
+        vendor: 'Hej',
+        description: 'Goqual 2 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], callback);
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW03'],
+        model: 'GLSK3ZB-1713',
+        vendor: 'Hej',
+        description: 'Goqual 3 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], callback);
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW04'],
+        model: 'GLSK6ZB-1714',
+        vendor: 'Hej',
+        description: 'Goqual 4 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], callback);
+                    });
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW05'],
+        model: 'GLSK6ZB-1715',
+        vendor: 'Hej',
+        description: 'Goqual 5 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
+                            const ep5 = shepherd.find(ieeeAddr, 5);
+                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], callback);
+                        });
+                    });
+                });
+            });
+        },
+    },
+    {
+        zigbeeModel: ['HejSW06'],
+        model: 'GLSK6ZB-1716',
+        vendor: 'Hej',
+        description: 'Goqual 6 gang Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {
+                'top_left': 1, 'center_left': 2, 'bottom_left': 3,
+                'top_right': 4, 'center_right': 5, 'bottom_right': 6,
+            };
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            execute(ep1, [(cb) => ep1.bind('genOnOff', coordinator, cb)], () => {
+                const ep2 = shepherd.find(ieeeAddr, 2);
+                execute(ep2, [(cb) => ep2.bind('genOnOff', coordinator, cb)], () => {
+                    const ep3 = shepherd.find(ieeeAddr, 3);
+                    execute(ep3, [(cb) => ep3.bind('genOnOff', coordinator, cb)], () => {
+                        const ep4 = shepherd.find(ieeeAddr, 4);
+                        execute(ep4, [(cb) => ep4.bind('genOnOff', coordinator, cb)], () => {
+                            const ep5 = shepherd.find(ieeeAddr, 5);
+                            execute(ep5, [(cb) => ep5.bind('genOnOff', coordinator, cb)], () => {
+                                const ep6 = shepherd.find(ieeeAddr, 6);
+                                execute(ep6, [(cb) => ep6.bind('genOnOff', coordinator, cb)], callback);
+                            });
+                        });
+                    });
+                });
+            });
+        },
+    },
+
+    // Dawon DNS
+    {
+        zigbeeModel: ['PM-C140-ZB'],
+        model: 'PM-C140-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT remote control smart buried-type outlet',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.ignore_metering_change, fz.generic_power],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+
+    // CREE
+    {
+        zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
+        model: 'B00TN589ZG',
+        vendor: 'CREE',
+        description: 'Connected bulb',
+        extend: generic.light_onoff_brightness,
+    },
+
+    // Ubisys
+    {
+        zigbeeModel: ['S1 (5501)', 'S1-R (5601)'],
+        model: 'S1',
+        vendor: 'Ubisys',
+        description: 'Power switch S1',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3); // metering
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
+        model: 'S2',
+        vendor: 'Ubisys',
+        description: 'Power switch S2',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.state, fz.ignore_onoff_change, fz.generic_power, fz.ignore_metering_change],
+        toZigbee: [tz.on_off],
+        ep: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 5); // metering
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['D1 (5503)', 'D1-R (5603)'],
+        model: 'D1',
+        vendor: 'Ubisys',
+        description: 'Universal dimmer D1',
+        supports: 'on/off, brightness, power measurement',
+        fromZigbee: [
+            fz.state, fz.brightness_report, fz.ignore_onoff_change, fz.ignore_light_brightness_change,
+            fz.generic_power, fz.ignore_metering_change,
+        ],
+        toZigbee: [tz.light_onoff_brightness],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 4); // metering
+            const actions = [
+                (cb) => device.report('seMetering', 'instantaneousDemand', 10, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
+        zigbeeModel: ['J1 (5502)', 'J1-R (5602)'],
+        model: 'J1',
+        vendor: 'Ubisys',
+        description: 'Shutter control J1',
+        supports: 'open, close, stop, position, tilt',
+        fromZigbee: [fz.closuresWindowCovering_report_pos_and_tilt, fz.ignore_closuresWindowCovering_change],
+        toZigbee: [tz.cover_control, tz.cover_gotopercentage],
+    },
+
+    // Lingan
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'DZ4743-00B',
+        vendor: 'Lingan',
+        description: 'Zigbee OnOff controller',
+        supports: 'on/off',
+        fromZigbee: [fz.state_change, fz.state],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
+    // Lutron
+    {
+        zigbeeModel: ['Z3-1BRL'],
+        model: 'Z3-1BRL',
+        vendor: 'Lutron',
+        description: 'Aurora smart bulb dimmer',
+        supports: 'brightness',
+        fromZigbee: [fz.dimmer_passthru_brightness],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+            ];
+            execute(ep1, actions, callback);
         },
     },
 ];
