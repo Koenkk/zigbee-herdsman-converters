@@ -5469,13 +5469,14 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
     // Lutron
     {
         zigbeeModel: ['Z3-1BRL'],
         model: 'Z3-1BRL',
         vendor: 'Lutron',
-        description: 'Aurora Smart Bulb Dimmer',
-        supports: 'on/off, brightness',
+        description: 'Aurora smart bulb dimmer',
+        supports: 'brightness',
         fromZigbee: [fz.dimmer_passthru_brightness],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
