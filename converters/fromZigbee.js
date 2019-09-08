@@ -152,7 +152,7 @@ const ratelimitedDimmer = (model, msg, publish, options) => {
 
     if (duration > 500) {
         s.lastmsg = Date.now();
-        payload.action = 'setbrightness';
+        payload.action = 'brightness';
         payload.brightness = msg.data.data.level;
         publish(payload);
     }
