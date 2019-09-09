@@ -42,6 +42,17 @@ function getTransition(message, options) {
 //                  seperated by transition time instead of separte endpoint
 // }
 
+const getOptions = (meta) => {
+    const result = {};
+    const allowed = ['disableDefaultResponse', 'manufacturerCode'];
+    for (const key of Object.keys(meta.options)) {
+        if (allowed.includes(key)) {
+            result[key] = meta.options[key];
+        }
+    }
+    return result;
+};
+
 const converters = {
     /**
      * Generic
@@ -49,13 +60,13 @@ const converters = {
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genBasic', 'resetFactDefault', {});
+            await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta));
         },
     },
     on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genOnOff', value.toLowerCase(), {});
+            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta));
             return {state: {state: value.toUpperCase()}};
         },
         convertGet: async (entity, key, meta) => {
@@ -87,7 +98,8 @@ const converters = {
             await entity.command(
                 'genLevelCtrl',
                 'currentLevel',
-                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0}
+                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
+                getOptions(meta)
             );
 
             return {state: {position: value}, readAfterWriteTime: 0};
@@ -128,7 +140,8 @@ const converters = {
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: values.duration}
+                {startwarninginfo: info, warningduration: values.duration},
+                getOptions(meta)
             );
         },
     },
@@ -143,7 +156,7 @@ const converters = {
                 'off': 'downClose',
             };
 
-            await entity.command('closuresWindowCovering', zclCmdLookup[value.toLowerCase()], {});
+            await entity.command('closuresWindowCovering', zclCmdLookup[value.toLowerCase()], {}, getOptions(meta));
         },
     },
     cover_gotopercentage: {
@@ -158,6 +171,7 @@ const converters = {
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
                 isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                getOptions(meta)
             );
         },
         convertGet: async (entity, key, meta) => {
@@ -192,7 +206,7 @@ const converters = {
                 return result;
             } else {
                 const payload = {level: Number(value), transtime: getTransition(message, options) * 10};
-                await entity.command('genLevelCtrl', 'moveToLevel', payload);
+                await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta));
                 const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
                 return {state: {brightness: Number(value)}, readAfterWriteTime};
             }
@@ -213,13 +227,13 @@ const converters = {
             const state = hasState ? message.state.toLowerCase() : null;
 
             if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
-                const result = await converters.on_off.convertSet(entity, 'state', state, options);
+                const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                 if (state === 'on') {
                     result.readAfterWriteTime = 0;
                 }
                 return result;
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                const result = await converters.on_off.convertSet(entity, 'state', 'off', options);
+                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
                 result.state.brightness = 0;
                 return result;
             } else {
@@ -237,7 +251,8 @@ const converters = {
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(brightness), transtime: transition * 10}
+                    {level: Number(brightness), transtime: transition * 10},
+                    getOptions(meta)
                 );
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
@@ -271,7 +286,7 @@ const converters = {
 
             value = Number(value);
             const payload = {colortemp: value, transtime: getTransition(message, options) * 10};
-            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload);
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
             const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
             return {state: {color_temp: value}, readAfterWriteTime};
         },
@@ -337,7 +352,7 @@ const converters = {
                 zclData.colory = Math.round(value.y * 65535);
             }
 
-            await entity.command('lightingColorCtrl', cmd, zclData);
+            await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta));
             const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
             return {state: newState, readAfterWriteTime};
         },
@@ -387,7 +402,7 @@ const converters = {
             }
 
             const payload = {effectid: lookup[value.toLowerCase()], effectvariant: 0x01};
-            await entity.command('genIdentify', 'triggerEffect', payload);
+            await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta));
         },
     },
     thermostat_local_temperature: {
@@ -475,7 +490,7 @@ const converters = {
         key: 'setpoint_raise_lower',
         convertSet: async (entity, key, value, meta) => {
             const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
-            await entity.command('hvacThermostat', 'setpointRaiseLower', payload);
+            await entity.command('hvacThermostat', 'setpointRaiseLower', payload, getOptions(meta));
         },
     },
     thermostat_weekly_schedule: {
@@ -487,22 +502,22 @@ const converters = {
                 thermostat_programming_operation_mode: value.thermostat_programming_operation_mode,
                 thermostat_running_state: value.thermostat_running_state,
             };
-            await entity.command('hvacThermostat', 'setWeeklySchedule', payload);
+            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, getOptions(meta));
         },
         convertGet: async (entity, key, meta) => {
-            await entity.command('hvacThermostat', 'getWeeklySchedule', {});
+            await entity.command('hvacThermostat', 'getWeeklySchedule', {}, getOptions(meta));
         },
     },
     thermostat_clear_weekly_schedule: {
         key: 'clear_weekly_schedule',
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'clearWeeklySchedule', {});
+            await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, getOptions(meta));
         },
     },
     thermostat_relay_status_log: {
         key: 'relay_status_log',
         convertGet: async (entity, key, meta) => {
-            await entity.command('hvacThermostat', 'getRelayStatusLog', {});
+            await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta));
         },
     },
     thermostat_weekly_schedule_rsp: {
@@ -514,7 +529,7 @@ const converters = {
                 mode: meta.message[key].mode,
                 thermoseqmode: meta.message[key].thermoseqmode,
             };
-            await entity.command('hvacThermostat', 'getWeeklyScheduleRsp', payload);
+            await entity.command('hvacThermostat', 'getWeeklyScheduleRsp', payload, getOptions(meta));
         },
     },
     thermostat_relay_status_log_rsp: {
@@ -529,7 +544,7 @@ const converters = {
                 setpoint: meta.message[key].setpoint,
                 unread_entries: meta.message[key].unreadentries,
             };
-            await entity.command('hvacThermostat', 'getRelayStatusLogRsp', payload);
+            await entity.command('hvacThermostat', 'getRelayStatusLogRsp', payload, getOptions(meta));
         },
     },
     thermostat_running_mode: {
@@ -660,14 +675,14 @@ const converters = {
     STS_PRS_251_beep: {
         key: ['beep'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genIdentify', 'identifyTime', {identifytime: value});
+            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta));
         },
     },
     ZNCLDJ11LM_control: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
-                await entity.command('closuresWindowCovering', 'stop', {});
+                await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta));
             } else {
                 const lookup = {
                     'open': 100,

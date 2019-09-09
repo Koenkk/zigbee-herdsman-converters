@@ -2514,6 +2514,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        meta: {options: {disableDefaultResponse: true}},
         endpoint: (device) => {
             if (hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
@@ -4004,9 +4005,6 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
-        options: {
-            disFeedbackRsp: true,
-        },
     },
 
     // LivingWise
@@ -4316,9 +4314,6 @@ const devices = [
             await configureReporting.onOff(endpoint);
             await configureReporting.brightness(endpoint);
             await configureReporting.fanMode(endpoint);
-        },
-        options: {
-            disFeedbackRsp: true,
         },
     },
 
