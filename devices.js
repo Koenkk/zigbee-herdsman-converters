@@ -4919,6 +4919,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -4934,6 +4935,7 @@ const devices = [
         supports: 'brightness',
         fromZigbee: [fz.dimmer_passthru_brightness],
         toZigbee: [],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
