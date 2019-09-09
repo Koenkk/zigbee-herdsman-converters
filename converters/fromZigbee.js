@@ -167,17 +167,26 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
-
 const converters = {
     HS2SK_power: {
         cid: 'haElectricalMeasurement',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {
-                power: msg.data.data['activePower'] / 10,
-                current: msg.data.data['rmsCurrent'] / 100,
-                voltage: msg.data.data['rmsVoltage'] / 100,
-            };
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = msg.data.data['activePower'] / 10;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data.data['rmsCurrent'] / 100;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data.data['rmsVoltage'] / 100;
+            }
+
+            return result;
         },
     },
     generic_lock: {
