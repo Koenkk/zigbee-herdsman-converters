@@ -5522,6 +5522,25 @@ const devices = [
             execute(ep1, actions, callback);
         },
     },
+
+    // Piri
+    {
+        zigbeeModel: ['GASSensor-EM'],
+        model: 'HSIO18008',
+        vendor: 'Piri',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
