@@ -1197,6 +1197,16 @@ const converters = {
             return {smoke: msg.data.zoneStatus === 1};
         },
     },
+    piri_gas: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
+            };
+        },
+    },
     heiman_pir: {
         cid: 'ssIasZone',
         type: 'statusChange',
