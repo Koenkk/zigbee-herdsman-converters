@@ -3645,7 +3645,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3663,7 +3663,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);

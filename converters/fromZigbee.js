@@ -1284,13 +1284,14 @@ const converters = {
             return results;
         },
     },
-    heiman_gas: {
+    generic_ias_statuschange_gas: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
                 gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
