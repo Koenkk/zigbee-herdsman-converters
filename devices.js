@@ -2325,7 +2325,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['FNB56-ZSW03LX2.0'],
+        zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
