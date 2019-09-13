@@ -577,7 +577,7 @@ const devices = [
             'TRADFRI bulb E14 CWS opal 600lm'],
         model: 'LED1624G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27/E26 600 lumen, dimmable, color, opal white',
+        description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colorxy,
     },
     {
@@ -3645,7 +3645,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3663,7 +3663,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -5500,6 +5500,43 @@ const devices = [
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
                 (cb) => device.bind('genOnOff', coordinator, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
+    // Lutron
+    {
+        zigbeeModel: ['Z3-1BRL'],
+        model: 'Z3-1BRL',
+        vendor: 'Lutron',
+        description: 'Aurora smart bulb dimmer',
+        supports: 'brightness',
+        fromZigbee: [fz.dimmer_passthru_brightness],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const ep1 = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => ep1.bind('genLevelCtrl', coordinator, cb),
+            ];
+            execute(ep1, actions, callback);
+        },
+    },
+
+    // Piri
+    {
+        zigbeeModel: ['GASSensor-EM'],
+        model: 'HSIO18008',
+        vendor: 'Piri',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
+        toZigbee: [],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const actions = [
+                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
+                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
             ];
             execute(device, actions, callback);
         },

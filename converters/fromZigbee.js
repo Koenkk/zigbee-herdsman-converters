@@ -134,6 +134,30 @@ const ictcg1 = (model, msg, publish, options, action) => {
     s.publish(payload);
 };
 
+const ratelimitedDimmer = (model, msg, publish, options) => {
+    const deviceID = msg.endpoints[0].device.ieeeAddr;
+    const payload = {};
+    let duration = 0;
+
+    if (!store[deviceID]) {
+        store[deviceID] = {lastmsg: false};
+    }
+    const s = store[deviceID];
+
+    if (s.lastmsg) {
+        duration = Date.now() - s.lastmsg;
+    } else {
+        s.lastmsg = Date.now();
+    }
+
+    if (duration > 500) {
+        s.lastmsg = Date.now();
+        payload.action = 'brightness';
+        payload.brightness = msg.data.data.level;
+        publish(payload);
+    }
+};
+
 const holdUpdateBrightness324131092621 = (deviceID) => {
     if (store[deviceID] && store[deviceID].brightnessSince && store[deviceID].brightnessDirection) {
         const duration = Date.now() - store[deviceID].brightnessSince;
@@ -143,17 +167,26 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
-
 const converters = {
     HS2SK_power: {
         cid: 'haElectricalMeasurement',
         type: ['attReport', 'readRsp'],
         convert: (model, msg, publish, options) => {
-            return {
-                power: msg.data.data['activePower'] / 10,
-                current: msg.data.data['rmsCurrent'] / 100,
-                voltage: msg.data.data['rmsVoltage'] / 100,
-            };
+            const result = {};
+
+            if (msg.data.data.hasOwnProperty('activePower')) {
+                result.power = msg.data.data['activePower'] / 10;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsCurrent')) {
+                result.current = msg.data.data['rmsCurrent'] / 100;
+            }
+
+            if (msg.data.data.hasOwnProperty('rmsVoltage')) {
+                result.voltage = msg.data.data['rmsVoltage'] / 100;
+            }
+
+            return result;
         },
     },
     generic_lock: {
@@ -1251,13 +1284,14 @@ const converters = {
             return results;
         },
     },
-    heiman_gas: {
+    generic_ias_statuschange_gas: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
                 gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
@@ -3134,6 +3168,13 @@ const converters = {
                 battery: toPercentage(voltage, battery.min, battery.max),
                 voltage: voltage,
             };
+        },
+    },
+    dimmer_passthru_brightness: {
+        cid: 'genLevelCtrl',
+        type: 'cmdMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            ratelimitedDimmer(model, msg, publish, options);
         },
     },
 
