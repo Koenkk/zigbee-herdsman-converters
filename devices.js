@@ -2397,10 +2397,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW02LX2.0'],
+        zigbeeModel: ['FNB56-ZSW02LX2.0', 'LXN-2S27LX1.0'],
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
-        description: 'Smart light switch - 2 gang. ',
+        description: 'Smart light switch - 2 gang v2.0',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
