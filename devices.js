@@ -4668,6 +4668,14 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['ZG2833K4_EU06'],
+        model: 'SR-ZG9001K4-DIM2',
+        vendor: 'Sunricher',
+        description: 'ZigBee double key wall switch',
+        toZigbee: [],
+        fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery],
+    },
 
     // Shenzhen Homa
     {
