@@ -4673,8 +4673,11 @@ const devices = [
         model: 'SR-ZG9001K4-DIM2',
         vendor: 'Sunricher',
         description: 'ZigBee double key wall switch',
+        fromZigbee: [
+          fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery,
+          fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.ignore_power_change
+        ],
         toZigbee: [],
-        fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery],
     },
 
     // Shenzhen Homa
