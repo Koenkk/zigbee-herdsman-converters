@@ -3999,7 +3999,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.state],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        meta: {configureKey: 1},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -4307,7 +4307,7 @@ const devices = [
             fz.generic_fan_mode,
         ]),
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
-        meta: {configureKey: 1},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'hvacFanCtrl']);
