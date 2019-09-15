@@ -3950,7 +3950,9 @@ const devices = [
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Switch',
-        extend: generic.light_onoff_brightness,
+	supports: 'on/off',
+	fromZigbee: [fz.state],
+	toZigbee: [tz.on_off],
     },
 
     // Müller Licht
