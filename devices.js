@@ -4676,7 +4676,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery,
-            fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.ignore_power_change
+            fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.ignore_power_change,
         ],
         toZigbee: [],
     },
