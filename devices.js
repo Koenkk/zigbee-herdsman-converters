@@ -529,6 +529,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 WW 806lm'],
+        model: 'LED1736G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, clear',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6',
         vendor: 'IKEA',
@@ -3760,7 +3767,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['COSensor-EM'],
+        zigbeeModel: ['COSensor-EM', 'COSensor-N'],
         model: 'HS1CA-E',
         vendor: 'HEIMAN',
         description: 'Smart carbon monoxide sensor',
