@@ -3900,6 +3900,27 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['Dimmable-E27-4713405'],
+        model: '4713405',
+        vendor: 'Airam',
+        description: 'LED OP A60 ZB 9W/827 E27',
+        extend: generic.light_onoff_brightness,
+        fromZigbee: [fz.state_change, fz.brightness_report, fz.brightness, fz.state],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfgOnOff = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const cfgLevel = {direction: 0, attrId: 0, dataType: 32, minRepIntval: 0, maxRepIntval: 1000, repChange: 1};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfgOnOff], foundationCfg, cb),
+                (cb) => device.bind('genLevelCtrl', coordinator, cb),
+                (cb) => device.foundation('genLevelCtrl', 'configReport', [cfgLevel], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },    
+    {
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
         model: 'AIRAM-CTR.U',
         vendor: 'Airam',
