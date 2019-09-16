@@ -3919,7 +3919,7 @@ const devices = [
 
             execute(device, actions, callback);
         },
-    },    
+    },
     {
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
         model: 'AIRAM-CTR.U',
