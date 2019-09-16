@@ -781,6 +781,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm'],
+        model: 'LED1842G3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
         vendor: 'IKEA',
@@ -1791,6 +1798,13 @@ const devices = [
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['TWGU10Bulb01UK'],
+        model: 'HV-GUCXZB5',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (GU10)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Innr
     {
@@ -2347,7 +2361,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['FNB56-ZSW03LX2.0'],
+        zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
@@ -2409,10 +2423,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW02LX2.0'],
+        zigbeeModel: ['FNB56-ZSW02LX2.0', 'LXN-2S27LX1.0'],
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
-        description: 'Smart light switch - 2 gang. ',
+        description: 'Smart light switch - 2 gang v2.0',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep],
         toZigbee: [tz.on_off],
@@ -3675,6 +3689,15 @@ const devices = [
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['ICZB-IW11SW'],
+        model: 'ICZB-IW11SW',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+    },
 
     // Müller Licht
     {
@@ -4188,6 +4211,17 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZG2833K4_EU06'],
+        model: 'SR-ZG9001K4-DIM2',
+        vendor: 'Sunricher',
+        description: 'ZigBee double key wall switch',
+        supports: 'on/off, brightness',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery,
+        ],
+        toZigbee: [],
     },
 
     // Shenzhen Homa
@@ -4932,6 +4966,17 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
+    },
+
+    // Piri
+    {
+        zigbeeModel: ['GASSensor-EM'],
+        model: 'HSIO18008',
+        vendor: 'Piri',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.iaszone_gas],
+        toZigbee: [],
     },
 ];
 
