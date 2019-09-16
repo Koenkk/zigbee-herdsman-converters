@@ -804,15 +804,6 @@ const converters = {
             return {water_leak: msg.data.zonestatus === 1};
         },
     },
-    SJCGQ11LM_water_leak_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
-                return {water_leak: msg.data['65281']['100'] === 1};
-            }
-        },
-    },
     state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
