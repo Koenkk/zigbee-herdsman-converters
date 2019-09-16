@@ -1138,13 +1138,14 @@ const converters = {
             return results;
         },
     },
-    heiman_gas: {
+    iaszone_gas: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {
                 gas: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Gas
+                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
