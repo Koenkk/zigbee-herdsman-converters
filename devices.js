@@ -1665,6 +1665,13 @@ const devices = [
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['TWGU10Bulb01UK'],
+        model: 'HV-GUCXZB5',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (GU10)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Innr
     {
