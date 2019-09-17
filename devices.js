@@ -1533,7 +1533,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: generic.light_onoff_brightness_colortemp,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
