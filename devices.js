@@ -2440,6 +2440,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['FNB56-SKT1JXN1.0'],
+        model: 'HGZB-20A',
+        vendor: 'Nue / 3A',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
