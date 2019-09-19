@@ -3672,7 +3672,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GASSensor-EN'],
+        zigbeeModel: ['GASSensor-EM'],
         model: 'HS1CG-M',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
