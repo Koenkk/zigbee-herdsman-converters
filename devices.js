@@ -3831,6 +3831,11 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.livolo_switch_state],
         toZigbee: [tz.livolo_switch_on_off],
+        onEvent: async (type, data, device) => {
+            // type: start, stop, deviceAnnounce, attributeReport, etc.
+            // data: data of the event
+            // device: device to publish to e.g. device.getEndpoint(1).command();
+        },
     },
 
     // Bosch
