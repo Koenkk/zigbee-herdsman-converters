@@ -799,7 +799,7 @@ const converters = {
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff'], options.eurotronic);
+            await entity.command('genOnOff', 'toggle', {}, {});
         },
     },
     generic_lock: {

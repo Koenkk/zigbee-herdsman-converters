@@ -2220,6 +2220,24 @@ const converters = {
             return payload;
         },
     },
+    livolo_switch_state_raw: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options) => {
+            const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
+            if (malformedHeader.compare(msg.data, 0, 4)) {
+                const status = msg.data[15];
+                const state = {};
+                state['state_left'] = status & 1 ? 'ON' : 'OFF';
+                state['state_right'] = status & 2 ? 'ON' : 'OFF';
+                state['linkquality'] = msg.linkquality;
+
+                return state;
+            }
+
+            return null;
+        },
+    },
     eria_81825_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
