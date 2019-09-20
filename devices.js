@@ -2,22 +2,13 @@
 
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
+const Utils = require('./converters/utils');
 
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
     MINUTE: 60,
     MINUTES_5: 60,
-};
-
-const hasEndpoints = (device, endpoints) => {
-    const eps = device.endpoints.map((e) => e.ID);
-    for (const endpoint of endpoints) {
-        if (!eps.includes(endpoint)) {
-            return false;
-        }
-    }
-    return true;
 };
 
 const bind = async (endpoint, target, clusters) => {
@@ -343,7 +334,7 @@ const gledopto = {
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: [
-            tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp, tz.ignore_transition,
+            tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp_white, tz.ignore_transition,
             tz.light_alert,
         ],
     },
@@ -2540,16 +2531,18 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         meta: {options: {disableDefaultResponse: true}},
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [11, 13])) {
+                return {'rgb': 11, 'white': 13};
+            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
                 return {'default': 11};
-            } else if (hasEndpoints(device, [11, 12, 13, 15])) {
+            } else if (Utils.hasEndpoints(device, [11, 12, 13, 15])) {
                 return {
                     'rgb': 12,
                     'white': 15,
                 };
-            } else if (hasEndpoints(device, [11, 13, 15])) {
+            } else if (Utils.hasEndpoints(device, [11, 13, 15])) {
                 return {
                     'rgb': 11,
                     'white': 15,
@@ -2566,9 +2559,9 @@ const devices = [
         description: 'Zigbee Smart WW/CW GU10',
         extend: gledopto.light_onoff_brightness_colortemp,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2582,9 +2575,9 @@ const devices = [
         description: 'Zigbee LED controller WW/CW Dimmer',
         extend: gledopto.light_onoff_brightness_colortemp,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2598,9 +2591,9 @@ const devices = [
         description: 'Smart RGBW GU10',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2614,9 +2607,9 @@ const devices = [
         description: 'Smart 4W E14 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2630,9 +2623,9 @@ const devices = [
         description: 'Smart garden lamp',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2646,9 +2639,9 @@ const devices = [
         description: 'Smart 6W E27 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2662,9 +2655,9 @@ const devices = [
         description: 'Smart 12W E27 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2678,9 +2671,9 @@ const devices = [
         description: 'LED RGB + CCT downlight ',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2694,9 +2687,9 @@ const devices = [
         description: 'Smart RGBW GU10 ',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
                 return {'default': 11};
             } else {
                 return {};
@@ -2717,9 +2710,9 @@ const devices = [
         description: 'Zigbee 10W floodlight RGB CCT',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
-            if (hasEndpoints(device, [11, 12, 13])) {
+            if (Utils.hasEndpoints(device, [11, 12, 13])) {
                 return {'default': 12};
-            } else if (hasEndpoints(device, [10, 11, 13]) || hasEndpoints(device, [11, 13])) {
+            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
                 return {'default': 11};
             } else {
                 return {};

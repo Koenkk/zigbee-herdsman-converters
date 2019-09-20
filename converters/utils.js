@@ -58,9 +58,20 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : (fallback || 0);
 }
 
+function hasEndpoints(device, endpoints) {
+    const eps = device.endpoints.map((e) => e.ID);
+    for (const endpoint of endpoints) {
+        if (!eps.includes(endpoint)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 module.exports = {
-    rgbToXY: rgbToXY,
-    hexToXY: hexToXY,
-    hexToRgb: hexToRgb,
-    getKeyByValue: getKeyByValue,
+    rgbToXY,
+    hexToXY,
+    hexToRgb,
+    getKeyByValue,
+    hasEndpoints,
 };

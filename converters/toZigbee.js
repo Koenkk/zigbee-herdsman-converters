@@ -2,6 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const options = {
     xiaomi: {
@@ -825,14 +826,38 @@ const converters = {
             return await converters.light_onoff_brightness.convertGet(entity, key, meta);
         },
     },
-    gledopto_light_color_colortemp: {
-        key: ['color', 'color_temp', 'color_temp_percent'],
+    gledopto_light_color_colortemp_white: {
+        key: ['color', 'color_temp', 'color_temp_percent', 'white_value'],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            return await converters.light_color_colortemp.convertSet(entity, key, value, meta);
+            const state = {};
+            if (meta.mapped.model === 'GL-C-008' && utils.hasEndpoints(meta.device, [11, 13])) {
+                if (key === 'white_value') {
+                    // Switch to white channel
+                    const payload = {colortemp: 500, transtime: getTransition(meta.message, options)};
+                    await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
+
+                    const result = await converters.light_brightness.convertSet(entity, key, value, meta);
+                    return {
+                        state: {white_value: value, ...result.state, color: {x: 0.323, y: 0.329}},
+                        readAfterWriteTime: 0,
+                    };
+                } else if (meta.state.white_value !== 0) {
+                    // Switch to RGB channel
+                    const payload = {colortemp: 155, transtime: getTransition(meta.message, options)};
+                    await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
+                    await converters.light_brightness.convertSet(entity, 'brightness', meta.state.brightness, meta);
+                    state.white_value = 0;
+                    await wait(1000);
+                }
+            }
+
+            const result = await converters.light_color_colortemp.convertSet(entity, key, value, meta);
+            result.state = {...result.state, ...state};
+            return result;
         },
         convertGet: async (entity, key, meta) => {
             return await converters.light_color_colortemp.convertGet(entity, key, meta);
