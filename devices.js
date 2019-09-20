@@ -4421,6 +4421,22 @@ const devices = [
 
     // Sercomm
     {
+        zigbeeModel: ['SZ-ESW01'],
+        model: 'SZ-ESW01',
+        vendor: 'Sercomm',
+        description: 'Telstra smart plug',
+        supports: 'on/off, power consumption',
+        fromZigbee: [fz.state, fz.SZ_ESW01_AU_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SZ-ESW01-AU'],
         model: 'SZ-ESW01-AU',
         vendor: 'Sercomm',
