@@ -3834,13 +3834,13 @@ const devices = [
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
         },
-        meta: { configureKey: 1 },
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await endpoint.command('genOnOff', 'toggle', {}, {});
         },
         onEvent: async (type, data, device) => {
-            if (["start", "deviceAnnounce"].includes(type)) {
+            if (['start', 'deviceAnnounce'].includes(type)) {
                 const endpoint = device.getEndpoint(6);
                 await endpoint.command('genOnOff', 'toggle', {}, {});
             }
