@@ -4622,6 +4622,7 @@ const devices = [
             fz.ias_contact_status_change,
             fz.generic_batteryvoltage_3000_2500,
         ],
+        toZigbee: [],
         meta: {configureKey: 1},
     },
 
