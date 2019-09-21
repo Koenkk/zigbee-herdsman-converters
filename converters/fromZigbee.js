@@ -2236,7 +2236,7 @@ const converters = {
             }
             return null;
         },
-    },    
+    },
     eria_81825_on: {
         cluster: 'genOnOff',
         type: 'commandOn',

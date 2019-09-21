@@ -3833,7 +3833,7 @@ const devices = [
             await endpoint.command('genOnOff', 'toggle', {}, {});
         },
         onEvent: async (type, data, device) => {
-            if (["start", "deviceAnnounce"].includes(type)) {
+            if (['start', 'deviceAnnounce'].includes(type)) {
                 const endpoint = device.getEndpoint(6);
                 await endpoint.command('genOnOff', 'toggle', {}, {});
             }
