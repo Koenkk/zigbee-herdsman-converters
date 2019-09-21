@@ -4579,32 +4579,19 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
-    /*
     {
         zigbeeModel: ['3AFE14010402000D'],
         model: '2AJZ4KPBS',
         vendor: 'Konke',
-        description: 'Motion sensor',
-        supports: '',
+        description: 'Motion Sensor',
+        supports: 'occupancy',
         fromZigbee: [
-            fz.bosch_ias_zone_motion_status_change,
+            fz.bitron_occupancy,
             fz.generic_batteryvoltage_3000_2500,
         ],
-        // TODO: Not fully supported - need to be configured correctly. Look at
-        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
+        toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
     },
-    */
     {
         zigbeeModel: ['3AFE140103020000'],
         model: '2AJZ4KPFT',
@@ -4625,32 +4612,18 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
-    /*
     {
         zigbeeModel: ['3AFE130104020015'],
         model: '2AJZ4KPDR',
         vendor: 'Konke',
         description: 'Contact sensor',
-        supports: '',
+        supports: 'contact',
         fromZigbee: [
-            fz.heiman_contact,
+            fz.ias_contact_status_change,
             fz.generic_batteryvoltage_3000_2500,
         ],
-        // TODO: Not fully supported - need to be configured correctly. Look at
-        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
     },
-    */
 
     // TUYATEC
     {
