@@ -3827,7 +3827,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
         },
-        meta: {},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await endpoint.command('genOnOff', 'toggle', {}, {});
