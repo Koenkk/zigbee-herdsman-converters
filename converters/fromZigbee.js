@@ -3419,6 +3419,20 @@ const converters = {
         type: 'attReport',
         convert: (model, msg, publish, options) => null,
     },
+    AC10691_on: {
+        cid: 'genOnOff',
+        type: 'cmdOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    AC10691_off: {
+        cid: 'genOnOff',
+        type: 'cmdOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
 };
 
 module.exports = converters;
