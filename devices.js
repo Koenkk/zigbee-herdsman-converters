@@ -3822,12 +3822,21 @@ const devices = [
             '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
         vendor: 'Livolo',
         supports: 'on/off',
-        fromZigbee: [fz.livolo_switch_state],
+        fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
         toZigbee: [tz.livolo_switch_on_off],
+        endpoint: (device) => {
+            return {'left': 6, 'right': 6};
+        },
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(6);
+            await endpoint.command('genOnOff', 'toggle', {}, {});
+        },
         onEvent: async (type, data, device) => {
-            // type: start, stop, deviceAnnounce, attributeReport, etc.
-            // data: data of the event
-            // device: device to publish to e.g. device.getEndpoint(1).command();
+            if (["start", "deviceAnnounce"].includes(type)) {
+                const endpoint = device.getEndpoint(6);
+                await endpoint.command('genOnOff', 'toggle', {}, {});
+            }
         },
     },
 
