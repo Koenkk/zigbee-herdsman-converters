@@ -3981,6 +3981,17 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
+    // Busch-Jaeger
+    {
+        zigbeeModel: ['PU01'],
+        model: '6717-84',
+        vendor: 'Busch-Jaeger',
+        description: 'Adaptor plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+    },
+
     // Müller Licht
     {
         zigbeeModel: ['ZBT-ExtendedColor'],
