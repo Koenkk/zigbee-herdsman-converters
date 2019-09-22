@@ -4583,14 +4583,10 @@ const devices = [
         zigbeeModel: ['3AFE14010402000D'],
         model: '2AJZ4KPBS',
         vendor: 'Konke',
-        description: 'Motion Sensor',
+        description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [
-            fz.bitron_occupancy,
-            fz.generic_batteryvoltage_3000_2500,
-        ],
+        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_3V],
         toZigbee: [],
-        meta: {configureKey: 1},
     },
     {
         zigbeeModel: ['3AFE140103020000'],
@@ -4618,12 +4614,8 @@ const devices = [
         vendor: 'Konke',
         description: 'Contact sensor',
         supports: 'contact',
-        fromZigbee: [
-            fz.ias_contact_status_change,
-            fz.generic_batteryvoltage_3000_2500,
-        ],
+        fromZigbee: [fz.iaszone_contact, fz.battery_3V],
         toZigbee: [],
-        meta: {configureKey: 1},
     },
 
     // TUYATEC
