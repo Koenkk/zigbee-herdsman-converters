@@ -1634,6 +1634,20 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['Plug Z3'],
+        model: 'AC10691',
+        description: 'Smart+ plug',
+        supports: 'on/off',
+        vendor: 'OSRAM',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW', 'LIGHTIFY Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
@@ -1673,7 +1687,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: generic.light_onoff_brightness_colortemp,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
