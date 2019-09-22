@@ -3948,26 +3948,15 @@ const devices = [
     {
         zigbeeModel: ['ICZB-IW11D'],
         model: 'ICZB-IW11D',
-        vendor: 'icasa',
+        vendor: 'iCasa',
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
-        vendor: 'icasa',
+        vendor: 'iCasa',
         description: 'Zigbee 3.0 Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.state],
-        toZigbee: [tz.on_off],
-    },
-
-    // Busch-Jaeger
-    {
-        zigbeeModel: ['PU01'],
-        model: 'PU01',
-        vendor: 'Busch-Jaeger',
-        description: 'Busch-Jaeger adaptor plug',
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
