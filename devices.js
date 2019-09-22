@@ -1533,7 +1533,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: generic.light_onoff_brightness_colortemp,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
@@ -1663,6 +1663,13 @@ const devices = [
         model: 'HV-GSCXZB279_HV-GSCXZB229',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['TWGU10Bulb01UK'],
+        model: 'HV-GUCXZB5',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (GU10)',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
@@ -4676,6 +4683,18 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZG2833K4_EU06'],
+        model: 'SR-ZG9001K4-DIM2',
+        vendor: 'Sunricher',
+        description: 'ZigBee double key wall switch',
+        supports: 'on/off, brightness',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery,
+            fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.ignore_power_change,
+        ],
+        toZigbee: [],
     },
 
     // Shenzhen Homa
