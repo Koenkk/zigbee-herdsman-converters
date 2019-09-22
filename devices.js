@@ -506,7 +506,7 @@ const devices = [
         description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.generic_humidity,
+            fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity,
 
         ],
         toZigbee: [],
@@ -518,7 +518,7 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.generic_humidity, fz.generic_pressure,
+            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.generic_pressure,
             fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
         toZigbee: [],
@@ -529,7 +529,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.occupancy_with_timeout],
         toZigbee: [],
     },
     {
@@ -539,7 +539,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.generic_occupancy_no_off_msg, fz.generic_illuminance,
+            fz.xiaomi_battery_3v, fz.occupancy_with_timeout, fz.generic_illuminance,
             fz.RTCGQ11LM_interval,
         ],
         toZigbee: [],
@@ -1244,7 +1244,7 @@ const devices = [
         description: 'Hue motion sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.occupancy, fz.temperature,
             fz.generic_illuminance,
             fz.ignore_basic_report,
         ],
@@ -1274,7 +1274,7 @@ const devices = [
         description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.generic_battery_remaining, fz.generic_occupancy, fz.generic_temperature,
+            fz.generic_battery_remaining, fz.occupancy, fz.temperature,
             fz.generic_illuminance,
 
         ],
@@ -1689,8 +1689,8 @@ const devices = [
         description: 'SMART+ Motion Sensor',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.ias_zone_motion_status_change,
+            fz.temperature,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -1717,7 +1717,7 @@ const devices = [
         fromZigbee: [
             fz.AC0251100NJ_cmdOn, fz.AC0251100NJ_cmdMoveWithOnOff, fz.AC0251100NJ_cmdStop,
             fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
-            fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.generic_batteryvoltage_3000_2500,
+            fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.battery_3V,
             fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
@@ -1764,7 +1764,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [
             fz.state, fz.generic_power,
-            fz.generic_temperature,
+            fz.temperature,
         ],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
@@ -2273,7 +2273,7 @@ const devices = [
         vendor: 'Swann',
         description: 'Window/door sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_status_change],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
 
@@ -2754,7 +2754,7 @@ const devices = [
         description: 'Arrival sensor',
         supports: 'presence',
         fromZigbee: [
-            fz.STS_PRS_251_presence, fz.generic_batteryvoltage_3000_2500,
+            fz.STS_PRS_251_presence, fz.battery_3V,
             fz.STS_PRS_251_beeping,
         ],
         toZigbee: [tz.STS_PRS_251_beep],
@@ -2772,8 +2772,8 @@ const devices = [
         description: 'Motion sensor (2015 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.ias_zone_motion_status_change,
+            fz.temperature,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2791,7 +2791,7 @@ const devices = [
         description: 'Multi Sensor (2015 model)',
         supports: 'contact and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.smartsense_multi,
+            fz.temperature, fz.smartsense_multi,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2823,9 +2823,9 @@ const devices = [
         description: 'Motion sensor (2018 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature,
+            fz.temperature,
             fz.ignore_iaszone_report,
-            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.iaszone_occupancy_1, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2843,8 +2843,8 @@ const devices = [
         description: 'Motion sensor (2016 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.ias_zone_motion_status_change,
-            fz.generic_ias_zone_occupancy_status_change, fz.generic_batteryvoltage_3000_2500,
+            fz.temperature, fz.iaszone_occupancy_2,
+            fz.iaszone_occupancy_1, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2862,8 +2862,8 @@ const devices = [
         description: 'Motion sensor (2014 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature, fz.ias_zone_motion_status_change,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.temperature, fz.iaszone_occupancy_2,
+            fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2880,10 +2880,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Door sensor',
         supports: 'contact and temperature',
-        fromZigbee: [
-            fz.generic_temperature, fz.smartsense_multi,
-            fz.ias_contact_status_change, fz.generic_batteryvoltage_3000_2500,
-        ],
+        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.iaszone_contact, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2899,10 +2896,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2016 model)',
         supports: 'contact',
-        fromZigbee: [
-            fz.generic_temperature, fz.st_contact_status_change,
-            fz.generic_batteryvoltage_3000_2500, fz.ias_contact_status_change,
-        ],
+        fromZigbee: [fz.temperature, fz.battery_3V, fz.iaszone_contact],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2918,10 +2912,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2018 model)',
         supports: 'contact',
-        fromZigbee: [
-            fz.generic_temperature, fz.st_contact_status_change,
-            fz.generic_batteryvoltage_3000_2500, fz.ignore_iaszone_attreport,
-        ],
+        fromZigbee: [fz.temperature, fz.iaszone_contact, fz.battery_3V, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2944,8 +2935,8 @@ const devices = [
         description: 'Temperature and humidity sensor',
         supports: 'temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2963,8 +2954,8 @@ const devices = [
         description: 'Water leak sensor',
         supports: 'water leak',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.st_leak, fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.st_leak, fz.battery_3V,
         ],
         toZigbee: [],
     },
@@ -2975,8 +2966,8 @@ const devices = [
         description: 'Water sensor',
         supports: 'water and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.st_leak, fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.st_leak, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2994,8 +2985,8 @@ const devices = [
         description: 'Water leak sensor (2018 model)',
         supports: 'water leak and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.st_leak, fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.st_leak, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -3013,8 +3004,8 @@ const devices = [
         description: 'Water sensor',
         supports: 'water and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.st_leak, fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.st_leak, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -3034,7 +3025,7 @@ const devices = [
         fromZigbee: [
             fz.st_button_state,
             fz.generic_battery,
-            fz.generic_temperature,
+            fz.temperature,
             fz.ignore_iaszone_attreport,
             fz.ignore_temperature_report,
         ],
@@ -3072,7 +3063,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Motion Sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_zone_motion_status_change],
+        fromZigbee: [fz.iaszone_occupancy_2],
         toZigbee: [],
     },
     {
@@ -3081,7 +3072,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_status_change, fz.generic_battery_remaining],
+        fromZigbee: [fz.iaszone_contact, fz.generic_battery_remaining],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3144,7 +3135,7 @@ const devices = [
         vendor: 'Bitron',
         description: 'Wireless motion detector',
         supports: 'occupancy',
-        fromZigbee: [fz.bitron_occupancy],
+        fromZigbee: [fz.iaszone_occupancy_1_with_timeout],
         toZigbee: [],
     },
     {
@@ -3215,8 +3206,8 @@ const devices = [
         description: 'Motion and temperature sensor',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.ias_zone_motion_status_change,
+            fz.temperature,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -3410,7 +3401,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.heiman_pir],
+        fromZigbee: [fz.iaszone_occupancy_1],
         toZigbee: [],
     },
     {
@@ -3491,7 +3482,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.heiman_contact],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
@@ -3500,7 +3491,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.heiman_contact],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
@@ -3509,7 +3500,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.heiman_contact],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
@@ -3847,10 +3838,7 @@ const devices = [
         vendor: 'Bosch',
         description: 'Wireless motion detector',
         supports: 'occupancy and temperature',
-        fromZigbee: [
-            fz.generic_temperature, fz.generic_batteryvoltage_3000_2500,
-            fz.generic_ias_zone_occupancy_status_change,
-        ],
+        fromZigbee: [fz.temperature, fz.battery_3V, fz.iaszone_occupancy_1],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3867,8 +3855,8 @@ const devices = [
         description: 'Motion sensor',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.generic_batteryvoltage_3000_2500, fz.generic_ias_zone_occupancy_status_change,
+            fz.temperature,
+            fz.battery_3V, fz.iaszone_occupancy_1,
             fz.ignore_iaszone_report,
         ],
         toZigbee: [],
@@ -3968,7 +3956,7 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position, fz.generic_temperature,
+            fz.cover_position, fz.temperature,
             fz.generic_battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
@@ -3993,7 +3981,7 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position, fz.generic_temperature,
+            fz.cover_position, fz.temperature,
             fz.generic_battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
@@ -4075,7 +4063,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Door or window contact switch',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_status_change],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
@@ -4084,7 +4072,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Occupancy sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.battery_200, fz.generic_ias_zone_occupancy_status_change_no_off_msg],
+        fromZigbee: [fz.battery_200, fz.iaszone_occupancy_1_with_timeout],
         toZigbee: [],
     },
     {
@@ -4131,7 +4119,7 @@ const devices = [
             fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.generic_battery, fz.ignore_iaszone_report,
-            fz.ias_zone_motion_status_change, fz.ias_contact_status_change,
+            fz.iaszone_occupancy_2, fz.iaszone_contact,
         ],
         toZigbee: [],
     },
@@ -4142,10 +4130,10 @@ const devices = [
         description: 'Ceiling motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.generic_battery, fz.ignore_iaszone_report,
-            fz.ias_zone_motion_status_change,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
     },
@@ -4156,10 +4144,10 @@ const devices = [
         description: 'Wall motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.generic_battery, fz.ignore_iaszone_report,
-            fz.ias_zone_motion_status_change,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
     },
@@ -4170,10 +4158,10 @@ const devices = [
         description: 'Curtain motion sensor',
         supports: 'motion, humidity and temperature',
         fromZigbee: [
-            fz.generic_occupancy, fz.generic_humidity, fz.generic_temperature, fz.ignore_basic_report,
+            fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.generic_battery, fz.ignore_iaszone_report,
-            fz.ias_zone_motion_status_change,
+            fz.iaszone_occupancy_2,
         ],
         toZigbee: [],
     },
@@ -4211,7 +4199,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.visonic_contact],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
@@ -4220,7 +4208,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.visonic_contact],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
 
@@ -4569,7 +4557,7 @@ const devices = [
         supports: 'single, double and long click',
         fromZigbee: [
             fz.konke_click,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4588,7 +4576,7 @@ const devices = [
         supports: '',
         fromZigbee: [
             fz.bosch_ias_zone_motion_status_change,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.battery_3V,
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
@@ -4612,9 +4600,9 @@ const devices = [
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.generic_temperature,
-            fz.generic_humidity,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.temperature,
+            fz.humidity,
+            fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4633,8 +4621,8 @@ const devices = [
         description: 'Contact sensor',
         supports: '',
         fromZigbee: [
-            fz.heiman_contact,
-            fz.generic_batteryvoltage_3000_2500,
+            fz.iaszone_contact,
+            fz.battery_3V,
         ],
         // TODO: Not fully supported - need to be configured correctly. Look at
         // https://github.com/Koenkk/zigbee2mqtt/issues/1689
@@ -4662,7 +4650,7 @@ const devices = [
         fromZigbee: [
             fz.generic_battery_remaining, fz.generic_battery_voltage,
             fz.ignore_basic_report,
-            fz.generic_ias_zone_occupancy_status_change,
+            fz.iaszone_occupancy_1,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4679,7 +4667,7 @@ const devices = [
         description: 'Temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [
-            fz.generic_humidity, fz.generic_temperature, fz.battery_200,
+            fz.humidity, fz.temperature, fz.battery_200,
         ],
         toZigbee: [],
     },
