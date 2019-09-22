@@ -4567,32 +4567,15 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
-    /*
     {
         zigbeeModel: ['3AFE14010402000D'],
         model: '2AJZ4KPBS',
         vendor: 'Konke',
         description: 'Motion sensor',
-        supports: '',
-        fromZigbee: [
-            fz.bosch_ias_zone_motion_status_change,
-            fz.battery_3V,
-        ],
-        // TODO: Not fully supported - need to be configured correctly. Look at
-        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_3V],
+        toZigbee: [],
     },
-    */
     {
         zigbeeModel: ['3AFE140103020000'],
         model: '2AJZ4KPFT',
@@ -4613,32 +4596,15 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
-    /*
     {
         zigbeeModel: ['3AFE130104020015'],
         model: '2AJZ4KPDR',
         vendor: 'Konke',
         description: 'Contact sensor',
-        supports: '',
-        fromZigbee: [
-            fz.iaszone_contact,
-            fz.battery_3V,
-        ],
-        // TODO: Not fully supported - need to be configured correctly. Look at
-        // https://github.com/Koenkk/zigbee2mqtt/issues/1689
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', repInterval.HOUR, repInterval.MAX, cb),
-            ];
-            execute(device, actions, callback);
-        }
+        supports: 'contact',
+        fromZigbee: [fz.iaszone_contact, fz.battery_3V],
+        toZigbee: [],
     },
-    */
 
     // TUYATEC
     {
