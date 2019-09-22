@@ -265,32 +265,6 @@ const converters = {
             return {power: parseFloat(msg.data['instantaneousDemand']) / 10.0};
         },
     },
-    bitron_occupancy: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            // The occupancy sensor only sends a message when motion detected.
-            // Therefore we need to publish the no_motion detected by ourselves.
-            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
-            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.device.ieeeAddr;
-
-            // Stop existing timer because motion is detected and set a new one.
-            if (store[deviceID]) {
-                clearTimeout(store[deviceID]);
-                store[deviceID] = null;
-            }
-
-            if (timeout !== 0) {
-                store[deviceID] = setTimeout(() => {
-                    publish({occupancy: false});
-                    store[deviceID] = null;
-                }, timeout * 1000);
-            }
-
-            return {occupancy: true};
-        },
-    },
     bitron_battery_att_report: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -444,7 +418,7 @@ const converters = {
             }
         },
     },
-    generic_temperature: {
+    temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -553,7 +527,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    generic_humidity: {
+    humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -567,7 +541,7 @@ const converters = {
             }
         },
     },
-    generic_occupancy: {
+    occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
         // Note: options.occupancy_timeout not available yet, to implement it will be
         // needed to update device report intervall as well, see devices.js
@@ -604,7 +578,7 @@ const converters = {
             return {occupancy: true};
         },
     },
-    generic_occupancy_no_off_msg: {
+    occupancy_with_timeout: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
@@ -1051,18 +1025,6 @@ const converters = {
             return {smoke: msg.data.zonestatus === 1};
         },
     },
-    heiman_pir: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Motion detection
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
-    },
     heiman_smoke: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1157,18 +1119,6 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
-    },
-    heiman_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Contact detection
                 tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
                 battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
@@ -1483,7 +1433,7 @@ const converters = {
             return {presence: true};
         },
     },
-    generic_batteryvoltage_3000_2500: {
+    battery_3V: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -1755,7 +1705,7 @@ const converters = {
             };
         },
     },
-    ias_zone_motion_status_change: {
+    iaszone_occupancy_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
@@ -1767,19 +1717,19 @@ const converters = {
             };
         },
     },
-    generic_ias_zone_occupancy_status_change: {
+    iaszone_occupancy_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {
-                occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
-    generic_ias_zone_occupancy_status_change_no_off_msg: {
+    iaszone_occupancy_1_with_timeout: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
@@ -1801,19 +1751,21 @@ const converters = {
             }
 
             return {
-                occupancy: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
-    ias_contact_status_change: {
+    iaszone_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -1844,17 +1796,6 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
-            };
-        },
-    },
-    st_contact_status_change: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: !((zoneStatus & 1) > 0), // Bit 0 = Alarm: Contact detection
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator
             };
         },
     },
@@ -2386,18 +2327,6 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options) => null,
-    },
-    visonic_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: !((zoneStatus & 1) > 0), // Bit 1 = Alarm: Contact detection
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
     },
     OJBCR701YZ_statuschange: {
         cluster: 'ssIasZone',
