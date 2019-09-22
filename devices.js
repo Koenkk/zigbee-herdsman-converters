@@ -4703,6 +4703,13 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['NUET56-DL27LX1.1'],
+        model: 'LXZB-12A',
+        vendor: 'Zemismart',
+        description: 'RGB LED downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Sinope
     {
