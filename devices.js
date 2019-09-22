@@ -3963,22 +3963,31 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // iCasa
+    // icasa
     {
         zigbeeModel: ['ICZB-IW11D'],
         model: 'ICZB-IW11D',
-        vendor: 'iCasa',
+        vendor: 'icasa',
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
-        vendor: 'iCasa',
+        vendor: 'icasa',
         description: 'Zigbee 3.0 Switch',
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['ICZB-KPD18S'],
+        model: 'ICZB-KPD18S',
+        vendor: 'icasa',
+        description: 'Zigbee 3.0 Keypad Pulse 8S',
+        supports: 'on/off',
+        fromZigbee: [fz.nue_click, fz.tint404011_on, fz.tint404011_off],
+        toZigbee: [],
     },
 
     // Busch-Jaeger
