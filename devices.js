@@ -1641,6 +1641,7 @@ const devices = [
         vendor: 'OSRAM',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
