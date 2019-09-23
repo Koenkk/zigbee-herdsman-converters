@@ -2330,7 +2330,7 @@ const devices = [
         description: 'Smart 1 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['FTB56+ZSN16HG1.0'],
@@ -2339,7 +2339,7 @@ const devices = [
         description: 'Smart 2 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
@@ -2348,7 +2348,7 @@ const devices = [
         description: 'Smart 4 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['LXN56-DC27LX1.1'],
