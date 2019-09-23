@@ -307,7 +307,7 @@ const converters = {
             return result;
         },
     },
-    nue_click: {
+    scenes_recall_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options) => {
