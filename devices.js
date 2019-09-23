@@ -2330,7 +2330,7 @@ const devices = [
         description: 'Smart 1 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['FTB56+ZSN16HG1.0'],
@@ -2339,7 +2339,7 @@ const devices = [
         description: 'Smart 2 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
@@ -2348,7 +2348,7 @@ const devices = [
         description: 'Smart 4 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.nue_click, fz.ignore_power_report, fz.ignore_power_change],
+        fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report, fz.ignore_power_change],
     },
     {
         zigbeeModel: ['LXN56-DC27LX1.1'],
@@ -3963,18 +3963,18 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // icasa
+    // iCasa
     {
         zigbeeModel: ['ICZB-IW11D'],
         model: 'ICZB-IW11D',
-        vendor: 'icasa',
+        vendor: 'iCasa',
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
-        vendor: 'icasa',
+        vendor: 'iCasa',
         description: 'Zigbee 3.0 Switch',
         supports: 'on/off',
         fromZigbee: [fz.state],
@@ -3983,10 +3983,10 @@ const devices = [
     {
         zigbeeModel: ['ICZB-KPD18S'],
         model: 'ICZB-KPD18S',
-        vendor: 'icasa',
+        vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
-        supports: 'on/off',
-        fromZigbee: [fz.nue_click, fz.tint404011_on, fz.tint404011_off],
+        supports: 'click',
+        fromZigbee: [fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff],
         toZigbee: [],
     },
 
