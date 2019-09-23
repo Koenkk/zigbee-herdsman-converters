@@ -3490,7 +3490,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['GASSensor-EN', 'GAS_V15'],
+        zigbeeModel: ['GASSensor-EN'],
         model: 'HS1CG-M',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
