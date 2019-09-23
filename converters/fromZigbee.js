@@ -163,7 +163,7 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
         const duration = Date.now() - store[deviceID].brightnessSince;
         const delta = (duration / 10) * (store[deviceID].brightnessDirection === 'up' ? 1 : -1);
         const newValue = store[deviceID].brightnessValue + delta;
-        store[deviceID].brightnessValue = numberWithinRange(newValue, 0, 255);
+        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
     }
 };
 
@@ -1723,8 +1723,8 @@ const converters = {
                     store[deviceID].pressStart = Date.now();
                     store[deviceID].pressType = 'press';
                     if (brightnessSend) {
-                        const newValue = store[deviceID].brightnessValue + (button === 'up' ? 50 : -50);
-                        store[deviceID].brightnessValue = numberWithinRange(newValue, 0, 255);
+                        const newValue = store[deviceID].brightnessValue + (button === 'up' ? 32 : -32);
+                        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
                     }
                 } else if (type == 'hold') {
                     store[deviceID].pressType = 'hold';
