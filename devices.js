@@ -3710,6 +3710,15 @@ const devices = [
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['ICZB-KPD18S'],
+        model: 'ICZB-KPD18S',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Keypad Pulse 8S',
+        supports: 'click',
+        fromZigbee: [fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff],
+        toZigbee: [],
+    },
 
     // Busch-Jaeger
     {
