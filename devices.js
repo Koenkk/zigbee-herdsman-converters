@@ -3479,7 +3479,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas],
+        fromZigbee: [fz.iaszone_gas_1],
         toZigbee: [],
     },
     {
@@ -3488,7 +3488,16 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas],
+        fromZigbee: [fz.iaszone_gas_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['GAS_V15'],
+        model: 'HS1CG_M',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.iaszone_gas_2],
         toZigbee: [],
     },
     {
@@ -5007,7 +5016,7 @@ const devices = [
         vendor: 'Piri',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas],
+        fromZigbee: [fz.iaszone_gas_1],
         toZigbee: [],
     },
 ];
