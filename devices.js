@@ -605,7 +605,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E27 WW 806lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW 806lm'],
         model: 'LED1836G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 806 lumen, dimmable, warm white',
