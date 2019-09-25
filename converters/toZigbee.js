@@ -23,11 +23,24 @@ const options = {
     },
 };
 
-function getTransition(message, options) {
+function getTransition(entity, key, meta) {
+    const {options, message, device} = meta;
+    if (device.manufacturerID === 4476) {
+        /**
+         * When setting both brightness and color temperature with a transition, the brightness is skipped
+         * for IKEA TRADFRI bulbs.
+         * To workaround this we skip the transition for the brightness as it is applied first.
+         * https://github.com/Koenkk/zigbee2mqtt/issues/1810
+         */
+        if (key === 'brightness' && (message.hasOwnProperty('color') || message.hasOwnProperty('color_temp'))) {
+            return 0;
+        }
+    }
+
     if (message.hasOwnProperty('transition')) {
-        return message.transition;
+        return message.transition * 10;
     } else if (options.hasOwnProperty('transition')) {
-        return options.transition;
+        return options.transition * 10;
     } else {
         return 0;
     }
@@ -196,7 +209,6 @@ const converters = {
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
-            const {message, options} = meta;
             if (key === 'brightness_percent') {
                 value = Math.round(Number(value) * 2.55).toString();
             }
@@ -206,10 +218,9 @@ const converters = {
                 result.state.brightness = 0;
                 return result;
             } else {
-                const payload = {level: Number(value), transtime: getTransition(message, options) * 10};
+                const payload = {level: Number(value), transtime: getTransition(entity, key, meta)};
                 await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta));
-                const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
-                return {state: {brightness: Number(value)}, readAfterWriteTime};
+                return {state: {brightness: Number(value)}, readAfterWriteTime: payload.transtime * 100};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -238,7 +249,7 @@ const converters = {
                 result.state.brightness = 0;
                 return result;
             } else {
-                const transition = getTransition(message, options);
+                const transition = getTransition(entity, key, meta);
                 let brightness = 0;
 
                 if (hasState && !hasBrightness && state == 'on') {
@@ -252,12 +263,12 @@ const converters = {
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(brightness), transtime: transition * 10},
+                    {level: Number(brightness), transtime: transition},
                     getOptions(meta)
                 );
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                    readAfterWriteTime: transition * 1000,
+                    readAfterWriteTime: transition * 100,
                 };
             }
         },
@@ -278,18 +289,15 @@ const converters = {
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
-            const {message, options} = meta;
-
             if (key === 'color_temp_percent') {
                 value = Number(value) * 3.46;
                 value = Math.round(value + 154).toString();
             }
 
             value = Number(value);
-            const payload = {colortemp: value, transtime: getTransition(message, options) * 10};
+            const payload = {colortemp: value, transtime: getTransition(entity, key, meta)};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
-            const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
-            return {state: {color_temp: value}, readAfterWriteTime};
+            return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
@@ -299,7 +307,6 @@ const converters = {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
             // Check if we need to convert from RGB to XY and which cmd to use
-            const {message, options} = meta;
             let cmd;
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
@@ -326,9 +333,7 @@ const converters = {
                 cmd = 'moveToSaturation';
             }
 
-            const zclData = {
-                transtime: getTransition(message, options) * 10,
-            };
+            const zclData = {transtime: getTransition(entity, key, meta)};
 
             let newState = null;
             switch (cmd) {
@@ -354,8 +359,7 @@ const converters = {
             }
 
             await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta));
-            const readAfterWriteTime = message.hasOwnProperty('transition') ? message.transition * 1000 : 0;
-            return {state: newState, readAfterWriteTime};
+            return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['currentX', 'currentY']);
@@ -837,7 +841,7 @@ const converters = {
             if (meta.mapped.model === 'GL-C-008' && utils.hasEndpoints(meta.device, [11, 13])) {
                 if (key === 'white_value') {
                     // Switch to white channel
-                    const payload = {colortemp: 500, transtime: getTransition(meta.message, options)};
+                    const payload = {colortemp: 500, transtime: getTransition(entity, key, meta)};
                     await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
 
                     const result = await converters.light_brightness.convertSet(entity, key, value, meta);
@@ -847,7 +851,7 @@ const converters = {
                     };
                 } else if (meta.state.white_value !== 0) {
                     // Switch to RGB channel
-                    const payload = {colortemp: 155, transtime: getTransition(meta.message, options)};
+                    const payload = {colortemp: 155, transtime: getTransition(entity, key, meta)};
                     await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
                     await converters.light_brightness.convertSet(entity, 'brightness', meta.state.brightness, meta);
                     state.white_value = 0;
