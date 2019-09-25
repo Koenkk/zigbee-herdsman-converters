@@ -674,11 +674,7 @@ const devices = [
         description: 'Aqara curtain motor',
         supports: 'open, close, stop, position',
         vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.ZNCLDJ11LM_curtain_genAnalogOutput,
-            fz.closuresWindowCovering_report,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.ZNCLDJ11LM_curtain_genAnalogOutput, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.ZNCLDJ11LM_control],
     },
     {
@@ -3341,8 +3337,8 @@ const devices = [
         vendor: 'Blaupunkt',
         description: 'Roller shutter',
         supports: 'open/close',
-        fromZigbee: [fz.cover_position, fz.cover_state],
-        toZigbee: [tz.cover_position, tz.cover_open_close],
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
 
     // Lupus
@@ -3352,8 +3348,8 @@ const devices = [
         vendor: 'Lupus',
         description: 'Roller shutter',
         supports: 'open/close',
-        fromZigbee: [fz.cover_position, fz.cover_state],
-        toZigbee: [tz.cover_position, tz.cover_open_close],
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],
@@ -3387,8 +3383,8 @@ const devices = [
         vendor: 'Climax',
         description: 'Roller shutter',
         supports: 'open/close',
-        fromZigbee: [fz.cover_position, fz.cover_state],
-        toZigbee: [tz.cover_position, tz.cover_open_close],
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
         zigbeeModel: ['PSM_00.00.00.35TC'],
@@ -4007,13 +4003,13 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position, fz.temperature,
+            fz.cover_position_via_brightness, fz.temperature,
             fz.generic_battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
         toZigbee: [
-            tz.cover_open_close,
-            tz.cover_position,
+            tz.cover_open_close_via_brightness,
+            tz.cover_position_via_brightness,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4032,13 +4028,13 @@ const devices = [
         description: 'Smart vent',
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
-            fz.cover_position, fz.temperature,
+            fz.cover_position_via_brightness, fz.temperature,
             fz.generic_battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
         toZigbee: [
-            tz.cover_open_close,
-            tz.cover_position,
+            tz.cover_open_close_via_brightness,
+            tz.cover_position_via_brightness,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4058,8 +4054,8 @@ const devices = [
         vendor: 'AXIS',
         description: 'Gear window shade motor',
         supports: 'open, close, position, battery',
-        fromZigbee: [fz.cover_position, fz.generic_battery],
-        toZigbee: [tz.cover_open_close, tz.cover_position],
+        fromZigbee: [fz.cover_position_via_brightness, fz.generic_battery],
+        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4980,8 +4976,8 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Shutter control J1',
         supports: 'open, close, stop, position, tilt',
-        fromZigbee: [fz.closuresWindowCovering_report_pos_and_tilt],
-        toZigbee: [tz.cover_control, tz.cover_gotopercentage],
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
     },
 
     // Lingan

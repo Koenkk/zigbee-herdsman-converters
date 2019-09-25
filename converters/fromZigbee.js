@@ -2244,7 +2244,7 @@ const converters = {
             return action ? action : null;
         },
     },
-    cover_position: {
+    cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -2254,7 +2254,7 @@ const converters = {
             return {state: state, position: position};
         },
     },
-    cover_state: {
+    cover_state_via_onoff: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -2357,14 +2357,7 @@ const converters = {
             };
         },
     },
-    closuresWindowCovering_report: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            return {position: msg.data.currentPositionLiftPercentage};
-        },
-    },
-    closuresWindowCovering_report_pos_and_tilt: {
+    cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {

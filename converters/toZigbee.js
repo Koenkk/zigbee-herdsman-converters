@@ -74,7 +74,7 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
-    cover_open_close: {
+    cover_open_close_via_brightness: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -93,7 +93,7 @@ const converters = {
             return await converters.cover_position.convertGet(entity, key, meta);
         },
     },
-    cover_position: {
+    cover_position_via_brightness: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command(
@@ -146,7 +146,7 @@ const converters = {
             );
         },
     },
-    cover_control: {
+    cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const zclCmdLookup = {
@@ -160,7 +160,7 @@ const converters = {
             await entity.command('closuresWindowCovering', zclCmdLookup[value.toLowerCase()], {}, getOptions(meta));
         },
     },
-    cover_gotopercentage: {
+    cover_position_tilt: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
