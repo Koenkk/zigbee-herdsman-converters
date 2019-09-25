@@ -3957,7 +3957,7 @@ const devices = [
         zigbeeModel: ['Neuhaus NLG-TW light'],
         model: '100.469.65',
         vendor: 'Paul Neuhaus',
-        description: 'Q-INIGO, LED Panel, Smart-Home RGB',
+        description: 'Q-INIGO, LED panel, Smart-Home RGB',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
