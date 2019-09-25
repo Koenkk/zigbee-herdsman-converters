@@ -25,7 +25,7 @@ const options = {
 
 function getTransition(entity, key, meta) {
     const {options, message, device} = meta;
-    if (device.manufacturerID === 4476) {
+    if (device && device.manufacturerID === 4476) {
         /**
          * When setting both brightness and color temperature with a transition, the brightness is skipped
          * for IKEA TRADFRI bulbs.
