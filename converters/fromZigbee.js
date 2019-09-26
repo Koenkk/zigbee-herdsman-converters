@@ -18,27 +18,27 @@ const defaultPrecision = {
     pressure: 1,
 };
 
-const precisionRoundOptions = (number, options, type) => {
-    const key = `${type}_precision`;
-    const defaultValue = defaultPrecision[type];
-    const precision = options && options.hasOwnProperty(key) ? options[key] : defaultValue;
+const calibrateAndPrecisionRoundOptions = (number, options, type) => {
+    // Calibrate
+    const calibrateKey = `${type}_calibration`;
+    let calibrationOffset = options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0;
+    if (type == 'illuminance') {
+        // linear calibration because measured value is zero based
+        // +/- percent
+        calibrationOffset = Math.round(number * calibrationOffset / 100);
+    }
+    number = number + calibrationOffset;
+
+    // Precision round
+    const precisionKey = `${type}_precision`;
+    const defaultValue = defaultPrecision[type] || 0;
+    const precision = options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue;
     return precisionRound(number, precision);
 };
 
 const precisionRound = (number, precision) => {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
-};
-
-const calibrateOptions = (number, options, type) => {
-    const key = `${type}_calibration`;
-    let calibrationOffset = options && options.hasOwnProperty(key) ? options[key] : 0;
-    if (type == 'illuminance') {
-        // linear calibration because measured value is zero based
-        // +/- percent
-        calibrationOffset = Math.round(number * calibrationOffset / 100);
-    }
-    return number + calibrationOffset;
 };
 
 const toPercentage = (value, min, max) => {
@@ -346,7 +346,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             if (msg.data['65281']) {
-                return {illuminance: msg.data['65281']['11']};
+                return {
+                    illuminance: calibrateAndPrecisionRoundOptions(msg.data['65281']['11'], options, 'illuminance'),
+                };
             }
         },
     },
@@ -355,26 +357,26 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             if (msg.data['65281']) {
+                const result = {};
                 const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
                 const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
-                const result = {};
 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
                 // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
                 // -20 till +60, don't produce messages beyond these values.
                 if (temperature > -25 && temperature < 65) {
-                    result.temperature = precisionRoundOptions(temperature, options, 'temperature');
+                    result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
                 }
 
                 // in the 0 - 100 range, don't produce messages beyond these values.
                 if (humidity >= 0 && humidity <= 100) {
-                    result.humidity = precisionRoundOptions(humidity, options, 'humidity');
+                    result.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
                 }
 
                 // Check if contains pressure (WSDCGQ11LM only)
                 if (msg.data['65281'].hasOwnProperty('102')) {
                     const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
-                    result.pressure = precisionRoundOptions(pressure, options, 'pressure');
+                    result.pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
                 }
 
                 return result;
@@ -423,8 +425,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const calTemperature = calibrateOptions(temperature, options, 'temperature');
-            return {temperature: precisionRoundOptions(calTemperature, options, 'temperature')};
+            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     xiaomi_temperature: {
@@ -437,7 +438,7 @@ const converters = {
             // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
             // -20 till +60, don't produce messages beyond these values.
             if (temperature > -25 && temperature < 65) {
-                return {temperature: precisionRoundOptions(temperature, options, 'temperature')};
+                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
     },
@@ -537,7 +538,7 @@ const converters = {
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                return {humidity: precisionRoundOptions(humidity, options, 'humidity')};
+                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
     },
@@ -710,9 +711,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const illuminance = msg.data['measuredValue'];
-            const calIlluminance = calibrateOptions(illuminance, options, 'illuminance');
-            // calibration value in +/- percent!
-            return {illuminance: calIlluminance};
+            return {illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
         },
     },
     generic_pressure: {
@@ -720,8 +719,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const pressure = parseFloat(msg.data['measuredValue']);
-            const calPressure = calibrateOptions(pressure, options, 'pressure');
-            return {pressure: precisionRoundOptions(calPressure, options, 'pressure')};
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     WXKG02LM_click: {
@@ -814,7 +812,7 @@ const converters = {
                     power: precisionRound(data['152'], 2),
                     voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
+                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -842,7 +840,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
+                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -856,7 +854,7 @@ const converters = {
                 return {
                     power: precisionRound(data['152'], 2),
                     consumption: precisionRound(data['149'], 2),
-                    temperature: precisionRoundOptions(data['3'], options, 'temperature'),
+                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
             }
         },
@@ -2269,7 +2267,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
             const pressure = parseFloat(msg.data['32']) / 1000.0;
-            return {pressure: precisionRoundOptions(pressure, options, 'pressure')};
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     AC0251100NJ_cmdOn: {
