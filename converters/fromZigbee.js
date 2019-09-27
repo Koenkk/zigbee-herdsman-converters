@@ -1239,15 +1239,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const result = {};
-            let factor = null;
-
-            if (msg.endpoint.clusters['seMetering']) {
-                const attrs = msg.endpoint.clusters['seMetering'].attributes;
-
-                if (attrs.multiplier && attrs.divisor) {
-                    factor = attrs.multiplier / attrs.divisor;
-                }
-            }
+            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
+            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
+            const factor = multiplier && divisor ? multiplier / divisor : null;
 
             if (msg.data.hasOwnProperty('instantaneousDemand')) {
                 let power = msg.data['instantaneousDemand'];
