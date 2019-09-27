@@ -249,7 +249,7 @@ const converters = {
                 result.state.brightness = 0;
                 return result;
             } else {
-                const transition = getTransition(entity, key, meta);
+                const transition = getTransition(entity, 'brightness', meta);
                 let brightness = 0;
 
                 if (hasState && !hasBrightness && state == 'on') {
