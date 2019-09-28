@@ -990,7 +990,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.cover_position_tilt, fz.generic_battery_remaining],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
