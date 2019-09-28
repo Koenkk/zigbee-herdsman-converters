@@ -984,7 +984,7 @@ const devices = [
     },
     {
         zigbeeModel: ['FYRTUR block-out roller blind'],
-        model: 'E1757',
+        model: 'E1757/E1926',
         vendor: 'IKEA',
         description: 'FYRTUR smart blinds',
         supports: 'open, close, stop, position',
