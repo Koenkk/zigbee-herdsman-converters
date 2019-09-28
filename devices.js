@@ -984,9 +984,25 @@ const devices = [
     },
     {
         zigbeeModel: ['FYRTUR block-out roller blind'],
-        model: 'E1757/E1926',
+        model: 'E1757',
         vendor: 'IKEA',
-        description: 'FYRTUR/KADRILJ roller blind',
+        description: 'FYRTUR roller blind',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.cover_position_tilt, fz.generic_battery_remaining],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['KADRILJ roller blind'],
+        model: 'E1926',
+        vendor: 'IKEA',
+        description: 'KADRILJ roller blind',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.cover_position_tilt, fz.generic_battery_remaining],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
