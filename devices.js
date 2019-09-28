@@ -1032,6 +1032,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWG004'],
+        model: 'LWG004',
+        vendor: 'Philips',
+        description: 'Hue white GU10 bluetooth',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LST001'],
         model: '7299355PH',
         vendor: 'Philips',
