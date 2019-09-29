@@ -2735,6 +2735,14 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['GL-W-001Z'],
+        model: 'GL-W-001Z',
+        vendor: 'Gledopto',
+        description: 'Zigbee ON/OFF Wall Switch',
+        supports: 'state: ON/OFF',
+        extend: gledopto.light_onoff_brightness,
+    },
 
     // ROBB
     {
