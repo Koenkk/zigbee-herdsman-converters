@@ -381,9 +381,13 @@ const converters = {
         key: ['color', 'color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
-                return await converters.light_color.convertSet(entity, key, value, meta);
+                const result = await converters.light_color.convertSet(entity, key, value, meta);
+                result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
-                return await converters.light_colortemp.convertSet(entity, key, value, meta);
+                const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
+                result.state.color = utils.miredsToXY(result.state.color_temp);
+                return result;
             }
         },
         convertGet: async (entity, key, meta) => {

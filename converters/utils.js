@@ -1,4 +1,7 @@
 'use strict';
+
+const kelvinToXyLookup = require('./lookup/kelvinToXy');
+
 /**
  * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
  * Converts RGB color space to CIE color space
@@ -43,6 +46,25 @@ function hexToXY(hex) {
     return rgbToXY(rgb.r, rgb.g, rgb.b);
 }
 
+function miredsToKelvin(mireds) {
+    return 1000000 / mireds;
+}
+
+function miredsToXY(mireds) {
+    const kelvin = miredsToKelvin(mireds);
+    return kelvinToXyLookup[Math.round(kelvin)];
+}
+
+function kelvinToMireds(kelvin) {
+    return 1000000 / kelvin;
+}
+
+function xyToMireds(x, y) {
+    const n = (x-0.3320)/(0.1858-y);
+    const kelvin = 437*n^3 + 3601*n^2 + 6861*n + 5517;
+    return Math.round(kelvinToMireds(Math.abs(kelvin)));
+}
+
 function hexToRgb(hex) {
     hex = hex.replace('#', '');
     const bigint = parseInt(hex, 16);
@@ -74,4 +96,6 @@ module.exports = {
     hexToRgb,
     getKeyByValue,
     hasEndpoints,
+    miredsToXY,
+    xyToMireds,
 };
