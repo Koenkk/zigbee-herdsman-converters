@@ -552,12 +552,7 @@ const converters = {
             else if (value >= 256) action = {'action': 'slide', 'side': value-256};
             else if (value >= 128) action = {'action': 'flip180', 'side': value-128};
             else if (value >= 64) {
-                action = {
-                    'action': 'flip90',
-                    'from_side': Math.floor((value-64) / 8),
-                    'to_side': value % 8,
-                    'side': value % 8,
-                };
+                action = {action: 'flip90', from_side: Math.floor((value-64) / 8), to_side: value % 8, side: value % 8};
             }
 
             return action ? action : null;
