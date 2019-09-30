@@ -661,10 +661,8 @@ const converters = {
             }
 
             if (
-                msg.data['currentX']
-                || msg.data['currentY']
-                || msg.data['currentSaturation']
-                || msg.data['enhancedCurrentHue']
+                msg.data['currentX'] || msg.data['currentY'] || msg.data['currentSaturation'] ||
+                msg.data['enhancedCurrentHue']
             ) {
                 result.color = {};
 
@@ -1395,21 +1393,18 @@ const converters = {
 
             // if raw measurement comes in, apply stored/default multiplier and divisor
             if (msg.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = (msg.data['rmsVoltage']
-                    * store[deviceID].acVoltageMultiplier
-                    / store[deviceID].acVoltageDivisor).toFixed(2);
+                result.voltage = (msg.data['rmsVoltage'] * store[deviceID].acVoltageMultiplier /
+                    store[deviceID].acVoltageDivisor).toFixed(2);
             }
 
             if (msg.data.hasOwnProperty('rmsCurrent')) {
-                result.current = (msg.data['rmsCurrent']
-                    * store[deviceID].acCurrentMultiplier
-                    / store[deviceID].acCurrentDivisor).toFixed(2);
+                result.current = (msg.data['rmsCurrent'] * store[deviceID].acCurrentMultiplier /
+                    store[deviceID].acCurrentDivisor).toFixed(2);
             }
 
             if (msg.data.hasOwnProperty('activePower')) {
-                result.power = (msg.data['activePower']
-                    * store[deviceID].acPowerMultiplier
-                    / store[deviceID].acPowerDivisor).toFixed(2);
+                result.power = (msg.data['activePower'] * store[deviceID].acPowerMultiplier /
+                    store[deviceID].acPowerDivisor).toFixed(2);
             }
 
             return result;
@@ -2592,63 +2587,63 @@ const converters = {
                 const data = Buffer.from(msg.data['65526'], 'ascii').toString('hex');
                 const command = data.substr(6, 4);
                 if (
-                    command === '0301' // ZNMS12LM
-                    || command === '0341' // ZNMS13LM
+                    command === '0301' || // ZNMS12LM
+                        command === '0341' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
-                    command === '0311' // ZNMS12LM
-                    || command === '0351' // ZNMS13LM
+                    command === '0311' || // ZNMS12LM
+                        command === '0351' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
-                    command === '0205' // ZNMS12LM
-                    || command === '0245' // ZNMS13LM
+                    command === '0205' || // ZNMS12LM
+                        command === '0245' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'UNLOCK';
                     result.reverse = 'LOCK';
                 } else if (
-                    command === '0215' // ZNMS12LM
-                    || command === '0255' // ZNMS13LM
-                    || command === '1355' // ZNMS13LM
+                    command === '0215' || // ZNMS12LM
+                        command === '0255' || // ZNMS13LM
+                        command === '1355' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'LOCK';
                     result.reverse = 'LOCK';
                 } else if (
-                    command === '0111' // ZNMS12LM
-                    || command === '1351' // ZNMS13LM locked from inside
-                    || command === '1451' // ZNMS13LM locked from outside
+                    command === '0111' || // ZNMS12LM
+                        command === '1351' || // ZNMS13LM locked from inside
+                        command === '1451' // ZNMS13LM locked from outside
                 ) {
                     result.action = lockStatusLookup[5];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
-                    command === '0b00' // ZNMS12LM
-                    || command === '0640' // ZNMS13LM
-                    ||command === '0600' // ZNMS13LM
+                    command === '0b00' || // ZNMS12LM
+                        command === '0640' || // ZNMS13LM
+                        command === '0600' // ZNMS13LM
 
                 ) {
                     result.action = lockStatusLookup[12];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
-                    command === '0c00' // ZNMS12LM
-                    || command === '2300' // ZNMS13LM
-                    || command === '0540' // ZNMS13LM
-                    || command === '0440' // ZNMS13LM
+                    command === '0c00' || // ZNMS12LM
+                        command === '2300' || // ZNMS13LM
+                        command === '0540' || // ZNMS13LM
+                        command === '0440' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[11];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
-                    command === '2400' // ZNMS13LM door closed from insed
-                    || command === '2401' // ZNMS13LM door closed from outside
+                    command === '2400' || // ZNMS13LM door closed from insed
+                        command === '2401' // ZNMS13LM door closed from outside
                 ) {
                     result.action = lockStatusLookup[17];
                     result.state = 'UNLOCK';
@@ -2659,8 +2654,8 @@ const converters = {
                 const command = data.substr(6, 2); // 1 finger open, 2 password open
                 const userId = data.substr(12, 2);
                 const userType = data.substr(8, 1); // 1 admin, 2 user
-                result.action = (lockStatusLookup[14+parseInt(command, 16)]
-                 + (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
+                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
+                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
                 result.user = parseInt(userId, 16);
             } else if (msg.data['65297']) { // finger, password failed or bell
                 const data = Buffer.from(msg.data['65297'], 'ascii').toString('hex');
