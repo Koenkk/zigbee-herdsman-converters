@@ -1045,6 +1045,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LWA004'],
+        model: '8718699688820',
+        vendor: 'Philips',
+        description: 'Hue Filament Standard A60/E27 bluetooth',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LWB004'],
         model: '433714',
         vendor: 'Philips',
@@ -3678,7 +3685,7 @@ const devices = [
     },
     {
         // eslint-disable-next-line
-        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e','\u0000\u0002\u0000\u0004^��&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
         model: 'D1531',
         vendor: 'EcoSmart',
         description: 'A19 bright white bulb',
