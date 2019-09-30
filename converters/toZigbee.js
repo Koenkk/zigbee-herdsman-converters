@@ -814,8 +814,14 @@ const converters = {
     generic_lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('closuresDoorLock', `${value.toLowerCase()}Door`, {'pincodevalue': ''});
-            return {readAfterWriteTime: 200};
+            await entity.command(
+                'closuresDoorLock',
+                `${value.toLowerCase()}Door`,
+                {'pincodevalue': ''},
+                getOptions(meta)
+            );
+
+            return {readAfterWriteTime: 200, state: {state: value.toUpperCase()}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresDoorLock', ['lockState']);
