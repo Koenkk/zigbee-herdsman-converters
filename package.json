@@ -21,9 +21,8 @@
     "zigbee-shepherd"
   ],
   "scripts": {
-    "verify": "node test/verify.js",
     "eslint": "node_modules/.bin/eslint .",
-    "test": "mocha --recursive"
+    "test": "jest test"
   },
   "author": "Koen Kanters",
   "license": "MIT",
@@ -35,9 +34,9 @@
     "debounce": "^1.2.0"
   },
   "devDependencies": {
-    "chai": "*",
     "eslint": "*",
     "eslint-config-google": "*",
-    "mocha": "*"
+    "eslint-plugin-jest": "*",
+    "jest": "*"
   }
 }
