@@ -557,13 +557,6 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm'],
-        model: 'LED1842G3',
-        vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
-        extend: generic.light_onoff_brightness,
-    },
-    {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
         vendor: 'IKEA',
@@ -603,13 +596,6 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
         extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
-        zigbeeModel: ['TRADFRI bulb E27 WW 806lm'],
-        model: 'LED1836G9',
-        vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, warm white',
-        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm'],
@@ -828,13 +814,6 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LWA004'],
-        model: '8718699688820',
-        vendor: 'Philips',
-        description: 'Hue Filament Standard A60/E27 bluetooth',
-        extend: hue.light_onoff_brightness,
-    },
-    {
         zigbeeModel: ['LWB004'],
         model: '433714',
         vendor: 'Philips',
@@ -860,13 +839,6 @@ const devices = [
         model: '9290018195',
         vendor: 'Philips',
         description: 'Hue white GU10',
-        extend: hue.light_onoff_brightness,
-    },
-    {
-        zigbeeModel: ['LWG004'],
-        model: 'LWG004',
-        vendor: 'Philips',
-        description: 'Hue white GU10 bluetooth',
         extend: hue.light_onoff_brightness,
     },
     {
@@ -1515,25 +1487,6 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Plug Z3'],
-        model: 'AC10691',
-        description: 'Smart+ plug',
-        supports: 'on/off',
-        vendor: 'OSRAM',
-        fromZigbee: [fz.ignore_onoff_change, fz.state],
-        toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 3);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
-    },
-    {
         zigbeeModel: ['Flex RGBW', 'LIGHTIFY Indoor Flex RGBW', 'LIGHTIFY Flex RGBW'],
         model: '4052899926110',
         vendor: 'OSRAM',
@@ -1573,7 +1526,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
@@ -1703,13 +1656,6 @@ const devices = [
         model: 'HV-GSCXZB279_HV-GSCXZB229',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
-        zigbeeModel: ['TWGU10Bulb01UK'],
-        model: 'HV-GUCXZB5',
-        vendor: 'Hive',
-        description: 'Active light, warm to cool white (GU10)',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
@@ -2379,7 +2325,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
+        zigbeeModel: ['FNB56-ZSW03LX2.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
@@ -2451,10 +2397,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW02LX2.0', 'LXN-2S27LX1.0'],
+        zigbeeModel: ['FNB56-ZSW02LX2.0'],
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
-        description: 'Smart light switch - 2 gang v2.0',
+        description: 'Smart light switch - 2 gang. ',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
@@ -3699,7 +3645,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3717,7 +3663,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
+        fromZigbee: [fz.heiman_gas, fz.ignore_iaszone_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
@@ -3902,7 +3848,7 @@ const devices = [
     },
     {
         // eslint-disable-next-line
-        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e','\u0000\u0002\u0000\u0004^��&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
         model: 'D1531',
         vendor: 'EcoSmart',
         description: 'A19 bright white bulb',
@@ -3968,13 +3914,6 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['Neuhaus NLG-TW light'],
-        model: '100.469.65',
-        vendor: 'Paul Neuhaus',
-        description: 'Q-INIGO, LED panel, Smart-Home RGB',
-        extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
         zigbeeModel: ['NLG-RGBW light '],
         model: '100.110.39',
         vendor: 'Paul Neuhaus',
@@ -3998,26 +3937,6 @@ const devices = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Dimmer',
         extend: generic.light_onoff_brightness,
-    },
-    {
-        zigbeeModel: ['ICZB-IW11SW'],
-        model: 'ICZB-IW11SW',
-        vendor: 'iCasa',
-        description: 'Zigbee 3.0 Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.state],
-        toZigbee: [tz.on_off],
-    },
-
-    // Busch-Jaeger
-    {
-        zigbeeModel: ['PU01'],
-        model: '6717-84',
-        vendor: 'Busch-Jaeger',
-        description: 'Adaptor plug',
-        supports: 'on/off',
-        fromZigbee: [fz.state],
-        toZigbee: [tz.on_off],
     },
 
     // Müller Licht
@@ -4741,18 +4660,6 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
-    },
-    {
-        zigbeeModel: ['ZG2833K4_EU06'],
-        model: 'SR-ZG9001K4-DIM2',
-        vendor: 'Sunricher',
-        description: 'ZigBee double key wall switch',
-        supports: 'on/off, brightness',
-        fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.generic_battery,
-            fz.ignore_basic_change, fz.ignore_diagnostic_change, fz.ignore_power_change,
-        ],
-        toZigbee: [],
     },
 
     // Shenzhen Homa
@@ -5615,27 +5522,23 @@ const devices = [
             execute(ep1, actions, callback);
         },
     },
-
-    // Piri
     {
-        zigbeeModel: ['GASSensor-EM'],
-        model: 'HSIO18008',
-        vendor: 'Piri',
-        description: 'Combustible gas sensor',
-        supports: 'gas',
-        fromZigbee: [fz.generic_ias_statuschange_gas, fz.ignore_iaszone_change],
-        toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
-            ];
-            execute(device, actions, callback);
-        },
+        zigbeeModel: ['ETI 12-in Puff light'],
+        model: 'ETI12',
+        vendor: 'ETI',
+        description: 'Hampton Bay 12in Puff Light',
+        supports: 'Light',
+        fromZigbee: [fz.ignore_light_brightness_change, fz.color_colortemp, fz.state_change, fz.state,
+            fz.brightness_report, fz.color_colortemp_report,
+        ].concat(defaultIgnoreConverters),
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
+            tz.light_alert,
+        ],
     },
 ];
 
 module.exports = devices.map((device) =>
     device.extend ? Object.assign({}, device.extend, device) : device
 );
+
