@@ -783,6 +783,20 @@ const converters = {
             return {water_leak: msg.data.zonestatus === 1};
         },
     },
+    cover_open: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandUpOpen',
+        convert: (model, msg, publish, options) => {
+            return {click: 'open'};
+        },
+    },
+    cover_close: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandDownClose',
+        convert: (model, msg, publish, options) => {
+            return {click: 'close'};
+        },
+    },
     state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

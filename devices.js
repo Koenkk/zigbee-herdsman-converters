@@ -1014,6 +1014,21 @@ const devices = [
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['TRADFRI open/close remote'],
+        model: 'E1766',
+        vendor: 'IKEA',
+        description: 'TRADFRI open/close remote',
+        supports: 'click',
+        fromZigbee: [fz.generic_battery, fz.cover_close, fz.cover_open],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Philips
     {
