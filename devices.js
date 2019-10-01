@@ -4,6 +4,8 @@ const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 const Utils = require('./converters/utils');
 
+const store = {};
+
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
@@ -2789,6 +2791,27 @@ const devices = [
                 return {'default': 11};
             } else {
                 return {};
+            }
+        },
+    },
+    {
+        zigbeeModel: ['GL-W-001Z'],
+        model: 'GL-W-001Z',
+        vendor: 'Gledopto',
+        description: 'Zigbee ON/OFF Wall Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        onEvent: async (type, data, device) => {
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    await device.endpoints[0].read('genOnOff', ['onOff']);
+                }, 5000);
             }
         },
     },
