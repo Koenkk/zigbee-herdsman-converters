@@ -4,6 +4,8 @@ const debug = require('debug')('zigbee-shepherd-converters:devices');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 
+const store = {};
+
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
