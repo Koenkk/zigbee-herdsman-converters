@@ -4463,6 +4463,13 @@ const devices = [
             await configureReporting.fanMode(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ETI 12-in Puff light'],
+        model: '54668161',
+        vendor: 'Hampton Bay',
+        description: '12 in. LED smart puff',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Iluminize
     {
