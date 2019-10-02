@@ -2825,7 +2825,11 @@ const devices = [
                 clearInterval(store[device.ieeeAddr]);
             } else if (!store[device.ieeeAddr]) {
                 store[device.ieeeAddr] = setInterval(async () => {
-                    await device.endpoints[0].read('genOnOff', ['onOff']);
+                    try {
+                        await device.endpoints[0].read('genOnOff', ['onOff']);
+                    } catch (error) {
+                        // Do nothing
+                    }
                 }, 5000);
             }
         },
