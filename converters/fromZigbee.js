@@ -787,7 +787,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            return {click: 'stop'};
+            return {click: 'release'};
         },
     },
     cover_open: {
