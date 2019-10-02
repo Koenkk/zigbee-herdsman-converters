@@ -783,6 +783,13 @@ const converters = {
             return {water_leak: msg.data.zonestatus === 1};
         },
     },
+    cover_stop: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandStop',
+        convert: (model, msg, publish, options) => {
+            return {click: 'stop'};
+        },
+    },
     cover_open: {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
