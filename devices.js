@@ -1020,7 +1020,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
         supports: 'click',
-        fromZigbee: [fz.generic_battery, fz.cover_close, fz.cover_open],
+        fromZigbee: [fz.generic_battery, fz.cover_close, fz.cover_open, fz.cover_stop],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
