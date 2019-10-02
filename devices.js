@@ -2,7 +2,6 @@
 
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
-const Utils = require('./converters/utils');
 
 const store = {};
 
@@ -328,20 +327,7 @@ const generic = {
 };
 
 const gledopto = {
-    light_onoff_brightness: {
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
-        toZigbee: [tz.gledopto_light_onoff_brightness, tz.ignore_transition, tz.light_alert],
-    },
-    light_onoff_brightness_colortemp: {
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
-        toZigbee: [
-            tz.gledopto_light_onoff_brightness, tz.gledopto_light_colortemp, tz.ignore_transition,
-            tz.light_alert,
-        ],
-    },
-    light_onoff_brightness_colortemp_colorxy: {
+    light: {
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: [
@@ -2614,177 +2600,109 @@ const devices = [
 
     // Gledopto
     {
-        zigbeeModel: ['GLEDOPTO', 'GL-C-008', 'GL-C-007'],
+        zigbeeModel: ['GL-C-006'],
+        model: 'GL-C-006',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller WW/CW',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature',
+    },
+    {
+        zigbeeModel: ['GL-C-007'],
+        model: 'GL-C-007',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGBW',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color, white',
+    },
+    {
+        zigbeeModel: ['GL-C-008'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT / RGBW / WWCW / Dimmer',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        description: 'Zigbee LED controller RGB + CCT',
+        extend: gledopto.light,
         meta: {options: {disableDefaultResponse: true}},
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [11, 13])) {
-                return {'rgb': 11, 'white': 13};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
-                return {'default': 11};
-            } else if (Utils.hasEndpoints(device, [11, 12, 13, 15])) {
-                return {
-                    'rgb': 12,
-                    'white': 15,
-                };
-            } else if (Utils.hasEndpoints(device, [11, 13, 15])) {
-                return {
-                    'rgb': 11,
-                    'white': 15,
-                };
-            } else {
-                return {};
-            }
-        },
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
+        zigbeeModel: ['GL-C-009'],
+        model: 'GL-C-009',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller dimmer',
+        extend: gledopto.light,
+        supports: 'on/off, brightness',
     },
     {
         zigbeeModel: ['GL-S-004Z'],
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
         description: 'Zigbee Smart WW/CW GU10',
-        extend: gledopto.light_onoff_brightness_colortemp,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
-    },
-    {
-        zigbeeModel: ['GL-C-006', 'GL-C-009'],
-        model: 'GL-C-006/GL-C-009',
-        vendor: 'Gledopto',
-        description: 'Zigbee LED controller WW/CW Dimmer',
-        extend: gledopto.light_onoff_brightness_colortemp,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature',
     },
     {
         zigbeeModel: ['GL-S-007Z'],
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['GL-B-001Z'],
         model: 'GL-B-001Z',
         vendor: 'Gledopto',
-        description: 'Smart 4W E14 RGB / CW LED bulb',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        description: 'Smart 4W E14 RGB / CCT LED bulb',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-G-001Z'],
         model: 'GL-G-001Z',
         vendor: 'Gledopto',
         description: 'Smart garden lamp',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
-        description: 'Smart 6W E27 RGB / CW LED bulb',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        description: 'Smart 6W E27 RGB / CCT LED bulb',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-B-008Z'],
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
-        description: 'Smart 12W E27 RGB / CW LED bulb',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        description: 'Smart 12W E27 RGB / CCT LED bulb',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-D-003Z', 'GL-D-005Z'],
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
+        zigbeeModel: ['GL-D-005Z'],
+        model: 'GL-D-005Z',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight ',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-S-003Z'],
         model: 'GL-S-003Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
-        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['HOMA2023'],
@@ -2792,22 +2710,15 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED Driver',
         extend: gledopto.light_onoff_brightness,
+        supports: 'on/off, brightness',
     },
     {
         zigbeeModel: ['GL-FL-004TZ'],
         model: 'GL-FL-004TZ',
         vendor: 'Gledopto',
         description: 'Zigbee 10W floodlight RGB CCT',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            if (Utils.hasEndpoints(device, [11, 12, 13])) {
-                return {'default': 12};
-            } else if (Utils.hasEndpoints(device, [10, 11, 13]) || Utils.hasEndpoints(device, [11, 13])) {
-                return {'default': 11};
-            } else {
-                return {};
-            }
-        },
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-W-001Z'],
