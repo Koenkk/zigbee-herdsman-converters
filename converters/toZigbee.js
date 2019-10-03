@@ -984,43 +984,36 @@ const converters = {
     },
 
     // Sinope
+    sinope_thermostat_occupancy: {
+        key: 'thermostat_occupancy',
+        convertSet: async (entity, key, value, meta) => {
+            const sinopeOccupancy = {
+                0: 'unoccupied',
+                1: 'occupied',
+            };
+            const SinopeOccupancy = utils.getKeyByValue(sinopeOccupancy, value, value);
+            await entity.write('hvacThermostat', {SinopeOccupancy});
+        },
+    },
     sinope_thermostat_backlight_autodim_param: {
         key: 'backlight_auto_dim',
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightAutoDimParam = {
+            const sinopeBacklightParam = {
                 0: 'on demand',
                 1: 'sensing',
             };
-
-            const payload = {
-                0x0402: {
-                    value: utils.getKeyByValue(sinopeBacklightAutoDimParam, value, value),
-                    type: 0x30,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.hue);
+            const SinopeBacklight = utils.getKeyByValue(sinopeBacklightParam, value, value);
+            await entity.write('hvacThermostat', {SinopeBacklight});
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
         key: 'enable_outdoor_temperature',
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
-                const payload = {
-                    0x0011: {
-                        value: 10800,
-                        type: 0x21,
-                    },
-                };
-                await entity.write(0xFF01, payload, options.sinope);
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
             } else if (value.toLowerCase()=='off') {
-                const payload = {
-                    0x0011: {
-                        // set timer to 30sec in order to disable outdoor temperature
-                        value: 30,
-                        type: 0x21,
-                    },
-                };
-                await entity.write(0xFF01, payload, options.sinope);
+                // set timer to 30sec in order to disable outdoor temperature
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 30});
             }
         },
     },
@@ -1028,13 +1021,7 @@ const converters = {
         key: 'thermostat_outdoor_temperature',
         convertSet: async (entity, key, value, meta) => {
             if (value > -100 && value < 100) {
-                const payload = {
-                    0x0010: {
-                        value: value * 100,
-                        type: 0x29,
-                    },
-                };
-                await entity.write(0xFF01, payload, options.sinope);
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100});
             }
         },
     },
@@ -1045,22 +1032,10 @@ const converters = {
                 const thermostatDate = new Date();
                 const thermostatTimeSec = thermostatDate.getTime() / 1000;
                 const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
-
-                const payload = {
-                    0x0020: {
-                        value: Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800),
-                        type: 0x23,
-                    },
-                };
-                await entity.write(0xFF01, payload, options.sinope);
+                const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay});
             } else if (value !== '') {
-                const payload = {
-                    0x0020: {
-                        value,
-                        type: 0x23,
-                    },
-                };
-                await entity.write(0xFF01, payload, options.sinope);
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value});
             }
         },
     },

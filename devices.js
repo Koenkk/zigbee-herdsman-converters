@@ -4834,11 +4834,11 @@ const devices = [
             fz.thermostat_att_report,
         ],
         toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_occupancy,
+            tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
         ],
         meta: {configureKey: 1},
