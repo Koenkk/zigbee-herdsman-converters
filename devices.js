@@ -1083,6 +1083,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWA001'],
+        model: '8718699673147',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 bluetooth',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
