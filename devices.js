@@ -2709,7 +2709,7 @@ const devices = [
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Driver',
-        extend: gledopto.light_onoff_brightness,
+        extend: gledopto.light,
         supports: 'on/off, brightness',
     },
     {
