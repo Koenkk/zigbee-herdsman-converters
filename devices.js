@@ -1456,7 +1456,9 @@ const devices = [
         model: 'AA70155',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
-        extend: generic.light_onoff_brightness_colortemp,
+        supports: generic.light_onoff_brightness_colortemp.supports,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.osram_cmds]),
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
     },
     {
         zigbeeModel: ['PAR16 50 TW'],
