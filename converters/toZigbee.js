@@ -984,11 +984,11 @@ const converters = {
     sinope_thermostat_occupancy: {
         key: 'thermostat_occupancy',
         convertSet: async (entity, key, value, meta) => {
-            const sinope_Occupancy = {
+            const sinopeOccupancy = {
                 0: 'unoccupied',
                 1: 'occupied',
             };
-            const SinopeOccupancy = utils.getKeyByValue(sinope_Occupancy, value, value);
+            const SinopeOccupancy = utils.getKeyByValue(sinopeOccupancy, value, value);
             await entity.write('hvacThermostat', {SinopeOccupancy});
         },
     },
