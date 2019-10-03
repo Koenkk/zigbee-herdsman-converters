@@ -995,11 +995,11 @@ const converters = {
     sinope_thermostat_backlight_autodim_param: {
         key: 'backlight_auto_dim',
         convertSet: async (entity, key, value, meta) => {
-            const sinope_Backlight_Param = {
+            const sinopeBacklightParam = {
                 0: 'on demand',
                 1: 'sensing',
             };
-            const SinopeBacklight = utils.getKeyByValue(sinope_Backlight_Param, value, value);
+            const SinopeBacklight = utils.getKeyByValue(sinopeBacklightParam, value, value);
             await entity.write('hvacThermostat', {SinopeBacklight});
         },
     },
