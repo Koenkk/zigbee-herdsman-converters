@@ -2681,7 +2681,7 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
-        zigbeeModel: ['GL-D-003Z', 'GL-D-005Z'],
+        zigbeeModel: ['GL-D-003Z'],
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
