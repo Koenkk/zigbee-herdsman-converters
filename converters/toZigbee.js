@@ -2,7 +2,6 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const options = {
     xiaomi: {
@@ -837,6 +836,15 @@ const converters = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
+            if (meta.mapped.model === 'GL-C-007' && utils.hasEndpoints(meta.device, [11, 13, 15])) {
+                // GL-C-007 RGBW
+                if (key === 'state' && value.toUpperCase() === 'OFF') {
+                    await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(15), key, value, meta);
+                }
+
+                entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(15);
+            }
+
             return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
@@ -846,29 +854,54 @@ const converters = {
     gledopto_light_color_colortemp_white: {
         key: ['color', 'color_temp', 'color_temp_percent', 'white_value'],
         convertSet: async (entity, key, value, meta) => {
+            const xyWhite = {x: 0.323, y: 0.329};
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            const state = {};
-            if (meta.mapped.model === 'GL-C-008' && utils.hasEndpoints(meta.device, [11, 13])) {
-                if (key === 'white_value') {
-                    // Switch to white channel
-                    const payload = {colortemp: 500, transtime: getTransition(entity, key, meta)};
-                    await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
+            if (key === 'color' && !meta.message.transition) {
+                // Always provide a transition when setting color, otherwise CCT to RGB
+                // doesn't work properly (CCT leds stay on).
+                meta.message.transition = 0.4;
+            }
 
-                    const result = await converters.light_brightness.convertSet(entity, key, value, meta);
-                    return {
-                        state: {white_value: value, ...result.state, color: {x: 0.323, y: 0.329}},
-                        readAfterWriteTime: 0,
-                    };
-                } else if (meta.state.white_value !== 0) {
-                    // Switch to RGB channel
-                    const payload = {colortemp: 155, transtime: getTransition(entity, key, meta)};
-                    await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
-                    await converters.light_brightness.convertSet(entity, 'brightness', meta.state.brightness, meta);
-                    state.white_value = 0;
-                    await wait(1000);
+            const state = {};
+
+            if (meta.mapped.model === 'GL-C-007') {
+                // GL-C-007 RGBW
+                if (utils.hasEndpoints(meta.device, [11, 13, 15])) {
+                    if (key === 'white_value') {
+                        // Switch from RGB to white
+                        await meta.device.getEndpoint(15).command('genOnOff', 'on', {});
+                        await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
+
+                        const result = await converters.light_brightness.convertSet(
+                            meta.device.getEndpoint(15), key, value, meta
+                        );
+                        return {
+                            state: {white_value: value, ...result.state, color: xyWhite},
+                            readAfterWriteTime: 0,
+                        };
+                    } else {
+                        if (meta.state.white_value !== -1) {
+                            // Switch from white to RGB
+                            await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
+                            await meta.device.getEndpoint(15).command('genOnOff', 'off', {});
+                            state.white_value = -1;
+                        }
+                    }
+                } else if (utils.hasEndpoints(meta.device, [11, 13])) {
+                    if (key === 'white_value') {
+                        // Switch to white channel
+                        const payload = {colortemp: 500, transtime: getTransition(entity, key, meta)};
+                        await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
+
+                        const result = await converters.light_brightness.convertSet(entity, key, value, meta);
+                        return {
+                            state: {white_value: value, ...result.state, color: xyWhite},
+                            readAfterWriteTime: 0,
+                        };
+                    }
                 }
             }
 
@@ -878,19 +911,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             return await converters.light_color_colortemp.convertGet(entity, key, meta);
-        },
-    },
-    gledopto_light_colortemp: {
-        key: ['color_temp', 'color_temp_percent'],
-        convertSet: async (entity, key, value, meta) => {
-            if (meta.message && meta.message.hasOwnProperty('transition')) {
-                meta.message.transition = meta.message.transition * 3.3;
-            }
-
-            return await converters.light_colortemp.convertSet(entity, key, value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters.light_colortemp.convertGet(entity, key, meta);
         },
     },
     hue_power_on_behavior: {
