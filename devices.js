@@ -5069,26 +5069,15 @@ const devices = [
         vendor: 'PEQ',
         description: 'Door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [
-            fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
-            fz.ias_contact_status_change, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
-        ],
+        fromZigbee: [fz.temperature, fz.iaszone_contact, fz.battery_3V],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
-                (cb) => device.report('msTemperatureMeasurement', 'measuredValue', 300, 600, 1, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-                (cb) => device.report('genPowerCfg', 'batteryVoltage', 0, 1000, 0, cb),
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.report('ssIasZone', 'zoneStatus', 0, 1000, null, cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {
-                    enrollrspcode: 1,
-                    zoneid: 255,
-                }, cb),
-            ];
-            execute(device, actions, callback);
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];
