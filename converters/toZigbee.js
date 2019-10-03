@@ -21,6 +21,9 @@ const options = {
     sinope: {
         manufacturerCode: 0x119C,
     },
+    ubisys: {
+        manufacturerCode: 0x10f2,
+    },
 };
 
 function getTransition(entity, key, meta) {
@@ -1102,6 +1105,155 @@ const converters = {
                     maximumReportInterval: value,
                 }]);
             }
+        },
+    },
+
+    // ubisys configuration / calibration converters
+    ubisys_configure_j1: {
+        key: ['configure_j1'],
+        convertSet: async (entity, key, value, meta) => {
+            const log = (message) => {
+                meta.logger.warn(`ubisys: ${message}`);
+            };
+            const sleepSeconds = async (s) => {
+                return new Promise((resolve) => setTimeout(resolve, s * 1000));
+            };
+            const waitUntilStopped = async () => {
+                let operationalStatus = 0;
+                do {
+                    await sleepSeconds(2);
+                    operationalStatus = (await entity.read('closuresWindowCovering',
+                        ['operationalStatus'])).operationalStatus;
+                } while (operationalStatus != 0);
+                await sleepSeconds(2);
+            };
+            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc) => {
+                if (jsonAttr.startsWith('ubisys')) {
+                    jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
+                }
+                if (value.hasOwnProperty(jsonAttr)) {
+                    let attrValue = value[jsonAttr];
+                    if (converterFunc) {
+                        attrValue = converterFunc(attrValue);
+                    }
+                    const attributes = {};
+                    attributes[attr] = attrValue;
+                    await entity.write('closuresWindowCovering', attributes, options.ubisys);
+                }
+            };
+            const stepsPerSecond = value.steps_per_second || 50;
+            const hasCalibrate = value.hasOwnProperty('calibrate');
+
+            if (hasCalibrate) {
+                log('Cover calibration starting...');
+                // first of all, move to top position to not confuse calibration later
+                log('  Moving cover to top position to get a good starting point...');
+                await entity.command('closuresWindowCovering', 'upOpen');
+                await waitUntilStopped();
+                log('  Settings some attributes...');
+                // cancel any running calibration
+                await entity.write('closuresWindowCovering', {windowCoveringMode: 0});
+                await sleepSeconds(2);
+            }
+            if (await writeAttrFromJson('windowCoveringType')) {
+                await sleepSeconds(5);
+            }
+            if (hasCalibrate) {
+                // reset attributes
+                await entity.write('closuresWindowCovering', {
+                    installedOpenLimitLiftCm: 0,
+                    installedClosedLimitLiftCm: 240,
+                    installedOpenLimitTiltDdegree: 0,
+                    installedClosedLimitTiltDdegree: 900,
+                    ubisysLiftToTiltTransitionSteps: 0xffff,
+                    ubisysTotalSteps: 0xffff,
+                    ubisysLiftToTiltTransitionSteps2: 0xffff,
+                    ubisysTotalSteps2: 0xffff,
+                }, options.ubisys);
+                // enable calibration mode
+                await sleepSeconds(2);
+                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x02});
+                await sleepSeconds(2);
+                // move down a bit and back up to detect upper limit
+                log('  Moving cover down a bit...');
+                await entity.command('closuresWindowCovering', 'downClose');
+                await sleepSeconds(5);
+                await entity.command('closuresWindowCovering', 'stop');
+                await sleepSeconds(2);
+                log('  Moving up again to detect upper limit...');
+                await entity.command('closuresWindowCovering', 'upOpen');
+                await waitUntilStopped();
+                log('  Moving down to count steps from open to closed...');
+                await entity.command('closuresWindowCovering', 'downClose');
+                await waitUntilStopped();
+                log('  Moving up to count steps from closed to open...');
+                await entity.command('closuresWindowCovering', 'upOpen');
+                await waitUntilStopped();
+            }
+            // now write any attribute values present in JSON
+            await writeAttrFromJson('configStatus');
+            await writeAttrFromJson('installedOpenLimitLiftCm');
+            await writeAttrFromJson('installedClosedLimitLiftCm');
+            await writeAttrFromJson('installedOpenLimitTiltDdegree');
+            await writeAttrFromJson('installedClosedLimitTiltDdegree');
+            await writeAttrFromJson('ubisysTurnaroundGuardTime');
+            await writeAttrFromJson('ubisysLiftToTiltTransitionSteps');
+            await writeAttrFromJson('ubisysTotalSteps');
+            await writeAttrFromJson('ubisysLiftToTiltTransitionSteps2');
+            await writeAttrFromJson('ubisysTotalSteps2');
+            await writeAttrFromJson('ubisysAdditionalSteps');
+            await writeAttrFromJson('ubisysInactivePowerThreshold');
+            await writeAttrFromJson('ubisysStartupSteps');
+            // some convenience functions to not have to calculate
+            await writeAttrFromJson('ubisysTotalSteps', 'open_to_closed_s', (s) => s * stepsPerSecond);
+            await writeAttrFromJson('ubisysTotalSteps2', 'closed_to_open_s', (s) => s * stepsPerSecond);
+            await writeAttrFromJson('ubisysLiftToTiltTransitionSteps', 'lift_to_tilt_transition_ms',
+                (s) => s * stepsPerSecond / 1000);
+            await writeAttrFromJson('ubisysLiftToTiltTransitionSteps2', 'lift_to_tilt_transition_ms',
+                (s) => s * stepsPerSecond / 1000);
+            if (hasCalibrate) {
+                log('  Finalizing calibration...');
+                // disable calibration mode again
+                await sleepSeconds(2);
+                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x00});
+                await sleepSeconds(2);
+                // re-read and dump all relevant attributes
+                log('  Done - will now read back the results.');
+                converters.ubisys_configure_j1.convertGet(entity, key, meta);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const log = (json) => {
+                meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
+            };
+            log(await entity.read('closuresWindowCovering', [
+                'windowCoveringType',
+                'physicalClosedLimitLiftCm',
+                'physicalClosedLimitTiltDdegree',
+                'installedOpenLimitLiftCm',
+                'installedClosedLimitLiftCm',
+                'installedOpenLimitTiltDdegree',
+                'installedClosedLimitTiltDdegree',
+            ]));
+            log(await entity.read('closuresWindowCovering', [
+                'configStatus',
+                'windowCoveringMode',
+                'currentPositionLiftPercentage',
+                'currentPositionLiftCm',
+                'currentPositionTiltPercentage',
+                'currentPositionTiltDdegree',
+                'operationalStatus',
+            ]));
+            log(await entity.read('closuresWindowCovering', [
+                'ubisysTurnaroundGuardTime',
+                'ubisysLiftToTiltTransitionSteps',
+                'ubisysTotalSteps',
+                'ubisysLiftToTiltTransitionSteps2',
+                'ubisysTotalSteps2',
+                'ubisysAdditionalSteps',
+                'ubisysInactivePowerThreshold',
+                'ubisysStartupSteps',
+            ], options.ubisys));
         },
     },
 
