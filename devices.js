@@ -5642,14 +5642,13 @@ const devices = [
         },
     },
 
-
     // PEQ
     {
         zigbeeModel: ['3300'],
         model: '3300-P',
         vendor: 'PEQ',
         description: 'Door & window contact sensor',
-        supports: 'contact and temperature',
+        supports: 'contact, temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.smartsense_multi,
             fz.ias_contact_status_change, fz.ignore_iaszone_change, fz.generic_batteryvoltage_3000_2500,
