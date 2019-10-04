@@ -797,6 +797,13 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['GUNNARP panel 40*40'],
+        model: 'T1829',
+        description: 'GUNNARP panel 40*40',
+        vendor: 'IKEA',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Philips
     {
