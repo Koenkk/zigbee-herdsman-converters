@@ -803,7 +803,7 @@ const devices = [
         description: 'GUNNARP panel 40*40',
         vendor: 'IKEA',
         extend: generic.light_onoff_brightness_colortemp,
-     },
+    },
 
     // Philips
     {
