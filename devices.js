@@ -891,7 +891,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LST003'],
+        zigbeeModel: ['LST003', 'LST004'],
         model: '9290018187B',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip Outdoor',
@@ -2548,7 +2548,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['FNB56-SKT1EHG1.2'],
+        zigbeeModel: ['FNB56-SKT1EHG1.2', 'FNB56-SKT1JXN1.0'],
         model: 'HGZB-20-DE',
         vendor: 'Smart Home Pty',
         description: 'Power plug',
@@ -3823,7 +3823,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['COSensor-EM'],
+        zigbeeModel: ['COSensor-EM', 'COSensor-N'],
         model: 'HS1CA-E',
         vendor: 'HEIMAN',
         description: 'Smart carbon monoxide sensor',
