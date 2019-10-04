@@ -1366,7 +1366,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: 'Matts Wall Switch Remote (https://github.com/mattlokes/ZWallRemote)',
         supports: 'on/off',
-        fromZigbee: [ fz.cmdToggle ],
+        fromZigbee: [fz.cmdToggle],
         toZigbee: [],
     },
     {
