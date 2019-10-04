@@ -2681,8 +2681,8 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GL-B-008Z', 'GL-B-008ZS'],
-        model: 'GL-B-008Z/GL-B-008ZS',
+        zigbeeModel: ['GL-B-008Z'],
+        model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
@@ -2695,6 +2695,13 @@ const devices = [
                 return {};
             }
         },
+    },
+    {
+        zigbeeModel: ['GL-B-008ZS'],
+        model: 'GL-B-008ZS',
+        vendor: 'Gledopto',
+        description: 'Smart 12W E27 RGB / CW LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['GL-D-003Z', 'GL-D-005Z'],
