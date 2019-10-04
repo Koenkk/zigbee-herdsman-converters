@@ -1017,6 +1017,13 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['GUNNARP panel 40*40'],
+        model: 'T1829',
+        description: 'GUNNARP panel 40*40',
+        vendor: 'IKEA',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Philips
     {
@@ -1118,7 +1125,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LST003'],
+        zigbeeModel: ['LST003', 'LST004'],
         model: '9290018187B',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip Outdoor',
@@ -1557,6 +1564,15 @@ const devices = [
                 'btn_16': 16, 'btn_17': 17, 'btn_18': 18, 'btn_19': 19, 'btn_20': 20,
             };
         },
+    },
+    {
+        zigbeeModel: ['ZWallRemote0'],
+        model: 'ZWallRemote0',
+        vendor: 'Custom devices (DiY)',
+        description: 'Matts Wall Switch Remote (https://github.com/mattlokes/ZWallRemote)',
+        supports: 'on/off',
+        fromZigbee: [fz.cmdToggle],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['DTB190502A1'],
@@ -2697,6 +2713,14 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
+        zigbeeModel: ['GL-B-008ZS'],
+        model: 'GL-B-008ZS',
+        vendor: 'Gledopto',
+        description: 'Smart 12W E27 RGB / CW LED bulb',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-D-003Z'],
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
@@ -3586,7 +3610,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['COSensor-EM'],
+        zigbeeModel: ['COSensor-EM', 'COSensor-N'],
         model: 'HS1CA-E',
         vendor: 'HEIMAN',
         description: 'Smart carbon monoxide sensor',
