@@ -1361,6 +1361,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ZWallRemote0'],
+        model: 'ZWallRemote0',
+        vendor: 'Custom devices (DiY)',
+        description: 'Matts Wall Switch Remote (https://github.com/mattlokes/ZWallRemote)',
+        supports: 'on/off',
+        fromZigbee: [fz.cmdToggle],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
         vendor: 'Custom devices (DiY)',
