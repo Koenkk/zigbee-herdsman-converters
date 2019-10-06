@@ -375,6 +375,13 @@ const converters = {
             return result;
         },
     },
+    bitron_contact: {
+        cid: 'ssIasZone',
+        type: 'statusChange',
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data.zoneStatus === 20};
+        },
+    },
     nue_click: {
         cid: 'genScenes',
         type: 'cmdRecall',

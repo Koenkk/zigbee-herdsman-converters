@@ -3400,6 +3400,15 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['902010/21A'],
+        model: 'AV2010/21A',
+        vendor: 'Bitron',
+        description: 'Multipurpose sensor',
+        supports: 'contact',
+        fromZigbee: [fz.bitron_contact],
+        toZigbee: [],
+    },
 
     // Iris
     {
