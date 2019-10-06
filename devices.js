@@ -2556,7 +2556,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LXN56-0S27LX1.1'],
-        model: 'HGZB-20-DE',
+        model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',
         supports: 'on/off',
