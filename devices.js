@@ -1179,7 +1179,7 @@ const devices = [
         zigbeeModel: ['LOM001'],
         model: '929002240401',
         vendor: 'Philips',
-        description: 'Hue Smart Plug',
+        description: 'Hue smart plug',
         supports: 'on/off',
         fromZigbee: [fz.ignore_onoff_change, fz.state],
         toZigbee: [tz.on_off],
