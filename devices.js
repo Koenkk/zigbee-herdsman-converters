@@ -1176,6 +1176,23 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['LOM001'],
+        model: '929002240401',
+        vendor: 'Philips',
+        description: 'Hue smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 11);
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.report('genOnOff', 'onOff', 0, 600, null, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['LLC014'],
         model: '7099860PH',
         vendor: 'Philips',
