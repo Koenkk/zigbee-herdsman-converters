@@ -2327,6 +2327,24 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['Smart Switch'],
+        model: 'PTAPT-WH02',
+        vendor: 'GE',
+        description: 'Quirky smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'default': 2};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Sengled
     {
