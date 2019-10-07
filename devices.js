@@ -1386,6 +1386,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['LOM001'],
+        model: '929002240401',
+        vendor: 'Philips',
+        description: 'Hue smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['LLC014'],
         model: '7099860PH',
         vendor: 'Philips',
@@ -2616,6 +2631,15 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['LXN56-0S27LX1.1'],
+        model: 'HGZB-20-UK',
+        vendor: 'Nue / 3A',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
     },
 
     // Smart Home Pty
@@ -4315,6 +4339,15 @@ const devices = [
     {
         zigbeeModel: ['MCT-340 E'],
         model: 'MCT-340 E',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.iaszone_contact],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['MCT-340 SMA'],
+        model: 'MCT-340 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
