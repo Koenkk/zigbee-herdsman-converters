@@ -5041,7 +5041,7 @@ const devices = [
     {
         zigbeeModel: ['XHS2-SE'],
         model: 'XHS2-SE',
-        vendor: 'Sercomm Corp.',
+        vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
         fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
