@@ -5044,7 +5044,7 @@ const devices = [
         vendor: 'Sercomm Corp.',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.sercomm_corp_contact, fz.ignore_power_change],
+        fromZigbee: [fz.visonic_contact, fz.ignore_power_change],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
