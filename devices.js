@@ -1385,6 +1385,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DIYRuZ_magnet'],
+        model: 'DIYRuZ_magnet',
+        vendor: 'DIYRuZ',
+        description: 'DIYRuZ contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.keypad20_battery, fz.xiaomi_contact],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['ZWallRemote0'],
         model: 'ZWallRemote0',
         vendor: 'Custom devices (DiY)',
