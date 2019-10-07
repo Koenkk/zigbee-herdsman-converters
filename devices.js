@@ -5762,6 +5762,24 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // Lonsonho
+    {
+        zigbeeModel: ['Plug_01'],
+        model: 'Zigbee plug',
+        vendor: 'Lonsonho',
+        description: 'plug',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 11);
+            const actions = [
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
