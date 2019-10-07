@@ -592,11 +592,17 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state,
-            fz.ignore_occupancy_report,
+            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            // By default this device is in group 0; remove it otherwise the E1743 will control it.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2059
+            const endpoint = device.getEndpoint(1);
+            await endpoint.removeFromGroup(0);
+        },
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
