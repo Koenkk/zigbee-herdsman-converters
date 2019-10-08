@@ -1388,7 +1388,7 @@ const devices = [
         zigbeeModel: ['DIYRuZ_magnet'],
         model: 'DIYRuZ_magnet',
         vendor: 'DIYRuZ',
-        description: 'DIYRuZ contact sensor',
+        description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
         supports: 'contact',
         fromZigbee: [fz.keypad20_battery, fz.xiaomi_contact],
         toZigbee: [],
