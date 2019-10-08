@@ -3265,6 +3265,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['ZLL-ColorTempera'],
+        model: 'ZLED-TUNE9',
+        vendor: 'Trust',
+        description: 'Smart Dimmable LED Bulb',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['VMS_ADUROLIGHT'],
         model: 'ZPIR-8000',
         vendor: 'Trust',
