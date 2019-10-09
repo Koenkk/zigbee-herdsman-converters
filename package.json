@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "11.1.21",
+  "version": "11.1.22",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
@@ -30,8 +30,7 @@
     "url": "https://github.com/Koenkk/zigbee-shepherd-converters/issues"
   },
   "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "*",
     "eslint-config-google": "*",
