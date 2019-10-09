@@ -3277,7 +3277,7 @@ const devices = [
         zigbeeModel: ['ZLL-ColorTempera'],
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
-        description: 'Smart Tunable LED Bulb',
+        description: 'Smart tunable LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
@@ -5766,9 +5766,9 @@ const devices = [
     // Lonsonho
     {
         zigbeeModel: ['Plug_01'],
-        model: 'Zigbee plug',
+        model: '4000116784070',
         vendor: 'Lonsonho',
-        description: 'plug',
+        description: 'Smart plug EU',
         supports: 'on/off',
         fromZigbee: [fz.state, fz.ignore_onoff_change],
         toZigbee: [tz.on_off],
