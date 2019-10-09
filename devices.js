@@ -1385,6 +1385,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DIYRuZ_magnet'],
+        model: 'DIYRuZ_magnet',
+        vendor: 'DIYRuZ',
+        description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
+        supports: 'contact',
+        fromZigbee: [fz.keypad20_battery, fz.xiaomi_contact],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['ZWallRemote0'],
         model: 'ZWallRemote0',
         vendor: 'Custom devices (DiY)',
@@ -3263,6 +3272,13 @@ const devices = [
         vendor: 'Trust',
         description: 'Smart Dimmable LED Bulb',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZLL-ColorTempera'],
+        model: 'ZLED-TUNE9',
+        vendor: 'Trust',
+        description: 'Smart tunable LED bulb',
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['VMS_ADUROLIGHT'],
@@ -5759,6 +5775,24 @@ const devices = [
                     enrollrspcode: 1,
                     zoneid: 255,
                 }, cb),
+            ];
+            execute(device, actions, callback);
+        },
+    },
+
+    // Lonsonho
+    {
+        zigbeeModel: ['Plug_01'],
+        model: '4000116784070',
+        vendor: 'Lonsonho',
+        description: 'Smart plug EU',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 11);
+            const actions = [
+                (cb) => device.report('genOnOff', 'onOff', 1, 60, 1, cb),
             ];
             execute(device, actions, callback);
         },
