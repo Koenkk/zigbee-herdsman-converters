@@ -3307,10 +3307,11 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.state, fz.iris_3210L_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
             await configureReporting.activePower(endpoint);
         },
     },
