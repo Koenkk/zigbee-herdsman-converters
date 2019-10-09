@@ -1,6 +1,5 @@
 'use strict';
 
-const debounce = require('debounce');
 const common = require('./common');
 
 const clickLookup = {
@@ -97,20 +96,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
     const payload = {};
 
     if (!store[deviceID]) {
-        const _publish = debounce((msg) => publish(msg), 250);
-        store[deviceID] = {since: false, direction: false, value: 255, publish: _publish};
+        store[deviceID] = {since: false, direction: false, value: 255, publish: publish};
     }
 
     const s = store[deviceID];
-    if (s.since && s.direction) {
-        // Update value
-        const duration = Date.now() - s.since;
-        const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
-        const newValue = s.value + delta;
-        if (newValue >= 0 && newValue <= 255) {
-            s.value = newValue;
-        }
-    }
 
     if (action === 'move') {
         s.since = Date.now();
@@ -122,15 +111,35 @@ const ictcg1 = (model, msg, publish, options, action) => {
             s.value = msg.data.level;
             const direction = s.value === 0 ? 'left' : 'right';
             payload.action = `rotate_${direction}_quick`;
+            payload.brightness = s.value;
         } else {
+            const duration = Date.now() - s.since;
+            const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
+            const newValue = s.value + delta;
+            if (newValue >= 0 && newValue <= 255) {
+                s.value = newValue;
+            }
             payload.action = 'rotate_stop';
+            payload.brightness = s.value;
         }
-
-        s.since = false;
-        s.direction = false;
     }
-
-    payload.brightness = s.value;
+    if (s.timerId) {
+        clearInterval(s.timerId);
+        s.timerId = false;
+    }
+    if (action === 'move') {
+        s.timerId = setInterval(() => {
+            const duration = Date.now() - s.since;
+            const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
+            const newValue = s.value + delta;
+            if (newValue >= 0 && newValue <= 255) {
+                s.value = newValue;
+            }
+            payload.brightness = s.value;
+            s.since = Date.now();
+            s.publish(payload);
+        }, 10);
+    }
     s.publish(payload);
 };
 

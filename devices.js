@@ -1594,6 +1594,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DIYRuZ_magnet'],
+        model: 'DIYRuZ_magnet',
+        vendor: 'DIYRuZ',
+        description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
+        supports: 'contact',
+        fromZigbee: [fz.keypad20_battery, fz.xiaomi_contact],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['ZWallRemote0'],
         model: 'ZWallRemote0',
         vendor: 'Custom devices (DiY)',
@@ -3179,6 +3188,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['ZLL-ColorTempera'],
+        model: 'ZLED-TUNE9',
+        vendor: 'Trust',
+        description: 'Smart tunable LED bulb',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['VMS_ADUROLIGHT'],
         model: 'ZPIR-8000',
         vendor: 'Trust',
@@ -4623,6 +4639,15 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
         },
     },
+    {
+        zigbeeModel: ['XHS2-SE'],
+        model: 'XHS2-SE',
+        vendor: 'Sercomm',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.iaszone_contact],
+        toZigbee: [],
+    },
 
     // Leedarson
     {
@@ -5168,6 +5193,22 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+
+    // Lonsonho
+    {
+        zigbeeModel: ['Plug_01'],
+        model: '4000116784070',
+        vendor: 'Lonsonho',
+        description: 'Smart plug EU',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await configureReporting.onOff(endpoint);
         },
     },
 ];
