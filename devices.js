@@ -1194,6 +1194,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTG002'],
+        model: '929001953301',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
