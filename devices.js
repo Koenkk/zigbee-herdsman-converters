@@ -504,6 +504,13 @@ const devices = [
         toZigbee: [],
     },
     // IKEA
+    { 
+        zigbeeModel: ['TRADFRI bulb E27 WW 806lm'],
+        model: 'LED1836G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E27 WW 806lm, dimmable',
+        extend: generic.light_onoff_brightness,
+    },
     {
         zigbeeModel: [
             'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm',
