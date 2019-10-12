@@ -1442,6 +1442,13 @@ const devices = [
         description: 'Hue Lily outdoor spot light',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['LWV001'],
+        model: '929002241201',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison E27 LED',
+        extend: hue.light_onoff_brightness,
+    },
 
     // Belkin
     {
