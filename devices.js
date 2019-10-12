@@ -4121,6 +4121,22 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['YRD210 PB DB'],
+        model: 'YRD210-HA-605',
+        vendor: 'Yale',
+        description: 'Real living keyless push button deadbolt lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Keen Home
     {
