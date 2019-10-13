@@ -954,6 +954,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LWE002'],
+        model: '9290020399',
+        vendor: 'Philips',
+        description: 'Hue white E14',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LTW013'],
         model: '8718696598283',
         vendor: 'Philips',
