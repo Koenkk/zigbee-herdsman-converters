@@ -8,8 +8,8 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
+    MINUTES_5: 300,
     MINUTE: 60,
-    MINUTES_5: 60,
 };
 
 const bind = async (endpoint, target, clusters) => {
