@@ -1470,7 +1470,7 @@ const converters = {
             const voltage = msg.data['batteryVoltage'] * 100;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage,
+                voltage: voltage / 1000.0,
             };
         },
     },
