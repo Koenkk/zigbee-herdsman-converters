@@ -5378,6 +5378,15 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+    {
+        zigbeeModel: ['TS0302'],
+        model: 'ZM-CSW032-D',
+        vendor: 'Zemismart',
+        description: 'Curtain // Roller blind switch',
+        supports: 'open, close, stop',
+        fromZigbee: [fz.ignore_basic_report, fz.closuresWindowCovering_report, fz.ignore_closuresWindowCovering_change],
+        toZigbee: [ tz.cover_control]
+    },
 
     // Sinope
     {
