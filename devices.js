@@ -1187,6 +1187,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LWE002'],
+        model: '9290020399',
+        vendor: 'Philips',
+        description: 'Hue white E14',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LTW013'],
         model: '8718696598283',
         vendor: 'Philips',
@@ -4886,6 +4893,15 @@ const devices = [
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['TS0302'],
+        model: 'ZM-CSW032-D',
+        vendor: 'Zemismart',
+        description: 'Curtain/roller blind switch',
+        supports: 'open, close, stop',
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state],
     },
 
     // Sinope
