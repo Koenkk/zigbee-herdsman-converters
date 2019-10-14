@@ -2726,7 +2726,7 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
-        zigbeeModel: ['GL-C-008'],
+        zigbeeModel: ['GL-C-008', 'GLEDOPTO'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT',
