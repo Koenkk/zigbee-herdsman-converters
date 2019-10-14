@@ -7,9 +7,19 @@ describe('index.js', () => {
         expect(device.model).toBe('HS1WL/HS3WL')
     });
 
-    it('Find device by model ID with strange characters', () => {
+    it('Find device by model ID with strange characters 1', () => {
         const device = index.findByZigbeeModel('lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000');
         expect(device.model).toBe('WXKG11LM')
+    });
+
+    it('onlythis Find device by model ID with strange characters 2', () => {
+        const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
+        expect(device.model).toBe('WXKG03LM')
+    });
+
+    it('Find device by model ID with strange characters 3', () => {
+        const device = index.findByZigbeeModel('lumi.sensor_86sw1');
+        expect(device.model).toBe('WXKG03LM')
     });
 
     it('Find device by model ID without strange characters', () => {

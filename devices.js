@@ -386,7 +386,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_switch.aq2', 'lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000'],
+        zigbeeModel: ['lumi.sensor_switch.aq2', 'lumi.remote.b1acn01'],
         model: 'WXKG11LM',
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
@@ -409,7 +409,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw1\u0000lu', 'lumi.remote.b186acn01\u0000\u0000\u0000'],
+        zigbeeModel: ['lumi.sensor_86sw1', 'lumi.remote.b186acn01'],
         model: 'WXKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
@@ -421,7 +421,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2\u0000Un', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01\u0000\u0000\u0000'],
+        zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
@@ -1869,7 +1869,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini\u0000'],
+        zigbeeModel: ['Lightify Switch Mini'],
         model: 'AC0251100NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
