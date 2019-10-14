@@ -5813,6 +5813,20 @@ const devices = [
             execute(device, actions, callback);
         },
     },
+
+    // iHORN
+    {
+        zigbeeModel: ['113D'],
+        model: 'LH-32ZB',
+        vendor: 'iHORN',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.generic_humidity, fz.generic_temperature, fz.battery_200,
+            fz.ignore_humidity_change, fz.ignore_temperature_change,
+        ],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
