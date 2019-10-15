@@ -4819,10 +4819,11 @@ const devices = [
         model: 'MCT-340 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
-        supports: 'contact, temperature',
+        supports: 'contact, tem',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.generic_contact,
-            fz.generic_batteryvoltage_3000_2500, fz.ias_contact_dev_change,
+            fz.generic_batteryvoltage_3000_2500, fz.generic_change_batteryvoltage_3000_2500,
+            fz.ias_contact_dev_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
@@ -5120,7 +5121,8 @@ const devices = [
         supports: 'contact, temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.generic_contact,
-            fz.generic_batteryvoltage_3000_2500, fz.ias_contact_dev_change,
+            fz.generic_batteryvoltage_3000_2500, fz.generic_change_batteryvoltage_3000_2500,
+            fz.ias_contact_dev_change,
         ],
         toZigbee: [],
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
