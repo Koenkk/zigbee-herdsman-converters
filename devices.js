@@ -4804,7 +4804,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['3AFE14010402000D'],
+        zigbeeModel: ['3AFE14010402000D', '3AFE27010402000D'],
         model: '2AJZ4KPBS',
         vendor: 'Konke',
         description: 'Motion sensor',
