@@ -283,7 +283,8 @@ const converters = {
                 const battery = {max: 3200, min: 2500};
                 const voltage = msg.data['batteryVoltage'] * 100;
                 result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage;
+                result.voltage = voltage; // @deprecated
+                // result.voltage = voltage / 1000.0;
             }
             if (typeof msg.data['batteryAlarmState'] == 'number') {
                 result.battery_alarm_state = msg.data['batteryAlarmState'];
@@ -345,7 +346,8 @@ const converters = {
             if (voltage) {
                 return {
                     battery: parseFloat(toPercentageCR2032(voltage)),
-                    voltage: voltage,
+                    voltage: voltage, // @deprecated
+                    // voltage: voltage / 1000.0,
                 };
             }
         },
@@ -1470,7 +1472,8 @@ const converters = {
             const voltage = msg.data['batteryVoltage'] * 100;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage,
+                voltage: voltage, // @deprecated
+                // voltage: voltage / 1000.0,
             };
         },
     },
@@ -2819,7 +2822,8 @@ const converters = {
             const voltage = msg.data['mainsVoltage'] /10;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage,
+                voltage: voltage, // @deprecated
+                // voltage: voltage / 1000.0,
             };
         },
     },
