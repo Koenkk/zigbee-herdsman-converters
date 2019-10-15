@@ -4819,7 +4819,7 @@ const devices = [
         model: 'MCT-340 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
-        supports: 'contact',
+        supports: 'contact, temperature',
         fromZigbee: [
             fz.generic_temperature, fz.ignore_temperature_change, fz.generic_contact,
             fz.generic_batteryvoltage_3000_2500, fz.ias_contact_dev_change,
@@ -4828,6 +4828,7 @@ const devices = [
         configure: (ieeeAddr, shepherd, coordinator, callback) => {
             const device = shepherd.find(ieeeAddr, 1);
             const actions = [
+                (cb) => device.bind('ssIasZone', coordinator, cb),
                 (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
                 (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23}, cb),
                 (cb) => device.bind('msTemperatureMeasurement', coordinator, cb),
