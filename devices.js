@@ -5023,6 +5023,13 @@ const devices = [
         description: 'Zigbee LED-Controller ',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['511.201'],
+        model: '511.201',
+        vendor: 'Iluminize',
+        description: 'HV LED dimmer',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Anchor
     {
