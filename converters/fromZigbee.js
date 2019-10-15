@@ -1477,6 +1477,18 @@ const converters = {
             };
         },
     },
+    battery_3V_2100: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const battery = {max: 3000, min: 2100};
+            const voltage = msg.data['batteryVoltage'] * 100;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage / 1000.0,
+            };
+        },
+    },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],

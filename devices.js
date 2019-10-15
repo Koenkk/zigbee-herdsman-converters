@@ -3375,10 +3375,17 @@ const devices = [
         zigbeeModel: ['3320-L'],
         model: '3320-L',
         vendor: 'Iris',
-        description: 'Contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.iris_3320L_contact],
+        description: 'Contact and temperature sensor',
+        supports: 'contact and temperature',
+        fromZigbee: [fz.iris_3320L_contact, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
     },
 
     // ksentry
