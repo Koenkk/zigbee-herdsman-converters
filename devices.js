@@ -96,7 +96,7 @@ const configureReporting = {
             attribute: 'measuredValue',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            reportableChange: 25,
         }];
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
