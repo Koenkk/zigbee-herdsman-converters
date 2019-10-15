@@ -2679,7 +2679,7 @@ const converters = {
         type: 'cmdMoveToColorTemp',
         convert: (model, msg, publish, options) => null,
     },
-    visonic_contact: {
+    generic_contact: {
         cid: 'ssIasZone',
         type: 'statusChange',
         convert: (model, msg, publish, options) => {
