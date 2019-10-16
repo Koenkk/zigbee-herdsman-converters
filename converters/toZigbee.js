@@ -728,6 +728,27 @@ const converters = {
             }
         },
     },
+    eurotronic_thermostat_system_mode: {
+        key: 'system_mode',
+        convertSet: async (entity, key, value, meta) => {
+            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
+            switch (systemMode) {
+                case 0: 
+                    value = 0x20; // off
+                    break;
+                case 1: 
+                    value = 0x05; // boost
+                    break;
+                default: 
+                    value = 0x11; // heat
+            }
+            const payload = {0x4008: {value, type: 0x22}};
+            await entity.write('hvacThermostat', payload, options.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['systemMode']);
+        },
+    },
     eurotronic_system_mode: {
         key: 'eurotronic_system_mode',
         convertSet: async (entity, key, value, meta) => {
