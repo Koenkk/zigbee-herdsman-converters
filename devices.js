@@ -4591,6 +4591,13 @@ const devices = [
         description: 'Zigbee LED-Controller ',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['511.201'],
+        model: '511.201',
+        vendor: 'Iluminize',
+        description: 'HV LED dimmer',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Anchor
     {
@@ -5256,6 +5263,17 @@ const devices = [
             const endpoint = device.getEndpoint(11);
             await configureReporting.onOff(endpoint);
         },
+    },
+
+    // iHORN
+    {
+        zigbeeModel: ['113D'],
+        model: 'LH-32ZB',
+        vendor: 'iHORN',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
+        toZigbee: [],
     },
 ];
 
