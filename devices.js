@@ -1412,7 +1412,22 @@ const devices = [
         zigbeeModel: ['LOM001'],
         model: '929002240401',
         vendor: 'Philips',
-        description: 'Hue smart plug',
+        description: 'Hue smart plug - EU',
+        supports: 'on/off',
+        fromZigbee: [fz.state],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['LOM002'],
+        model: '046677552343',
+        vendor: 'Philips',
+        description: 'Hue smart plug bluetooth',
         supports: 'on/off',
         fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
