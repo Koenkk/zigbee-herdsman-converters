@@ -1032,7 +1032,7 @@ const converters = {
             }
         },
     },
-    ZNCLDJ11LM_curtain_genAnalogOutput: {
+    ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
