@@ -734,13 +734,13 @@ const converters = {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
             switch (systemMode) {
             case 0:
-                value = 0x20; // off
+                value |= 1 << 5; // off
                 break;
             case 1:
-                value = 0x05; // boost
+                value |= 1 << 2; // boost
                 break;
             default:
-                value = 0x11; // heat
+                value |= (2<<3) + 1; // heat
             }
             const payload = {0x4008: {value, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);

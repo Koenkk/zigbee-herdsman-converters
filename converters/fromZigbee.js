@@ -1999,12 +1999,10 @@ const converters = {
             }
             if (typeof msg.data[0x4008] == 'number') {
                 result.eurotronic_system_mode = msg.data[0x4008];
-                if (result.eurotronic_system_mode == 0x11) {
-                    result.system_mode = common.thermostatSystemModes[0]; // off
-                } else if (result.eurotronic_system_mode == 0x05 || result.eurotronic_system_mode == 0x15 ) {
-                    // 0x05 = 5 from heat -> boost
-                    // 0x15 = 21 from off -> boost
+                if ((result.eurotronic_system_mode & 1 << 2) != 0) {
                     result.system_mode = common.thermostatSystemModes[1]; // boost => auto
+                } else if ((result.eurotronic_system_mode & (1 << 4)) != 0 ) {
+                    result.system_mode = common.thermostatSystemModes[0]; // off
                 } else {
                     result.system_mode = common.thermostatSystemModes[4]; // heat
                 }
