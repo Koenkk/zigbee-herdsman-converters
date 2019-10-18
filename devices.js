@@ -4461,9 +4461,16 @@ const devices = [
         model: 'MCT-340 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        supports: 'contact, temperature',
+        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
 
     // Sunricher
@@ -4719,9 +4726,16 @@ const devices = [
         model: 'XHS2-SE',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        supports: 'contact, temperature',
+        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
 
     // Leedarson
