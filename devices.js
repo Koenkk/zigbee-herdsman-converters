@@ -4446,7 +4446,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_cr2032],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4462,7 +4462,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_cr2032],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

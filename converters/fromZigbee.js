@@ -1489,6 +1489,17 @@ const converters = {
             };
         },
     },
+    battery_cr2032: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            return {
+                battery: toPercentageCR2032(voltage),
+                voltage: voltage / 1000.0,
+            };
+        },
+    },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
