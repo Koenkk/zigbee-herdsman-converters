@@ -1942,6 +1942,7 @@ const converters = {
             const result = {};
             if (typeof msg.data['localTemp'] == 'number') {
                 result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+                result.local_temperature = calibrateAndPrecisionRoundOptions(result.local_temperature, options, 'temperature')
             }
             if (typeof msg.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration =
@@ -2010,6 +2011,13 @@ const converters = {
             }
             if (typeof msg.data[0x4008] == 'number') {
                 result.eurotronic_system_mode = msg.data[0x4008];
+                if ((result.eurotronic_system_mode & 1 << 2) != 0) {
+                    result.system_mode = common.thermostatSystemModes[1]; // boost => auto
+                } else if ((result.eurotronic_system_mode & (1 << 4)) != 0 ) {
+                    result.system_mode = common.thermostatSystemModes[0]; // off
+                } else {
+                    result.system_mode = common.thermostatSystemModes[4]; // heat
+                }
             }
             if (typeof msg.data[0x4002] == 'number') {
                 result.eurotronic_error_status = msg.data[0x4002];
