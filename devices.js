@@ -1480,7 +1480,7 @@ const devices = [
         description: 'Hue white filament Edison E27 LED',
         extend: hue.light_onoff_brightness,
     },
-	{
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
