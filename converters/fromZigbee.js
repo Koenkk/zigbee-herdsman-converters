@@ -1931,6 +1931,7 @@ const converters = {
             const result = {};
             if (typeof msg.data['localTemp'] == 'number') {
                 result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+                result.local_temperature = calibrateAndPrecisionRoundOptions(result.local_temperature, options, 'temperature')
             }
             if (typeof msg.data['localTemperatureCalibration'] == 'number') {
                 result.local_temperature_calibration =
