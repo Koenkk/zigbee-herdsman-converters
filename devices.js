@@ -1988,6 +1988,13 @@ const devices = [
 
     // Innr
     {
+        zigbeeModel: ['BF 263'],
+        model: 'BF 263',
+        vendor: 'Innr',
+        description: 'B22 filament bulb dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
         vendor: 'Innr',
