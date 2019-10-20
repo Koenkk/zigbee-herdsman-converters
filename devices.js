@@ -4026,7 +4026,7 @@ const devices = [
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 4151,}
+            const options = {manufacturerCode: 4151};
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
             await configureReporting.thermostatTemperature(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{

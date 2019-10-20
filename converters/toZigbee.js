@@ -740,7 +740,7 @@ const converters = {
                 value |= 1 << 2; // boost
                 break;
             default:
-                value |= 1 << 4 // heat
+                value |= 1 << 4; // heat
             }
             const payload = {0x4008: {value, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
