@@ -1350,9 +1350,9 @@ const converters = {
 
             let ds18b20Id = null;
             let ds18b20Value = null;
-            if (msg.data.data['41368']) {
-                ds18b20Id = msg.data.data['41368'].split(':')[0];
-                ds18b20Value = precisionRound(msg.data.data['41368'].split(':')[1], 2);
+            if (msg.data['41368']) {
+                ds18b20Id = msg.data['41368'].split(':')[0];
+                ds18b20Value = precisionRound(msg.data['41368'].split(':')[1], 2);
             }
 
             return {
