@@ -3396,17 +3396,14 @@ const devices = [
         vendor: 'Iris',
         description: 'Motion and temperature sensor',
         supports: 'occupancy and temperature',
-        fromZigbee: [
-            fz.temperature,
-            fz.iaszone_occupancy_2,
-        ],
+        fromZigbee: [fz.iaszone_occupancy_2, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await configureReporting.temperature(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
