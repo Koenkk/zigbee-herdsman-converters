@@ -1819,7 +1819,10 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
+            let endpoint = device.getEndpoint(3);
+            // Endpoint 3 is not always present, use endpoint 1 in that case
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2178
+            if (!endpoint) endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
