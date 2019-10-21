@@ -3510,7 +3510,7 @@ const devices = [
 
     // Centralite Swiss Plug
     {
-        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC', '4257050-ZHAC'],
+        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
@@ -3521,6 +3521,24 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['4257050-ZHAC'],
+        model: '4257050-ZHAC',
+        vendor: 'Centralite',
+        description: '3-Series Smart Dimming Outlet',
+        supports: 'on/off, power meter',
+        fromZigbee: [fz.state, fz.ZHAC_4257050_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);

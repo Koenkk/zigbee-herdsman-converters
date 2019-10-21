@@ -1760,6 +1760,23 @@ const converters = {
             };
         },
     },
+    ZHAC_4257050_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('activePower')) {
+                payload.power = msg.data['activePower'] / 10.0;
+            }
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                payload.current = msg.data['rmsCurrent'] / 1000.0;
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                payload.voltage = msg.data['rmsVoltage'];
+            }
+            return payload;
+        },
+    },
     iaszone_occupancy_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
