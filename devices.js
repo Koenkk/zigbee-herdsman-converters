@@ -2781,6 +2781,14 @@ const devices = [
         supports: 'on/off, brightness',
     },
     {
+        zigbeeModel: ['GL-MC-001'],
+        model: 'GL-MC-001',
+        vendor: 'Gledopto',
+        description: 'Zigbee USB mini LED controller RGB + CCT',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-S-004Z'],
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
