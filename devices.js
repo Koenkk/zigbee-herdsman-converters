@@ -3859,7 +3859,13 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.brightness(endpoint);
+            const payload = [{
+                attribute: 'currentLevel',
+                minimumReportInterval: 300,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 1,
+            }];
+            await endpoint.configureReporting('genLevelCtrl', payload);
         },
     },
     {
