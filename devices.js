@@ -3216,6 +3216,15 @@ const devices = [
 
     // Trust
     {
+        zigbeeModel: ['WATER_TPV14'],
+        model: 'ZWLD-100',
+        vendor: 'Trust',
+        description: 'Water leakage detector',
+        supports: 'water leak',
+        fromZigbee: [fz.heiman_water_leak],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
                       '\u0000\u0000\u0000\u0000\u0000'],
         model: 'ZYCT-202',
