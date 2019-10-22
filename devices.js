@@ -5379,7 +5379,7 @@ const devices = [
         vendor: 'ITEAD',
         description: 'SONOFF ZigBee DIY Smart Switch',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        fromZigbee: [fz.state],
         toZigbee: [tz.on_off],
     },
 ];
