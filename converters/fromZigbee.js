@@ -1850,6 +1850,19 @@ const converters = {
             }
         },
     },
+    restorable_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                // Ignore brightness = 0, which only happens when state is OFF
+                if (Number(msg.data['currentLevel']) > 0) {
+                    return {brightness: msg.data['currentLevel']};
+                }
+                return {};
+            }
+        },
+    },
     smartsense_multi: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],

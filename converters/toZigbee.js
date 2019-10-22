@@ -288,6 +288,27 @@ const converters = {
             }
         },
     },
+    // Some devices reset brightness to 100% when turned on, even if previous brightness was different
+    // This uses the stored state of the device to restore to the previous brightness level when turning on
+    light_onoff_restorable_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            const deviceState = meta.state || {};
+            const message = meta.message;
+            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : null;
+            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
+
+            // Add brightness if command is 'on' and we can restore previous value
+            if (state === 'on' && !hasBrightness && deviceState.brightness > 0) {
+                message.brightness = deviceState.brightness;
+            }
+
+            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {

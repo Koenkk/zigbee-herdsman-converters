@@ -3532,13 +3532,13 @@ const devices = [
         model: '4257050-ZHAC',
         vendor: 'Centralite',
         description: '3-Series Smart Dimming Outlet',
-        supports: 'on/off, power meter',
-        fromZigbee: [fz.state, fz.ZHAC_4257050_power],
-        toZigbee: [tz.on_off],
+        supports: 'on/off, brightness, power meter',
+        fromZigbee: [fz.restorable_brightness, fz.state, fz.ZHAC_4257050_power],
+        toZigbee: [tz.light_onoff_restorable_brightness],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);
