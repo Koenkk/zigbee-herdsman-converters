@@ -842,6 +842,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LEPTITER Recessed spot light'],
+        model: 'T1820',
+        vendor: 'IKEA',
+        description: 'LEPTITER Recessed spot light, dimmable, white spectrum',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI wireless dimmer'],
         model: 'ICTC-G-1',
         vendor: 'IKEA',
