@@ -5371,6 +5371,17 @@ const devices = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
         toZigbee: [],
     },
+
+    // ITEAD
+    {
+        zigbeeModel: ['BASICZBR3'],
+        model: 'BASICZBR3',
+        vendor: 'ITEAD',
+        description: 'SONOFF ZigBee DIY Smart Switch',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.ignore_onoff_change],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices.map((device) =>
