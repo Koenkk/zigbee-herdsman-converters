@@ -1713,13 +1713,6 @@ const converters = {
             return {action: `rotate_${direction}_quick`, level: msg.data.level};
         },
     },
-    iris_3210L_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            return {power: msg.data['activePower'] / 10.0};
-        },
-    },
     iris_3320L_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
