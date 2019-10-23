@@ -1089,7 +1089,7 @@ const converters = {
     },
     battery_200: {
         cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport', 'readResponse', 'attReport'],
         convert: (model, msg, publish, options) => {
             const batt = msg.data.batteryPercentageRemaining;
             const battLow = msg.data.batteryAlarmState;
