@@ -253,6 +253,25 @@ const converters = {
             return {click: 'brightness_stop'};
         },
     },
+    E1744_play_pause: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options) => {
+            return {action: 'play_pause'};
+        },
+    },
+    E1744_skip: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
+            return {
+                action: `skip_${direction}`,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
     AC0251100NJ_long_middle: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',

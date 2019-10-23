@@ -963,6 +963,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SYMFONISK Sound Controller'],
+        model: 'E1744',
+        vendor: 'IKEA',
+        description: 'SYMFONISK Sound Controller',
+        supports: 'volume up/down, play/pause, skip forward/backward',
+        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.generic_battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['TRADFRI motion sensor'],
         model: 'E1525',
         vendor: 'IKEA',
