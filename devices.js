@@ -4208,7 +4208,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock_operation_event],
+        fromZigbee: [fz.generic_lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
