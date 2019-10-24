@@ -3537,7 +3537,7 @@ const devices = [
         zigbeeModel: ['4257050-ZHAC'],
         model: '4257050-ZHAC',
         vendor: 'Centralite',
-        description: '3-Series Smart Dimming Outlet',
+        description: '3-Series smart dimming outlet',
         supports: 'on/off, brightness, power meter',
         fromZigbee: [fz.restorable_brightness, fz.state, fz.generic_electrical_measurement],
         toZigbee: [tz.light_onoff_restorable_brightness],
