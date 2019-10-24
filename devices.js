@@ -966,7 +966,7 @@ const devices = [
         zigbeeModel: ['SYMFONISK Sound Controller'],
         model: 'E1744',
         vendor: 'IKEA',
-        description: 'SYMFONISK Sound Controller',
+        description: 'SYMFONISK sound controller',
         supports: 'volume up/down, play/pause, skip forward/backward',
         fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.generic_battery],
         toZigbee: [],
