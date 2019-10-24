@@ -1732,13 +1732,6 @@ const converters = {
             return {action: `rotate_${direction}_quick`, level: msg.data.level};
         },
     },
-    iris_3210L_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            return {power: msg.data['activePower'] / 10.0};
-        },
-    },
     iris_3320L_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1777,6 +1770,47 @@ const converters = {
                 current: msg.data['rmsCurrent'],
                 voltage: msg.data['rmsVoltage'],
             };
+        },
+    },
+    generic_electrical_measurement: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * await endpoint.read('haElectricalMeasurement', [
+         *   'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+         *   'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+         * ]);
+         */
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('activePower')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerDivisor'
+                );
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.power = precisionRound(msg.data['activePower'] * factor, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acCurrentMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acVoltageMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
+            }
+            return payload;
         },
     },
     iaszone_occupancy_2: {
@@ -1849,6 +1883,19 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 return {brightness: msg.data['currentLevel']};
+            }
+        },
+    },
+    restorable_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                // Ignore brightness = 0, which only happens when state is OFF
+                if (Number(msg.data['currentLevel']) > 0) {
+                    return {brightness: msg.data['currentLevel']};
+                }
+                return {};
             }
         },
     },

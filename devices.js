@@ -3422,13 +3422,19 @@ const devices = [
         vendor: 'Iris',
         description: 'Smart plug',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.iris_3210L_power],
+        fromZigbee: [fz.state, fz.generic_electrical_measurement],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
             await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
     },
@@ -3532,7 +3538,7 @@ const devices = [
 
     // Centralite Swiss Plug
     {
-        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC', '4257050-ZHAC'],
+        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
@@ -3543,6 +3549,28 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['4257050-ZHAC'],
+        model: '4257050-ZHAC',
+        vendor: 'Centralite',
+        description: '3-Series smart dimming outlet',
+        supports: 'on/off, brightness, power meter',
+        fromZigbee: [fz.restorable_brightness, fz.state, fz.generic_electrical_measurement],
+        toZigbee: [tz.light_onoff_restorable_brightness],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);
