@@ -1754,6 +1754,13 @@ const converters = {
         },
     },
     generic_electrical_measurement: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * await endpoint.read('haElectricalMeasurement', [
+         *   'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+         *   'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+         * ]);
+         */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
