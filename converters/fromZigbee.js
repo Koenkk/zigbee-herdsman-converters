@@ -1759,19 +1759,27 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const payload = {};
             if (msg.data.hasOwnProperty('activePower')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acPowerMultiplier');
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acPowerDivisor');
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerDivisor'
+                );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.power = precisionRound(msg.data['activePower'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsCurrent')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentMultiplier');
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acCurrentMultiplier'
+                );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsVoltage')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageMultiplier');
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acVoltageMultiplier'
+                );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
