@@ -211,6 +211,99 @@ const converters = {
             }
         },
     },
+    temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
+    humidity: {
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, it should only publish message
+            // in the 0 - 100 range, don't produce messages beyond these values.
+            if (humidity >= 0 && humidity <= 100) {
+                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            }
+        },
+    },
+    occupancy: {
+        // This is for occupancy sensor that send motion start AND stop messages
+        // Note: options.occupancy_timeout not available yet, to implement it will be
+        // needed to update device report intervall as well, see devices.js
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('occupancy')) {
+                return {occupancy: msg.data.occupancy === 1};
+            }
+        },
+    },
+    brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data['currentLevel']};
+            }
+        },
+    },
+    electrical_measurement: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * await endpoint.read('haElectricalMeasurement', [
+         *   'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+         *   'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+         * ]);
+         */
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('activePower')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acPowerDivisor'
+                );
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.power = precisionRound(msg.data['activePower'] * factor, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acCurrentMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                const multiplier = msg.endpoint.getClusterAttributeValue(
+                    'haElectricalMeasurement', 'acVoltageMultiplier'
+                );
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
+            }
+            return payload;
+        },
+    },
+    on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -469,14 +562,6 @@ const converters = {
             }
         },
     },
-    temperature: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-        },
-    },
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -575,34 +660,6 @@ const converters = {
             };
 
             return lookup[value] ? lookup[value] : null;
-        },
-    },
-    humidity: {
-        cluster: 'msRelativeHumidity',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales, it should only publish message
-            // in the 0 - 100 range, don't produce messages beyond these values.
-            if (humidity >= 0 && humidity <= 100) {
-                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
-            }
-        },
-    },
-    occupancy: {
-        // This is for occupancy sensor that send motion start AND stop messages
-        // Note: options.occupancy_timeout not available yet, to implement it will be
-        // needed to update device report intervall as well, see devices.js
-        cluster: 'msOccupancySensing',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.occupancy === 0) {
-                return {occupancy: false};
-            } else if (msg.data.occupancy === 1) {
-                return {occupancy: true};
-            }
         },
     },
     E1525_occupancy: {
@@ -851,15 +908,6 @@ const converters = {
         type: 'commandDownClose',
         convert: (model, msg, publish, options) => {
             return {click: 'close'};
-        },
-    },
-    state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
         },
     },
     xiaomi_power: {
@@ -1782,47 +1830,6 @@ const converters = {
             };
         },
     },
-    generic_electrical_measurement: {
-        /**
-         * When using this converter also add the following to the configure method of the device:
-         * await endpoint.read('haElectricalMeasurement', [
-         *   'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
-         *   'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
-         * ]);
-         */
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            const payload = {};
-            if (msg.data.hasOwnProperty('activePower')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerMultiplier'
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerDivisor'
-                );
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.power = precisionRound(msg.data['activePower'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acCurrentMultiplier'
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acVoltageMultiplier'
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
-            }
-            return payload;
-        },
-    },
     iaszone_occupancy_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1885,15 +1892,6 @@ const converters = {
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
-        },
-    },
-    brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
-                return {brightness: msg.data['currentLevel']};
-            }
         },
     },
     restorable_brightness: {

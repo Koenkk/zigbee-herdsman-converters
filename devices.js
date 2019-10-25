@@ -303,22 +303,22 @@ const configureReporting = {
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.state, fz.brightness],
+        fromZigbee: [fz.on_off, fz.brightness],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
-        fromZigbee: [fz.color_colortemp, fz.state, fz.brightness],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
         toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
-        fromZigbee: [fz.color_colortemp, fz.state, fz.brightness],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
         toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
-        fromZigbee: [fz.color_colortemp, fz.state, fz.brightness],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
@@ -370,7 +370,7 @@ const devices = [
         description: 'Aqara smart LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.state, fz.xiaomi_bulb_interval,
+            fz.brightness, fz.color_colortemp, fz.on_off, fz.xiaomi_bulb_interval,
             fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report,
             fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report,
@@ -592,7 +592,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off],
@@ -611,7 +611,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
@@ -624,7 +624,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.state, fz.xiaomi_power, fz.xiaomi_plug_state,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
         ],
         toZigbee: [tz.on_off],
     },
@@ -924,7 +924,7 @@ const devices = [
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [fz.state, fz.ignore_genLevelCtrl_report],
+        fromZigbee: [fz.on_off, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1446,7 +1446,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1461,7 +1461,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1527,7 +1527,7 @@ const devices = [
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
         fromZigbee: [
-            fz.brightness, fz.state,
+            fz.brightness, fz.on_off,
         ],
         supports: generic.light_onoff_brightness.supports,
         toZigbee: generic.light_onoff_brightness.toZigbee,
@@ -1540,7 +1540,7 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -1556,7 +1556,7 @@ const devices = [
         vendor: 'EDP',
         description: 're:dy switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1593,7 +1593,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -1832,7 +1832,7 @@ const devices = [
         description: 'Smart+ plug',
         supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1847,7 +1847,7 @@ const devices = [
         description: 'Smart+ plug',
         supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1988,7 +1988,7 @@ const devices = [
         vendor: 'Hive',
         description: 'Active plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power, fz.temperature],
+        fromZigbee: [fz.on_off, fz.generic_power, fz.temperature],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -2238,7 +2238,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.SP120_power, fz.state],
+        fromZigbee: [fz.SP120_power, fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -2315,7 +2315,7 @@ const devices = [
         vendor: 'Sylvania',
         description: 'SMART+ Smart Plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2374,7 +2374,7 @@ const devices = [
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state],
+        fromZigbee: [fz.brightness, fz.on_off],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2389,7 +2389,7 @@ const devices = [
         vendor: 'GE',
         description: 'Plug-in smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off, tz.ignore_transition],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -2406,7 +2406,7 @@ const devices = [
         vendor: 'GE',
         description: 'In-wall smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ignore_transition],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2421,7 +2421,7 @@ const devices = [
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state],
+        fromZigbee: [fz.brightness, fz.on_off],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2436,7 +2436,7 @@ const devices = [
         vendor: 'GE',
         description: 'Quirky smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'default': 2};
@@ -2543,7 +2543,7 @@ const devices = [
         vendor: 'Netvox',
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.Z809A_power],
+        fromZigbee: [fz.on_off, fz.Z809A_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -2644,7 +2644,7 @@ const devices = [
         description: 'Smart dimmer wall switch',
         supports: 'on/off, brightness',
         toZigbee: [tz.on_off, tz.light_brightness],
-        fromZigbee: [fz.state, fz.brightness],
+        fromZigbee: [fz.on_off, fz.brightness],
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5'],
@@ -2686,7 +2686,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2699,7 +2699,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -2727,7 +2727,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart in-wall switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -2743,7 +2743,7 @@ const devices = [
         description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -2759,7 +2759,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -2777,7 +2777,7 @@ const devices = [
         vendor: 'Smart Home Pty',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -2925,7 +2925,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee ON/OFF Wall Switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         onEvent: async (type, data, device) => {
             // This device doesn't support reporting.
@@ -2952,7 +2952,7 @@ const devices = [
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state, fz.ignore_light_brightness_report],
+        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_light_brightness_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3032,7 +3032,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Outlet',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_onoff_report],
+        fromZigbee: [fz.on_off, fz.ignore_onoff_report],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3330,7 +3330,7 @@ const devices = [
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -3385,7 +3385,7 @@ const devices = [
         vendor: 'Bitron',
         description: 'Video wireless socket',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.bitron_power],
+        fromZigbee: [fz.on_off, fz.bitron_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3432,7 +3432,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Smart plug',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.generic_electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
@@ -3489,7 +3489,7 @@ const devices = [
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -3500,7 +3500,7 @@ const devices = [
         vendor: 'Ninja Blocks',
         description: 'Zigbee smart plug with power meter',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -3553,7 +3553,7 @@ const devices = [
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
         supports: 'switch and power meter',
-        fromZigbee: [fz.state, fz.RZHAC_4256251_power],
+        fromZigbee: [fz.on_off, fz.RZHAC_4256251_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -3571,7 +3571,7 @@ const devices = [
         vendor: 'Centralite',
         description: '3-Series smart dimming outlet',
         supports: 'on/off, brightness, power meter',
-        fromZigbee: [fz.restorable_brightness, fz.state, fz.generic_electrical_measurement],
+        fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.light_onoff_restorable_brightness],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -3615,7 +3615,7 @@ const devices = [
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.bitron_power],
+        fromZigbee: [fz.on_off, fz.bitron_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3632,7 +3632,7 @@ const devices = [
         vendor: 'Climax',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -3650,7 +3650,7 @@ const devices = [
         vendor: 'Climax',
         description: 'Power plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -3686,7 +3686,7 @@ const devices = [
         description: 'Smart metering plug',
         supports: 'on/off, power measurement',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.state, fz.HS2SK_power],
+        fromZigbee: [fz.on_off, fz.HS2SK_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -3916,7 +3916,7 @@ const devices = [
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
         extend: generic.light_onoff_brightness,
-        fromZigbee: [fz.brightness, fz.state],
+        fromZigbee: [fz.brightness, fz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3972,7 +3972,7 @@ const devices = [
         vendor: 'Paul Neuhaus',
         description: 'Q-PLUG adapter plug with night orientation light',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -3990,7 +3990,7 @@ const devices = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -4010,7 +4010,7 @@ const devices = [
         vendor: 'Busch-Jaeger',
         description: 'Adaptor plug',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 
@@ -4050,7 +4050,7 @@ const devices = [
         vendor: 'Salus',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -4382,7 +4382,7 @@ const devices = [
         vendor: 'ELKO',
         description: 'ZigBee in-wall smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.state],
+        fromZigbee: [fz.brightness, fz.on_off],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4401,7 +4401,7 @@ const devices = [
         supports: 'on/off, brightness',
         toZigbee: [tz.light_onoff_brightness],
         fromZigbee: [
-            fz.state, fz.brightness, fz.ignore_light_brightness_report,
+            fz.on_off, fz.brightness, fz.ignore_light_brightness_report,
             fz.ignore_genIdentify,
         ],
     },
@@ -4412,7 +4412,7 @@ const devices = [
         description: 'ZigBee smart in-wall switch',
         supports: 'on/off',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.state, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
     },
     {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
@@ -4438,7 +4438,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Zigbee smart outlet',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
     },
 
@@ -4530,7 +4530,7 @@ const devices = [
         vendor: 'Securifi',
         description: 'Peanut Smart Plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.peanut_electrical],
+        fromZigbee: [fz.on_off, fz.peanut_electrical],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -4685,7 +4685,7 @@ const devices = [
         vendor: 'NET2GRID',
         description: 'White Net2Grid power outlet switch with power meter',
         supports: 'on/off, power and energy measurement',
-        fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state, fz.generic_power],
+        fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -4708,7 +4708,7 @@ const devices = [
         vendor: 'Third Reality',
         description: 'RealitySwitch Plus',
         supports: 'on/off, battery',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
 
@@ -4763,7 +4763,7 @@ const devices = [
         description: 'Vetaar smart plug',
         supports: 'on/off',
         vendor: 'Anchor',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4814,7 +4814,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
         supports: 'on/off, power consumption',
-        fromZigbee: [fz.state, fz.SZ_ESW01_AU_power],
+        fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4830,7 +4830,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
         supports: 'on/off, power consumption',
-        fromZigbee: [fz.state, fz.SZ_ESW01_AU_power],
+        fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4907,7 +4907,7 @@ const devices = [
         description: 'Bizy plug meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
@@ -4934,7 +4934,7 @@ const devices = [
         description: 'DinRail 1-phase meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.state,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
@@ -5163,7 +5163,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 1 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
@@ -5272,7 +5272,7 @@ const devices = [
         vendor: 'Dawon DNS',
         description: 'IOT remote control smart buried-type outlet',
         supports: 'on/off, power and energy measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -5299,7 +5299,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S1',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -5314,7 +5314,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.state, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -5332,7 +5332,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         supports: 'on/off, brightness, power measurement',
-        fromZigbee: [fz.state, fz.brightness, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.brightness, fz.generic_power],
         toZigbee: [tz.light_onoff_brightness],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -5358,7 +5358,7 @@ const devices = [
         vendor: 'Lingan',
         description: 'Zigbee OnOff controller',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5420,7 +5420,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5447,7 +5447,7 @@ const devices = [
         vendor: 'ITEAD',
         description: 'SONOFF ZigBee DIY Smart Switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
 ];
