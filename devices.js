@@ -726,6 +726,16 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TS0201'],
+        model: 'TS0201',
+        vendor: 'Xiaomi',
+        description: 'Aqara temperature & humidity sensor with display',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity],
+        toZigbee: [],
+    },
+
     // IKEA
     {
         zigbeeModel: [
