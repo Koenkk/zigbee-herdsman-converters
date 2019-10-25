@@ -1023,7 +1023,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.generic_battery_remaining],
+        fromZigbee: [fz.cover_position_tilt, fz.battery_percentage_remaining],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -1039,7 +1039,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.generic_battery_remaining],
+        fromZigbee: [fz.cover_position_tilt, fz.battery_percentage_remaining],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -1362,7 +1362,7 @@ const devices = [
         fromZigbee: [
             fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
             fz._324131092621_ignore_stop, fz._324131092621_notification,
-            fz.generic_battery_remaining,
+            fz.battery_percentage_remaining,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -1387,7 +1387,7 @@ const devices = [
         description: 'Hue motion sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.generic_battery_remaining, fz.occupancy, fz.temperature,
+            fz.battery_percentage_remaining, fz.occupancy, fz.temperature,
             fz.generic_illuminance,
             fz.ignore_basic_report,
         ],
@@ -1417,7 +1417,7 @@ const devices = [
         description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
-            fz.generic_battery_remaining, fz.occupancy, fz.temperature,
+            fz.battery_percentage_remaining, fz.occupancy, fz.temperature,
             fz.generic_illuminance,
 
         ],
@@ -3313,7 +3313,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.generic_battery_remaining],
+        fromZigbee: [fz.iaszone_contact, fz.battery_percentage_remaining],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4100,7 +4100,7 @@ const devices = [
         fromZigbee: [
             fz.thermostat_att_report,
             fz.eurotronic_thermostat,
-            fz.generic_battery_remaining,
+            fz.battery_percentage_remaining,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -4211,7 +4211,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4226,7 +4226,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.battery_200],
+        fromZigbee: [fz.lock, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4242,8 +4242,8 @@ const devices = [
         description: 'Assure lock SL',
         supports: 'lock/unlock, battery',
         fromZigbee: [
-            fz.generic_lock,
-            fz.generic_lock_operation_event,
+            fz.lock,
+            fz.lock_operation_event,
             fz.battery_200,
 
         ],
@@ -4261,7 +4261,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock_operation_event, fz.battery_200],
+        fromZigbee: [fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4276,12 +4276,27 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['YRD226/246 TSDB'],
+        model: 'YRD226/246 TSDB',
+        vendor: 'Yale',
+        description: 'Assure lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.battery_percentage_remaining, fz.lock_operation_event],
+        toZigbee: [tz.generic_lock],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -4653,7 +4668,7 @@ const devices = [
         vendor: 'Danalock',
         description: 'BT/ZB smartlock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.generic_lock, fz.generic_lock_operation_event, fz.battery_200],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5006,7 +5021,7 @@ const devices = [
         description: 'PIR sensor',
         supports: 'occupancy',
         fromZigbee: [
-            fz.generic_battery_remaining, fz.generic_battery_voltage,
+            fz.battery_percentage_remaining, fz.generic_battery_voltage,
             fz.ignore_basic_report,
             fz.iaszone_occupancy_1,
         ],

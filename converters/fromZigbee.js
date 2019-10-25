@@ -177,6 +177,45 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
 };
 
 const converters = {
+    /**
+     * Generic/recommended converters, the converters below comply with the ZCL
+     * and are recommended to for re-use
+     */
+    lock_operation_event: {
+        cluster: 'closuresDoorLock',
+        type: 'commandOperationEventNotification',
+        convert: (model, msg, publish, options) => {
+            const unlockCodes = [2, 9, 14];
+            return {
+                state: unlockCodes.includes(msg.data['opereventcode']) ? 'UNLOCK' : 'LOCK',
+                user: msg.data['userid'],
+                source: msg.data['opereventsrc'],
+            };
+        },
+    },
+    lock: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('lockState')) {
+                return {state: msg.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
+            }
+        },
+    },
+    battery_percentage_remaining: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                return {battery: precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2)};
+            }
+        },
+    },
+
+    /**
+     * Device specific converters, not recommended for re-use.
+     * TODO: This has not been fully sorted out yet.
+     */
     HS2SK_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -196,26 +235,6 @@ const converters = {
             }
 
             return result;
-        },
-    },
-    generic_lock: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.hasOwnProperty('lockState')) {
-                return {state: msg.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
-            }
-        },
-    },
-    generic_lock_operation_event: {
-        cluster: 'closuresDoorLock',
-        type: 'commandOperationEventNotification',
-        convert: (model, msg, publish, options) => {
-            return {
-                state: msg.data['opereventcode'] == 2 ? 'UNLOCK' : 'LOCK',
-                user: msg.data['userid'],
-                source: msg.data['opereventsrc'],
-            };
         },
     },
     genOnOff_cmdOn: {
@@ -1668,15 +1687,6 @@ const converters = {
         convert: (model, msg, publish, options) => {
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
                 return {battery: msg.data['batteryPercentageRemaining']};
-            }
-        },
-    },
-    generic_battery_remaining: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2)};
             }
         },
     },
