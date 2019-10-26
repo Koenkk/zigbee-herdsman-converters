@@ -521,17 +521,6 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['TS0201'],
-        model: 'TS0201',
-        vendor: 'Xiaomi',
-        description: 'Aqara temperature, humidity with display',
-        supports: 'temperature and humidity',
-        fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity,
-        ],
-        toZigbee: [],
-    },
-    {
         zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
@@ -2822,7 +2811,7 @@ const devices = [
         zigbeeModel: ['GL-C-008S'],
         model: 'GL-C-008S',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT Plus model',
+        description: 'Zigbee LED controller RGB + CCT plus model',
         extend: gledopto.light,
         meta: {options: {disableDefaultResponse: true}},
         supports: 'on/off, brightness, color temperature, color',
