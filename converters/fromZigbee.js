@@ -304,6 +304,18 @@ const converters = {
             }
         },
     },
+    ias_water_leak_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -1235,18 +1247,6 @@ const converters = {
                 gas: (zoneStatus & 1<<1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
-    heiman_water_leak: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                water_leak: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Water leak
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 3 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },

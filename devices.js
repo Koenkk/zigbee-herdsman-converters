@@ -3264,7 +3264,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Water leakage detector',
         supports: 'water leak',
-        fromZigbee: [fz.heiman_water_leak],
+        fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
@@ -3794,7 +3794,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
         supports: 'water leak',
-        fromZigbee: [fz.heiman_water_leak],
+        fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
@@ -3803,7 +3803,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
         supports: 'water leak',
-        fromZigbee: [fz.heiman_water_leak],
+        fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
@@ -4975,7 +4975,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['3AFE14010402000D', '3AFE27010402000D'],
+        zigbeeModel: ['3AFE14010402000D', '3AFE27010402000D', '3AFE28010402000D'],
         model: '2AJZ4KPBS',
         vendor: 'Konke',
         description: 'Motion sensor',
@@ -5004,12 +5004,21 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['3AFE130104020015', '3AFE270104020015],
+        zigbeeModel: ['3AFE130104020015', '3AFE270104020015'],
         model: '2AJZ4KPDR',
         vendor: 'Konke',
         description: 'Contact sensor',
         supports: 'contact',
         fromZigbee: [fz.iaszone_contact, fz.battery_3V],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['LH07321'],
+        model: 'LH07321',
+        vendor: 'Konke',
+        description: 'Water detector',
+        supports: 'water_leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
 
