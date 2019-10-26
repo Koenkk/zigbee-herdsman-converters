@@ -2818,7 +2818,7 @@ const devices = [
         meta: {options: {disableDefaultResponse: true}},
         supports: 'on/off, brightness, color temperature, color',
     },
-        {
+    {
         zigbeeModel: ['GL-C-008S'],
         model: 'GL-C-008S',
         vendor: 'Gledopto',
