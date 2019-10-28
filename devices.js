@@ -1158,6 +1158,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWO001'],
+        model: 'LWO001',
+        vendor: 'Philips',
+        description: 'Hue white Filament bulb G93 E27 bluetooth’,
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LST001'],
         model: '7299355PH',
         vendor: 'Philips',
