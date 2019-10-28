@@ -2107,6 +2107,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['BY 178 T'],
+        model: 'BY 178 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white B22',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['RS 122'],
         model: 'RS 122',
         vendor: 'Innr',
