@@ -240,7 +240,7 @@ const converters = {
             const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
             const state = hasState ? message.state.toLowerCase() : null;
 
-            if (hasState && (state === 'off' || !hasBrightness) && !hasTrasition) {
+            if (hasState && (state === 'off' || !hasBrightness) && (!hasTrasition || state === 'on')) {
                 const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                 if (state === 'on') {
                     result.readAfterWriteTime = 0;
