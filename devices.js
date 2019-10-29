@@ -2745,7 +2745,7 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
-        zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2'],
+        zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2', 'FB56+ZSC04HG1.0'],
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
