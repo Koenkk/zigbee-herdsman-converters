@@ -3963,6 +3963,7 @@ const devices = [
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
             fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene,
+            fz.ignore_basic_report,
         ],
         toZigbee: [],
     },
