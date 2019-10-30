@@ -1193,7 +1193,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LCA001','LCA002'],
+        zigbeeModel: ['LCA001', 'LCA002'],
         model: '9290022166',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
