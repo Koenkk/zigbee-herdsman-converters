@@ -1071,6 +1071,13 @@ const devices = [
         vendor: 'IKEA',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm'],
+        model: 'LED1738G7',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Philips
     {
