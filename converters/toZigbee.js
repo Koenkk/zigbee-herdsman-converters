@@ -26,8 +26,16 @@ const options = {
 };
 
 function getTransition(entity, key, meta) {
-    const {options, message, device} = meta;
-    if (device && device.manufacturerID === 4476) {
+    const {options, message} = meta;
+
+    let manufacturerIDs = [];
+    if (entity.constructor.name === 'Group') {
+        manufacturerIDs = entity.members.map((m) => m.getDevice().manufacturerID);
+    } else if (entity.constructor.name === 'Endpoint') {
+        manufacturerIDs = [entity.getDevice().manufacturerID];
+    }
+
+    if (manufacturerIDs.includes(4476)) {
         /**
          * When setting both brightness and color temperature with a transition, the brightness is skipped
          * for IKEA TRADFRI bulbs.
