@@ -2264,6 +2264,15 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SP 222'],
+        model: 'SP 222',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
 
     // Sylvania
     {
