@@ -1466,6 +1466,20 @@ const converters = {
             };
         },
     },
+    SP600_power: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            // Cannot use generic_power, divisor/multiplier is not according to ZCL.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2233
+            const result = {};
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                result.power = msg.data['instantaneousDemand'];
+            }
+
+            return result;
+        },
+    },
     SP120_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
