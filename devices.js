@@ -318,7 +318,10 @@ const generic = {
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
+        fromZigbee: [
+            fz.color_colortemp, fz.on_off, fz.brightness,
+            fz.ignore_basic_report,
+        ],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.light_alert,
@@ -3303,7 +3306,10 @@ const devices = [
         vendor: 'Trust',
         description: 'Water leakage detector',
         supports: 'water leak',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
+        fromZigbee: [
+            fz.ias_water_leak_alarm_1,
+            fz.ignore_basic_report,
+        ],
         toZigbee: [],
     },
     {
@@ -3352,7 +3358,10 @@ const devices = [
         vendor: 'Trust',
         description: 'Wireless contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.battery_percentage_remaining],
+        fromZigbee: [
+            fz.iaszone_contact, fz.battery_percentage_remaining,
+            fz.ignore_basic_report,
+        ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
