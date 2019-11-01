@@ -1147,6 +1147,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LTA001'],
+        model: '9290022169',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
