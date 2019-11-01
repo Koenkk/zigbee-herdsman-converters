@@ -691,6 +691,13 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.ZNCLDJ11LM_ZNCLDJ12LM_control],
+        onEvent: async (type, data, device) => {
+            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
+            // however when reading it will provide the correct value.
+            if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
+                await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
+            }
+        },
     },
     {
         zigbeeModel: ['lumi.relay.c2acn01'],
