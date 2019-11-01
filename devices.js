@@ -1589,7 +1589,9 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
         supports: 'state, description, type, rssi',
-        fromZigbee: [fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta],
+        fromZigbee: [
+            fz.CC2530ROUTER_state, fz.CC2530ROUTER_meta, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.ptvo_switch_trigger],
     },
     {
