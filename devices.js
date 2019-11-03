@@ -638,7 +638,7 @@ const devices = [
         supports: 'smoke',
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke],
-        toZigbee: [],
+        toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
     },
     {
         zigbeeModel: ['lumi.sensor_natgas'],
@@ -646,13 +646,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia gas leak detector ',
         supports: 'gas',
-        fromZigbee: [
-            fz.JTQJBF01LMBW_gas,
-            fz.JTQJBF01LMBW_sensitivity,
-            fz.JTQJBF01LMBW_gas_density,
-
-        ],
-        toZigbee: [tz.JTQJBF01LMBW_sensitivity, tz.JTQJBF01LMBW_selfest],
+        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
+        toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],

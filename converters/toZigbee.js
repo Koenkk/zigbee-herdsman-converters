@@ -640,12 +640,11 @@ const converters = {
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, options.xiaomi);
             }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genBasic', [0xFF0D], options.xiaomi);
+
+            return {state: {sensitivity: value}};
         },
     },
-    JTQJBF01LMBW_sensitivity: {
+    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
         key: ['sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {
@@ -658,12 +657,11 @@ const converters = {
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, options.xiaomi);
             }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('ssIasZone', [0xFFF0], options.xiaomi);
+
+            return {state: {sensitivity: value}};
         },
     },
-    JTQJBF01LMBW_selfest: {
+    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options.xiaomi);
