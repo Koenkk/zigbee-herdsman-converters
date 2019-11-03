@@ -675,7 +675,7 @@ const devices = [
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
     {
-        zigbeeModel: ['lumi.curtain'],
+        zigbeeModel: ['lumi.curtain', 'lumi.curtain.aq2'],
         model: 'ZNCLDJ11LM',
         description: 'Aqara curtain motor',
         supports: 'open, close, stop, position',
