@@ -2983,7 +2983,8 @@ const converters = {
             // 13,40,18,24,  4,25,0,40 - motion on left side
             // 13,40,18,47,  4,28,0,56
             // 13,40,18,8,   4,32,0,40
-            let value, lookup = {};
+            let value = {};
+            let lookup = {};
             if (msg.data[4] == 0) {
                 value = msg.data[6];
                 lookup = {
@@ -3020,19 +3021,20 @@ const converters = {
             // 25,0,8,15,0,2 - hold btn 4
             // 25,0,8,15,0,3 - release btn 4
             // TODO: do not know how to get to use 5,6,7,8 buttons
-            const btn_lookup = {
-                     3: 'button_1',
-                    11: 'button_2',
-                     7: 'button_3',
-                    15: 'button_4',
-                  },
-                  act_lookup = {
-                     0: 'click',
-                     2: 'hold',
-                     3: 'release',
-                  },
-                  button = btn_lookup[msg.data[3]],
-                  action = act_lookup[msg.data[5]];
+            const buttonLookup = {
+                3: 'button_1',
+                11: 'button_2',
+                7: 'button_3',
+                15: 'button_4',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
             if (button) {
                 return {action: `${button}_${action}`};
             }
