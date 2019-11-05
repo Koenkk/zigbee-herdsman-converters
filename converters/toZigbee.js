@@ -240,31 +240,26 @@ const converters = {
     light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
-            const {message, options} = meta;
+            const {message} = meta;
             const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
             const brightnessValue = message.hasOwnProperty('brightness') ?
                 message.brightness : message.brightness_percent;
             const hasState = message.hasOwnProperty('state');
-            const hasTrasition = message.hasOwnProperty('transition') || options.hasOwnProperty('transition');
             const state = hasState ? message.state.toLowerCase() : null;
 
-            if (hasState && (state === 'off' || !hasBrightness) && (!hasTrasition || state === 'on')) {
+            if (state === 'off' || (!hasBrightness && state === 'on')) {
                 const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                 if (state === 'on') {
                     result.readAfterWriteTime = 0;
                 }
                 return result;
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
-                result.state.brightness = 0;
-                return result;
+                return await converters.on_off.convertSet(entity, 'state', 'off', meta);
             } else {
                 const transition = getTransition(entity, 'brightness', meta);
                 let brightness = 0;
 
-                if (hasState && !hasBrightness && state == 'on') {
-                    brightness = 255;
-                } else if (message.hasOwnProperty('brightness')) {
+                if (message.hasOwnProperty('brightness')) {
                     brightness = message.brightness;
                 } else if (message.hasOwnProperty('brightness_percent')) {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
