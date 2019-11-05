@@ -5532,9 +5532,10 @@ const devices = [
         vendor: 'TERNCY',
         description: 'Awareness switch',
         supports: 'temperature, occupancy, illuminance, click, double click, triple click',
-        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, 
-            fz.generic_illuminance, fz.terncy_raw, fz.generic_battery, 
-            fz.terncy_raw],
+        fromZigbee: [
+            fz.terncy_temperature, fz.occupancy_with_timeout,
+            fz.generic_illuminance, fz.terncy_raw, fz.generic_battery,
+        ],
         toZigbee: [],
     },
 
