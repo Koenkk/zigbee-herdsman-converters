@@ -5524,6 +5524,30 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+
+    // TERNCY
+    {
+        zigbeeModel: ['TERNCY-PP01'],
+        model: 'TERNCY-PP01',
+        vendor: 'TERNCY',
+        description: 'Awareness switch',
+        supports: 'temperature, occupancy, illuminance, click, double click, triple click',
+        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, 
+            fz.generic_illuminance, fz.terncy_raw, fz.generic_battery, 
+            fz.terncy_raw],
+        toZigbee: [],
+    },
+
+    // ORVIBO
+    {
+        zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f'],
+        model: 'CR11S8UZ',
+        vendor: 'ORVIBO',
+        description: 'Smart sticker switch',
+        supports: 'click, hold, release',
+        fromZigbee: [fz.orvibo_raw],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>

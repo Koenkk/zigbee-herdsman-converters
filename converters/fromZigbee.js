@@ -2952,6 +2952,92 @@ const converters = {
             ratelimitedDimmer(model, msg, publish, options);
         },
     },
+    terncy_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
+            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
+    terncy_raw: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            // 13,40,18,104, 0,8,1 - click 
+            // 13,40,18,22,  0,17,1
+            // 13,40,18,32,  0,18,1
+            // 13,40,18,6,   0,16,1
+            // 13,40,18,111, 0,4,2 - double click
+            // 13,40,18,58,  0,7,2
+            // 13,40,18,6,   0,2,3 - triple click
+            // motion messages:
+            // 13,40,18,105, 4,167,0,7 - motion on right side
+            // 13,40,18,96,  4,27,0,5
+            // 13,40,18,101, 4,27,0,7
+            // 13,40,18,125, 4,28,0,5
+            // 13,40,18,85,  4,28,0,7
+            // 13,40,18,3,   4,24,0,5
+            // 13,40,18,81,  4,10,1,7
+            // 13,40,18,72,  4,30,1,5
+            // 13,40,18,24,  4,25,0,40 - motion on left side
+            // 13,40,18,47,  4,28,0,56
+            // 13,40,18,8,   4,32,0,40
+            let value, lookup = {};
+            if (msg.data[4] == 0) {
+                value = msg.data[6];
+                lookup = {
+                    1: {click: 'single'}, 
+                    2: {click: 'double'},
+                    3: {click: 'triple'},
+                };
+            } else if (msg.data[4] == 4) {
+                value = msg.data[7];
+                lookup = {
+                    5: {occupancy: true, side: 'right'}, 
+                    7: {occupancy: true, side: 'right'},
+                    40: {occupancy: true, side: 'left'},
+                    56: {occupancy: true, side: 'left'},
+                };
+            }
+            return lookup[value] ? lookup[value] : null;
+        }, 
+    },
+    orvibo_raw: {
+        cluster: 'cluster23',
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            // 25,0,8,3,0,0 - click btn 1
+            // 25,0,8,3,0,2 - hold btn 1
+            // 25,0,8,3,0,3 - release btn 1
+            // 25,0,8,11,0,0 - click btn 2
+            // 25,0,8,11,0,2 - hold btn 2
+            // 25,0,8,11,0,3 - release btn 2
+            // 25,0,8,7,0,0 - click btn 3
+            // 25,0,8,7,0,2 - hold btn 3
+            // 25,0,8,7,0,3 - release btn 3
+            // 25,0,8,15,0,0 - click btn 4
+            // 25,0,8,15,0,2 - hold btn 4
+            // 25,0,8,15,0,3 - release btn 4
+            // TODO: do not know how to get to use 5,6,7,8 buttons
+            const btn_lookup = {
+                     3: 'btn_1',
+                    11: 'btn_2',
+                     7: 'btn_3',
+                    15: 'btn_4',  
+                  },
+                  act_lookup = {
+                     0: 'click',
+                     2: 'hold',
+                     3: 'release',
+                  },
+                  button = btn_lookup[msg.data[3]],
+                  action = act_lookup[msg.data[5]];
+            if (button) {
+                return {[button]: action};
+            }
+        }, 
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
