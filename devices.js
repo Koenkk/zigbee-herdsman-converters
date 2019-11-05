@@ -2273,7 +2273,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.SP120_power, fz.on_off],
+        fromZigbee: [fz.SP120_power, fz.on_off, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
