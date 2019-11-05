@@ -2964,7 +2964,7 @@ const converters = {
         cluster: 'manuSpecificClusterAduroSmart',
         type: 'raw',
         convert: (model, msg, publish, options) => {
-            // 13,40,18,104, 0,8,1 - click 
+            // 13,40,18,104, 0,8,1 - click
             // 13,40,18,22,  0,17,1
             // 13,40,18,32,  0,18,1
             // 13,40,18,6,   0,16,1
@@ -2987,21 +2987,21 @@ const converters = {
             if (msg.data[4] == 0) {
                 value = msg.data[6];
                 lookup = {
-                    1: {click: 'single'}, 
+                    1: {click: 'single'},
                     2: {click: 'double'},
                     3: {click: 'triple'},
                 };
             } else if (msg.data[4] == 4) {
                 value = msg.data[7];
                 lookup = {
-                    5: {occupancy: true, side: 'right'}, 
+                    5: {occupancy: true, side: 'right'},
                     7: {occupancy: true, side: 'right'},
                     40: {occupancy: true, side: 'left'},
                     56: {occupancy: true, side: 'left'},
                 };
             }
             return lookup[value] ? lookup[value] : null;
-        }, 
+        },
     },
     orvibo_raw: {
         cluster: 23,
@@ -3021,10 +3021,10 @@ const converters = {
             // 25,0,8,15,0,3 - release btn 4
             // TODO: do not know how to get to use 5,6,7,8 buttons
             const btn_lookup = {
-                     3: 'btn_1',
-                    11: 'btn_2',
-                     7: 'btn_3',
-                    15: 'btn_4',  
+                     3: 'button_1',
+                    11: 'button_2',
+                     7: 'button_3',
+                    15: 'button_4',
                   },
                   act_lookup = {
                      0: 'click',
@@ -3034,9 +3034,9 @@ const converters = {
                   button = btn_lookup[msg.data[3]],
                   action = act_lookup[msg.data[5]];
             if (button) {
-                return {[button]: action};
+                return {action: `${button}_${action}`};
             }
-        }, 
+        },
     },
 
     // Ignore converters (these message dont need parsing).
