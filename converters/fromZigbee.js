@@ -3004,7 +3004,7 @@ const converters = {
         }, 
     },
     orvibo_raw: {
-        cluster: 'cluster23',
+        cluster: 23,
         type: 'raw',
         convert: (model, msg, publish, options) => {
             // 25,0,8,3,0,0 - click btn 1
