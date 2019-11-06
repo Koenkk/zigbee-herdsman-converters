@@ -2198,6 +2198,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['RB 148 T'],
+        model: 'RB 148 T',
+        vendor: 'Innr',
+        description: 'E14 candle with white spectrum',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['RF 263'],
         model: 'RF 263',
         vendor: 'Innr',
