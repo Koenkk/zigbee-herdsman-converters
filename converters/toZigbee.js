@@ -650,7 +650,9 @@ const converters = {
 
 
             if (lookup.hasOwnProperty(value)) {
-                await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, options.xiaomi);
+                // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+                const opts = {...options.xiaomi, timeout: 35000};
+                await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, opts);
             }
 
             return {state: {sensitivity: value}};
@@ -659,7 +661,9 @@ const converters = {
     JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options.xiaomi);
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+            const opts = {...options.xiaomi, timeout: 35000};
+            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
         },
     },
     xiaomi_switch_operation_mode: {
