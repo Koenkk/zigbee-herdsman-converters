@@ -515,7 +515,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
             await entity.write('hvacThermostat', {systemMode});
-            return {readAfterWriteTime: 250};
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['systemMode']);
