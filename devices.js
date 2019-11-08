@@ -637,7 +637,7 @@ const devices = [
         description: 'MiJia Honeywell smoke detector',
         supports: 'smoke',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
     },
     {

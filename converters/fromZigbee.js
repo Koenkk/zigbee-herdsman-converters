@@ -1281,6 +1281,19 @@ const converters = {
             }
         },
     },
+    JTYJGD01LMBW_smoke_density: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const data = msg.data;
+            if (data && data['65281']) {
+                const basicAttrs = data['65281'];
+                if (basicAttrs.hasOwnProperty('100')) {
+                    return {smoke_density: basicAttrs['100']};
+                }
+            }
+        },
+    },
     JTQJBF01LMBW_sensitivity: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
