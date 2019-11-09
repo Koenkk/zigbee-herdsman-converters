@@ -4541,21 +4541,11 @@ const devices = [
         supports: 'contact',
         fromZigbee: [
             fz.ignore_basic_report,
-            fz.ignore_genIdentify, fz.ignore_basic_change, fz.ignore_poll_ctrl,
-            fz.generic_battery_change, fz.ignore_iaszone_change,
-            fz.ignore_poll_ctrl_change, fz.ignore_genIdentify_change, fz.ignore_iaszone_report,
-            fz.generic_battery, fz.ias_contact_status_change,
+            fz.ignore_genIdentify, fz.ignore_poll_ctrl,
+            fz.generic_battery, fz.ignore_iaszone_report,
+            fz.iaszone_occupancy_2, fz.iaszone_contact,
         ],
         toZigbee: [],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 255}, cb),
-            ];
-
-            execute(device, actions, callback);
-        },
     },
     {
         zigbeeModel: ['3011'],
