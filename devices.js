@@ -3102,6 +3102,25 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['outletv4'],
+        model: 'STS-OUT-US-2',
+        vendor: 'SmartThings',
+        description: 'Outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.state, fz.state_change],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 1);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
+        },
+    },
+    {
         zigbeeModel: ['motion'],
         model: 'IM6001-MTP01',
         vendor: 'SmartThings',
