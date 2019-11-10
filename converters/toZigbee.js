@@ -91,7 +91,15 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta));
-            return {state: {state: value.toUpperCase()}};
+            if (value.toLowerCase() === 'toggle') {
+                if (!meta.state.hasOwnProperty('state')) {
+                    return {};
+                } else {
+                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
+                }
+            } else {
+                return {state: {state: value.toUpperCase()}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
