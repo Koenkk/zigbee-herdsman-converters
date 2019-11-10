@@ -3107,17 +3107,13 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Outlet',
         supports: 'on/off',
-        fromZigbee: [fz.state, fz.state_change],
+        fromZigbee: [fz.on_off, fz.ignore_onoff_report],
         toZigbee: [tz.on_off],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
-            const actions = [
-                (cb) => device.bind('genOnOff', coordinator, cb),
-                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
-            ];
-
-            execute(device, actions, callback);
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
