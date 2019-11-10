@@ -247,7 +247,7 @@ const converters = {
             const hasState = message.hasOwnProperty('state');
             const state = hasState ? message.state.toLowerCase() : null;
 
-            if (state === 'off' || (!hasBrightness && state === 'on')) {
+            if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                 if (state === 'on') {
                     result.readAfterWriteTime = 0;

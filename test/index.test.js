@@ -12,7 +12,7 @@ describe('index.js', () => {
         expect(device.model).toBe('WXKG11LM')
     });
 
-    it('onlythis Find device by model ID with strange characters 2', () => {
+    it('Find device by model ID with strange characters 2', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
         expect(device.model).toBe('WXKG03LM')
     });
