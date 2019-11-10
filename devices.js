@@ -3102,6 +3102,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['outletv4'],
+        model: 'STS-OUT-US-2',
+        vendor: 'SmartThings',
+        description: 'Outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ignore_onoff_report],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['motion'],
         model: 'IM6001-MTP01',
         vendor: 'SmartThings',
