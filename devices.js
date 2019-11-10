@@ -303,7 +303,7 @@ const configureReporting = {
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report,],
+        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
