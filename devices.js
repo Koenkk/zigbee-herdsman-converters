@@ -303,7 +303,7 @@ const configureReporting = {
 const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
-        fromZigbee: [fz.on_off, fz.brightness],
+        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report,],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
     },
     light_onoff_brightness_colortemp: {
@@ -929,7 +929,9 @@ const devices = [
         description: 'TRADFRI control outlet',
         supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [fz.on_off, fz.ignore_genLevelCtrl_report],
+        fromZigbee: [
+            fz.on_off, fz.ignore_genLevelCtrl_report, fz.ignore_basic_report,
+        ],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
