@@ -1594,12 +1594,17 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const battery = {max: 3000, min: 2100};
-            const voltage = msg.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage / 1000.0,
-            };
+            const result = {};
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                const battery = {max: 3000, min: 2100};
+                const voltage = msg.data['batteryVoltage'] * 100;
+                result.battery = toPercentage(voltage, battery.min, battery.max);
+                result.voltage = voltage / 1000.0;
+            }
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                result.battery_alarm_state = msg.data['batteryAlarmState'];
+            }
+            return result;
         },
     },
     battery_cr2032: {
