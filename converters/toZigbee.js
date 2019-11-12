@@ -118,10 +118,10 @@ const converters = {
             };
 
             value = positionByState[value.toLowerCase()];
-            return await converters.cover_position.convertSet(entity, key, value, meta);
+            return await converters.cover_position_via_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
-            return await converters.cover_position.convertGet(entity, key, meta);
+            return await converters.cover_position_via_brightness.convertGet(entity, key, meta);
         },
     },
     cover_position_via_brightness: {
