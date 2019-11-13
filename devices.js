@@ -4085,6 +4085,13 @@ const devices = [
         fromZigbee: [fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff],
         toZigbee: [],
     },
+	{
+        zigbeeModel: ['ICZB-FC'],
+        model: 'ICZB-B1FC60/B3FC64/B2FC95/B2FC125',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Filament Lamp 60/64/95/125 mm, 806 lumen, dimmable, clear',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Busch-Jaeger
     {
