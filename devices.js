@@ -4941,6 +4941,23 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SZ-DWS04'],
+        model: 'SZ-DWS04',
+        vendor: 'Sercomm',
+        description: 'Magnetic door & window contact sensor',
+        // temperature not working yet: https://github.com/Koenkk/zigbee-herdsman-converters/issues/744
+        supports: 'contact',
+        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Leedarson
     {
