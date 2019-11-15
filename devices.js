@@ -5093,7 +5093,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['3AFE140103020000'],
+        zigbeeModel: ['3AFE140103020000', '3AFE220103020000'],
         model: '2AJZ4KPFT',
         vendor: 'Konke',
         description: 'Temperature and humidity sensor',
