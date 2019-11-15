@@ -3565,6 +3565,15 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['1117-S'],
+        model: 'iL07_1',
+        vendor: 'Iris',
+        description: 'Iris Motion Sensor',
+        supports: 'motion, tamper and battery',
+        fromZigbee: [fz.iaszone_occupancy_2],
+        toZigbee: [],
+     },
 
     // ksentry
     {
