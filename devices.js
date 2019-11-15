@@ -5558,17 +5558,6 @@ const devices = [
         toZigbee: [],
     },
 
-    // ITEAD
-    {
-        zigbeeModel: ['BASICZBR3'],
-        model: 'BASICZBR3',
-        vendor: 'ITEAD',
-        description: 'SONOFF ZigBee DIY Smart Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-    },
-
     // TERNCY
     {
         zigbeeModel: ['TERNCY-PP01'],
@@ -5592,6 +5581,47 @@ const devices = [
         supports: 'click, hold, release',
         fromZigbee: [fz.orvibo_raw],
         toZigbee: [],
+    },
+
+    // SONOFF
+    {
+        zigbeeModel: ['BASICZBR3'],
+        model: 'BASICZBR3',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['S31 Lite zb'],
+        model: 'S31 Lite zb',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug (US version)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
+    // eWeLink: the IoT solution provider behinds lots of smart device brands
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'SA-003-Zigbee',
+        vendor: 'eWeLink',
+        description: 'Zigbee smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
     },
 ];
 
