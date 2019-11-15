@@ -5595,7 +5595,7 @@ const devices = [
     },
     {
         zigbeeModel: ['S31 Lite zb'],
-        model: 'S31 Lite zb',
+        model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
         supports: 'on/off',
