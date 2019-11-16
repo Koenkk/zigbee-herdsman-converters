@@ -149,8 +149,8 @@ const configureReporting = {
         const payload = [{
             attribute: 'localTemp',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 50,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -167,8 +167,8 @@ const configureReporting = {
         const payload = [{
             attribute: 'occupiedHeatingSetpoint',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 40,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -176,8 +176,8 @@ const configureReporting = {
         const payload = [{
             attribute: 'pIHeatingDemand',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 10,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -5226,7 +5226,7 @@ const devices = [
 
     // Sinope
     {
-        zigbeeModel: ['TH1123ZB'],
+        zigbeeModel: ['TH1123ZB', 'TH1124ZB'],
         model: 'TH1123ZB',
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
