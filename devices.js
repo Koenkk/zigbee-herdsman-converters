@@ -5565,6 +5565,15 @@ const devices = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['113C'],
+        model: 'LH-992ZB',
+        vendor: 'iHORN',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1],
+        toZigbee: [],
+    },
 
     // TERNCY
     {
