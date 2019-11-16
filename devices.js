@@ -5477,22 +5477,6 @@ const devices = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1],
     },
 
-    // Lingan
-    {
-        zigbeeModel: ['SA-003-Zigbee'],
-        model: 'DZ4743-00B',
-        vendor: 'Lingan',
-        description: 'Zigbee OnOff controller',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-
     // Lutron
     {
         zigbeeModel: ['Z3-1BRL'],
