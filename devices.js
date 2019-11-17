@@ -4146,7 +4146,7 @@ const devices = [
     {
         zigbeeModel: ['tint Smart Switch'],
         model: '404021',
-        description: 'Tint Smart Switch',
+        description: 'Tint smart switch',
         supports: 'on/off',
         vendor: 'Müller Licht',
         fromZigbee: [fz.on_off],
