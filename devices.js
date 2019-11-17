@@ -1132,6 +1132,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LCB001'],
+        model: '548727',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance BR30 with bluetooth',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LWB004'],
         model: '433714',
         vendor: 'Philips',
