@@ -4152,7 +4152,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
-    
+
     // Salus
     {
         zigbeeModel: ['SP600'],
