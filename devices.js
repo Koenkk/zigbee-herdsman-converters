@@ -149,8 +149,8 @@ const configureReporting = {
         const payload = [{
             attribute: 'localTemp',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 50,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 10,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -167,8 +167,8 @@ const configureReporting = {
         const payload = [{
             attribute: 'occupiedHeatingSetpoint',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 40,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 10,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
