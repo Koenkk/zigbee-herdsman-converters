@@ -3058,6 +3058,13 @@ const converters = {
             }
         },
     },
+    diyruz_contact: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            return {contact: msg.data['onOff'] !== 0};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

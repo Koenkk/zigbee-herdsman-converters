@@ -1708,7 +1708,7 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
         supports: 'contact',
-        fromZigbee: [fz.keypad20_battery, fz.xiaomi_contact],
+        fromZigbee: [fz.keypad20_battery, fz.diyruz_contact],
         toZigbee: [],
     },
     {
@@ -5547,6 +5547,15 @@ const devices = [
         description: 'Temperature & humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['113C'],
+        model: 'LH-992ZB',
+        vendor: 'iHORN',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1],
         toZigbee: [],
     },
 
