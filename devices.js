@@ -5714,6 +5714,22 @@ const devices = [
         fromZigbee: [fz.TS0218_click, fz.battery_percentage_remaining],
         toZigbee: [],
     },
+
+    // EcoDim
+    {
+        zigbeeModel: ['Dimmer-Switch-ZB3.0'],
+        model: 'Eco-Dim.07',
+        vendor: 'EcoDim',
+        description: 'Zigbee & Z-wave dimmer ',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
