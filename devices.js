@@ -739,7 +739,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
         supports: 'temperature and humidity',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.temperature, fz.humidity],
+        fromZigbee: [fz.battery_percentage_remaining, fz.temperature, fz.humidity],
         toZigbee: [],
     },
 
@@ -3841,7 +3841,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas_1],
+        fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
     },
     {
@@ -3850,7 +3850,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas_1],
+        fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
     },
     {
@@ -3859,7 +3859,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas_2],
+        fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
     },
     {
@@ -5507,7 +5507,7 @@ const devices = [
         vendor: 'Piri',
         description: 'Combustible gas sensor',
         supports: 'gas',
-        fromZigbee: [fz.iaszone_gas_1],
+        fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
     },
 
@@ -5630,6 +5630,80 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
+    },
+
+    // CR Smart Home
+    {
+        zigbeeModel: ['TS0001'],
+        model: 'TS0001',
+        vendor: 'CR Smart Home',
+        description: 'Valve control',
+        supports: 'control',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['TS0202'],
+        model: 'TS0202',
+        vendor: 'CR Smart Home',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0203'],
+        model: 'TS0203',
+        vendor: 'CR Smart Home',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.iaszone_contact, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0204'],
+        model: 'TS0204',
+        vendor: 'CR Smart Home',
+        description: 'Gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.ias_gas_alarm_1, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0205'],
+        model: 'TS0205',
+        vendor: 'CR Smart Home',
+        description: 'Smoke sensor',
+        supports: 'smoke',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0111'],
+        model: 'TS0111',
+        vendor: 'CR Smart Home',
+        description: 'Socket',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['TS0207'],
+        model: 'TS0207',
+        vendor: 'CR Smart Home',
+        description: 'Water leak detector',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery_percentage_remaining],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0218'],
+        model: 'TS0218',
+        vendor: 'CR Smart Home',
+        description: 'Button',
+        supports: 'click',
+        fromZigbee: [fz.TS0218_click, fz.battery_percentage_remaining],
+        toZigbee: [],
     },
 ];
 

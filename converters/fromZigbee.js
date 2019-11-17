@@ -316,6 +316,42 @@ const converters = {
             };
         },
     },
+    ias_gas_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                gas: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_gas_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                gas: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_smoke_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                smoke: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -1185,6 +1221,13 @@ const converters = {
             return {action: 'emergency'};
         },
     },
+    TS0218_click: {
+        cluster: 'ssIasAce',
+        type: 'commandEmergency',
+        convert: (model, msg, publish, options) => {
+            return {action: 'click'};
+        },
+    },
     battery_200: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -1224,30 +1267,6 @@ const converters = {
             }
             results['zone_id'] = zoneId;
             return results;
-        },
-    },
-    iaszone_gas_1: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                gas: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
-    iaszone_gas_2: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                gas: (zoneStatus & 1<<1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
         },
     },
     heiman_carbon_monoxide: {
