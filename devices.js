@@ -4148,10 +4148,11 @@ const devices = [
         model: '404021',
         description: 'Tint Smart Switch',
         supports: 'on/off',
-        vendor: 'MÃ¼ller Licht',
+        vendor: 'Müller Licht',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    
     // Salus
     {
         zigbeeModel: ['SP600'],
