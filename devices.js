@@ -3551,18 +3551,6 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['IM6001-WLP01'],
-        model: 'IM6001-WLP01',
-        vendor: 'SmartThings',
-        description: 'Water leak sensor',
-        supports: 'water leak',
-        fromZigbee: [
-            fz.temperature,
-            fz.st_leak, fz.battery_3V,
-        ],
-        toZigbee: [],
-    },
-    {
         zigbeeModel: ['3315-S'],
         model: '3315-S',
         vendor: 'SmartThings',
@@ -3583,7 +3571,7 @@ const devices = [
     },
     {
         zigbeeModel: ['water'],
-        model: 'F-WTR-UK-V2',
+        model: 'IM6001-WLP01',
         vendor: 'SmartThings',
         description: 'Water leak sensor (2018 model)',
         supports: 'water leak and temperature',
