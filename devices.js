@@ -304,17 +304,23 @@ const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert, tz.light_brightness_move],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
-        toZigbee: [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert,
+            tz.light_brightness_move,
+        ],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
-        toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert,
+            tz.light_brightness_move,
+        ],
     },
     light_onoff_brightness_colortemp_colorxy: {
         supports: 'on/off, brightness, color temperature, color xy',
@@ -324,7 +330,7 @@ const generic = {
         ],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
-            tz.light_alert,
+            tz.light_alert, tz.light_brightness_move,
         ],
     },
 };

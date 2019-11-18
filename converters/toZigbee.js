@@ -224,6 +224,17 @@ const converters = {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    light_brightness_move: {
+        key: ['brightness_move'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'stop') {
+                await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta));
+            } else {
+                const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
+                await entity.command('genLevelCtrl', 'moveWithOnOff', payload, getOptions(meta));
+            }
+        },
+    },
     light_brightness: {
         key: ['brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
