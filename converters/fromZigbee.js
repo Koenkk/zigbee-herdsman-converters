@@ -1994,7 +1994,7 @@ const converters = {
     },
     st_leak: {
         cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport', 'commandStatusChangeNotification', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {
