@@ -3089,6 +3089,20 @@ const converters = {
             return {contact: msg.data['onOff'] !== 0};
         },
     },
+    diyruz_rspm: {
+        cluster: 'genOnOff',
+        type: ['attReport', 'readRsp'],
+        convert: (model, msg, publish, options) => {
+            const power = precisionRound(msg.data.data['41365'], 2);
+            return {
+                state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
+                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
+                power: power,
+                current: precisionRound(power/230, 2),
+                action: msg.data.data['41367'] === 1 ? 'hold' : 'release',
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
