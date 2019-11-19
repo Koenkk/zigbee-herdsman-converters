@@ -710,7 +710,7 @@ const devices = [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power,
             fz.ignore_multistate_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
