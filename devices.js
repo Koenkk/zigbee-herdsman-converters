@@ -1750,7 +1750,7 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[DIYRuZ relay switch power meter](https://modkam.ru/?p=1309)',
         supports: 'relay, switch, adc',
-        fromZigbee: [fz.diyruz_rspm, fz.ignore_onoff_change],
+        fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
     },
 
