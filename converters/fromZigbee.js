@@ -100,6 +100,8 @@ const ictcg1 = (model, msg, publish, options, action) => {
     }
 
     const s = store[deviceID];
+    // if rate == 70 so we rotate slowly
+    const rate = (msg.data.rate == 70) ? 0.3 : 1;
 
     if (action === 'move') {
         s.since = Date.now();
@@ -113,14 +115,17 @@ const ictcg1 = (model, msg, publish, options, action) => {
             payload.action = `rotate_${direction}_quick`;
             payload.brightness = s.value;
         } else {
-            const duration = Date.now() - s.since;
-            const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
+            if (s.direction) {
+                const duration = Date.now() - s.since;
+                const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
+                const newValue = s.value + delta;
+                if (newValue >= 0 && newValue <= 255) {
+                    s.value = newValue;
+                }
             }
             payload.action = 'rotate_stop';
             payload.brightness = s.value;
+            s.direction = false;
         }
     }
     if (s.timerId) {
@@ -130,7 +135,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
     if (action === 'move') {
         s.timerId = setInterval(() => {
             const duration = Date.now() - s.since;
-            const delta = Math.round((duration / 10) * (s.direction === 'left' ? -1 : 1));
+            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
             const newValue = s.value + delta;
             if (newValue >= 0 && newValue <= 255) {
                 s.value = newValue;
@@ -138,7 +143,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
             payload.brightness = s.value;
             s.since = Date.now();
             s.publish(payload);
-        }, 10);
+        }, 200);
     }
     s.publish(payload);
 };
