@@ -3931,7 +3931,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['RC_V14'],
+        zigbeeModel: ['RC_V14', 'RC-EM'],
         model: 'HS1RC-M',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
