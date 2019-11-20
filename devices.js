@@ -4744,9 +4744,9 @@ const devices = [
         zigbeeModel: ['ON/OFF'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
-        description: 'ZigBee AC In-Wall Switch',
+        description: 'ZigBee AC in-wall switch',
         supports: 'on/off',
-        fromZigbee: [fz.state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
     {
