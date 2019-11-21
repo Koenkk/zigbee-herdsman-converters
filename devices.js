@@ -5332,7 +5332,7 @@ const devices = [
         vendor: 'Lutron',
         description: 'Connected bulb remote control',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.E1524_hold, fz.GIRA2430_stop],
+        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.LZL4B_onoff, fz.GIRA2430_stop],
         toZigbee: [],
     },
 
