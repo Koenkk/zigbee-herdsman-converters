@@ -3813,7 +3813,7 @@ const devices = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.HS2SK_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
