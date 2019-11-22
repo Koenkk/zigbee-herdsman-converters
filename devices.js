@@ -1991,8 +1991,8 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['Lightify Switch Mini'],
-        model: 'AC0251100NJ',
+        zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini blue'],
+        model: 'AC0251100NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         supports: 'circle, up, down and hold/release',
@@ -2001,29 +2001,9 @@ const devices = [
             fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
             fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.battery_3V,
             fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
-        ],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            const endpoint3 = device.getEndpoint(3);
-            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
-            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await bind(endpoint3, coordinatorEndpoint, ['genLevelCtrl', 'lightingColorCtrl']);
-            await configureReporting.batteryVoltage(endpoint1);
-        },
-    },
-    {
-        zigbeeModel: ['Lightify Switch Mini blue'],
-        model: 'AC0251700NJ',
-        vendor: 'OSRAM',
-        description: 'Smart+ switch mini blue',
-        supports: 'circle, up, down and hold/release',
-        fromZigbee: [
             fz.AC0251700NJ_cmdOn, fz.AC0251700NJ_cmdMoveWithOnOff, fz.AC0251700NJ_cmdStop,
             fz.AC0251700NJ_cmdMoveToColorTemp, fz.AC0251700NJ_cmdMoveHue, fz.AC0251700NJ_cmdMoveToSaturation,
-            fz.AC0251700NJ_cmdOff, fz.AC0251700NJ_cmdMove, fz.battery_3V,
+            fz.AC0251700NJ_cmdOff, fz.AC0251700NJ_cmdMove,
             fz.AC0251700NJ_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
