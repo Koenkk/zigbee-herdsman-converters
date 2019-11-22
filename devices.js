@@ -1991,8 +1991,8 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['Lightify Switch Mini'],
-        model: 'AC0251100NJ',
+        zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini blue'],
+        model: 'AC0251100NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         supports: 'circle, up, down and hold/release',
