@@ -2620,6 +2620,16 @@ const converters = {
             };
         },
     },
+    LZL4B_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options) => {
+            return {
+                level: msg.data.level,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
     ZGRC013_cmdOn: {
         cluster: 'genOnOff',
         type: 'commandOn',
