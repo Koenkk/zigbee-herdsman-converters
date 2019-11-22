@@ -2485,7 +2485,6 @@ const converters = {
             return {action: map[msg.endpoint.ID]};
         },
     },
-    },
     AC0251100NJ_cmdMove: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
