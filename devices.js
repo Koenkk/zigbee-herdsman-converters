@@ -627,6 +627,17 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
+        zigbeeModel: ['lumi.plug.mmeu01'],
+        model: 'ZNCZ04LM',
+        description: 'Mi power plug ZigBee EU',
+        supports: 'on/off, power measurement',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state
+        ],
+        toZigbee: [tz.on_off],
+    },
+    {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
         model: 'QBCZ11LM',
         description: 'Aqara socket Zigbee',
