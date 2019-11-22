@@ -444,13 +444,6 @@ const converters = {
             return {click: 'long_middle'};
         },
     },
-    AC0251700NJ_long_middle: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        convert: (model, msg, publish, options) => {
-            return {click: 'long_middle'};
-        },
-    },
     AV2010_34_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -2466,13 +2459,6 @@ const converters = {
             return {action: 'up'};
         },
     },
-    AC0251700NJ_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options) => {
-            return {action: 'up'};
-        },
-    },
     AC0251100NJ_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -2480,21 +2466,7 @@ const converters = {
             return {action: 'down'};
         },
     },
-    AC0251700NJ_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options) => {
-            return {action: 'down'};
-        },
-    },
     AC0251100NJ_cmdMoveWithOnOff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options) => {
-            return {action: 'up_hold'};
-        },
-    },
-    AC0251700NJ_cmdMoveWithOnOff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options) => {
@@ -2513,26 +2485,8 @@ const converters = {
             return {action: map[msg.endpoint.ID]};
         },
     },
-    AC0251700NJ_cmdStop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options) => {
-            const map = {
-                1: 'up_release',
-                2: 'down_release',
-            };
-
-            return {action: map[msg.endpoint.ID]};
-        },
     },
     AC0251100NJ_cmdMove: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options) => {
-            return {action: 'down_hold'};
-        },
-    },
-    AC0251700NJ_cmdMove: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options) => {
@@ -2548,23 +2502,7 @@ const converters = {
             }
         },
     },
-    AC0251700NJ_cmdMoveHue: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        convert: (model, msg, publish, options) => {
-            if (msg.data.movemode === 0) {
-                return {action: 'circle_release'};
-            }
-        },
-    },
     AC0251100NJ_cmdMoveToSaturation: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToSaturation',
-        convert: (model, msg, publish, options) => {
-            return {action: 'circle_hold'};
-        },
-    },
-    AC0251700NJ_cmdMoveToSaturation: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
         convert: (model, msg, publish, options) => {
@@ -2578,19 +2516,7 @@ const converters = {
             return {action: 'circle_click'};
         },
     },
-    AC0251700NJ_cmdMoveToLevelWithOnOff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options) => {
-            return {action: 'circle_click'};
-        },
-    },
     AC0251100NJ_cmdMoveToColorTemp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        convert: (model, msg, publish, options) => null,
-    },
-    AC0251700NJ_cmdMoveToColorTemp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options) => null,
