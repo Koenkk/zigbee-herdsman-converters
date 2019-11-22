@@ -4703,7 +4703,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.ignore_basic_report],
+        fromZigbee: [fz.iaszone_contact],
         toZigbee: [],
     },
     {
