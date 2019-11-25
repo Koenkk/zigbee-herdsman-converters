@@ -2620,7 +2620,7 @@ const devices = [
         vendor: 'Swann',
         description: 'Window/door sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
 
@@ -3121,9 +3121,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multi Sensor (2015 model)',
         supports: 'contact and temperature',
-        fromZigbee: [
-            fz.temperature, fz.smartsense_multi,
-        ],
+        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3226,7 +3224,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Door sensor',
         supports: 'contact and temperature',
-        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.iaszone_contact, fz.battery_3V],
+        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3242,7 +3240,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2016 model)',
         supports: 'contact',
-        fromZigbee: [fz.temperature, fz.battery_3V, fz.iaszone_contact],
+        fromZigbee: [fz.temperature, fz.battery_3V, fz.ias_contact_alarm_1],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3258,7 +3256,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2018 model)',
         supports: 'contact',
-        fromZigbee: [fz.temperature, fz.iaszone_contact, fz.battery_3V, fz.ignore_iaszone_attreport],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery_3V, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3438,7 +3436,7 @@ const devices = [
         description: 'Wireless contact sensor',
         supports: 'contact',
         fromZigbee: [
-            fz.iaszone_contact, fz.battery_percentage_remaining,
+            fz.ias_contact_alarm_1, fz.battery_percentage_remaining,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
@@ -3909,7 +3907,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
     {
@@ -3918,7 +3916,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
     {
@@ -3927,7 +3925,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
     {
@@ -4578,7 +4576,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Door or window contact switch',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
     {
@@ -4634,7 +4632,7 @@ const devices = [
             fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.generic_battery, fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_2, fz.iaszone_contact,
+            fz.iaszone_occupancy_2, fz.ias_contact_alarm_1,
         ],
         toZigbee: [],
     },
@@ -4714,7 +4712,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
     {
@@ -4723,7 +4721,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_cr2032],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_cr2032],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4739,7 +4737,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_cr2032],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_cr2032],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5013,7 +5011,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5029,7 +5027,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5192,7 +5190,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.battery_3V],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_3V],
         toZigbee: [],
     },
     {
@@ -5607,7 +5605,7 @@ const devices = [
         vendor: 'PEQ',
         description: 'Door & window contact sensor',
         supports: 'contact, temperature',
-        fromZigbee: [fz.temperature, fz.iaszone_contact, fz.battery_3V],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5746,7 +5744,7 @@ const devices = [
         vendor: 'CR Smart Home',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.iaszone_contact, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_percentage_remaining, fz.ignore_basic_report],
         toZigbee: [],
     },
     {

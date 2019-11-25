@@ -357,6 +357,18 @@ const converters = {
             };
         },
     },
+    ias_contact_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -1933,18 +1945,6 @@ const converters = {
 
             return {
                 occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
-    iaszone_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: !((zoneStatus & 1) > 0),
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
