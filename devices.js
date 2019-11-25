@@ -4315,7 +4315,10 @@ const devices = [
 
     // Bosch
     {
-        zigbeeModel: ['RFDL-ZB-MS'],
+        zigbeeModel: [
+            'RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
+            'RFPR-ZB-EU', 'RFPR-ZB-CHI', 'RFPR-ZB-ES', 'RFPR-ZB-MS',
+        ],
         model: 'RADON TriTech ZB',
         vendor: 'Bosch',
         description: 'Wireless motion detector',
