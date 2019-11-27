@@ -758,6 +758,7 @@ const devices = [
             fz.eria_81825_on, fz.eria_81825_off,
             fz.eria_81825_updown,
         ],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.remote.b686opcn01'],
@@ -769,6 +770,7 @@ const devices = [
             fz.eria_81825_on, fz.eria_81825_off,
             fz.eria_81825_updown, fz.aqara_opple_raw,
         ],
+        toZigbee: [],
     },
 
     // TuYa
