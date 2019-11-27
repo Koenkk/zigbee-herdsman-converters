@@ -2885,7 +2885,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature',
     },
     {
         zigbeeModel: ['GL-C-007'],
@@ -2893,7 +2892,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGBW',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['GL-C-008', 'GLEDOPTO'],
@@ -2902,7 +2900,6 @@ const devices = [
         description: 'Zigbee LED controller RGB + CCT',
         extend: gledopto.light,
         meta: {options: {disableDefaultResponse: true}},
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-C-008S'],
@@ -2911,7 +2908,6 @@ const devices = [
         description: 'Zigbee LED controller RGB + CCT plus model',
         extend: gledopto.light,
         meta: {options: {disableDefaultResponse: true}},
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-C-009'],
@@ -2919,7 +2915,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller dimmer',
         extend: gledopto.light,
-        supports: 'on/off, brightness',
     },
     {
         zigbeeModel: ['GL-MC-001'],
@@ -2927,7 +2922,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee USB mini LED controller RGB + CCT',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-S-004Z'],
@@ -2935,7 +2929,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee Smart WW/CW GU10',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature',
     },
     {
         zigbeeModel: ['GL-S-007Z'],
@@ -2943,7 +2936,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['GL-S-007ZS'],
@@ -2951,7 +2943,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGB+CCT GU10',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['GL-B-001Z'],
@@ -2959,7 +2950,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 4W E14 RGB / CCT LED bulb',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-G-001Z'],
@@ -2967,7 +2957,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart garden lamp',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-B-007Z'],
@@ -2975,7 +2964,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 6W E27 RGB / CCT LED bulb',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-B-008Z'],
@@ -2983,7 +2971,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CCT LED bulb',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-B-008ZS'],
@@ -2991,7 +2978,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-D-003Z'],
@@ -2999,7 +2985,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-D-005Z'],
@@ -3007,7 +2992,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-S-003Z'],
@@ -3015,7 +2999,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color, white',
     },
     {
         zigbeeModel: ['HOMA2023'],
@@ -3023,7 +3006,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED Driver',
         extend: gledopto.light,
-        supports: 'on/off, brightness',
     },
     {
         zigbeeModel: ['GL-FL-004TZ'],
@@ -3031,7 +3013,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee 10W floodlight RGB CCT',
         extend: gledopto.light,
-        supports: 'on/off, brightness, color temperature, color',
     },
     {
         zigbeeModel: ['GL-W-001Z'],
