@@ -3117,6 +3117,18 @@ const converters = {
             };
         },
     },
+    aqara_opple_raw: {
+        cluster: 'lightingColorCtrl',
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            convert: (model, msg, publish, options) => {
+            // '{"type":"Buffer","data":[17,30,76,1,69,0,7,0,0,0,0,0,0,0]}' left
+            // '{"type":"Buffer","data":[17,29,76,3,69,0,7,0,0,0,0,0,0,0]}' right 
+            if (msg.data[3]) {
+                return {action: (msg.data[3] === 1) ? 'color_down' : 'color_up'};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

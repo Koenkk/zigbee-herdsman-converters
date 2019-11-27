@@ -748,6 +748,28 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['lumi.remote.b486opcn01'],
+        model: 'WXCJKG12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Opple Switch 2 bands',
+        supports: 'on/off, brightness up/down',
+        fromZigbee: [
+            fz.eria_81825_on, fz.eria_81825_off,
+            fz.eria_81825_updown,
+        ],
+    },
+    {
+        zigbeeModel: ['lumi.remote.b686opcn01'],
+        model: 'WXCJKG13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Opple Switch 3 bands',
+        supports: 'on/off, brightness up/down, color up/down',
+        fromZigbee: [
+            fz.eria_81825_on, fz.eria_81825_off,
+            fz.eria_81825_updown, fz.aqara_opple_raw,
+        ],
+    },
 
     // TuYa
     {
