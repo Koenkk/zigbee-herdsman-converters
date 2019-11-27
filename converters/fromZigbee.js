@@ -833,7 +833,7 @@ const converters = {
 
             if (
                 msg.data['currentX'] || msg.data['currentY'] || msg.data['currentSaturation'] ||
-                msg.data['enhancedCurrentHue']
+                msg.data['currentHue'] || msg.data['enhancedCurrentHue']
             ) {
                 result.color = {};
 
@@ -846,7 +846,11 @@ const converters = {
                 }
 
                 if (msg.data['currentSaturation']) {
-                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 1);
+                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+                }
+
+                if (msg.data['currentHue']) {
+                    result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
                 }
 
                 if (msg.data['enhancedCurrentHue']) {
