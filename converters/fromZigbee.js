@@ -3122,7 +3122,7 @@ const converters = {
         type: 'raw',
         convert: (model, msg, publish, options) => {
             // '{"type":"Buffer","data":[17,30,76,1,69,0,7,0,0,0,0,0,0,0]}' left
-            // '{"type":"Buffer","data":[17,29,76,3,69,0,7,0,0,0,0,0,0,0]}' right 
+            // '{"type":"Buffer","data":[17,29,76,3,69,0,7,0,0,0,0,0,0,0]}' right
             if (msg.data[3]) {
                 return {action: (msg.data[3] === 1) ? 'color_down' : 'color_up'};
             }
