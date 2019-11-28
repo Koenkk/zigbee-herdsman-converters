@@ -2836,7 +2836,7 @@ const devices = [
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
-        model: 'HGZB-42-UK / HGZB-41',
+        model: 'HGZB-42-UK / HGZB-41 / HGZB-41-UK',
         description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
         supports: 'on/off',
