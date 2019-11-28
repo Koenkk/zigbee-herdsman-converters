@@ -3121,14 +3121,14 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options) => {
-            return {action: 'button_1_single'};
+            return {action: 'button_2_single'};
         },
     },
     aqara_opple_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options) => {
-            return {action: 'button_2_single'};
+            return {action: 'button_1_single'};
         },
     },
     aqara_opple_step: {
