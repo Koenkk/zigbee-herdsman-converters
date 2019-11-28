@@ -3117,6 +3117,28 @@ const converters = {
             };
         },
     },
+    aqara_opple_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'button_1_single'};
+        },
+    },
+    aqara_opple_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'button_2_single'};
+        },
+    },
+    aqara_opple_step: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.stepmode === 0 ? 'button_4_single' : 'button_3_single';
+            return {action: `${direction}`};
+        },
+    },
     aqara_opple_raw: {
         cluster: 'lightingColorCtrl',
         type: 'raw',
@@ -3124,7 +3146,7 @@ const converters = {
             // '{"type":"Buffer","data":[17,30,76,1,69,0,7,0,0,0,0,0,0,0]}' left
             // '{"type":"Buffer","data":[17,29,76,3,69,0,7,0,0,0,0,0,0,0]}' right
             if (msg.data[3]) {
-                return {action: (msg.data[3] === 1) ? 'color_down' : 'color_up'};
+                return {action: (msg.data[3] === 1) ? 'button_5_single' : 'button_6_single'};
             }
         },
     },
