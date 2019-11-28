@@ -2629,7 +2629,7 @@ const converters = {
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
             return {
-                level: msg.data.level,
+                action: msg.data.level,
                 transition_time: msg.data.transtime,
             };
         },
