@@ -755,7 +755,7 @@ const devices = [
         description: 'Aqara Opple switch 1 band',
         supports: 'action',
         fromZigbee: [
-        	fz.aqara_opple_on, fz.aqara_opple_off,
+            fz.aqara_opple_on, fz.aqara_opple_off,
         ],
         toZigbee: [],
     },
@@ -766,9 +766,9 @@ const devices = [
         description: 'Aqara Opple switch 2 bands',
         supports: 'action',
         fromZigbee: [
-        	fz.aqara_opple_on, fz.aqara_opple_off,
-        	fz.aqara_opple_step,
-        	fz.aqara_opple_step_color_temp,
+            fz.aqara_opple_on, fz.aqara_opple_off,
+            fz.aqara_opple_step,
+            fz.aqara_opple_step_color_temp,
         ],
         toZigbee: [],
     },

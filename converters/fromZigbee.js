@@ -3163,7 +3163,6 @@ const converters = {
             const button = msg.data.movemode === 0 ? 'button_4' : 'button_3';
             store[deviceID].button = button;
             store[deviceID].start = Date.now();
-            
             return {action: `${button}_hold`};
         },
     },
@@ -3191,7 +3190,8 @@ const converters = {
                 store[deviceID] = {};
             }
             const stop = msg.data.movemode === 0;
-            let button, result = {};
+            let button;
+            const result = {};
             if (stop) {
                 button = store[deviceID].button;
                 const duration = Date.now() - store[deviceID].start;
@@ -3204,7 +3204,6 @@ const converters = {
                 store[deviceID].button = button;
                 store[deviceID].start = Date.now();
             }
-            
             return result;
         },
     },
