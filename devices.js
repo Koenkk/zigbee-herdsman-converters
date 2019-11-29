@@ -756,8 +756,15 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.aqara_opple_on, fz.aqara_opple_off,
+            fz.battery_3V,
         ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
     },
     {
         zigbeeModel: ['lumi.remote.b486opcn01'],
@@ -769,8 +776,17 @@ const devices = [
             fz.aqara_opple_on, fz.aqara_opple_off,
             fz.aqara_opple_step,
             fz.aqara_opple_step_color_temp,
+            fz.battery_3V,
         ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await bind(endpoint, coordinatorEndpoint, ['lightingColorCtrl']);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
     },
     {
         zigbeeModel: ['lumi.remote.b686opcn01'],
@@ -785,8 +801,17 @@ const devices = [
             fz.aqara_opple_stop,
             fz.aqara_opple_step_color_temp,
             fz.aqara_opple_move_color_temp,
+            fz.battery_3V,
         ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await bind(endpoint, coordinatorEndpoint, ['lightingColorCtrl']);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
     },
 
     // TuYa
