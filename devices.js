@@ -754,7 +754,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple switch 1 band',
         supports: 'action',
-        fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off],
+        fromZigbee: [
+        	fz.aqara_opple_on, fz.aqara_opple_off,
+        ],
         toZigbee: [],
     },
     {
@@ -763,7 +765,11 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple switch 2 bands',
         supports: 'action',
-        fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step],
+        fromZigbee: [
+        	fz.aqara_opple_on, fz.aqara_opple_off,
+        	fz.aqara_opple_step,
+        	fz.aqara_opple_step_color_temp,
+        ],
         toZigbee: [],
     },
     {
@@ -774,7 +780,11 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.aqara_opple_on, fz.aqara_opple_off,
-            fz.aqara_opple_step, fz.aqara_opple_raw,
+            fz.aqara_opple_step,
+            fz.aqara_opple_move,
+            fz.aqara_opple_stop,
+            fz.aqara_opple_step_color_temp,
+            fz.aqara_opple_move_color_temp,
         ],
         toZigbee: [],
     },

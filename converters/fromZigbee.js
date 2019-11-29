@@ -3135,19 +3135,77 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options) => {
-            const direction = msg.data.stepmode === 0 ? 'button_4_single' : 'button_3_single';
-            return {action: `${direction}`};
+            const button = msg.data.stepmode === 0 ? 'button_4' : 'button_3';
+            return {action: `${button}_single`};
         },
     },
-    aqara_opple_raw: {
-        cluster: 'lightingColorCtrl',
-        type: 'raw',
+    aqara_opple_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            // '{"type":"Buffer","data":[17,30,76,1,69,0,7,0,0,0,0,0,0,0]}' left
-            // '{"type":"Buffer","data":[17,29,76,3,69,0,7,0,0,0,0,0,0,0]}' right
-            if (msg.data[3]) {
-                return {action: (msg.data[3] === 1) ? 'button_5_single' : 'button_6_single'};
+            const deviceID = msg.device.ieeeAddr;
+            if (store[deviceID]) {
+                const duration = Date.now() - store[deviceID].start;
+                const button = store[deviceID].button;
+                return {action: `${button}_release`, duration: duration};
             }
+        },
+    },
+    aqara_opple_move: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options) => {
+            // store button and start moment
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const button = msg.data.movemode === 0 ? 'button_4' : 'button_3';
+            store[deviceID].button = button;
+            store[deviceID].start = Date.now();
+            
+            return {action: `${button}_hold`};
+        },
+    },
+    aqara_opple_step_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandStepColorTemp',
+        convert: (model, msg, publish, options) => {
+            let act;
+            if (model.model === 'WXCJKG12LM') {
+                // for WXCJKG12LM model it's double click event on buttons 3 and 4
+                act = (msg.data.stepmode === 1) ? 'button_3_double' : 'button_4_double';
+            } else {
+                // but for WXCJKG13LM model it's single click event on buttons 5 and 6
+                act = (msg.data.stepmode === 1) ? 'button_5_single' : 'button_6_single';
+            }
+            return {action: act};
+        },
+    },
+    aqara_opple_move_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveColorTemp',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const stop = msg.data.movemode === 0;
+            let button, result = {};
+            if (stop) {
+                button = store[deviceID].button;
+                const duration = Date.now() - store[deviceID].start;
+                result.action = `${button}_release`;
+                result.duration = duration;
+            } else {
+                button = msg.data.movemode === 3 ? 'button_6' : 'button_5';
+                result.action = `${button}_hold`;
+                // store button and start moment
+                store[deviceID].button = button;
+                store[deviceID].start = Date.now();
+            }
+            
+            return result;
         },
     },
 
