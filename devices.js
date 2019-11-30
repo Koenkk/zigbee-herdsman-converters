@@ -3010,6 +3010,14 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
+        zigbeeModel: ['GL-G-007Z'],
+        model: 'GL-G-007Z',
+        vendor: 'Gledopto',
+        description: 'Smart garden lamp 9W RGB / CCT',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
