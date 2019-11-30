@@ -854,7 +854,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm','TRADFRI bulb E26 WW clear 250lm'],
         model: 'LED1842G3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
