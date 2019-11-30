@@ -1845,6 +1845,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['Outdoor Lantern B50 RGBW OSRAM'],
+        model: '4058075816732',
+        vendor: 'OSRAM',
+        description: 'SMART+ outdoor lantern RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',
