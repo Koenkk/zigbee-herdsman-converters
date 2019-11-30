@@ -1089,7 +1089,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.battery_percentage_remaining],
+        fromZigbee: [fz.cover_position_tilt, fz.generic_battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -1105,7 +1105,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.battery_percentage_remaining],
+        fromZigbee: [fz.cover_position_tilt, fz.generic_battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
