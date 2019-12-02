@@ -3618,6 +3618,7 @@ const devices = [
                 maximumReportInterval: repInterval.HOUR,
                 reportableChange: 1,
             }];
+            await endpoint.configureReporting('hvacThermostat', payload);
             await configureReporting.thermostatTemperature(endpoint);
             await configureReporting.thermostatTemperatureCalibration(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
