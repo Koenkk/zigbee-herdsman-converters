@@ -3207,7 +3207,26 @@ const converters = {
             return result;
         },
     },
-
+    SmartButton_cmdOffWithEffect: {
+        cluster: 'genOnOff',
+        type: 'commandOffWithEffect',
+        convert: (model, msg, publish, options) => {
+            return {click: 'off'};
+        },
+    },
+    SmartButton_skip: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options) => {
+            const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
+            return {
+                action: `skip_${direction}`,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
