@@ -3612,6 +3612,12 @@ const devices = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
+            const payload = [{
+                attribute: 'localTemp',
+                minimumReportInterval: 900,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 1,
+            }];
             await configureReporting.thermostatTemperature(endpoint);
             await configureReporting.thermostatTemperatureCalibration(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
