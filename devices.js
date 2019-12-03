@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
@@ -1427,14 +1427,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['LWF002'],
-        model: '9290011370B',
-        vendor: 'Philips',
-        description: 'Hue white A60 bulb E27',
-        extend: hue.light_onoff_brightness,
-    },
-    {
-        zigbeeModel: ['LWW001'],
+        zigbeeModel: ['LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
