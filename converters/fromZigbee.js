@@ -2145,11 +2145,11 @@ const converters = {
             if (typeof msg.data[0x4008] == 'number') {
                 result.eurotronic_system_mode = msg.data[0x4008];
                 if ((result.eurotronic_system_mode & 1 << 2) != 0) {
-                    result.system_mode = common.thermostatSystemModes[1]; // boost => auto
+                    result.system_mode = common.thermostatSystemModes[4]; // boost => heat
                 } else if ((result.eurotronic_system_mode & (1 << 4)) != 0 ) {
                     result.system_mode = common.thermostatSystemModes[0]; // off
                 } else {
-                    result.system_mode = common.thermostatSystemModes[4]; // heat
+                    result.system_mode = common.thermostatSystemModes[1]; // comfort => auto
                 }
             }
             if (typeof msg.data[0x4002] == 'number') {
