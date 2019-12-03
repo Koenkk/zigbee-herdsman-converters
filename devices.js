@@ -3537,15 +3537,8 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['RGBW light'],
+        zigbeeModel: ['RGBW light', '500.49'],
         model: '50049',
-        vendor: 'Paulmann',
-        description: 'SmartHome Yourled RGB Controller',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['500.49'],
-        model: '500.49',
         vendor: 'Paulmann',
         description: 'SmartHome Yourled RGB Controller',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
