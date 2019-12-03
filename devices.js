@@ -1440,7 +1440,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['LWF002'],
+        zigbeeModel: ['LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
