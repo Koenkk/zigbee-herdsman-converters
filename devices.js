@@ -777,7 +777,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
-                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
         },
     },
@@ -797,7 +797,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
-                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
         },
     },
@@ -3084,6 +3084,14 @@ const devices = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight ',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
+        zigbeeModel: ['GL-D-004ZS'],
+        model: 'GL-D-004ZS',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight plus version 9W',
         extend: gledopto.light,
         supports: 'on/off, brightness, color temperature, color',
     },
