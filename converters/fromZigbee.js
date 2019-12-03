@@ -369,6 +369,20 @@ const converters = {
             };
         },
     },
+    command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options) => {
+            return {action: 'on'};
+        },
+    },
+    command_off_with_effect: {
+        cluster: 'genOnOff',
+        type: 'commandOffWithEffect',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -3205,13 +3219,6 @@ const converters = {
                 store[deviceID].start = Date.now();
             }
             return result;
-        },
-    },
-    SmartButton_cmdOffWithEffect: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options) => {
-            return {click: 'off'};
         },
     },
     SmartButton_skip: {
