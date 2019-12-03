@@ -754,16 +754,12 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple switch 1 band',
         supports: 'action',
-        fromZigbee: [
-            fz.aqara_opple_on, fz.aqara_opple_off,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
@@ -773,19 +769,16 @@ const devices = [
         description: 'Aqara Opple switch 2 bands',
         supports: 'action',
         fromZigbee: [
-            fz.aqara_opple_on, fz.aqara_opple_off,
-            fz.aqara_opple_step,
-            fz.aqara_opple_step_color_temp,
-            fz.battery_3V,
+            fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step,
+            fz.aqara_opple_step_color_temp, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            await bind(endpoint, coordinatorEndpoint, ['lightingColorCtrl']);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+            ]);
         },
     },
     {
@@ -795,22 +788,17 @@ const devices = [
         description: 'Aqara Opple switch 3 bands',
         supports: 'action',
         fromZigbee: [
-            fz.aqara_opple_on, fz.aqara_opple_off,
-            fz.aqara_opple_step,
-            fz.aqara_opple_move,
-            fz.aqara_opple_stop,
-            fz.aqara_opple_step_color_temp,
-            fz.aqara_opple_move_color_temp,
+            fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_move,
+            fz.aqara_opple_stop, fz.aqara_opple_step_color_temp, fz.aqara_opple_move_color_temp,
             fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            await bind(endpoint, coordinatorEndpoint, ['lightingColorCtrl']);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+            ]);
         },
     },
 
