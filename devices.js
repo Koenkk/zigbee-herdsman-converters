@@ -1882,6 +1882,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['A60 TW Z3'],
+        model: 'AC10787',
+        vendor: 'OSRAM',
+        description: 'SMART+ classic E27 TW',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW OSRAM'],
         model: 'AC03645',
         vendor: 'OSRAM',
