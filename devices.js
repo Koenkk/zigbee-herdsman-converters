@@ -1478,13 +1478,9 @@ const devices = [
         zigbeeModel: ['ROM001'],
         model: '9290022230',
         vendor: 'Philips',
-        description: 'Hue Smart Button',
-        supports: 'on/off, brightness, up/down/hold/release',
-        fromZigbee: [
-            fz.genOnOff_cmdOn, fz.SmartButton_cmdOffWithEffect,
-            fz.SmartButton_skip,
-            fz.battery_percentage_remaining,
-        ],
+        description: 'Hue smart button',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.SmartButton_skip, fz.battery_percentage_remaining],
         toZigbee: [],
     },
     {
