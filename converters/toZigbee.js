@@ -362,10 +362,9 @@ const converters = {
                 const xy = utils.rgbToXY(rgb[0], rgb[1], rgb[2]);
                 value.x = xy.x;
                 value.y = xy.y;
-            } else if (value.hasOwnProperty('hex')) {
-                const xy = utils.hexToXY(value.hex);
-                value.x = xy.x;
-                value.y = xy.y;
+            } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
+                const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
+                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 value.hue = value.hue * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
