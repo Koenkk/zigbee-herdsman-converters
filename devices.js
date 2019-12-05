@@ -4546,9 +4546,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 1},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
