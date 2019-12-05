@@ -426,7 +426,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                if (result.state) {
+                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                }
+
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
