@@ -3240,12 +3240,27 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3200-Sgb'],
+        model: 'F-APP-UK-V2',
+        vendor: 'SmartThings',
+        description: 'Outlet UK',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['outlet'],
         model: 'IM6001-OTP05',
         vendor: 'SmartThings',
         description: 'Outlet',
         supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_onoff_report],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3260,7 +3275,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Outlet',
         supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_onoff_report],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
