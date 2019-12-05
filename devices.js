@@ -145,12 +145,12 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('seMetering', payload);
     },
-    thermostatTemperature: async (endpoint) => {
+    thermostatTemperature: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
         const payload = [{
             attribute: 'localTemp',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 10,
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -3643,14 +3643,14 @@ const devices = [
             tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.thermostat_temperature_display_mode,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatTemperature(endpoint, 900, repInterval.HOUR, 1);
             await configureReporting.thermostatTemperatureCalibration(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await configureReporting.thermostatRunningState(endpoint);
