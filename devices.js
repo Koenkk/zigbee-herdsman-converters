@@ -5920,7 +5920,7 @@ const devices = [
             await configureReporting.brightness(endpoint);
         },
     },
-    
+
     // Smart9
     {
         zigbeeModel: ['TS0043'],
