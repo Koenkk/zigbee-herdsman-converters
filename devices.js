@@ -5920,6 +5920,19 @@ const devices = [
             await configureReporting.brightness(endpoint);
         },
     },
+    
+    // Smart9
+    {
+        zigbeeModel: ['TS0043'],
+        model: 'TS0043',
+        vendor: 'Smart9',
+        description: 'Touch buttons',
+        supports: 'single, double click + hold',
+        fromZigbee: [
+            fz.ts0043_click,
+        ],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
