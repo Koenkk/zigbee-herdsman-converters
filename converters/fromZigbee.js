@@ -2189,11 +2189,11 @@ const converters = {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options) => {
-            const button_mapping = {1: 'right', 2: 'middle', 3: 'left'};
-            const mapping = {0: 'single', 1: 'double', 2: 'hold'};
+            const buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             return {
-                click: mapping[ msg.data[3] ], 
-                button: button_mapping[ msg.endpoint.ID ]
+                click: clickMapping[msg.data[3]],
+                button: buttonMapping[msg.endpoint.ID],
             };
         },
     },
