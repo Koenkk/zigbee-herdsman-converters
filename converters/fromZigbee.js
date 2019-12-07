@@ -2191,10 +2191,7 @@ const converters = {
         convert: (model, msg, publish, options) => {
             const buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {
-                click: clickMapping[msg.data[3]],
-                button: buttonMapping[msg.endpoint.ID],
-            };
+            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
         },
     },
     tint404011_off: {
