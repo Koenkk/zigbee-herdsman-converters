@@ -5936,6 +5936,17 @@ const devices = [
             await configureReporting.brightness(endpoint);
         },
     },
+
+    // Smart9
+    {
+        zigbeeModel: ['TS0043'],
+        model: 'S9TSZGB',
+        vendor: 'Smart9',
+        description: 'Touch switch',
+        supports: 'action',
+        fromZigbee: [fz.ts0043_click],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
