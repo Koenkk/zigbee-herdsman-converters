@@ -5924,13 +5924,11 @@ const devices = [
     // Smart9
     {
         zigbeeModel: ['TS0043'],
-        model: 'TS0043',
+        model: 'S9TSZGB',
         vendor: 'Smart9',
-        description: 'Touch buttons',
-        supports: 'single, double click + hold',
-        fromZigbee: [
-            fz.ts0043_click,
-        ],
+        description: 'Touch switch',
+        supports: 'action',
+        fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
 ];
