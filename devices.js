@@ -1182,6 +1182,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LCT026'],
+        model: '7602031P7',
+        vendor: 'Philips',
+        description: 'Hue Go with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LCC001'],
         model: '4090531P7',
         vendor: 'Philips',
