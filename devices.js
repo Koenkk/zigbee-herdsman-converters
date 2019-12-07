@@ -4308,6 +4308,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['RGBW Lighting'],
+        model: '44435',
+        vendor: 'Müller Licht',
+        description: 'Tint LED Stripe, color, opal white',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
         model: 'MLI-404011',
         description: 'Tint remote control',
