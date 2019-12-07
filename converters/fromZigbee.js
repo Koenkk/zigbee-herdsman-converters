@@ -2142,7 +2142,7 @@ const converters = {
                 result.running_state = common.thermostatRunningStates[state];
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = msg.data['pIHeatingDemand'];
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
             }
             return result;
         },
