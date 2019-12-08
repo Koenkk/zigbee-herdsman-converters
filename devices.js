@@ -638,6 +638,15 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
+        zigbeeModel: ['lumi.plug.maeu01'],
+        model: 'SP-EUC01',
+        description: 'Aqara EU smart plug',
+        supports: 'on/off',
+        vendor: 'Xiaomi',
+        fromZigbee: [fz.on_off, fz.xiaomi_plug_state],
+        toZigbee: [tz.on_off],
+    },
+    {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
         model: 'QBCZ11LM',
         description: 'Aqara socket Zigbee',
