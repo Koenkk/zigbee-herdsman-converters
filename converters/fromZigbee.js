@@ -1029,6 +1029,13 @@ const converters = {
                 };
             }
         },
+    },    
+    EWeLink_OnOff: {
+        cid: 'genOnOff',
+        type: ['attReport', 'devChange'],
+        convert: (model, msg, publish, options) => {
+            return {state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF'};
+        },
     },
     QBKG11LM_power: {
         cluster: 'genBasic',

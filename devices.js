@@ -5029,6 +5029,16 @@ const devices = [
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
 
+    //EweLink
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'SA-003-Zigbee',
+        vendor: 'Ewelink',
+        description: 'Zigbee OnOff Controller',
+        supports: 'on/off',
+        fromZigbee: [fz.EWeLink_OnOff],
+        toZigbee: [tz.on_off],
+    },
     // Hampton Bay
     {
         zigbeeModel: ['HDC52EastwindFan', 'HBUniversalCFRemote'],
