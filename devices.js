@@ -5971,6 +5971,27 @@ const devices = [
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
+
+    // Ledvance Smartplug Z3
+    {
+         zigbeeModel: ['Plug Z3'],
+         model: 'AC10691',
+         description: 'Smart+ plug',
+         supports: 'on/off',
+         vendor: 'LEDVANCE',
+         fromZigbee: [fz.ignore_onoff_change, fz.state],
+         toZigbee: [tz.on_off],
+         configure: (ieeeAddr, shepherd, coordinator, callback) => {
+             const device = shepherd.find(ieeeAddr, 3);
+             const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+             const actions = [
+                 (cb) => device.bind('genOnOff', coordinator, cb),
+                 (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+             ];
+
+             execute(device, actions, callback);
+         },
+     },
 ];
 
 module.exports = devices.map((device) =>
