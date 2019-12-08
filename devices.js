@@ -86,7 +86,7 @@ const configureReporting = {
         const payload = [{
             attribute: 'occupancy',
             minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
+            maximumReportInterval: repInterval.HOUR,1
             reportableChange: 0,
         }];
         await endpoint.configureReporting('msOccupancySensing', payload);
@@ -2017,6 +2017,25 @@ const devices = [
             if (!endpoint) endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Plug Z3'],
+        model: 'AC10691',
+        description: 'Smart+ plug',
+        supports: 'on/off',
+        vendor: 'LEDVANCE',
+        fromZigbee: [fz.ignore_onoff_change, fz.state],
+        toZigbee: [tz.on_off],
+        configure: (ieeeAddr, shepherd, coordinator, callback) => {
+            const device = shepherd.find(ieeeAddr, 3);
+            const cfg = {direction: 0, attrId: 0, dataType: 16, minRepIntval: 0, maxRepIntval: 1000, repChange: 0};
+            const actions = [
+                (cb) => device.bind('genOnOff', coordinator, cb),
+                (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
+            ];
+
+            execute(device, actions, callback);
         },
     },
     {
