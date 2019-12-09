@@ -5971,6 +5971,24 @@ const devices = [
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
+
+    // Lockwood
+    {
+        zigbeeModel: ['YRD220/240 TSDB'],
+        model: 'YRD220/240 TSDB',
+        vendor: 'Yale',
+        description: 'Lockwood keyless push button deadbolt lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
