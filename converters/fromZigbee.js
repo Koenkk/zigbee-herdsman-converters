@@ -3243,7 +3243,7 @@ const converters = {
         },
     },
     // LEDVANCE
-	AC10691_on: {
+    AC10691_on: {
         cid: 'genOnOff',
         type: 'cmdOn',
         convert: (model, msg, publish, options) => {
@@ -3257,7 +3257,6 @@ const converters = {
             return {action: 'off'};
         },
     },
-	
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
