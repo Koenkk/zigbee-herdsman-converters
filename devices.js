@@ -5971,7 +5971,6 @@ const devices = [
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
-
     // Ledvance Smartplug Z3
     {
          zigbeeModel: ['Plug Z3'],
@@ -5988,9 +5987,8 @@ const devices = [
                  (cb) => device.bind('genOnOff', coordinator, cb),
                  (cb) => device.foundation('genOnOff', 'configReport', [cfg], foundationCfg, cb),
              ];
-
              execute(device, actions, callback);
-         }
+         },
      }
 ];
 
