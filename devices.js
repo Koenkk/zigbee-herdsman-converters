@@ -5990,8 +5990,8 @@ const devices = [
              ];
 
              execute(device, actions, callback);
-         },
-     },
+         }
+     }
 ];
 
 module.exports = devices.map((device) =>
