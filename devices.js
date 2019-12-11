@@ -5979,7 +5979,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.generic_battery],
         toZigbee: [tz.generic_lock],
         meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
