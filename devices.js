@@ -3193,11 +3193,11 @@ const devices = [
         },
     },
 
-    // namron
+    // Namron
     {
         zigbeeModel: ['4512700'],
         model: '4512700',
-        vendor: 'namron',
+        vendor: 'Namron',
         description: 'ZigBee AC phase-cut dimmer',
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.on_off, fz.ignore_light_brightness_report],
