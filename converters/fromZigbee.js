@@ -2251,7 +2251,7 @@ const converters = {
         cluster: 'genBasic',
         type: 'write',
         convert: (model, msg, publish, options) => {
-            return {action: `scene_${msg.data["16389"]}`};
+            return {action: `scene_${msg.data['16389']}`};
         },
     },
     tint404011_move_to_color_temp: {
