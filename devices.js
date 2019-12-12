@@ -4816,6 +4816,16 @@ const devices = [
             await configureReporting.acPowerDivisor(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SZ-DWS02'],
+        model: 'SZ-DWS02',
+        vendor: 'Securifi',
+        description: 'Door and Window sensor',
+        supports: 'contact, tamper',
+        fromZigbee: [fz.securifi_contact],
+        toZigbee: [],
+    }, 
+
 
     // Visonic
     {

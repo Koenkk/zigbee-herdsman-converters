@@ -541,6 +541,21 @@ const converters = {
             return {contact: msg.data.zonestatus === 48};
         },
     },
+
+    securifi_contact: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+
+            return {
+                contact: (zoneStatus === 48 || zoneStatus === 52),
+                tamper:  (zoneStatus === 53 || zoneStatus === 52),
+                battery_low: false,  //hardcode this for now - not seeing this in zigbee data
+            };
+        },
+    },
+
     xiaomi_battery_3v: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
