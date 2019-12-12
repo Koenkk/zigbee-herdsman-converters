@@ -4625,6 +4625,22 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['YRD220/240 TSDB'],
+        model: 'YRD220/240 TSDB',
+        vendor: 'Yale',
+        description: 'Lockwood keyless push button deadbolt lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.generic_battery],
+        toZigbee: [tz.generic_lock],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Keen Home
     {
