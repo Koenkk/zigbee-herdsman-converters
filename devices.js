@@ -2180,6 +2180,30 @@ const devices = [
         description: 'Active light, warm to cool white (GU10)',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['TRV001'],
+        model: 'UK7004240',
+        vendor: 'Hive',
+        description: 'Radiator valve',
+        supports: 'temperature',
+        fromZigbee: [fz.thermostat_att_report, fz.battery_percentage_remaining],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat',
+                'hvarUserInterfaceCfg',
+            ]);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+        },
+    },
 
     // Innr
     {
@@ -6010,42 +6034,6 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
-    },
-
-    // Hive
-    {
-        zigbeeModel: ['TRV001'],
-        model: 'TRV001',
-        vendor: 'Danfoss',
-        description: 'Wireless Radiator Valve',
-        supports: 'temperature, thermostat',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.battery_percentage_remaining,
-        ],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_setpoint_raise_lower,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-        ],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, [
-                'genBasic',
-                'genPowerCfg',
-                'genIdentify',
-                'genTime',
-                'genPollCtrl',
-                'hvacThermostat',
-                'hvarUserInterfaceCfg']);
-            await configureReporting.thermostatTemperature(endpoint);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
-        },
     },
 ];
 
