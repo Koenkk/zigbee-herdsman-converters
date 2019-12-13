@@ -5469,6 +5469,15 @@ const devices = [
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt],
         toZigbee: [tz.cover_state],
     },
+    {
+        zigbeeModel: ['TS0001'],
+        model: 'ZM-L01E-Z',
+        vendor: 'Zemismart',
+        description: '1 gang switch',
+        supports: 'on/off, power',
+        fromZigbee: [fz.on_off, fz.generic_power, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+    },
 
     // Sinope
     {
