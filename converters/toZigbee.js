@@ -23,6 +23,9 @@ const options = {
     ubisys: {
         manufacturerCode: 0x10f2,
     },
+    tint: {
+        manufacturerCode: 0x121b,
+    },
 };
 
 function getTransition(entity, key, meta) {
@@ -1324,6 +1327,13 @@ const converters = {
                 'ubisysInactivePowerThreshold',
                 'ubisysStartupSteps',
             ], options.ubisys));
+        },
+    },
+
+    tint_scene: {
+        key: ['tint_scene'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBasic', {0x4005: {value, type: 0x20}}, options.tint);
         },
     },
 
