@@ -2998,7 +2998,7 @@ const devices = [
     //feibit
     {
         zigbeeModel: ['FZB56+ZSW2FYM1.1'],
-        model: 'HGZB-042',
+        model: 'TZSW22FW-L4',
         vendor: 'feibit',
         description: 'feibit Smart light switch - 2 gang',
         supports: 'on/off',
