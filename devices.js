@@ -2995,19 +2995,19 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // feibit
+    // Feibit
     {
         zigbeeModel: ['FZB56+ZSW2FYM1.1'],
         model: 'TZSW22FW-L4',
-        vendor: 'feibit',
-        description: 'feibit Smart light switch - 2 gang',
+        vendor: 'Feibit',
+        description: 'Smart light switch - 2 gang',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
-        meta: {configureKey: 2}, // maybe right?
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -5487,7 +5487,7 @@ const devices = [
         zigbeeModel: ['TS0011'],
         model: 'GDKES-01TZXD',
         vendor: 'TUYATEC',
-        description: 'TUYA Smart one gang wall switch without neutral wire',
+        description: 'Smart light switch - 1 gang without neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -5496,14 +5496,14 @@ const devices = [
         zigbeeModel: ['TS0012'],
         model: 'GDKES-02TZXD',
         vendor: 'TUYATEC',
-        description: 'TUYA Smart light switch - 2 gang without neutral wire',
+        description: 'Smart light switch - 2 gang without neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        meta: {configureKey: 2}, // maybe right?
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -5513,14 +5513,14 @@ const devices = [
         zigbeeModel: ['TS0013'],
         model: 'GDKES-03TZXD',
         vendor: 'TUYATEC',
-        description: 'TUYA Smart light switch - 3 gang without neutral wire',
+        description: 'Smart light switch - 3 gang without neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.generic_state_multi_ep],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {configureKey: 3}, // maybe right?
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
