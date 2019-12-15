@@ -793,22 +793,39 @@ const converters = {
             case 0:
                 value |= 1 << 5; // off
                 break;
-            case 1:
-                value |= 1 << 2; // boost
+            case 4:
+                value |= 1 << 2; // heat (boost for eurotronic)
                 break;
             default:
-                value |= 1 << 4; // heat
+                value |= 1 << 4; // auto
             }
             const payload = {0x4008: {value, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['systemMode']);
+            await entity.read('hvacThermostat', [0x4008], options.eurotronic);
         },
     },
     eurotronic_host_flags: {
-        key: 'eurotronic_host_flags',
+        key: ['eurotronic_host_flags', 'eurotronic_system_mode'],
         convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'object') {
+                let bitValue = 0;
+                if (value.mirror_display) {
+                    bitValue |= 1 << 1;
+                }
+                if (value.boost) {
+                    bitValue |= 1 << 2;
+                }
+                if (value.window_open) {
+                    bitValue |= 1 << 5;
+                }
+                if (value.child_protection) {
+                    bitValue |= 1 << 7;
+                }
+                meta.logger.debug(`eurotronic: host_flags object converted to ${bitValue}`);
+                value = bitValue;
+            }
             const payload = {0x4008: {value, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
         },
