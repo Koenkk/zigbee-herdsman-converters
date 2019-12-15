@@ -547,11 +547,10 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
-
             return {
                 contact: (zoneStatus === 48 || zoneStatus === 52),
-                tamper:  (zoneStatus === 53 || zoneStatus === 52),
-                battery_low: false,  //hardcode this for now - not seeing this in zigbee data
+                tamper: (zoneStatus === 53 || zoneStatus === 52),
+                battery_low: false, // hardcode this for now - not seeing this in zigbee data
             };
         },
     },
