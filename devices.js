@@ -4824,8 +4824,7 @@ const devices = [
         supports: 'contact, tamper',
         fromZigbee: [fz.securifi_contact],
         toZigbee: [],
-    }, 
-
+    },
 
     // Visonic
     {
