@@ -789,17 +789,26 @@ const converters = {
         key: 'system_mode',
         convertSet: async (entity, key, value, meta) => {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
-            switch (systemMode) {
-            case 0:
-                value |= 1 << 5; // off
-                break;
-            case 4:
-                value |= 1 << 2; // heat (boost for eurotronic)
-                break;
-            default:
-                value |= 1 << 4; // auto
+            const hostFlags = meta.state.eurotronic_host_flags ? meta.state.eurotronic_host_flags : {};
+            let bitValue = 0;
+            // copy mirro_display and child_protection state
+            if (hostFlags.mirror_display) {
+                bitValue |= 1 << 1;
             }
-            const payload = {0x4008: {value, type: 0x22}};
+            if (hostFlags.child_protection) {
+                bitValue |= 1 << 7;
+            }
+            // set boost or window open based on system_mode
+            switch (systemMode) {
+                case 0:
+                    value |= 1 << 5; // off (window open for eurotronic)
+                    break;
+                case 4:
+                    value |= 1 << 2; // heat (boost for eurotronic)
+                    break;
+            }
+            meta.logger.debug(`eurotronic: host_flags set to ${bitValue}`);
+            const payload = {0x4008: {bitValue, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
         },
         convertGet: async (entity, key, meta) => {
