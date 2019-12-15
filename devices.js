@@ -3014,6 +3014,25 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
+    // Feibit
+    {
+        zigbeeModel: ['FZB56+ZSW2FYM1.1'],
+        model: 'TZSW22FW-L4',
+        vendor: 'Feibit',
+        description: 'Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 16, 'bottom': 17};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
     // Gledopto
     {
         zigbeeModel: ['GL-C-006'],
@@ -5491,6 +5510,50 @@ const devices = [
             fz.humidity, fz.temperature, fz.battery_200,
         ],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0011'],
+        model: 'GDKES-01TZXD',
+        vendor: 'TUYATEC',
+        description: 'Smart light switch - 1 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['TS0012'],
+        model: 'GDKES-02TZXD',
+        vendor: 'TUYATEC',
+        description: 'Smart light switch - 2 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['TS0013'],
+        model: 'GDKES-03TZXD',
+        vendor: 'TUYATEC',
+        description: 'Smart light switch - 3 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
     },
 
     // Zemismart
