@@ -789,49 +789,55 @@ const converters = {
         key: 'system_mode',
         convertSet: async (entity, key, value, meta) => {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
-            const hostFlags = meta.state.eurotronic_host_flags ? meta.state.eurotronic_host_flags : {};
-            let bitValue = 0;
-            // copy mirro_display and child_protection state
-            if (hostFlags.mirror_display) {
-                bitValue |= 1 << 1;
-            }
-            if (hostFlags.child_protection) {
-                bitValue |= 1 << 7;
-            }
-            // set boost or window open based on system_mode
+            const hostFlags = {};
             switch (systemMode) {
-                case 0:
-                    value |= 1 << 5; // off (window open for eurotronic)
-                    break;
-                case 4:
-                    value |= 1 << 2; // heat (boost for eurotronic)
-                    break;
+            case 0: // off (window_open for eurotronic)
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = true;
+                break;
+            case 4: // heat (boost for eurotronic)
+                hostFlags['boost'] = true;
+                hostFlags['window_open'] = false;
+                break;
+            default:
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = false;
+                break;
             }
-            meta.logger.debug(`eurotronic: host_flags set to ${bitValue}`);
-            const payload = {0x4008: {bitValue, type: 0x22}};
-            await entity.write('hvacThermostat', payload, options.eurotronic);
+            await converters.eurotronic_host_flags.convertSet(entity, 'eurotronic_host_flags', hostFlags, meta);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4008], options.eurotronic);
+            await converters.eurotronic_host_flags.convertGet(entity, 'eurotronic_host_flags', meta);
         },
     },
     eurotronic_host_flags: {
         key: ['eurotronic_host_flags', 'eurotronic_system_mode'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value === 'object') {
+                // read current eurotronic_host_flags (we will update some of them)
+                await entity.read('hvacThermostat', [0x4008], options.eurotronic);
+                const currentHostFlags = meta.state.eurotronic_host_flags ? meta.state.eurotronic_host_flags : {};
+
+                // get full hostFlag object
+                const hostFlags = {...currentHostFlags, ...value};
+
+                // calculate bit value
                 let bitValue = 0;
-                if (value.mirror_display) {
+                if (hostFlags.mirror_display) {
                     bitValue |= 1 << 1;
                 }
-                if (value.boost) {
+                if (hostFlags.boost) {
                     bitValue |= 1 << 2;
                 }
-                if (value.window_open) {
+                if (hostFlags.window_open) {
                     bitValue |= 1 << 5;
+                } else {
+                    bitValue |= 1 << 4;
                 }
-                if (value.child_protection) {
+                if (hostFlags.child_protection) {
                     bitValue |= 1 << 7;
                 }
+
                 meta.logger.debug(`eurotronic: host_flags object converted to ${bitValue}`);
                 value = bitValue;
             }
