@@ -2994,6 +2994,25 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    
+    //feibit
+    {
+        zigbeeModel: ['FZB56+ZSW2FYM1.1'],
+        model: 'HGZB-042',
+        vendor: 'feibit',
+        description: 'feibit Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 16, 'bottom': 17};
+        },
+        meta: {configureKey: 2},  //maybe right?
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Gledopto
     {
@@ -5463,6 +5482,50 @@ const devices = [
             fz.humidity, fz.temperature, fz.battery_200,
         ],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0011'],
+        model: 'TS0011',
+        vendor: 'TuYa',
+        description: 'TUYA Smart one gang wall switch without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['TS0012'],
+        model: 'TS0012',
+        vendor: 'TuYa',
+        description: 'TUYA Smart light switch - 2 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 2},   //maybe right?
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['TS0013'],
+        model: 'TS0013',
+        vendor: 'TuYa',
+        description: 'TUYA Smart light switch - 3 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2,'right': 3};
+        },
+        meta: {configureKey: 3},  //maybe right?
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
     },
 
     // Zemismart
