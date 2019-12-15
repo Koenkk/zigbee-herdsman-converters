@@ -5485,7 +5485,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0011'],
-        model: 'TS0011',
+        model: 'GDKES-01TZXD',
         vendor: 'TUYATEC',
         description: 'TUYA Smart one gang wall switch without neutral wire',
         supports: 'on/off',
@@ -5494,7 +5494,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0012'],
-        model: 'TS0012',
+        model: 'GDKES-02TZXD',
         vendor: 'TUYATEC',
         description: 'TUYA Smart light switch - 2 gang without neutral wire',
         supports: 'on/off',
@@ -5511,7 +5511,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0013'],
-        model: 'TS0013',
+        model: 'GDKES-03TZXD',
         vendor: 'TUYATEC',
         description: 'TUYA Smart light switch - 3 gang without neutral wire',
         supports: 'on/off',
