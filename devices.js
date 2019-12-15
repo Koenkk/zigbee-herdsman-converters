@@ -3611,6 +3611,20 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['Z-SRN12N'],
+        model: 'SZ-SRN12N',
+        vendor: 'SmartThings',
+        description: 'Smart siren',
+        supports: 'warning',
+        fromZigbee: [],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+    },
 
     // Trust
     {
