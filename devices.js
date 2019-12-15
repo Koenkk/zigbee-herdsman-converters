@@ -3614,20 +3614,15 @@ const devices = [
     {
         zigbeeModel: ['Z-SRN12N'],
         model: 'SZ-SRN12N',
-        vendor: 'SmartThings Siren',
+        vendor: 'SmartThings',
         description: 'Smart siren',
         supports: 'warning',
-        fromZigbee: [ fz.ignore_iaszone_change],
+        fromZigbee: [],
         toZigbee: [tz.warning],
-        configure: (ieeeAddr, shepherd, coordinator, callback) => {
-            const device = shepherd.find(ieeeAddr, 1);
-            const actions = [
-                (cb) => device.write('ssIasZone', 'iasCieAddr', coordinator.device.getIeeeAddr(), cb),
-                (cb) => device.functional('ssIasZone', 'enrollRsp', {enrollrspcode: 1, zoneid: 23}, cb),
-                (cb) => device.bind('genPowerCfg', coordinator, cb),
-            ];
-
-            execute(device, actions, callback, 1000);
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
     },
 
