@@ -4076,7 +4076,7 @@ const devices = [
             'SmokeSensor-EM',
             'FB56-SMF02HM1.4',
         ],
-        model: 'HS1SA',
+        model: 'HS1SA-M',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
