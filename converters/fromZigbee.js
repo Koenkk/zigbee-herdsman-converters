@@ -2157,10 +2157,10 @@ const converters = {
                     precisionRound(msg.data[0x4003], 2) / 100;
             }
             if (typeof msg.data[0x4008] == 'number') {
-                result.eurotronic_system_mode = msg.data[0x4008];
-                if ((result.eurotronic_system_mode & 1 << 2) != 0) {
+                result.eurotronic_host_flags = msg.data[0x4008];
+                if ((result.eurotronic_host_flags & 1 << 2) != 0) {
                     result.system_mode = common.thermostatSystemModes[1]; // boost => auto
-                } else if ((result.eurotronic_system_mode & (1 << 4)) != 0 ) {
+                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
                     result.system_mode = common.thermostatSystemModes[0]; // off
                 } else {
                     result.system_mode = common.thermostatSystemModes[4]; // heat

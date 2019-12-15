@@ -806,8 +806,8 @@ const converters = {
             await entity.read('hvacThermostat', ['systemMode']);
         },
     },
-    eurotronic_system_mode: {
-        key: 'eurotronic_system_mode',
+    eurotronic_host_flags: {
+        key: 'eurotronic_host_flags',
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4008: {value, type: 0x22}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
