@@ -3187,6 +3187,14 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
+        zigbeeModel: ['GL-S-005Z'],
+        model: 'GL-S-005Z',
+        vendor: 'Gledopto',
+        description: 'Smart RGBW MR16',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color, white',
+    },
+    {
         zigbeeModel: ['HOMA2023'],
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
