@@ -3061,6 +3061,7 @@ const devices = [
         description: 'Smart RGBW GU10',
         extend: gledopto.light,
         supports: 'on/off, brightness, color, white',
+        meta: {options: {disableDefaultResponse: true}},
     },
     {
         zigbeeModel: ['GL-S-007ZS'],
