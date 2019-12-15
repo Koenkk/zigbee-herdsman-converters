@@ -4503,7 +4503,6 @@ const devices = [
         description: 'Spirit Zigbee wireless heater thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
-            fz.thermostat_att_report,
             fz.eurotronic_thermostat,
             fz.battery_percentage_remaining,
         ],
