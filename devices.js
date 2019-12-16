@@ -1898,6 +1898,15 @@ const devices = [
         },
     },
 
+    // M-ELEC - https://melec.com.au/stitchy/
+    {
+        zigbeeModel: ['ML-ST-D200'],
+        model: 'ML-ST-D200',
+        vendor: 'M-ELEC',
+        description: 'Stitchy Dim switchable wall module',
+        extend: generic.light_onoff_brightness,
+    },
+
     // OSRAM
     {
         zigbeeModel: ['Outdoor Lantern W RGBW OSRAM'],
