@@ -950,18 +950,21 @@ const converters = {
                 if (utils.hasEndpoints(meta.device, [11, 13, 15])) {
                     if (key === 'white_value') {
                         // Switch from RGB to white
-                        await meta.device.getEndpoint(15).command('genOnOff', 'on', {});
-                        await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
+                        if (!meta.options.separate_control) {
+                            await meta.device.getEndpoint(15).command('genOnOff', 'on', {});
+                            await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
+                            state.color = xyWhite;
+                        }
 
                         const result = await converters.light_brightness.convertSet(
                             meta.device.getEndpoint(15), key, value, meta
                         );
                         return {
-                            state: {white_value: value, ...result.state, color: xyWhite},
+                            state: {white_value: value, ...result.state, ...state},
                             readAfterWriteTime: 0,
                         };
                     } else {
-                        if (meta.state.white_value !== -1) {
+                        if (meta.state.white_value !== -1 && !meta.options.seperate_control) {
                             // Switch from white to RGB
                             await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
                             await meta.device.getEndpoint(15).command('genOnOff', 'off', {});
