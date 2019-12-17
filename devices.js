@@ -1501,6 +1501,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colorxy,
     },
     {
+        zigbeeModel: ['LLC006'],
+        model: '7099930PH',
+        vendor: 'Philips',
+        description: 'Hue Iris (Generation 2)',
+        extend: hue.light_onoff_brightness_colorxy,
+    },
+    {
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
