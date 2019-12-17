@@ -3250,16 +3250,13 @@ const converters = {
             // map both "on" and "off" to a consistent "button_1"
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {last_cmd:null,last_seq:-10};
+                store[deviceID] = {lastCmd: null, last_seq: -10};
             }
-            const last_cmd = store[deviceID].last_cmd;
-            const last_seq = store[deviceID].last_seq;
 
-            let this_cmd = 'button_1';
-
-            store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].last_cmd = this_cmd;
-            return {action: this_cmd}
+            const cmd = 'button_1';
+            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].lastCmd = cmd;
+            return {action: cmd};
         },
     },
     ZBT_CCTSwitch_D0001_moveToLevel: {
@@ -3273,21 +3270,19 @@ const converters = {
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {last_cmd:null,last_seq:-10};
+                store[deviceID] = {lastCmd: null, lastSeq: -10};
             }
-            const last_cmd = store[deviceID].last_cmd;
-            const last_seq = store[deviceID].last_seq;
 
-            let this_cmd = null;
+            let cmd = null;
             if ( msg.type == 'commandMoveToLevel' ) {
-                this_cmd = 'button_2';
+                cmd = 'button_2';
             } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
-                this_cmd = 'button_4';
+                cmd = 'button_4';
             }
 
-            store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].last_cmd = this_cmd;
-            return {action: this_cmd}
+            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].lastCmd = cmd;
+            return {action: cmd};
         },
     },
     ZBT_CCTSwitch_D0001_moveToColorTemp: {
@@ -3301,29 +3296,29 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {last_cmd:null,last_seq:-10};
+                store[deviceID] = {lastCmd: null, lastSeq: -10};
             }
-            let last_cmd = store[deviceID].last_cmd;
-            let last_seq = store[deviceID].last_seq;
+            const lastCmd = store[deviceID].lastCmd;
+            const lastSeq = store[deviceID].lastSeq;
 
-            let this_seq = msg.meta.zclTransactionSequenceNumber;
-            let this_cmd = 'button_3';
+            const seq = msg.meta.zclTransactionSequenceNumber;
+            let cmd = 'button_3';
 
-            // because the remote sends two commands for button4, we need to look at the previous command and see if it was
-            // the recognized start command for button4 - if so, ignore this second command, because it's not really button3,
-            // it's actually button4
-            if ( last_cmd == 'button_4' ) {
+            // because the remote sends two commands for button4, we need to look at the previous command and
+            // see if it was the recognized start command for button4 - if so, ignore this second command,
+            // because it's not really button3, it's actually button4
+            if ( lastCmd == 'button_4' ) {
                 // ensure the "last" message was really the message prior to this one
                 // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
-                if ( (this_seq == 0 && last_seq == 127 ) || ( this_seq - last_seq ) == 1 ) {
-                    this_cmd = null;
+                if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
+                    cmd = null;
                 }
             }
 
-            if ( this_cmd != null ) {
-                store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
-                store[deviceID].last_cmd = this_cmd;
-                return {action: this_cmd}
+            if ( cmd != null ) {
+                store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+                store[deviceID].lastCmd = cmd;
+                return {action: cmd};
             }
         },
     },
