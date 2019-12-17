@@ -4126,7 +4126,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SmokeSensor-N'],
+        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-N-3.0'],
         model: 'HS3SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
