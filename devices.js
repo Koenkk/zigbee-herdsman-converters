@@ -4314,6 +4314,17 @@ const devices = [
         description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
+        model: '6ARCZABZH',
+        vendor: 'EcoSmart',
+        description: 'Four button remote control (included with EcoSmart smart bulbs)',
+        supports: 'action',
+        fromZigbee: [
+            fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp,
+        ],
+        toZigbee: [],
+    },
 
     // Airam
     {

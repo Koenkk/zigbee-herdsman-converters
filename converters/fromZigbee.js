@@ -3242,6 +3242,86 @@ const converters = {
             };
         },
     },
+    ZBT_CCTSwitch_D0001_cmdOnOff: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options) => {
+            // the remote maintains state and sends two potential commands for the power button
+            // map both "on" and "off" to a consistent "button_1"
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {lastCmd: null, last_seq: -10};
+            }
+
+            const cmd = 'button_1';
+            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].lastCmd = cmd;
+            return {action: cmd};
+        },
+    },
+    ZBT_CCTSwitch_D0001_moveToLevel: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options) => {
+            // wrap the messages from button2 and button4 into a single function
+            // button2 always sends "commandMoveToLevel"
+            // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
+            //         so that's the one we key off of to indicate "button4"
+
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {lastCmd: null, lastSeq: -10};
+            }
+
+            let cmd = null;
+            if ( msg.type == 'commandMoveToLevel' ) {
+                cmd = 'button_2';
+            } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
+                cmd = 'button_4';
+            }
+
+            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].lastCmd = cmd;
+            return {action: cmd};
+        },
+    },
+    ZBT_CCTSwitch_D0001_moveToColorTemp: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveToColorTemp'],
+        convert: (model, msg, publish, options) => {
+            // both button3 and button4 send the command "commandMoveToColorTemp"
+            // in order to distinguish between the buttons, use the sequence number and the previous command
+            // to determine if this message was immediately preceded by "commandMoveToLevelWithOnOff"
+            // if this command follows a "commandMoveToLevelWithOnOff", then it's actually button4's second message
+            // and we can ignore it entirely
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {lastCmd: null, lastSeq: -10};
+            }
+            const lastCmd = store[deviceID].lastCmd;
+            const lastSeq = store[deviceID].lastSeq;
+
+            const seq = msg.meta.zclTransactionSequenceNumber;
+            let cmd = 'button_3';
+
+            // because the remote sends two commands for button4, we need to look at the previous command and
+            // see if it was the recognized start command for button4 - if so, ignore this second command,
+            // because it's not really button3, it's actually button4
+            if ( lastCmd == 'button_4' ) {
+                // ensure the "last" message was really the message prior to this one
+                // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
+                if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
+                    cmd = null;
+                }
+            }
+
+            if ( cmd != null ) {
+                store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+                store[deviceID].lastCmd = cmd;
+                return {action: cmd};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
