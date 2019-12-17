@@ -5041,7 +5041,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Motion Sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.iaszone_occupancy_1],
         toZigbee: [],
     },
 	{
