@@ -4756,37 +4756,39 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+
     // Weiser
-	{
-		zigbeeModel: ['SMARTCODE_DEADBOLT_10'],
-		model: '9GED18000-009',
-		vendor: 'Weiser',
-		description: 'SmartCode 10',
-		supports: 'lock/unlock, battery',
-		fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
-		toZigbee: [tz.generic_lock],
-		meta: {options: {disableDefaultResponse: true}, configureKey: 2},
-		configure: async (device, coordinatorEndpoint) => {
-			const endpoint = device.getEndpoint(2);
-			await configureReporting.lockState(endpoint);
-			await configureReporting.batteryPercentageRemaining(endpoint);
-		},
-	},
-	{
-		zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],
-		model: '9GED21500-005',
-		vendor: 'Weiser',
-		description: 'SmartCode 10 Touch',
-		supports: 'lock/unlock, battery',
-		fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
-		toZigbee: [tz.generic_lock],
-		meta: {options: {disableDefaultResponse: true}, configureKey: 2},
-		configure: async (device, coordinatorEndpoint) => {
-			const endpoint = device.getEndpoint(2);
-			await configureReporting.lockState(endpoint);
-			await configureReporting.batteryPercentageRemaining(endpoint);
-		},
-	},
+    {
+        zigbeeModel: ['SMARTCODE_DEADBOLT_10'],
+        model: '9GED18000-009',
+        vendor: 'Weiser',
+        description: 'SmartCode 10',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],
+        model: '9GED21500-005',
+        vendor: 'Weiser',
+        description: 'SmartCode 10 Touch',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+
     // Keen Home
     {
         zigbeeModel: [
@@ -5039,12 +5041,12 @@ const devices = [
         zigbeeModel: ['MP-841'],
         model: 'MP-841',
         vendor: 'Visonic',
-        description: 'Motion Sensor',
-        supports: 'contact',
+        description: 'Motion sensor',
+        supports: 'occupancy',
         fromZigbee: [fz.iaszone_occupancy_1],
         toZigbee: [],
     },
-	{
+    {
         zigbeeModel: ['MCT-370 SMA'],
         model: 'MCT-370 SMA',
         vendor: 'Visonic',
