@@ -3363,7 +3363,97 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => null,
+    },    
+
+    // the remote maintains state and sends two potential commands for the power button
+    // map both "on" and "off" to a consistent "button1"
+    ZBT_CCTSwitch_D0001_cmdOnOff: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {last_cmd:null,last_seq:-10};
+            }
+            const last_cmd = store[deviceID].last_cmd;
+            const last_seq = store[deviceID].last_seq;
+
+            let this_cmd = 'button1';
+
+            store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].last_cmd = this_cmd;
+            //return {action: this_cmd, last_cmd: last_cmd, last_seq: last_seq, this_seq: store[deviceID].last_seq};
+            return {action: this_cmd}
+        },
     },
+    
+    // wrap the messages from button2 and button4 into a single function
+    // button2 always sends "commandMoveToLevel"
+    // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
+    //         so that's the one we key off of to indicate "button4"
+    ZBT_CCTSwitch_D0001_moveToLevel: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {last_cmd:null,last_seq:-10};
+            }
+            const last_cmd = store[deviceID].last_cmd;
+            const last_seq = store[deviceID].last_seq;
+
+            let this_cmd = null;
+            if ( msg.type == 'commandMoveToLevel' ) {
+                this_cmd = 'button2';
+            } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
+                this_cmd = 'button4';
+            }
+
+            store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
+            store[deviceID].last_cmd = this_cmd;
+            //return {action: this_cmd, last_cmd: last_cmd, last_seq: last_seq, this_seq: store[deviceID].last_seq};
+            return {action: this_cmd}
+        },
+    },    
+    
+    // both button3 and button4 send the command "commandMoveToColorTemp"
+    // in order to distinguish between the buttons, use the sequence number and the previous command
+    // to determine if this message was immediately preceded by "commandMoveToLevelWithOnOff"
+    // if this command follows a "commandMoveToLevelWithOnOff", then it's actually button4's second message
+    // and we can ignore it entirely
+    ZBT_CCTSwitch_D0001_moveToColorTemp: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveToColorTemp'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {last_cmd:null,last_seq:-10};
+            }
+            let last_cmd = store[deviceID].last_cmd;
+            let last_seq = store[deviceID].last_seq;
+
+            let this_seq = msg.meta.zclTransactionSequenceNumber;
+            let this_cmd = 'button3';
+
+            // because the remote sends two commands for button4, we need to look at the previous command and see if it was
+            // the recognized start command for button4 - if so, ignore this second command, because it's not really button3,
+            // it's actually button4
+            if ( last_cmd == 'button4' ) {
+                // ensure the "last" message was really the message prior to this one
+                // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
+                if ( (this_seq == 0 && last_seq == 127 ) || ( this_seq - last_seq ) == 1 ) {
+                    this_cmd = null;
+                }
+            }
+
+            if ( this_cmd != null ) {
+                store[deviceID].last_seq = msg.meta.zclTransactionSequenceNumber;
+                store[deviceID].last_cmd = this_cmd;
+                //return {action: this_cmd, last_cmd: last_cmd, last_seq: last_seq, this_seq: store[deviceID].last_seq};
+                return {action: this_cmd}
+            }
+        },
+    },    
 };
 
 module.exports = converters;
