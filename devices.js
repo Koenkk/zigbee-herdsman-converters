@@ -4307,6 +4307,17 @@ const devices = [
         description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
+        model: '6ARCZABZH',
+        vendor: 'EcoSmart',
+        description: 'Four button remote control (included with EcoSmart smart bulbs)',
+        supports: 'action',
+        fromZigbee: [
+            fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp,
+        ],
+        toZigbee: [],
+    },
 
     // Airam
     {
@@ -6170,17 +6181,6 @@ const devices = [
         description: 'Touch switch',
         supports: 'action',
         fromZigbee: [fz.ts0043_click],
-        toZigbee: [],
-    },
-    
-    // EcoSmart ZBT-CCTSwitch-D0001 4 button remote
-    {
-        zigbeeModel: [ 'ZBT-CCTSwitch-D0001' ],
-        model: 'ZBT-CCTSwitch-D0001',
-        vendor: 'EcoSmart',
-        description: 'Ecosmart four button remote control included with Ecosmart smart bulbs.',
-        supports: 'button pushes - 4 buttons',
-        fromZigbee: [ fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp ],
         toZigbee: [],
     },
 ];
