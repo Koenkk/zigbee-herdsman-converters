@@ -3349,6 +3349,58 @@ const converters = {
             }
         },
     },
+    CCTSwitch_D0001_brightness_updown_hold_release: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMove', 'commandStop'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const stop = msg.type === 'commandStop' ? true : false;
+            let button = 'brightness';
+            const result = {};
+            if (stop) {
+                button = store[deviceID].button;
+                const duration = Date.now() - store[deviceID].start;
+                result.action = `${button}_release`;
+                result.duration = duration;
+            } else {
+                button += msg.data.movemode === 1 ? '_down' : '_up';
+                result.action = `${button}_hold`;
+                // store button and start moment
+                store[deviceID].button = button;
+                store[deviceID].start = Date.now();
+            }
+            return result;
+        },
+    },
+    CCTSwitch_D0001_color_temp_updown_hold_release: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveColorTemp',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const stop = msg.data.movemode === 0;
+            let button = 'color_temp';
+            const result = {};
+            if (stop) {
+                button = store[deviceID].button;
+                const duration = Date.now() - store[deviceID].start;
+                result.action = `${button}_release`;
+                result.duration = duration;
+            } else {
+                button += msg.data.movemode === 3 ? '_down' : '_up';
+                result.action = `${button}_hold`;
+                // store button and start moment
+                store[deviceID].button = button;
+                store[deviceID].start = Date.now();
+            }
+            return result;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
