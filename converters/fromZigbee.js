@@ -273,17 +273,17 @@ const converters = {
             const payload = {};
             if (msg.data.hasOwnProperty('activePower')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerMultiplier'
+                    'haElectricalMeasurement', 'acPowerMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerDivisor'
+                    'haElectricalMeasurement', 'acPowerDivisor',
                 );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.power = precisionRound(msg.data['activePower'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acCurrentMultiplier'
+                    'haElectricalMeasurement', 'acCurrentMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
@@ -291,7 +291,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('rmsVoltage')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acVoltageMultiplier'
+                    'haElectricalMeasurement', 'acVoltageMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
