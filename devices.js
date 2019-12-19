@@ -5448,7 +5448,7 @@ const devices = [
             fz.CCTSwitch_D0001_on_off,
             fz.CCTSwitch_D0001_move_to_level_recall,
             fz.CCTSwitch_D0001_move_to_color_temp_recall,
-            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
+            fz.CCTSwitch_D0001_color_temp_updown_hold_release,
             fz.CCTSwitch_D0001_brightness_updown_hold_release,
         ],
         toZigbee: [],
