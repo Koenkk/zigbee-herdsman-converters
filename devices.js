@@ -4285,6 +4285,13 @@ const devices = [
 
     // EcoSmart
     {
+        zigbeeModel: ['Ecosmart-ZBT-A19-CCT-Bulb'],
+        model: 'A9A19A60WESDZ02',
+        vendor: 'The Home Depot',
+        description: 'EcoSmart Tuneable White (A19)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['zhaRGBW'],
         model: 'D1821',
         vendor: 'EcoSmart',
@@ -4313,17 +4320,6 @@ const devices = [
         vendor: 'EcoSmart',
         description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
-        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
-        model: '6ARCZABZH',
-        vendor: 'EcoSmart',
-        description: 'Four button remote control (included with EcoSmart smart bulbs)',
-        supports: 'action',
-        fromZigbee: [
-            fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp,
-        ],
-        toZigbee: [],
     },
 
     // Airam
@@ -5435,6 +5431,22 @@ const devices = [
         description: 'LED E27 tunable white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
+        model: '6ARCZABZH',
+        vendor: 'Leedarson',
+        description: '4-Key Remote Controller',
+        supports: 'on/off, brightness up/down and click/hold/release, cct',
+        fromZigbee: [
+            fz.CCTSwitch_D0001_on_off,
+            fz.CCTSwitch_D0001_move_to_level_recall,
+            fz.CCTSwitch_D0001_move_to_color_temp_recall,
+            fz.CTR_U_brightness_updown_hold,
+            fz.CTR_U_brightness_updown_release,
+            fz.generic_battery,
+        ],
+        toZigbee: [],
+    },
 
     // GMY
     {
@@ -6243,5 +6255,5 @@ const devices = [
 ];
 
 module.exports = devices.map((device) =>
-    device.extend ? Object.assign({}, device.extend, device) : device
+    device.extend ? Object.assign({}, device.extend, device) : device,
 );

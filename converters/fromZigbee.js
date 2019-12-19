@@ -3242,50 +3242,63 @@ const converters = {
             };
         },
     },
-    ZBT_CCTSwitch_D0001_cmdOnOff: {
+    CCTSwitch_D0001_on_off: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options) => {
-            // the remote maintains state and sends two potential commands for the power button
-            // map both "on" and "off" to a consistent "button_1"
+
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 store[deviceID] = {lastCmd: null, last_seq: -10};
             }
 
-            const cmd = 'button_1';
+            const cmd = msg.type === 'commandOn' ? 'power_on' : 'power_off';
             store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
             store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+            return {click: cmd};
         },
     },
-    ZBT_CCTSwitch_D0001_moveToLevel: {
+    CCTSwitch_D0001_move_to_level_recall: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options) => {
             // wrap the messages from button2 and button4 into a single function
             // button2 always sends "commandMoveToLevel"
             // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
-            //         so that's the one we key off of to indicate "button4"
+            //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
+            //         instead it will be returned as part of the second sequence with CCTSwitch_D0001_move_to_color_temp_recall
+            //         below.
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null, lastMoveLevel: null, lastColorTemp: null};
             }
 
             let cmd = null;
+            let payload = { click: cmd, brightness : msg.data.level, transition_time: parseFloat(msg.data.transtime/10.0)};
             if ( msg.type == 'commandMoveToLevel' ) {
-                cmd = 'button_2';
+                // pressing the brightness button increments/decrements from 13-254.
+                // when it reaches the end (254) it will start decrementing by a step,
+                // and vice versa.
+                const direction = msg.data.level > store[deviceID].lastBrightness ? 'up' : 'down';
+                cmd = `brightness_${direction}`;
+                store[deviceID].lastBrightness = msg.data.level;
             } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
-                cmd = 'button_4';
+                // This is the 'start' of the 4th button sequence.
+                cmd = 'action_recall';
+                store[deviceID].lastMoveLevel = msg.data.level;
+                store[deviceID].lastCmd = cmd;
             }
 
+        if ( cmd != 'action_recall' ) {
             store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
             store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+            payload.click = cmd;
+            return payload;
+        }
         },
     },
-    ZBT_CCTSwitch_D0001_moveToColorTemp: {
+    CCTSwitch_D0001_move_to_color_temp_recall: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp'],
         convert: (model, msg, publish, options) => {
@@ -3296,29 +3309,42 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null, lastMoveLevel: null, lastColorTemp: null};
             }
             const lastCmd = store[deviceID].lastCmd;
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
-            let cmd = 'button_3';
+            let cmd = 'color_temp';
+            let payload = { color_temp : msg.data.colortemp, transition_time: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
             // because it's not really button3, it's actually button4
-            if ( lastCmd == 'button_4' ) {
+            if ( lastCmd == 'action_recall' ) {
+                payload.action = lastCmd;
+                payload.brightness = store[deviceID].lastMoveLevel;
+
                 // ensure the "last" message was really the message prior to this one
                 // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
                 if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
                     cmd = null;
                 }
             }
+            else {
+                // pressing the color temp button increments/decrements from 153-370K.
+                // when it reaches the end (370) it will start decrementing by a step,
+                // and vice versa.
+                let direction = msg.data.colortemp > store[deviceID].lastColorTemp ? 'up' : 'down';
+                cmd += `_${direction}`;
+                payload.click = cmd;
+                store[deviceID].lastColorTemp = msg.data.colortemp;
+            }
 
             if ( cmd != null ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
                 store[deviceID].lastCmd = cmd;
-                return {action: cmd};
+                return payload;
             }
         },
     },
