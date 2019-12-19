@@ -1,4 +1,7 @@
 'use strict';
+
+const kelvinToXyLookup = require('./lookup/kelvinToXy');
+
 /**
  * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
  * Converts RGB color space to CIE color space
@@ -8,6 +11,10 @@
  * @return {Array} Array that contains the CIE color values for x and y
  */
 function rgbToXY(red, green, blue) {
+    // The RGB values should be between 0 and 1. So convert them.
+    // The RGB color (255, 0, 100) becomes (1.0, 0.0, 0.39)
+    red /= 255; green /= 255; blue /= 255;
+
     // Apply a gamma correction to the RGB values, which makes the color
     // more vivid and more the like the color displayed on the screen of your device
     red = (red > 0.04045) ? Math.pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
@@ -39,6 +46,25 @@ function hexToXY(hex) {
     return rgbToXY(rgb.r, rgb.g, rgb.b);
 }
 
+function miredsToKelvin(mireds) {
+    return 1000000 / mireds;
+}
+
+function miredsToXY(mireds) {
+    const kelvin = miredsToKelvin(mireds);
+    return kelvinToXyLookup[Math.round(kelvin)];
+}
+
+function kelvinToMireds(kelvin) {
+    return 1000000 / kelvin;
+}
+
+function xyToMireds(x, y) {
+    const n = (x-0.3320)/(0.1858-y);
+    const kelvin = 437*n^3 + 3601*n^2 + 6861*n + 5517;
+    return Math.round(kelvinToMireds(Math.abs(kelvin)));
+}
+
 function hexToRgb(hex) {
     hex = hex.replace('#', '');
     const bigint = parseInt(hex, 16);
@@ -54,9 +80,22 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : (fallback || 0);
 }
 
+function hasEndpoints(device, endpoints) {
+    const eps = device.endpoints.map((e) => e.ID);
+    for (const endpoint of endpoints) {
+        if (!eps.includes(endpoint)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 module.exports = {
-    rgbToXY: rgbToXY,
-    hexToXY: hexToXY,
-    hexToRgb: hexToRgb,
-    getKeyByValue: getKeyByValue,
+    rgbToXY,
+    hexToXY,
+    hexToRgb,
+    getKeyByValue,
+    hasEndpoints,
+    miredsToXY,
+    xyToMireds,
 };

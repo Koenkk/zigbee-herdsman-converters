@@ -7,7 +7,7 @@ const fromZigbee = require('./converters/fromZigbee');
 const byZigbeeModel = new Map();
 for (const device of devices) {
     for (const zigbeeModel of device.zigbeeModel) {
-        byZigbeeModel.set(zigbeeModel, device);
+        byZigbeeModel.set(zigbeeModel.toLowerCase(), device);
     }
 }
 
@@ -17,6 +17,8 @@ module.exports = {
         if (!model) {
             return null;
         }
+
+        model = model.toLowerCase();
 
         let device = byZigbeeModel.get(model);
 
