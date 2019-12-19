@@ -3246,7 +3246,6 @@ const converters = {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options) => {
-
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 store[deviceID] = {lastCmd: null, last_seq: -10};
@@ -3266,16 +3265,18 @@ const converters = {
             // button2 always sends "commandMoveToLevel"
             // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
             //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
-            //         instead it will be returned as part of the second sequence with CCTSwitch_D0001_move_to_color_temp_recall
-            //         below.
+            //         instead it will be returned as part of the second sequence with
+            //         CCTSwitch_D0001_move_to_color_temp_recall below.
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null, lastMoveLevel: null, lastColorTemp: null};
+                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
 
             let cmd = null;
-            let payload = { click: cmd, brightness : msg.data.level, transition_time: parseFloat(msg.data.transtime/10.0)};
+            const payload = {click: cmd, brightness: msg.data.level,
+                transition_time: parseFloat(msg.data.transtime/10.0)};
             if ( msg.type == 'commandMoveToLevel' ) {
                 // pressing the brightness button increments/decrements from 13-254.
                 // when it reaches the end (254) it will start decrementing by a step,
@@ -3290,12 +3291,12 @@ const converters = {
                 store[deviceID].lastCmd = cmd;
             }
 
-        if ( cmd != 'action_recall' ) {
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            payload.click = cmd;
-            return payload;
-        }
+            if ( cmd != 'action_recall' ) {
+                store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+                store[deviceID].lastCmd = cmd;
+                payload.click = cmd;
+                return payload;
+            }
         },
     },
     CCTSwitch_D0001_move_to_color_temp_recall: {
@@ -3309,14 +3310,15 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null, lastMoveLevel: null, lastColorTemp: null};
+                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
             const lastCmd = store[deviceID].lastCmd;
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
             let cmd = 'color_temp';
-            let payload = { color_temp : msg.data.colortemp, transition_time: parseFloat(msg.data.transtime/10.0)};
+            const payload = {color_temp: msg.data.colortemp, transition_time: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
@@ -3330,12 +3332,11 @@ const converters = {
                 if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
                     cmd = null;
                 }
-            }
-            else {
+            } else {
                 // pressing the color temp button increments/decrements from 153-370K.
                 // when it reaches the end (370) it will start decrementing by a step,
                 // and vice versa.
-                let direction = msg.data.colortemp > store[deviceID].lastColorTemp ? 'up' : 'down';
+                const direction = msg.data.colortemp > store[deviceID].lastColorTemp ? 'up' : 'down';
                 cmd += `_${direction}`;
                 payload.click = cmd;
                 store[deviceID].lastColorTemp = msg.data.colortemp;
