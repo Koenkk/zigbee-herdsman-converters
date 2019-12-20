@@ -4475,7 +4475,7 @@ const devices = [
     },
     {
         zigbeeModel: ['RGB-CCT'],
-        model: 'xxxxxx',
+        model: 'RGB-CCT',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
