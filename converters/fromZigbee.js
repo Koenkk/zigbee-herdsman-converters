@@ -3266,7 +3266,7 @@ const converters = {
             // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
             //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
             //         instead it will be returned as part of the second sequence with
-            //         CCTSwitch_D0001_move_to_color_temp_recall below.
+            //         CCTSwitch_D0001_move_to_colortemp_recall below.
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
@@ -3299,9 +3299,9 @@ const converters = {
             }
         },
     },
-    CCTSwitch_D0001_move_to_color_temp_recall: {
+    CCTSwitch_D0001_move_to_colortemp_recall: {
         cluster: 'lightingColorCtrl',
-        type: ['commandMoveToColorTemp'],
+        type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options) => {
             // both button3 and button4 send the command "commandMoveToColorTemp"
             // in order to distinguish between the buttons, use the sequence number and the previous command
@@ -3317,7 +3317,7 @@ const converters = {
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
-            let cmd = 'color_temp';
+            let cmd = 'colortemp';
             const payload = {color_temp: msg.data.colortemp, transition_time: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
@@ -3375,7 +3375,7 @@ const converters = {
             return result;
         },
     },
-    CCTSwitch_D0001_color_temp_updown_hold_release: {
+    CCTSwitch_D0001_colortemp_updown_hold_release: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options) => {
@@ -3384,7 +3384,7 @@ const converters = {
                 store[deviceID] = {};
             }
             const stop = msg.data.movemode === 0;
-            let button = 'color_temp';
+            let button = 'colortemp';
             const result = {};
             if (stop) {
                 button = store[deviceID].button;
