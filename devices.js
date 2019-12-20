@@ -4474,6 +4474,15 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['RGB-CCT'],
+        model: 'xxxxxx',
+        vendor: 'Müller Licht',
+        description: 'Tint LED Panel, color, opal white',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
+    },    
+    {
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
         model: 'MLI-404011',
         description: 'Tint remote control',
