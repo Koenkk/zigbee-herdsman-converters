@@ -4339,7 +4339,7 @@ const devices = [
         vendor: 'EcoSmart',
         description: 'PAR20 bright white bulb',
         extend: generic.light_onoff_brightness,
-     },
+    },
 
     // Airam
     {
