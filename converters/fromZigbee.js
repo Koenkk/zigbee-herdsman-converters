@@ -3246,15 +3246,8 @@ const converters = {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options) => {
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, last_seq: -10};
-            }
-
-            const cmd = msg.type === 'commandOn' ? 'power_on' : 'power_off';
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            return {click: cmd};
+            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
+            return {button: 'power', action: cmd};
         },
     },
     CCTSwitch_D0001_move_to_level_recall: {
@@ -3270,31 +3263,32 @@ const converters = {
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null,
+                store[deviceID] = {lastBtn: null, lastSeq: -10, lastBrightness: null,
                     lastMoveLevel: null, lastColorTemp: null};
             }
 
+            let btn = 'brightness';
             let cmd = null;
-            const payload = {click: cmd, brightness: msg.data.level,
-                transition_time: parseFloat(msg.data.transtime/10.0)};
+            const payload = {brightness: msg.data.level, transition: parseFloat(msg.data.transtime/10.0)};
             if ( msg.type == 'commandMoveToLevel' ) {
                 // pressing the brightness button increments/decrements from 13-254.
                 // when it reaches the end (254) it will start decrementing by a step,
                 // and vice versa.
                 const direction = msg.data.level > store[deviceID].lastBrightness ? 'up' : 'down';
-                cmd = `brightness_${direction}`;
+                cmd = `${btn}_${direction}`;
                 store[deviceID].lastBrightness = msg.data.level;
             } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
                 // This is the 'start' of the 4th button sequence.
-                cmd = 'action_recall';
+                btn = 'memory';
                 store[deviceID].lastMoveLevel = msg.data.level;
-                store[deviceID].lastCmd = cmd;
+                store[deviceID].lastBtn = btn;
             }
 
-            if ( cmd != 'action_recall' ) {
+            if ( btn != 'memory' ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-                store[deviceID].lastCmd = cmd;
-                payload.click = cmd;
+                store[deviceID].lastBtn = btn;
+                payload.button = btn;
+                payload.action = cmd;
                 return payload;
             }
         },
@@ -3310,41 +3304,43 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10, lastBrightness: null,
+                store[deviceID] = {lastBtn: null, lastSeq: -10, lastBrightness: null,
                     lastMoveLevel: null, lastColorTemp: null};
             }
-            const lastCmd = store[deviceID].lastCmd;
+            const lastBtn = store[deviceID].lastBtn;
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
-            let cmd = 'colortemp';
-            const payload = {color_temp: msg.data.colortemp, transition_time: parseFloat(msg.data.transtime/10.0)};
+            let btn = 'colortemp';
+            const payload = {color_temp: msg.data.colortemp, transition: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
             // because it's not really button3, it's actually button4
-            if ( lastCmd == 'action_recall' ) {
-                payload.action = lastCmd;
+            if ( lastBtn == 'memory' ) {
+                payload.button = lastBtn;
+                payload.action = 'recall';
                 payload.brightness = store[deviceID].lastMoveLevel;
 
                 // ensure the "last" message was really the message prior to this one
                 // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
                 if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
-                    cmd = null;
+                    btn = null;
                 }
             } else {
                 // pressing the color temp button increments/decrements from 153-370K.
                 // when it reaches the end (370) it will start decrementing by a step,
                 // and vice versa.
                 const direction = msg.data.colortemp > store[deviceID].lastColorTemp ? 'up' : 'down';
-                cmd += `_${direction}`;
-                payload.click = cmd;
+                const cmd = `${btn}_${direction}`;
+                payload.button = btn;
+                payload.action = cmd;
                 store[deviceID].lastColorTemp = msg.data.colortemp;
             }
 
-            if ( cmd != null ) {
+            if ( btn != null ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-                store[deviceID].lastCmd = cmd;
+                store[deviceID].lastBtn = btn;
                 return payload;
             }
         },
@@ -3358,18 +3354,19 @@ const converters = {
                 store[deviceID] = {};
             }
             const stop = msg.type === 'commandStop' ? true : false;
-            let button = 'brightness';
-            const result = {};
+            let direction = null;
+            const btn = 'brightness';
+            const result = {button: btn};
             if (stop) {
-                button = store[deviceID].button;
+                direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${button}_release`;
+                result.action = `${btn}_${direction}_release`;
                 result.duration = duration;
             } else {
-                button += msg.data.movemode === 1 ? '_down' : '_up';
-                result.action = `${button}_hold`;
+                direction = msg.data.movemode === 1 ? 'down' : 'up';
+                result.action = `${btn}_${direction}_hold`;
                 // store button and start moment
-                store[deviceID].button = button;
+                store[deviceID].direction = direction;
                 store[deviceID].start = Date.now();
             }
             return result;
@@ -3384,18 +3381,19 @@ const converters = {
                 store[deviceID] = {};
             }
             const stop = msg.data.movemode === 0;
-            let button = 'colortemp';
-            const result = {};
+            let direction = null;
+            const btn = 'colortemp';
+            const result = {button: btn};
             if (stop) {
-                button = store[deviceID].button;
+                direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${button}_release`;
+                result.action = `${btn}_${direction}_release`;
                 result.duration = duration;
             } else {
-                button += msg.data.movemode === 3 ? '_down' : '_up';
-                result.action = `${button}_hold`;
+                direction = msg.data.movemode === 3 ? 'down' : 'up';
+                result.action = `${btn}_${direction}_hold`;
                 // store button and start moment
-                store[deviceID].button = button;
+                store[deviceID].direction = direction;
                 store[deviceID].start = Date.now();
             }
             return result;
