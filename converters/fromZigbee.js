@@ -108,25 +108,23 @@ const ictcg1 = (model, msg, publish, options, action) => {
         const direction = msg.data.movemode === 1 ? 'left' : 'right';
         s.direction = direction;
         payload.action = `rotate_${direction}`;
-    } else if (action === 'stop' || action === 'level') {
-        if (action === 'level') {
-            s.value = msg.data.level;
-            const direction = s.value === 0 ? 'left' : 'right';
-            payload.action = `rotate_${direction}_quick`;
-            payload.brightness = s.value;
-        } else {
-            if (s.direction) {
-                const duration = Date.now() - s.since;
-                const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-                const newValue = s.value + delta;
-                if (newValue >= 0 && newValue <= 255) {
-                    s.value = newValue;
-                }
+    } else if (action === 'level') {
+        s.value = msg.data.level;
+        const direction = s.value === 0 ? 'left' : 'right';
+        payload.action = `rotate_${direction}_quick`;
+        payload.brightness = s.value;
+    } else if (action === 'stop') {
+        if (s.direction) {
+            const duration = Date.now() - s.since;
+            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
+            const newValue = s.value + delta;
+            if (newValue >= 0 && newValue <= 255) {
+                s.value = newValue;
             }
-            payload.action = 'rotate_stop';
-            payload.brightness = s.value;
-            s.direction = false;
         }
+        payload.action = 'rotate_stop';
+        payload.brightness = s.value;
+        s.direction = false;
     }
     if (s.timerId) {
         clearInterval(s.timerId);
@@ -145,7 +143,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
             s.publish(payload);
         }, 200);
     }
-    s.publish(payload);
+    return payload.brightness;
 };
 
 const ratelimitedDimmer = (model, msg, publish, options) => {
@@ -388,7 +386,7 @@ const converters = {
      * Device specific converters, not recommended for re-use.
      * TODO: This has not been fully sorted out yet.
      */
-    HS2SK_power: {
+    HS2SK_SKHMP30I1_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -1635,13 +1633,15 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const battery = {max: 3000, min: 2500};
-            const voltage = msg.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage, // @deprecated
-                // voltage: voltage / 1000.0,
-            };
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                const battery = {max: 3000, min: 2500};
+                const voltage = msg.data['batteryVoltage'] * 100;
+                return {
+                    battery: toPercentage(voltage, battery.min, battery.max),
+                    voltage: voltage, // @deprecated
+                    // voltage: voltage / 1000.0,
+                };
+            }
         },
     },
     battery_3V_2100: {
@@ -1855,25 +1855,25 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options) => {
-            ictcg1(model, msg, publish, options, 'stop');
-            return {action: `rotate_stop`};
+            const value = ictcg1(model, msg, publish, options, 'stop');
+            return {action: `rotate_stop`, brightness: value};
         },
     },
     cmd_stop_with_onoff: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options) => {
-            ictcg1(model, msg, publish, options, 'stop');
-            return {action: `rotate_stop`};
+            const value = ictcg1(model, msg, publish, options, 'stop');
+            return {action: `rotate_stop`, brightness: value};
         },
     },
     cmd_move_to_level_with_onoff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options) => {
-            ictcg1(model, msg, publish, options, 'level');
+            const value = ictcg1(model, msg, publish, options, 'level');
             const direction = msg.data.level === 0 ? 'left' : 'right';
-            return {action: `rotate_${direction}_quick`, level: msg.data.level};
+            return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
         },
     },
     iris_3320L_contact: {
@@ -1994,7 +1994,7 @@ const converters = {
     },
     st_leak: {
         cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport', 'commandStatusChangeNotification', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {

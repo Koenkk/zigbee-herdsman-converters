@@ -1480,6 +1480,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTP002'],
+        model: '4023330P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Amaze',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
@@ -2160,7 +2167,13 @@ const devices = [
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
         extend: osram.light_onoff_brightness,
     },
-
+    {
+        zigbeeModel: ['Panel TW 595 UGR22'],
+        model: '595UGR22',
+        vendor: 'OSRAM',
+        description: 'OSRAM LED panel TW 595 UGR22',
+        extend: osram.light_onoff_brightness_colortemp,
+    },
 
     // Hive
     {
@@ -3551,18 +3564,6 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['IM6001-WLP01'],
-        model: 'IM6001-WLP01',
-        vendor: 'SmartThings',
-        description: 'Water leak sensor',
-        supports: 'water leak',
-        fromZigbee: [
-            fz.temperature,
-            fz.st_leak, fz.battery_3V,
-        ],
-        toZigbee: [],
-    },
-    {
         zigbeeModel: ['3315-S'],
         model: '3315-S',
         vendor: 'SmartThings',
@@ -3583,7 +3584,7 @@ const devices = [
     },
     {
         zigbeeModel: ['water'],
-        model: 'F-WTR-UK-V2',
+        model: 'IM6001-WLP01',
         vendor: 'SmartThings',
         description: 'Water leak sensor (2018 model)',
         supports: 'water leak and temperature',
@@ -4093,7 +4094,7 @@ const devices = [
         description: 'Smart metering plug',
         supports: 'on/off, power measurement',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.on_off, fz.HS2SK_power],
+        fromZigbee: [fz.on_off, fz.HS2SK_SKHMP30I1_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -4262,6 +4263,51 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SOHM-I1'],
+        model: 'SOHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Door contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['SWHM-I1'],
+        model: 'SWHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['SMHM-I1'],
+        model: 'SMHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['SKHMP30-I1'],
+        model: 'SKHMP30-I1',
+        description: 'Smart metering plug',
+        supports: 'on/off, power measurement',
+        vendor: 'HEIMAN',
+        fromZigbee: [fz.on_off, fz.HS2SK_SKHMP30I1_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+        },
+    },
 
     // Oujiabao
     {
@@ -4327,6 +4373,25 @@ const devices = [
         vendor: 'EcoSmart',
         description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
+        model: '6ARCZABZH',
+        vendor: 'EcoSmart',
+        description: 'Four button remote control (included with EcoSmart smart bulbs)',
+        supports: 'action',
+        fromZigbee: [
+            fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp,
+        ],
+        toZigbee: [],
+    },
+    {
+        // eslint-disable-next-line
+        zigbeeModel: ['\u0000\u0002\u0000\u0004\u0000\f]�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e', '\u0000\u0002\u0000\u0004\"�T\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e', '\u0000\u0002\u0000\u0004\u0000\f^�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1533',
+        vendor: 'EcoSmart',
+        description: 'PAR20 bright white bulb',
+        extend: generic.light_onoff_brightness,
     },
 
     // Airam
@@ -4465,6 +4530,15 @@ const devices = [
         model: '44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Stripe, color, opal white',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        zigbeeModel: ['RGB-CCT'],
+        model: '404028',
+        vendor: 'Müller Licht',
+        description: 'Tint LED Panel, color, opal white',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
