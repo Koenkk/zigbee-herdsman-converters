@@ -6247,6 +6247,15 @@ const devices = [
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
+
+    // Ajax Online
+    {
+        zigbeeModel: ['AJ-RGBCCT 5 in 1'],
+        model: 'Aj_Zigbee_Led_Strip',
+        vendor: 'Ajax Online',
+        description: 'Hue Compatible Light Strip',
+        extend: hue.light_onoff_brightness_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) =>
