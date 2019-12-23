@@ -1480,6 +1480,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTP002'],
+        model: '4023330P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Amaze',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
