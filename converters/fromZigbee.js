@@ -3246,83 +3246,165 @@ const converters = {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options) => {
-            // the remote maintains state and sends two potential commands for the power button
-            // map both "on" and "off" to a consistent "button_1"
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, last_seq: -10};
-            }
-
-            const cmd = 'button_1';
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+	    let action = null;
+	    if ( msg.type === 'commandOn' ) {
+		action = 'on';
+	    } else if ( msg.type === 'commandOff' ) {
+		action = 'off';
+	    }
+	    const state = action.toUpperCase();
+	    return {state: state, action: action, click: 'on/off'};
         },
     },
     ZBT_CCTSwitch_D0001_moveToLevel: {
         cluster: 'genLevelCtrl',
-        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        type: ['commandMoveToLevel'],
         convert: (model, msg, publish, options) => {
-            // wrap the messages from button2 and button4 into a single function
-            // button2 always sends "commandMoveToLevel"
-            // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
-            //         so that's the one we key off of to indicate "button4"
-
             const deviceID = msg.device.ieeeAddr;
+            const level = msg.data.level;
+
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {};
             }
 
-            let cmd = null;
-            if ( msg.type == 'commandMoveToLevel' ) {
-                cmd = 'button_2';
-            } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
-                cmd = 'button_4';
+            let action = null;
+            if (level > store[deviceID].lastLevel) {
+                action = "brightness_up";
+            } else if (level < store[deviceID].lastLevel) {
+                action = "brightness_down";
             }
 
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+            store[deviceID].lastLevel = level;
+
+            return {
+                brightness: level,
+                transition_time: msg.data.transtime,
+                click: 'dimmer',
+                action: action,
+            };
         },
-    },
+    },    
     ZBT_CCTSwitch_D0001_moveToColorTemp: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp'],
         convert: (model, msg, publish, options) => {
-            // both button3 and button4 send the command "commandMoveToColorTemp"
-            // in order to distinguish between the buttons, use the sequence number and the previous command
-            // to determine if this message was immediately preceded by "commandMoveToLevelWithOnOff"
-            // if this command follows a "commandMoveToLevelWithOnOff", then it's actually button4's second message
-            // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
+            const colortemp = msg.data.colortemp;
+
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {};
             }
-            const lastCmd = store[deviceID].lastCmd;
-            const lastSeq = store[deviceID].lastSeq;
 
-            const seq = msg.meta.zclTransactionSequenceNumber;
-            let cmd = 'button_3';
+            let payload = null;
 
-            // because the remote sends two commands for button4, we need to look at the previous command and
-            // see if it was the recognized start command for button4 - if so, ignore this second command,
-            // because it's not really button3, it's actually button4
-            if ( lastCmd == 'button_4' ) {
-                // ensure the "last" message was really the message prior to this one
-                // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
-                if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
-                    cmd = null;
+            if (store[deviceID].thisLevel != null) {
+
+                // Button 4 was pressed
+                payload= {
+                    color_temp: msg.data.colortemp,
+                    brightness: store[deviceID].thisLevel,
+                    transition_time: msg.data.transtime,
+                    state: 'ON',
+                    click: 'scene',
+                    action: 'recall',
+                };
+
+                store[deviceID].thisLevel = null;
+
+            } else {
+
+                // Button 3 was pressed
+                let action = null;
+                if (colortemp > store[deviceID].lastColortemp) {
+                    action = "color_temp_up";
+                } else if (colortemp < store[deviceID].lastColortemp) {
+                    action = "color_temp_down";
                 }
-            }
+                
+                store[deviceID].lastColortemp = colortemp;
 
-            if ( cmd != null ) {
-                store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-                store[deviceID].lastCmd = cmd;
-                return {action: cmd};
+                payload= {
+                    color_temp: msg.data.colortemp,
+                    transition_time: msg.data.transtime,
+                    click: 'CCT',
+                    action: action,
+                };
             }
+            return payload;
         },
     },
+    ZBT_CCTSwitch_D0001_moveToColorTempWithOnOff: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
 
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            
+            // Store level for button 3
+            store[deviceID].thisLevel = msg.data.level;
+
+            return null;
+        },
+    },
+    ZBT_CCTSwitch_D0001_move: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMove'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const direction = msg.data.movemode === 0 ? 'up' : 'down';
+            store[deviceID].direction = direction;
+            store[deviceID].start = Date.now();
+            
+            return {action: `brightness_${direction}`, click: 'dimmer-hold'};
+        },
+    },
+    ZBT_CCTSwitch_D0001_stop: {
+        cluster: 'genLevelCtrl',
+        type: ['commandStop'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const duration = Date.now() - store[deviceID].start;
+            const direction = store[deviceID].direction;
+                    
+            return {action: `release_brightness_${direction}`, click: 'dimmer-hold', duration: duration};
+        },
+    },
+    ZBT_CCTSwitch_D0001_moveColorTemp: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveColorTemp'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+
+            if (msg.data.movemode === 0) { // button was released
+                const direction = store[deviceID].direction;
+                const duration = Date.now() - store[deviceID].start;
+                
+                return {action: `release_color_temp_${direction}`, click: 'CCT-hold', duration: duration};
+            }
+
+            const direction = msg.data.movemode === 1 ? 'up' : 'down';
+            store[deviceID].direction = direction;
+            store[deviceID].start = Date.now();
+            
+            return {action: `color_temp_${direction}`, click: 'CCT-hold'};
+
+        },
+    },
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
