@@ -6253,8 +6253,8 @@ const devices = [
         zigbeeModel: ['AJ-RGBCCT 5 in 1'],
         model: 'Aj_Zigbee_Led_Strip',
         vendor: 'Ajax Online',
-        description: 'Hue Compatible Light Strip',
-        extend: hue.light_onoff_brightness_colorxy,
+        description: 'LED Strip',
+        extend: generic.light_onoff_brightness_colorxy,
     },
 ];
 
