@@ -2164,11 +2164,9 @@ const devices = [
         zigbeeModel: ['Panel TW 595 UGR22'],
         model: '595UGR22',
         vendor: 'OSRAM',
-        description: 'OSRAM LED Panel TW 595 UGR22',
+        description: 'OSRAM LED panel TW 595 UGR22',
         extend: osram.light_onoff_brightness_colortemp,
     },
-
-
 
     // Hive
     {
