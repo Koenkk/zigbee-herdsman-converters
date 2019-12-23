@@ -1635,13 +1635,15 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const battery = {max: 3000, min: 2500};
-            const voltage = msg.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage, // @deprecated
-                // voltage: voltage / 1000.0,
-            };
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                const battery = {max: 3000, min: 2500};
+                const voltage = msg.data['batteryVoltage'] * 100;
+                return {
+                    battery: toPercentage(voltage, battery.min, battery.max),
+                    voltage: voltage, // @deprecated
+                    // voltage: voltage / 1000.0,
+                };
+            }
         },
     },
     battery_3V_2100: {
@@ -1994,7 +1996,7 @@ const converters = {
     },
     st_leak: {
         cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport', 'commandStatusChangeNotification', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const zoneStatus = msg.data.zonestatus;
             return {
