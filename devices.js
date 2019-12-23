@@ -2167,7 +2167,13 @@ const devices = [
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
         extend: osram.light_onoff_brightness,
     },
-
+    {
+        zigbeeModel: ['Panel TW 595 UGR22'],
+        model: '595UGR22',
+        vendor: 'OSRAM',
+        description: 'OSRAM LED panel TW 595 UGR22',
+        extend: osram.light_onoff_brightness_colortemp,
+    },
 
     // Hive
     {
