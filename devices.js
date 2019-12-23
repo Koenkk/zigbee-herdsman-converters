@@ -4381,7 +4381,11 @@ const devices = [
         description: 'Four button remote control (included with EcoSmart smart bulbs)',
         supports: 'action',
         fromZigbee: [
-            fz.ZBT_CCTSwitch_D0001_cmdOnOff, fz.ZBT_CCTSwitch_D0001_moveToLevel, fz.ZBT_CCTSwitch_D0001_moveToColorTemp,
+            fz.CCTSwitch_D0001_on_off,
+            fz.CCTSwitch_D0001_move_to_level_recall,
+            fz.CCTSwitch_D0001_move_to_colortemp_recall,
+            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
+            fz.CCTSwitch_D0001_brightness_updown_hold_release,
         ],
         toZigbee: [],
     },
@@ -5511,21 +5515,6 @@ const devices = [
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
         extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
-        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
-        model: '6ARCZABZH',
-        vendor: 'Leedarson',
-        description: '4-Key Remote Controller',
-        supports: 'on/off, brightness up/down and click/hold/release, cct',
-        fromZigbee: [
-            fz.CCTSwitch_D0001_on_off,
-            fz.CCTSwitch_D0001_move_to_level_recall,
-            fz.CCTSwitch_D0001_move_to_colortemp_recall,
-            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
-            fz.CCTSwitch_D0001_brightness_updown_hold_release,
-        ],
-        toZigbee: [],
     },
 
     // GMY
