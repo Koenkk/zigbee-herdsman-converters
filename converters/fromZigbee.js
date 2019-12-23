@@ -388,7 +388,7 @@ const converters = {
      * Device specific converters, not recommended for re-use.
      * TODO: This has not been fully sorted out yet.
      */
-    HS2SK_power: {
+    HS2SK_SKHMP30I1_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
