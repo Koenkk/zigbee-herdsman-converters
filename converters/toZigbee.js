@@ -134,7 +134,7 @@ const converters = {
                 'genLevelCtrl',
                 'moveToLevel',
                 {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
-                getOptions(meta)
+                getOptions(meta),
             );
 
             return {state: {position: value}, readAfterWriteTime: 0};
@@ -176,7 +176,7 @@ const converters = {
                 'ssIasWd',
                 'startWarning',
                 {startwarninginfo: info, warningduration: values.duration},
-                getOptions(meta)
+                getOptions(meta),
             );
         },
     },
@@ -206,14 +206,14 @@ const converters = {
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
                 isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
-                getOptions(meta)
+                getOptions(meta),
             );
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
             await entity.read(
                 'closuresWindowCovering',
-                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']
+                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage'],
             );
         },
     },
@@ -291,7 +291,7 @@ const converters = {
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
                     {level: Number(brightness), transtime: transition},
-                    getOptions(meta)
+                    getOptions(meta),
                 );
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
@@ -898,7 +898,7 @@ const converters = {
                 'closuresDoorLock',
                 `${value.toLowerCase()}Door`,
                 {'pincodevalue': ''},
-                getOptions(meta)
+                getOptions(meta),
             );
 
             return {readAfterWriteTime: 200, state: {state: value.toUpperCase()}};
@@ -957,7 +957,7 @@ const converters = {
                         }
 
                         const result = await converters.light_brightness.convertSet(
-                            meta.device.getEndpoint(15), key, value, meta
+                            meta.device.getEndpoint(15), key, value, meta,
                         );
                         return {
                             state: {white_value: value, ...result.state, ...state},

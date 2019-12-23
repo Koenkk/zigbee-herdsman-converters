@@ -271,17 +271,17 @@ const converters = {
             const payload = {};
             if (msg.data.hasOwnProperty('activePower')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerMultiplier'
+                    'haElectricalMeasurement', 'acPowerMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerDivisor'
+                    'haElectricalMeasurement', 'acPowerDivisor',
                 );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.power = precisionRound(msg.data['activePower'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acCurrentMultiplier'
+                    'haElectricalMeasurement', 'acCurrentMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
@@ -289,7 +289,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('rmsVoltage')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acVoltageMultiplier'
+                    'haElectricalMeasurement', 'acVoltageMultiplier',
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
@@ -3242,52 +3242,60 @@ const converters = {
             };
         },
     },
-    ZBT_CCTSwitch_D0001_cmdOnOff: {
+    CCTSwitch_D0001_on_off: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options) => {
-            // the remote maintains state and sends two potential commands for the power button
-            // map both "on" and "off" to a consistent "button_1"
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, last_seq: -10};
-            }
-
-            const cmd = 'button_1';
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
+            return {click: 'power', action: cmd};
         },
     },
-    ZBT_CCTSwitch_D0001_moveToLevel: {
+    CCTSwitch_D0001_move_to_level_recall: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options) => {
             // wrap the messages from button2 and button4 into a single function
             // button2 always sends "commandMoveToLevel"
             // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
-            //         so that's the one we key off of to indicate "button4"
+            //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
+            //         instead it will be returned as part of the second sequence with
+            //         CCTSwitch_D0001_move_to_colortemp_recall below.
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {lastClk: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
 
+            let clk = 'brightness';
             let cmd = null;
+            const payload = {brightness: msg.data.level, transition: parseFloat(msg.data.transtime/10.0)};
             if ( msg.type == 'commandMoveToLevel' ) {
-                cmd = 'button_2';
+                // pressing the brightness button increments/decrements from 13-254.
+                // when it reaches the end (254) it will start decrementing by a step,
+                // and vice versa.
+                const direction = msg.data.level > store[deviceID].lastBrightness ? 'up' : 'down';
+                cmd = `${clk}_${direction}`;
+                store[deviceID].lastBrightness = msg.data.level;
             } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
-                cmd = 'button_4';
+                // This is the 'start' of the 4th button sequence.
+                clk = 'memory';
+                store[deviceID].lastMoveLevel = msg.data.level;
+                store[deviceID].lastClk = clk;
             }
 
-            store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-            store[deviceID].lastCmd = cmd;
-            return {action: cmd};
+            if ( clk != 'memory' ) {
+                store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
+                store[deviceID].lastClk = clk;
+                payload.click = clk;
+                payload.action = cmd;
+                return payload;
+            }
         },
     },
-    ZBT_CCTSwitch_D0001_moveToColorTemp: {
+    CCTSwitch_D0001_move_to_colortemp_recall: {
         cluster: 'lightingColorCtrl',
-        type: ['commandMoveToColorTemp'],
+        type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options) => {
             // both button3 and button4 send the command "commandMoveToColorTemp"
             // in order to distinguish between the buttons, use the sequence number and the previous command
@@ -3296,30 +3304,99 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {lastCmd: null, lastSeq: -10};
+                store[deviceID] = {lastClk: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
-            const lastCmd = store[deviceID].lastCmd;
+            const lastClk = store[deviceID].lastClk;
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
-            let cmd = 'button_3';
+            let clk = 'colortemp';
+            const payload = {color_temp: msg.data.colortemp, transition: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
             // because it's not really button3, it's actually button4
-            if ( lastCmd == 'button_4' ) {
+            if ( lastClk == 'memory' ) {
+                payload.click = lastClk;
+                payload.action = 'recall';
+                payload.brightness = store[deviceID].lastMoveLevel;
+
                 // ensure the "last" message was really the message prior to this one
                 // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
                 if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
-                    cmd = null;
+                    clk = null;
                 }
+            } else {
+                // pressing the color temp button increments/decrements from 153-370K.
+                // when it reaches the end (370) it will start decrementing by a step,
+                // and vice versa.
+                const direction = msg.data.colortemp > store[deviceID].lastColorTemp ? 'up' : 'down';
+                const cmd = `${clk}_${direction}`;
+                payload.click = clk;
+                payload.action = cmd;
+                store[deviceID].lastColorTemp = msg.data.colortemp;
             }
 
-            if ( cmd != null ) {
+            if ( clk != null ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
-                store[deviceID].lastCmd = cmd;
-                return {action: cmd};
+                store[deviceID].lastClk = clk;
+                return payload;
             }
+        },
+    },
+    CCTSwitch_D0001_brightness_updown_hold_release: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMove', 'commandStop'],
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const stop = msg.type === 'commandStop' ? true : false;
+            let direction = null;
+            const clk = 'brightness';
+            const result = {click: clk};
+            if (stop) {
+                direction = store[deviceID].direction;
+                const duration = Date.now() - store[deviceID].start;
+                result.action = `${clk}_${direction}_release`;
+                result.duration = duration;
+            } else {
+                direction = msg.data.movemode === 1 ? 'down' : 'up';
+                result.action = `${clk}_${direction}_hold`;
+                // store button and start moment
+                store[deviceID].direction = direction;
+                store[deviceID].start = Date.now();
+            }
+            return result;
+        },
+    },
+    CCTSwitch_D0001_colortemp_updown_hold_release: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveColorTemp',
+        convert: (model, msg, publish, options) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+            const stop = msg.data.movemode === 0;
+            let direction = null;
+            const clk = 'colortemp';
+            const result = {click: clk};
+            if (stop) {
+                direction = store[deviceID].direction;
+                const duration = Date.now() - store[deviceID].start;
+                result.action = `${clk}_${direction}_release`;
+                result.duration = duration;
+            } else {
+                direction = msg.data.movemode === 3 ? 'down' : 'up';
+                result.action = `${clk}_${direction}_hold`;
+                // store button and start moment
+                store[deviceID].direction = direction;
+                store[deviceID].start = Date.now();
+            }
+            return result;
         },
     },
 
