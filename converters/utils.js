@@ -43,7 +43,7 @@ function rgbToXY(red, green, blue) {
 
 // Input numbers between 0-1
 function hsvToRGB(h, s, v) {
-    let r, g, b, i, f, p, q, t;
+    var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
         s = h.s, v = h.v, h = h.h;
     }
@@ -63,7 +63,7 @@ function hsvToRGB(h, s, v) {
     return {
         r: Math.round(r * 255),
         g: Math.round(g * 255),
-        b: Math.round(b * 255)
+        b: Math.round(b * 255),
     };
 }
 
