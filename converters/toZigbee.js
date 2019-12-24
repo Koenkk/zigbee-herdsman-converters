@@ -66,7 +66,7 @@ function getTransition(entity, key, meta) {
 //   message: the full message, used for e.g. {brightness; transition;}
 //   options: {disableFeedback: skip waiting for feedback, e.g. Hampton Bay 99432 doesn't respond}
 //   endpoint_name: name of the endpoint, used for e.g. livolo where left and right is
-//                  seperated by transition time instead of separte endpoint
+//                  separated by transition time instead of separte endpoint
 // }
 
 const getOptions = (meta) => {
@@ -964,7 +964,7 @@ const converters = {
                             readAfterWriteTime: 0,
                         };
                     } else {
-                        if (meta.state.white_value !== -1 && !meta.options.seperate_control) {
+                        if (meta.state.white_value !== -1 && !meta.options.separate_control) {
                             // Switch from white to RGB
                             await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
                             await meta.device.getEndpoint(15).command('genOnOff', 'off', {});
