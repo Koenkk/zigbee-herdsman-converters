@@ -368,42 +368,26 @@ const converters = {
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
-            }
-            
-            
-            
-            else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h')) {
                 value.hue = value.h % 360 * (65535 / 360);
                 cmd = 'enhancedMoveToHue';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('s')) {
                 value.saturation = value.s * (2.54);
                 cmd = 'moveToSaturation';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y}
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hue')) {
                 value.hue = value.hue % 360 * (65535 / 360);
                 cmd = 'enhancedMoveToHue';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('saturation')) {
                 value.saturation = value.saturation * (2.54);
                 cmd = 'moveToSaturation';
-                const xy = utils.hsToXY(value.hue, value.saturation);
-                value = {x: xy.x, y: xy.y}
             }
 
             const zclData = {transtime: getTransition(entity, key, meta)};
