@@ -304,22 +304,25 @@ const generic = {
     light_onoff_brightness: {
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_alert, tz.light_brightness_move],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
+            tz.light_brightness_move,
+        ],
     },
     light_onoff_brightness_colortemp: {
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.light_alert,
-            tz.light_brightness_move,
+            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
+            tz.light_brightness_move, tz.light_colortemp_move,
         ],
     },
     light_onoff_brightness_colorxy: {
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.light_alert,
-            tz.light_brightness_move,
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
+            tz.light_brightness_move, tz.light_colortemp_move,
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
@@ -329,8 +332,8 @@ const generic = {
             fz.ignore_basic_report,
         ],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
-            tz.light_alert, tz.light_brightness_move,
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
+            tz.light_alert, tz.light_brightness_move, tz.light_colortemp_move,
         ],
     },
 };
@@ -4340,7 +4343,7 @@ const devices = [
     {
         zigbeeModel: ['Ecosmart-ZBT-A19-CCT-Bulb'],
         model: 'A9A19A60WESDZ02',
-        vendor: 'EcoSmart',
+        vendor: 'The Home Depot',
         description: 'Tuneable white (A19)',
         extend: generic.light_onoff_brightness_colortemp,
     },
@@ -4373,21 +4376,6 @@ const devices = [
         vendor: 'EcoSmart',
         description: 'GU10 adjustable white bulb',
         extend: generic.light_onoff_brightness_colortemp,
-    },
-    {
-        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
-        model: '6ARCZABZH',
-        vendor: 'EcoSmart',
-        description: 'Four button remote control (included with EcoSmart smart bulbs)',
-        supports: 'action',
-        fromZigbee: [
-            fz.CCTSwitch_D0001_on_off,
-            fz.CCTSwitch_D0001_move_to_level_recall,
-            fz.CCTSwitch_D0001_move_to_colortemp_recall,
-            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
-            fz.CCTSwitch_D0001_brightness_updown_hold_release,
-        ],
-        toZigbee: [],
     },
     {
         // eslint-disable-next-line
@@ -5515,6 +5503,28 @@ const devices = [
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
         extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['ZBT-CCTSwitch-D0001'],
+        model: '6ARCZABZH',
+        vendor: 'Leedarson',
+        description: '4-Key Remote Controller',
+        supports: 'on/off, brightness up/down and click/hold/release, cct',
+        fromZigbee: [
+            fz.CCTSwitch_D0001_on_off,
+            fz.CCTSwitch_D0001_move_to_level_recall,
+            fz.CCTSwitch_D0001_move_to_colortemp_recall,
+            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
+            fz.CCTSwitch_D0001_brightness_updown_hold_release,
+            fz.generic_battery,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
 
     // GMY

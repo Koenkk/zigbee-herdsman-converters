@@ -230,10 +230,14 @@ const converters = {
     light_brightness_move: {
         key: ['brightness_move'],
         convertSet: async (entity, key, value, meta) => {
-            if (value === 'stop') {
+            const stop = (val) => ['stop', 'release'].some((el) => val.includes(el));
+            const up = (val) => ['0', 'up'].some((el) => val.includes(el));
+            const arr = [value.toString()];
+            if (arr.filter(stop).length) {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta));
             } else {
-                const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
+                const moverate = meta.message.hasOwnProperty('rate') ? parseInt(meta.message.rate) : 55;
+                const payload = {movemode: arr.filter(up).length ? 0 : 1, rate: moverate};
                 await entity.command('genLevelCtrl', 'moveWithOnOff', payload, getOptions(meta));
             }
         },
@@ -257,6 +261,23 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    },
+    light_colortemp_move: {
+        key: ['colortemp_move', 'color_temp_move'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {minimum: 153, maximum: 370, rate: 55};
+            const stop = (val) => ['stop', 'release', '0'].some((el) => val.includes(el));
+            const up = (val) => ['1', 'up'].some((el) => val.includes(el));
+            const arr = [value.toString()];
+            const moverate = meta.message.hasOwnProperty('rate') ? parseInt(meta.message.rate) : 55;
+            payload.rate = moverate;
+            if (arr.filter(stop).length) {
+                payload.movemode = 0;
+            } else {
+                payload.movemode=arr.filter(up).length ? 1 : 3;
+            }
+            await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta));
         },
     },
     light_onoff_brightness: {
@@ -1345,6 +1366,12 @@ const converters = {
      */
     ignore_transition: {
         key: ['transition'],
+        attr: [],
+        convertSet: async (entity, key, value, meta) => {
+        },
+    },
+    ignore_rate: {
+        key: ['rate'],
         attr: [],
         convertSet: async (entity, key, value, meta) => {
         },
