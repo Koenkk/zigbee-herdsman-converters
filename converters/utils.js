@@ -41,34 +41,6 @@ function rgbToXY(red, green, blue) {
     return {x: Number.parseFloat(x), y: Number.parseFloat(y)};
 }
 
-// Input numbers between 0-1
-function hsvToRGB(h, s, v) {
-    let r; let g; let b;
-    if (arguments.length === 1) {
-        s = h.s, v = h.v, h = h.h;
-    }
-    const i = Math.floor(h * 6);
-    const f = h * 6 - i;
-    const p = v * (1 - s);
-    const q = v * (1 - f * s);
-    const t = v * (1 - (1 - f) * s);
-    switch (i % 6) {
-    case 0: r = v, g = t, b = p; break;
-    case 1: r = q, g = v, b = p; break;
-    case 2: r = p, g = v, b = t; break;
-    case 3: r = p, g = q, b = v; break;
-    case 4: r = t, g = p, b = v; break;
-    case 5: r = v, g = p, b = q; break;
-    }
-    return {r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255)};
-}
-
-function hsToXY(hue, saturation) {
-    // Divide hue by 360^2, hsvToRGB function accepts numbers between 0-1
-    hue /= (65535 / 129600); saturation /= (65535 / 129600);
-    return rgbToXY(hsvToRGB(hue, saturation, 1));
-}
-
 function hexToXY(hex) {
     const rgb = hexToRgb(hex);
     return rgbToXY(rgb.r, rgb.g, rgb.b);
@@ -120,7 +92,6 @@ function hasEndpoints(device, endpoints) {
 
 module.exports = {
     rgbToXY,
-    hsToXY,
     hexToXY,
     hexToRgb,
     getKeyByValue,
