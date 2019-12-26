@@ -66,7 +66,7 @@ function getTransition(entity, key, meta) {
 //   message: the full message, used for e.g. {brightness; transition;}
 //   options: {disableFeedback: skip waiting for feedback, e.g. Hampton Bay 99432 doesn't respond}
 //   endpoint_name: name of the endpoint, used for e.g. livolo where left and right is
-//                  separated by transition time instead of separte endpoint
+//                  separated by transition time instead of separated endpoint
 // }
 
 const getOptions = (meta) => {
