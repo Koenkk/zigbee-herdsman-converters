@@ -381,6 +381,13 @@ const converters = {
             return {action: 'off'};
         },
     },
+    identify: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            return {identify: 'identify'};
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
@@ -3425,6 +3432,43 @@ const converters = {
                 store[deviceID].start = Date.now();
             }
             return payload;
+        },
+    },
+
+    legrand_binary_input_moving: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            return {
+                moving: msg.data.presentValue,
+            };
+        },
+    },
+    legrand_master_switch_scenes: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options) => {
+            let action = 'default';
+            if (msg.data.groupid === 0xfff7) action = 'enter';
+            if (msg.data.groupid === 0xfff6) action = 'leave';
+            return {
+                click: action,
+            };
+        },
+    },
+    legrand_master_switch_center: {
+        cluster: 'manuSpecificLegrandDevices',
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            if (
+                msg.data && msg.data.length === 6 &&
+                msg.data[0] === 0x15 && msg.data[1] === 0x21 && msg.data[2] === 0x10 &&
+                msg.data[3] === 0x00 && msg.data[4] === 0x03 && msg.data[5] === 0xff
+            ) {
+                return {
+                    click: 'center',
+                };
+            }
         },
     },
 
