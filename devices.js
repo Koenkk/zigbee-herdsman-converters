@@ -411,7 +411,7 @@ const legrand = {
         }
     },
     read_initial_battery_state: async (type, data, device) => {
-        if (['deviceAnnounce'].includes(type) && typeof store[device.ieeeAddr] === 'undefined'){
+        if (['deviceAnnounce'].includes(type) && typeof store[device.ieeeAddr] === 'undefined') {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
             await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
