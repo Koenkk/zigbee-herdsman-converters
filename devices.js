@@ -5356,6 +5356,21 @@ const devices = [
         description: 'Zigbee LED-Controller ',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['511.202'],
+        model: '511.202',
+        vendor: 'Iluminize',
+        description: 'switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Anchor
     {
