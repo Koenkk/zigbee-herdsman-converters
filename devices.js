@@ -6339,6 +6339,17 @@ const devices = [
         description: 'LED Strip',
         extend: generic.light_onoff_brightness_colorxy,
     },
+
+    // MOES
+    {
+        zigbeeModel: ['TS0112'],
+        model: 'ZK-EU-2U',
+        vendor: 'MOES',
+        description: 'ZigBee3.0 dual USB wireless socket plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices.map((device) =>
