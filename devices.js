@@ -4343,7 +4343,7 @@ const devices = [
     {
         zigbeeModel: ['Ecosmart-ZBT-A19-CCT-Bulb'],
         model: 'A9A19A60WESDZ02',
-        vendor: 'The Home Depot',
+        vendor: 'EcoSmart',
         description: 'Tuneable white (A19)',
         extend: generic.light_onoff_brightness_colortemp,
     },
