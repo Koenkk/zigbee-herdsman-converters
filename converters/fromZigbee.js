@@ -3382,20 +3382,21 @@ const converters = {
             const stop = msg.type === 'commandStop' ? true : false;
             let direction = null;
             const clk = 'brightness';
-            const result = {click: clk};
+            const payload = {click: clk};
             if (stop) {
                 direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${clk}_${direction}_release`;
-                result.duration = duration;
+                payload.action = `${clk}_${direction}_release`;
+                payload.duration = duration;
             } else {
                 direction = msg.data.movemode === 1 ? 'down' : 'up';
-                result.action = `${clk}_${direction}_hold`;
+                payload.action = `${clk}_${direction}_hold`;
                 // store button and start moment
                 store[deviceID].direction = direction;
+                payload.rate = msg.data.rate;
                 store[deviceID].start = Date.now();
             }
-            return result;
+            return payload;
         },
     },
     CCTSwitch_D0001_colortemp_updown_hold_release: {
@@ -3409,20 +3410,21 @@ const converters = {
             const stop = msg.data.movemode === 0;
             let direction = null;
             const clk = 'colortemp';
-            const result = {click: clk};
+            const payload = {click: clk, rate: msg.data.rate};
             if (stop) {
                 direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${clk}_${direction}_release`;
-                result.duration = duration;
+                payload.action = `${clk}_${direction}_release`;
+                payload.duration = duration;
             } else {
                 direction = msg.data.movemode === 3 ? 'down' : 'up';
-                result.action = `${clk}_${direction}_hold`;
+                payload.action = `${clk}_${direction}_hold`;
+                payload.rate = msg.data.rate;
                 // store button and start moment
                 store[deviceID].direction = direction;
                 store[deviceID].start = Date.now();
             }
-            return result;
+            return payload;
         },
     },
 
