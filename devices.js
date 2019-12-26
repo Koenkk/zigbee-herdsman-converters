@@ -6466,7 +6466,7 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        supports: '',
+        supports: 'on, off',
         fromZigbee: [
             fz.identify,
             fz.on_off,
@@ -6495,7 +6495,7 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Home & Away switch / Master switch',
-        supports: '',
+        supports: 'on, off, center',
         fromZigbee: [
             fz.legrand_master_switch_scenes,
             fz.legrand_master_switch_center,
