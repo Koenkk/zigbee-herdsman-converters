@@ -385,7 +385,7 @@ const converters = {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            return {identify: 'identify'};
+            return {action: 'identify'};
         },
     },
 
@@ -3452,7 +3452,7 @@ const converters = {
             if (msg.data.groupid === 0xfff7) action = 'enter';
             if (msg.data.groupid === 0xfff6) action = 'leave';
             return {
-                click: action,
+                action: action,
             };
         },
     },
@@ -3466,7 +3466,7 @@ const converters = {
                 msg.data[3] === 0x00 && msg.data[4] === 0x03 && msg.data[5] === 0xff
             ) {
                 return {
-                    click: 'center',
+                    action: 'center',
                 };
             }
         },
