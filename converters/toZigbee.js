@@ -442,8 +442,9 @@ const converters = {
                     result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
                 } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                     result.state = {color: {h: value.hue / 65535 * 360, s: value.saturation / 2.55}};
-                    return result;
                 }
+                
+                return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
                 result.state.color = utils.miredsToXY(result.state.color_temp);
