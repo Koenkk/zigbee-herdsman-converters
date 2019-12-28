@@ -4734,6 +4734,13 @@ const devices = [
         description: 'LED E14/230V C35 5W TB 440LM ZIGBEE DIM',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['IM-Z3.0-RGBW'],
+        model: 'IM-Z3.0-RGBW',
+        vendor: 'Immax',
+        description: 'LED E27/230V A60 8.5W TB 806LM ZIGBEE DIM',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Yale
     {
