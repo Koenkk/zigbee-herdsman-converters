@@ -5052,6 +5052,51 @@ const devices = [
             await configureReporting.thermostatTemperature(endpoint);
         },
     },
+    {
+        zigbeeModel: ['STZB402+', 'STZB402'],
+        model: 'STZB402',
+        vendor: 'Stelpro',
+        description: 'Ki, line-voltage thermostat',
+        supports: 'temperature',
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.stelpro_thermostat,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_stelpro_system_mode,
+            tz.thermostat_running_state,
+        ],
+        meta: { configureKey: 1 },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(25);
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+
+            // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
+            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
+            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 300, 900, 5);
+
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                minimumReportInterval: 1,
+                maximumReportInterval: 0,
+            }]);
+        },
+    },
 
     // Nyce
     {

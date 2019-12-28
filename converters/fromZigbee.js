@@ -2099,8 +2099,8 @@ const converters = {
                 result.occupancy = msg.data['occupancy'];
             }
             if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                const ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                result.occupied_heating_setpoint = ohs > -250 ? ohs : null;
             }
             if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
                 result.unoccupied_heating_setpoint =
@@ -2143,6 +2143,24 @@ const converters = {
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
+            }
+            return result;
+        },
+    },
+    stelpro_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const mode = msg.data['StelproSystemMode'];
+            if (mode == 'number') {
+                result.stelpro_mode = mode;
+                switch (mode) {
+                    case 5:
+                        // "Eco" mode is translated into "auto" here
+                        result.system_mode = common.thermostatSystemModes[1];
+                        break;
+                }
             }
             return result;
         },
