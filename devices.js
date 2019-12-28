@@ -1875,8 +1875,8 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['DYRuZ_rspm'],
-        model: 'DYRuZ_rspm',
+        zigbeeModel: ['DIYRuZ_rspm'],
+        model: 'DIYRuZ_rspm',
         vendor: 'DIYRuZ',
         description: '[DIYRuZ relay switch power meter](https://modkam.ru/?p=1309)',
         supports: 'relay, switch, adc',
