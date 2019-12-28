@@ -62,6 +62,10 @@ describe('index.js', () => {
             Object.keys(device.fromZigbee).forEach((converterKey) => {
                 const converter = device.fromZigbee[converterKey];
 
+                if(!converter) {
+                    throw new Error(`fromZigbee[${converterKey}] not defined on device ${device.model}.`);
+                }
+
                 const keys = Object.keys(converter);
                 verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
 
@@ -73,6 +77,10 @@ describe('index.js', () => {
             // Verify toConverters
             Object.keys(device.toZigbee).forEach((converterKey) => {
                 const converter = device.toZigbee[converterKey];
+
+                if(!converter) {
+                    throw new Error(`toZigbee[${converterKey}] not defined on device ${device.model}.`);
+                }
 
                 verifyKeys(
                     ['key'],
