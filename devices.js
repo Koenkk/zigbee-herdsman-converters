@@ -153,6 +153,14 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
+    thermostatKeypadLockMode: async (endpoint, min = 10, max = repInterval.HOUR) => {
+        const payload = [{
+            attribute: 'keypadLockout',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+        }];
+        await endpoint.configureReporting('hvacUserInterfaceCfg', payload);
+    },
     thermostatTemperature: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
         const payload = [{
             attribute: 'localTemp',
@@ -5061,6 +5069,7 @@ const devices = [
         fromZigbee: [
             fz.thermostat_att_report,
             fz.stelpro_thermostat,
+            fz.hvac_user_interface,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -5088,7 +5097,8 @@ const devices = [
             await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 300, 900, 5);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
+            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c

@@ -2147,6 +2147,18 @@ const converters = {
             return result;
         },
     },
+    hvac_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const lockoutMode = msg.data['keypadLockout'];
+            if (typeof lockoutMode == 'number') {
+                result.keypad_lockout = lockoutMode;
+            }
+            return result;
+        },
+    },
     stelpro_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
