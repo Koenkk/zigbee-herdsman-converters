@@ -2747,6 +2747,23 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Nordtronic
+    {
+        zigbeeModel: ['BoxDIM2 98425031'],
+        model: 'Box Dimmer 2.0 98425031',
+        vendor: 'Nordtronic',
+        description: 'ZigBee AC dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_light_brightness_report],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+
     // Nue, 3A
     {
         zigbeeModel: ['FTB56+ZSN15HG1.0'],
