@@ -5068,7 +5068,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-            tz.thermostat_stelpro_system_mode,
+            tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
         meta: { configureKey: 1 },
