@@ -5071,7 +5071,7 @@ const devices = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
-        meta: { configureKey: 1 },
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = [
