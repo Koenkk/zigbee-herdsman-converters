@@ -2100,7 +2100,12 @@ const converters = {
             }
             if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
                 const ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-                result.occupied_heating_setpoint = ohs > -250 ? ohs : null;
+                if (ohs < -250) {
+                    // Stelpro will return -325.65 when set to off
+                    result.occupied_heating_setpoint = 0;
+                } else {
+                    result.occupied_heating_setpoint = ohs;
+                }
             }
             if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
                 result.unoccupied_heating_setpoint =
