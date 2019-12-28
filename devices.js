@@ -2792,6 +2792,16 @@ const devices = [
         description: 'Element downlight smart LED bulb',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['E1C-NB6'],
+        model: 'E1C-NB6',
+        vendor: 'Sengled',
+        description: 'Smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+    },
 
     // Swann
     {
