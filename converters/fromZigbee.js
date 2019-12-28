@@ -2173,11 +2173,15 @@ const converters = {
             if (mode == 'number') {
                 result.stelpro_mode = mode;
                 switch (mode) {
-                case 5:
-                    // "Eco" mode is translated into "auto" here
-                    result.system_mode = common.thermostatSystemModes[1];
-                    break;
+                    case 5:
+                        // "Eco" mode is translated into "auto" here
+                        result.system_mode = common.thermostatSystemModes[1];
+                        break;
                 }
+            }
+            const piHeatingDemand = msg.data['pIHeatingDemand'];
+            if (typeof piHeatingDemand == 'number') {
+                result.operation = piHeatingDemand > 0 ? 'heating' : 'idle';
             }
             return result;
         },
