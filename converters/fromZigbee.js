@@ -2181,7 +2181,7 @@ const converters = {
             }
             const piHeatingDemand = msg.data['pIHeatingDemand'];
             if (typeof piHeatingDemand == 'number') {
-                result.operation = piHeatingDemand > 0 ? 'heating' : 'idle';
+                result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
             }
             return result;
         },
