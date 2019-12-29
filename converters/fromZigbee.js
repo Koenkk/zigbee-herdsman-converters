@@ -739,7 +739,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    E1525_occupancy: {
+    tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options) => {
@@ -761,6 +761,17 @@ const converters = {
 
             return {occupancy: true};
         },
+    },
+    E1745_requested_brightness: {
+        // Possible values are 76 (30%) or 254 (100%)
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publush, options) => {
+            return {
+                "requested_brightness_level": msg.data.level,
+                "requested_brightness_percent": Math.round(msg.data.level / 254 * 100)
+            }
+        }
     },
     occupancy_with_timeout: {
         // This is for occupancy sensor that only send a message when motion detected,
