@@ -979,7 +979,7 @@ const converters = {
             if (meta.mapped.model === 'GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
                 // GL-C-008 RGBW
                 if (key === 'state' && value.toUpperCase() === 'OFF') {
-                    await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(11), key, value, meta);
+                    await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(13), key, value, meta);
                 }
 
                 entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(13);
