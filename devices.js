@@ -3677,8 +3677,15 @@ const devices = [
         fromZigbee: [
             fz.ias_water_leak_alarm_1,
             fz.ignore_basic_report,
+            fz.battery_percentage_remaining,
         ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -3717,8 +3724,17 @@ const devices = [
         vendor: 'Trust',
         description: 'Motion Sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_2],
+        fromZigbee: [
+            fz.iaszone_occupancy_2, fz.battery_percentage_remaining,
+            fz.ignore_basic_report,
+        ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['CSW_ADUROLIGHT'],
