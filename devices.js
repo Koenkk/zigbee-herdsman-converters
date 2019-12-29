@@ -5079,6 +5079,7 @@ const devices = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
