@@ -5088,7 +5088,7 @@ const devices = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature
+            tz.stelpro_thermostat_outdoor_temperature,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5110,10 +5110,10 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
-            await endpoint.configureReporting('hvacThermostat',[{
-                        attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
-                        minimumReportInterval: 1,
-                        maximumReportInterval: 0,
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                minimumReportInterval: 1,
+                maximumReportInterval: 0,
             }]);
         },
     },
@@ -5127,7 +5127,7 @@ const devices = [
             fz.thermostat_att_report,
             fz.stelpro_thermostat,
             fz.hvac_user_interface,
-            fz.humidity
+            fz.humidity,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -5137,9 +5137,9 @@ const devices = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature
+            tz.stelpro_thermostat_outdoor_temperature,
         ],
-        meta: { configureKey: 1 },
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = [
@@ -5161,9 +5161,9 @@ const devices = [
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
-                        attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
-                        minimumReportInterval: 1,
-                        maximumReportInterval: 0,
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                minimumReportInterval: 1,
+                maximumReportInterval: 0,
             }]);
         },
     },
