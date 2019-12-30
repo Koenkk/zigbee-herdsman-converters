@@ -843,17 +843,19 @@ const converters = {
                 const hostFlags = {...currentHostFlags, ...value};
 
                 // calculate bit value
-                let bitValue = 0;
+                let bitValue = 1; // bit 0 always 1
                 if (hostFlags.mirror_display) {
                     bitValue |= 1 << 1;
                 }
                 if (hostFlags.boost) {
                     bitValue |= 1 << 2;
                 }
-                if (hostFlags.window_open) {
-                    bitValue |= 1 << 5;
-                } else {
-                    bitValue |= 1 << 4;
+                if (value.hasOwnProperty('window_open') && value.window_open != currentHostFlags.window_open) {
+                    if (hostFlags.window_open) {
+                        bitValue |= 1 << 5;
+                    } else {
+                        bitValue |= 1 << 4;
+                    }
                 }
                 if (hostFlags.child_protection) {
                     bitValue |= 1 << 7;
