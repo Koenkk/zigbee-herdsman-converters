@@ -3145,6 +3145,32 @@ const converters = {
             }
         },
     },
+    orvibo_raw2: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            const buttonLookup = {
+                1: 'button_1',
+                2: 'button_2',
+                3: 'button_3',
+                4: 'button_4',
+                5: 'button_5',
+                6: 'button_6',
+                7: 'button_7',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    },
     diyruz_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

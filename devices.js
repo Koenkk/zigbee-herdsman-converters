@@ -5021,6 +5021,15 @@ const devices = [
         fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['75d430d66c164c26ac8601c05932dc94'],
+        model: 'LVS-SC7',
+        vendor: 'LivingWise',
+        description: 'Scene Controller ',
+        supports: 'buttons',
+        fromZigbee: [fz.orvibo_raw2],
+        toZigbee: [], 
+    },
 
     // Stelpro
     {
