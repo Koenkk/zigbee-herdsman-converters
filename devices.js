@@ -2799,6 +2799,15 @@ const devices = [
         description: 'Element downlight smart LED bulb',
         extend: generic.light_onoff_brightness,
     },
+	{
+        zigbeeModel: ['E1D-G73'],
+        model: 'E1D-G73WNA',
+        vendor: 'Sengled',
+        description: 'Smart Window and Door Sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1], 
+        toZigbee: [],
+    },
 
     // Swann
     {
