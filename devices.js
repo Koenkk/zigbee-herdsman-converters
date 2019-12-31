@@ -1217,6 +1217,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LWA005'],
+        model: '9290022411',
+        vendor: 'Philips',
+        description: 'White single filament bulb A19 E26 with Bluetooth',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LCT026'],
         model: '7602031P7',
         vendor: 'Philips',
