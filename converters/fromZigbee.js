@@ -1541,7 +1541,12 @@ const converters = {
             if (msg.data.hasOwnProperty('instantaneousDemand')) {
                 result.power = msg.data['instantaneousDemand'];
             }
-
+            // Summation is reported in Watthours
+            if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                const data = msg.data['currentSummDelivered'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                result.energy = value / 1000.0;
+            }
             return result;
         },
     },
