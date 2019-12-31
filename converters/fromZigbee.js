@@ -2151,20 +2151,46 @@ const converters = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const result = {};
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options);
+            // system_mode is always 'heat', we set it below based on eurotronic_host_flags
+            if (result.system_mode) {
+                delete result['system_mode'];
+            }
             if (typeof msg.data[0x4003] == 'number') {
                 result.current_heating_setpoint =
                     precisionRound(msg.data[0x4003], 2) / 100;
             }
             if (typeof msg.data[0x4008] == 'number') {
-                result.eurotronic_system_mode = msg.data[0x4008];
-                if ((result.eurotronic_system_mode & 1 << 2) != 0) {
-                    result.system_mode = common.thermostatSystemModes[1]; // boost => auto
-                } else if ((result.eurotronic_system_mode & (1 << 4)) != 0 ) {
-                    result.system_mode = common.thermostatSystemModes[0]; // off
+                result.eurotronic_host_flags = msg.data[0x4008];
+                const resultHostFlags = {
+                    'mirror_display': false,
+                    'boost': false,
+                    'window_open': false,
+                    'child_protection': false,
+                };
+                if ((result.eurotronic_host_flags & 1 << 2) != 0) {
+                    // system_mode => 'heat', boost mode
+                    result.system_mode = common.thermostatSystemModes[4];
+                    resultHostFlags.boost = true;
+                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
+                    // system_mode => 'off', window open detected
+                    result.system_mode = common.thermostatSystemModes[0];
+                    resultHostFlags.window_open = true;
                 } else {
-                    result.system_mode = common.thermostatSystemModes[4]; // heat
+                    // system_mode => 'auto', default
+                    result.system_mode = common.thermostatSystemModes[1];
                 }
+                if ((result.eurotronic_host_flags & (1 << 1)) != 0 ) {
+                    // mirror_display
+                    resultHostFlags.mirror_display = true;
+                }
+                if ((result.eurotronic_host_flags & (1 << 7)) != 0 ) {
+                    // child protection
+                    resultHostFlags.child_protection = true;
+                }
+                // keep eurotronic_system_mode for compatibility (is there a way to mark this as deprecated?)
+                result.eurotronic_system_mode = result.eurotronic_host_flags;
+                result.eurotronic_host_flags = resultHostFlags;
             }
             if (typeof msg.data[0x4002] == 'number') {
                 result.eurotronic_error_status = msg.data[0x4002];
@@ -3356,20 +3382,21 @@ const converters = {
             const stop = msg.type === 'commandStop' ? true : false;
             let direction = null;
             const clk = 'brightness';
-            const result = {click: clk};
+            const payload = {click: clk};
             if (stop) {
                 direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${clk}_${direction}_release`;
-                result.duration = duration;
+                payload.action = `${clk}_${direction}_release`;
+                payload.duration = duration;
             } else {
                 direction = msg.data.movemode === 1 ? 'down' : 'up';
-                result.action = `${clk}_${direction}_hold`;
+                payload.action = `${clk}_${direction}_hold`;
                 // store button and start moment
                 store[deviceID].direction = direction;
+                payload.rate = msg.data.rate;
                 store[deviceID].start = Date.now();
             }
-            return result;
+            return payload;
         },
     },
     CCTSwitch_D0001_colortemp_updown_hold_release: {
@@ -3383,20 +3410,21 @@ const converters = {
             const stop = msg.data.movemode === 0;
             let direction = null;
             const clk = 'colortemp';
-            const result = {click: clk};
+            const payload = {click: clk, rate: msg.data.rate};
             if (stop) {
                 direction = store[deviceID].direction;
                 const duration = Date.now() - store[deviceID].start;
-                result.action = `${clk}_${direction}_release`;
-                result.duration = duration;
+                payload.action = `${clk}_${direction}_release`;
+                payload.duration = duration;
             } else {
                 direction = msg.data.movemode === 3 ? 'down' : 'up';
-                result.action = `${clk}_${direction}_hold`;
+                payload.action = `${clk}_${direction}_hold`;
+                payload.rate = msg.data.rate;
                 // store button and start moment
                 store[deviceID].direction = direction;
                 store[deviceID].start = Date.now();
             }
-            return result;
+            return payload;
         },
     },
 
