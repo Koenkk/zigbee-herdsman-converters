@@ -4729,16 +4729,16 @@ const devices = [
     // Immax
     {
         zigbeeModel: ['IM-Z3.0-DIM'],
-        model: 'IM-Z3.0-DIM',
+        model: '07005B',
         vendor: 'Immax',
-        description: 'LED E14/230V C35 5W TB 440LM ZIGBEE DIM',
+        description: 'Neo SMART LED E14 5W warm white, dimmable, Zigbee 3.0',
         extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['IM-Z3.0-RGBW'],
-        model: 'IM-Z3.0-RGBW',
+        model: '07004D',
         vendor: 'Immax',
-        description: 'LED E27/230V A60 8.5W TB 806LM ZIGBEE DIM',
+        description: 'Neo SMART LED E27 8,5W color, dimmable, Zigbee 3.0',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
