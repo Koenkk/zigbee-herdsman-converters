@@ -1180,6 +1180,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['GUNNARP panel round'],
+        model: 'T1828',
+        description: 'GUNNARP panel round',
+        vendor: 'IKEA',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['GUNNARP panel 40*40'],
         model: 'T1829',
         description: 'GUNNARP panel 40*40',
