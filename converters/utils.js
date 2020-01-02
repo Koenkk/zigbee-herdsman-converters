@@ -94,7 +94,9 @@ function hslToRgb(hsl) {
     const X = C * (1 - Math.abs((h / 60) % 2 - 1));
     const m = l - C/2;
 
-    const r2, g2, b2;
+    let r2;
+    let g2;
+    let b2;
     if(h >= 0 && h < 60) {
         r2 = C;
         g2 = X;
