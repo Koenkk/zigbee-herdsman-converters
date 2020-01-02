@@ -175,7 +175,7 @@ function hsvToRgb(hsv) {
         b2 = C;
     } else if (h >= 240 && h < 300) {
         r2 = X;
-        g2 = 0;        
+        g2 = 0;
         b2 = C;
     } else if (h >= 300 && h < 360) {
         r2 = C;
