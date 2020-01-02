@@ -392,6 +392,12 @@ const converters = {
             } else if (value.hasOwnProperty('hsl')) {
                 const xy = utils.hslToXY(value.hsl);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('hsb')) {
+                const xy = utils.hsvToXY(value.hsb);
+                value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('hsv')) {
+                const xy = utils.hsvToXY(value.hsv);
+                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 value.hue = value.hue * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
