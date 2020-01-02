@@ -1208,10 +1208,10 @@ const converters = {
             if (msg.data['1025']) {
                 const d1025 = msg.data['1025'];
                 return {
-                    options: { //next values update only when curtain finished initial setup and knows current position
+                    options: { // next values update only when curtain finished initial setup and knows current position
                         reverse_direction: d1025[2]=='\u0001',
-                        hand_open: d1025[5]=='\u0000'
-                    }
+                        hand_open: d1025[5]=='\u0000',
+                    },
                 };
             }
         },

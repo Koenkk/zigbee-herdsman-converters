@@ -756,7 +756,7 @@ const converters = {
                 ...value,
             };
 
-            let payload = [
+            const payload = [
                 0x07,
                 0x00,
                 opts.reset_move ? 0x01: 0x02,
@@ -768,7 +768,9 @@ const converters = {
             ];
 
 
-            meta.logger.info('ZNCLDJ11LM setting ' + (opts.reverse_direction ? 'reverse' : 'original') + ' direction' + (opts.reset_move ? ' and resetting move':''));
+            meta.logger.info('ZNCLDJ11LM setting '
+                + (opts.reverse_direction ? 'reverse' : 'original') + ' direction'
+                + (opts.reset_move ? ' and resetting move':''));
             await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
 
             if (value.hand_open !== undefined) { // requires a separate request with slightly different payload
