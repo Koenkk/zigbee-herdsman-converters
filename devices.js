@@ -5816,6 +5816,26 @@ const devices = [
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
     },
+    
+        {
+        zigbeeModel: ['TS0003'],
+        model: 'ZM-L03E-Z',
+        vendor: 'ZEMISMART',
+        description: 'Smart light switch - 3 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
     {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
