@@ -3427,8 +3427,8 @@ const converters = {
             return payload;
         },
     },
-    drayton_device_info: {
-        cluster: 'draytonDeviceInfo',
+    wiser_device_info: {
+        cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
         convert: (model, msg, publish, options) => {
             const result = {};
@@ -3454,7 +3454,7 @@ const converters = {
             return result;
         },
     },
-    drayton_itrv_battery: {
+    wiser_itrv_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -3476,7 +3476,7 @@ const converters = {
             return result;
         },
     },
-    drayton_thermostat: {
+    wiser_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
@@ -3494,7 +3494,7 @@ const converters = {
             return result;
         },
     },
-    drayton_user_interface: {
+    wiser_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {

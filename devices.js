@@ -6410,11 +6410,11 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // Drayton Wiser
+    // Schneider Electric
     {
         zigbeeModel: ['iTRV'],
         model: 'WV704R0A0902',
-        vendor: 'Dryton Wiser',
+        vendor: 'Schneider Electric',
         description: 'Smart heating thermostatic radiator valve',
         supports: 'temperature, battery, keypad lock, heating demand',
         fromZigbee: [
@@ -6422,10 +6422,10 @@ const devices = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            fz.drayton_thermostat,
-            fz.drayton_itrv_battery,
-            fz.drayton_user_interface,
-            fz.drayton_device_info,
+            fz.wiser_thermostat,
+            fz.wiser_itrv_battery,
+            fz.wiser_user_interface,
+            fz.wiser_device_info,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -6447,7 +6447,7 @@ const devices = [
                 {
                     attribute: 'keypadLockout',
                     minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.MAX,
+                    maximumReportInterval: repInterval.HOUR,
                     reportableChange: 0,
                 },
             ];
@@ -6456,19 +6456,19 @@ const devices = [
                 {
                     attribute: 'ALG',
                     minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.MAX,
+                    maximumReportInterval: repInterval.HOUR,
                     reportableChange: 0,
                 },
                 {
                     attribute: 'ADC',
                     minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.MAX,
+                    maximumReportInterval: repInterval.HOUR,
                     reportableChange: 0,
                 },
                 {
                     attribute: 'boost',
                     minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.MAX,
+                    maximumReportInterval: repInterval.HOUR,
                     reportableChange: 0,
                 },
             ];
