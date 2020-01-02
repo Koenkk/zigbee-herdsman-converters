@@ -727,11 +727,11 @@ const devices = [
         fromZigbee: [
             fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output,
             fz.cover_position_tilt,
-            fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_options_output
+            fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_options_output,
         ],
         toZigbee: [
             tz.ZNCLDJ11LM_ZNCLDJ12LM_control,
-            tz.ZNCLDJ11LM_ZNCLDJ12LM_options
+            tz.ZNCLDJ11LM_ZNCLDJ12LM_options,
         ],
     },
     {
