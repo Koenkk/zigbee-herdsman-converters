@@ -3710,7 +3710,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
         extend: generic.light_onoff_brightness_colortemp,
-    },    
+    },
     {
         zigbeeModel: ['VMS_ADUROLIGHT'],
         model: 'ZPIR-8000',
