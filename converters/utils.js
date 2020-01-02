@@ -147,6 +147,8 @@ module.exports = {
     rgbToXY,
     hexToXY,
     hexToRgb,
+    hslToXY,
+    hslToRgb,
     getKeyByValue,
     hasEndpoints,
     miredsToXY,
