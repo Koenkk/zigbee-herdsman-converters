@@ -83,9 +83,11 @@ function hexToRgb(hex) {
 /**
  * From: https://www.rapidtables.com/convert/color/hsl-to-rgb.html
  * Converts HSL color space to RGB color space
+ * @param {String} hsl
+ * @return {Array} Array that contains the CIE color values for r, g and b
  */
 function hslToRgb(hsl) {
-    const arHsl = hsl.split(",");
+    const arHsl = hsl.split(',');
     const h = arHsl[0] % 360;
     const s = arHsl[1] / 100;
     const l = arHsl[2] / 100;
@@ -97,27 +99,27 @@ function hslToRgb(hsl) {
     let r2;
     let g2;
     let b2;
-    if(h >= 0 && h < 60) {
+    if (h >= 0 && h < 60) {
         r2 = C;
         g2 = X;
         b2 = 0;
-    } else if(h >= 60 && h < 120) {
+    } else if (h >= 60 && h < 120) {
         r2 = X;
         g2 = C;
         b2 = 0;
-    } else if(h >= 120 && h < 180) {
+    } else if (h >= 120 && h < 180) {
         r2 = 0;
         g2 = C;
         b2 = X;
-    } else if(h >= 180 && h < 240) {
+    } else if (h >= 180 && h < 240) {
         r2 = 0;
         g2 = X;
         b2 = C;
-    } else if(h >= 240 && h < 300) {
+    } else if (h >= 240 && h < 300) {
         r2 = X;
         g2 = 0;
         b2 = C;
-    } else if(h >= 300 && h < 360) {
+    } else if (h >= 300 && h < 360) {
         r2 = C;
         g2 = 0;
         b2 = X;
