@@ -146,46 +146,46 @@ function hslToRgb(hsl) {
  */
 function hsvToRgb(hsv) {
     const arHsv = hsv.split(',');
-	const h = arHsv[0] % 360;
-	const s = arHsv[1] / 100;
-	const v = arHsv[2] / 100;
+    const h = arHsv[0] % 360;
+    const s = arHsv[1] / 100;
+    const v = arHsv[2] / 100;
 
-	const C = v * s;
-	const X = C * (1 - Math.abs((h / 60) % 2 - 1));
-	const m = v - C;
+    const C = v * s;
+    const X = C * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = v - C;
 
-	let r2;
-	let g2;
-	let b2;
-	if (h >= 0 && h < 60) {
-		r2 = C;
-		g2 = X;
-		b2 = 0;
-	} else if (h >= 60 && h < 120) {
-		r2 = X;
-		g2 = C;
-		b2 = 0;
-	} else if (h >= 120 && h < 180) {
-		r2 = 0;
-		g2 = C;
-		b2 = X;
-	} else if (h >= 180 && h < 240) {
-		r2 = 0;
-		g2 = X;
-		b2 = C;
-	} else if (h >= 240 && h < 300) {
-		r2 = X;
-		g2 = 0;
-		b2 = C;
-	} else if (h >= 300 && h < 360) {
-		r2 = C;
-		g2 = 0;
-		b2 = X;
-	}
+    let r2;
+    let g2;
+    let b2;
+    if (h >= 0 && h < 60) {
+        r2 = C;
+        g2 = X;
+        b2 = 0;
+    } else if (h >= 60 && h < 120) {
+        r2 = X;
+        g2 = C;
+        b2 = 0;
+    } else if (h >= 120 && h < 180) {
+        r2 = 0;
+        g2 = C;
+        b2 = X;
+    } else if (h >= 180 && h < 240) {
+        r2 = 0;
+        g2 = X;
+        b2 = C;
+    } else if (h >= 240 && h < 300) {
+        r2 = X;
+        g2 = 0;        
+        b2 = C;
+    } else if (h >= 300 && h < 360) {
+        r2 = C;
+        g2 = 0;
+        b2 = X;
+    }
 
-	const r = Math.round((r2+m)*255);
-	const g = Math.round((g2+m)*255);
-	const b = Math.round((b2+m)*255);
+    const r = Math.round((r2+m)*255);
+    const g = Math.round((g2+m)*255);
+    const b = Math.round((b2+m)*255);
 
     return {r: r, g: g, b: b};
 }
