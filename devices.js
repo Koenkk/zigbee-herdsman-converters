@@ -6409,6 +6409,72 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+
+    // Drayton Wiser
+    {
+        zigbeeModel: ['iTRV'],
+        model: 'WV704R0A0902',
+        vendor: 'Dryton Wiser',
+        description: 'Smart heating thermostatic radiator valve',
+        supports: 'temperature, battery, keypad lock, heating demand',
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.ignore_haDiagnostic,
+            fz.ignore_genOta,
+            fz.ignore_zclversion_read,
+            fz.drayton_thermostat,
+            fz.drayton_itrv_battery,
+            fz.drayton_user_interface,
+            fz.drayton_device_info,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_keypad_lockout,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl',
+                'hvacThermostat', 'hvacUserInterfaceCfg', 'haDiagnostic',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+            const userInterfaceConfig = [
+                {
+                    attribute: 'keypadLockout',
+                    minimumReportInterval: repInterval.MINUTE,
+                    maximumReportInterval: repInterval.MAX,
+                    reportableChange: 0,
+                },
+            ];
+            await endpoint.configureReporting('hvacUserInterfaceCfg', userInterfaceConfig);
+            const draytonDeviceConfig = [
+                {
+                    attribute: 'ALG',
+                    minimumReportInterval: repInterval.MINUTE,
+                    maximumReportInterval: repInterval.MAX,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'ADC',
+                    minimumReportInterval: repInterval.MINUTE,
+                    maximumReportInterval: repInterval.MAX,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'boost',
+                    minimumReportInterval: repInterval.MINUTE,
+                    maximumReportInterval: repInterval.MAX,
+                    reportableChange: 0,
+                },
+            ];
+            await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
