@@ -389,6 +389,9 @@ const converters = {
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('hsl')) {
+                const xy = utils.hslToXY(value.hsl);
+                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 value.hue = value.hue * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
