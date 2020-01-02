@@ -802,7 +802,7 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genAnalogOutput', [0x0055], options.xiaomi);
+            await entity.read('genAnalogOutput', [0x0055]);
         },
     },
     osram_cmds: {
