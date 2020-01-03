@@ -3180,15 +3180,15 @@ const converters = {
     },
     diyruz_rspm: {
         cluster: 'genOnOff',
-        type: ['attReport', 'readRsp'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const power = precisionRound(msg.data.data['41365'], 2);
+            const power = precisionRound(msg.data['41365'], 2);
             return {
-                state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
-                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
+                state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
+                cpu_temperature: precisionRound(msg.data['41361'], 2),
                 power: power,
                 current: precisionRound(power/230, 2),
-                action: msg.data.data['41367'] === 1 ? 'hold' : 'release',
+                action: msg.data['41367'] === 1 ? 'hold' : 'release',
             };
         },
     },
