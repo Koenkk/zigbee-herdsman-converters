@@ -8,6 +8,7 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
+    MINUTES_10: 600,
     MINUTES_5: 300,
     MINUTE: 60,
 };
@@ -163,21 +164,30 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatOccupiedHeatingSetpoint: async (endpoint) => {
+    thermostatOccupiedHeatingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
         const payload = [{
             attribute: 'occupiedHeatingSetpoint',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 10,
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatPIHeatingDemand: async (endpoint) => {
+    thermostatUnoccupiedHeatingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
+        const payload = [{
+            attribute: 'unoccupiedHeatingSetpoint',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatPIHeatingDemand: async (endpoint, min=0, max=repInterval.MINUTES_5, change=10) => {
         const payload = [{
             attribute: 'pIHeatingDemand',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 10,
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
@@ -4659,17 +4669,21 @@ const devices = [
             tz.eurotronic_host_flags, tz.eurotronic_error_status, tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_remote_sensing,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position,
+            tz.thermostat_local_temperature,
         ],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
-            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_10, 25);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_10, 1);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_10, 25);
+            await configureReporting.thermostatUnoccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_10, 25);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4003, type: 41},
                 minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
+                maximumReportInterval: repInterval.MINUTES_10,
                 reportableChange: 25,
             }], options);
             await endpoint.configureReporting('hvacThermostat', [{
