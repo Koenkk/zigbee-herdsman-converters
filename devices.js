@@ -6415,17 +6415,12 @@ const devices = [
             // Devices can send an identify message when the configuration button is pressed
             // (behind the physical buttons)
             // Used on the official gateway to send to every devices an identify command (green)
-            fz.identify,
-            fz.ignore_basic_report,
+            fz.identify, fz.ignore_basic_report,
             // support binary report on moving state (supposed)
-            fz.legrand_binary_input_moving,
-            fz.cover_position_tilt,
+            fz.legrand_binary_input_moving, fz.cover_position_tilt,
         ],
         toZigbee: [
-            tz.cover_state, // to verify
-            tz.cover_position_tilt, // to verify : not sure % is supported
-            tz.legrand_identify,
-            tz.legrand_settingAlwaysEnableLed,
+            tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6445,8 +6440,8 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        supports: 'on, off, brightness up/down/stop',
-        fromZigbee: [fz.identify, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move, fz.cmd_stop, fz.battery_3V],
+        supports: 'action',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.cmd_move, fz.cmd_stop, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -6459,24 +6454,16 @@ const devices = [
         },
     },
     {
-        zigbeeModel: [
-            ' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000',
-        ],
+        zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
         model: '067771',
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        supports: 'on, off',
-        fromZigbee: [
-            fz.identify,
-            fz.on_off,
-        ],
+        supports: 'on/off',
+        fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off,
-            tz.legrand_settingAlwaysEnableLed,
-            tz.legrand_settingEnableLedIfOn,
-            tz.legrand_settingEnableDimmer,
-            tz.legrand_identify,
+            tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -6488,19 +6475,15 @@ const devices = [
         },
     },
     {
-        zigbeeModel: [
-            ' Master remote SW Home / Away\u0000\u0000',
-        ],
+        zigbeeModel: [' Master remote SW Home / Away\u0000\u0000'],
         model: '064873',
         vendor: 'Legrand',
         // led blink RED when battery is low
-        description: 'Home & Away switch / Master switch',
-        supports: 'on, off, center',
+        description: 'Home & away switch / master switch',
+        supports: 'action',
         fromZigbee: [
-            fz.legrand_master_switch_scenes,
-            fz.legrand_master_switch_center,
-            fz.ignore_poll_ctrl,
-            fz.battery_3V,
+            fz.legrand_master_switch_scenes, fz.legrand_master_switch_center,
+            fz.ignore_poll_ctrl, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -6527,22 +6510,18 @@ const devices = [
             }
         },
     },
-    // BTicino (Legrand brand)
+
+    // Bticino (Legrand brand)
     {
         zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
         model: 'K3004C',
-        vendor: 'BTicino',
+        vendor: 'Bticino',
         description: 'Light switch with neutral',
         supports: 'on, off, led color',
-        fromZigbee: [
-            fz.identify,
-            fz.on_off,
-        ],
+        fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off,
-            tz.legrand_settingAlwaysEnableLed_3,
-            tz.legrand_settingEnableLedIfOn,
-            tz.legrand_identify,
+            tz.on_off, tz.legrand_settingAlwaysEnableLed_3,
+            tz.legrand_settingEnableLedIfOn, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
