@@ -377,6 +377,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // Check if we need to convert from RGB to XY and which cmd to use
             let cmd;
+            const newState = {};
+
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
                 value.x = xy.x;
@@ -389,21 +391,36 @@ const converters = {
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
+                newState.color = {h: value.h, s: value.s};
+                value.hue = value.h % 360 * (65535 / 360);
+                value.saturation = value.s * (2.54);
+                cmd = 'enhancedMoveToHueAndSaturation';
+            } else if (value.hasOwnProperty('h')) {
+                newState.color = {h: value.h};
+                value.hue = value.h % 360 * (65535 / 360);
+                cmd = 'enhancedMoveToHue';
+            } else if (value.hasOwnProperty('s')) {
+                newState.color = {s: value.s};
+                value.saturation = value.s * (2.54);
+                cmd = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
-                value.hue = value.hue * (65535 / 360);
+                newState.color = {hue: value.hue, saturation: value.saturation};
+                value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue')) {
-                value.hue = value.hue * (65535 / 360);
+                newState.color = {hue: value.hue};
+                value.hue = value.hue % 360 * (65535 / 360);
                 cmd = 'enhancedMoveToHue';
             } else if (value.hasOwnProperty('saturation')) {
+                newState.color = {saturation: value.saturation};
                 value.saturation = value.saturation * (2.54);
                 cmd = 'moveToSaturation';
             }
 
             const zclData = {transtime: getTransition(entity, key, meta)};
 
-            let newState = null;
             switch (cmd) {
             case 'enhancedMoveToHueAndSaturation':
                 zclData.enhancehue = value.hue;
@@ -421,11 +438,10 @@ const converters = {
 
             default:
                 cmd = 'moveToColor';
-                newState = {color: {x: value.x, y: value.y}};
+                newState.color = {x: value.x, y: value.y};
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
-
             await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta));
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
@@ -450,7 +466,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state) {
+                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
                     result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
                 }
 
@@ -509,7 +525,7 @@ const converters = {
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -519,7 +535,7 @@ const converters = {
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -529,7 +545,7 @@ const converters = {
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
+            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -831,16 +847,16 @@ const converters = {
     osram_cmds: {
         key: ['osram_set_transition', 'osram_remember_state'],
         convertSet: async (entity, key, value, meta) => {
-            if ( key === 'osram_set_transition' ) {
+            if (key === 'osram_set_transition') {
                 if (value) {
-                    const transition = ( value > 1 ) ? (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 10 : 1;
+                    const transition = (value > 1) ? (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 10 : 1;
                     const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
                     await entity.write('genLevelCtrl', payload);
                 }
-            } else if ( key == 'osram_remember_state' ) {
+            } else if (key == 'osram_remember_state') {
                 if (value === true) {
                     await entity.command('manuSpecificOsram', 'saveStartupParams', {}, options.osram);
-                } else if ( value === false ) {
+                } else if (value === false) {
                     await entity.command('manuSpecificOsram', 'resetStartupParams', {}, options.osram);
                 }
             }
@@ -922,7 +938,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 0x4003: {
-                    value: (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100,
+                    value: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
                     type: 0x29,
                 },
             };
@@ -1207,7 +1223,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
-            } else if (value.toLowerCase()=='off') {
+            } else if (value.toLowerCase() == 'off') {
                 // set timer to 30sec in order to disable outdoor temperature
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 30});
             }
@@ -1247,7 +1263,7 @@ const converters = {
             };
             value = lookup[value];
             // Check for valid data
-            if ( ((value >= 0) && value < 2) == false ) value = 0;
+            if (((value >= 0) && value < 2) == false) value = 0;
 
             const payload = {
                 0x4010: {
