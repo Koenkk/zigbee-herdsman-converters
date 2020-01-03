@@ -374,11 +374,25 @@ const converters = {
             return {action: 'on'};
         },
     },
+    command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
     command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options) => {
             return {action: 'off'};
+        },
+    },
+    identify: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            return {action: 'identify'};
         },
     },
 
@@ -3568,6 +3582,43 @@ const converters = {
         },
     },
 
+
+    legrand_binary_input_moving: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            return {
+                action: msg.data.presentValue ? 'moving' : 'stopped',
+            };
+        },
+    },
+    legrand_master_switch_scenes: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options) => {
+            let action = 'default';
+            if (msg.data.groupid === 0xfff7) action = 'enter';
+            if (msg.data.groupid === 0xfff6) action = 'leave';
+            return {
+                action: action,
+            };
+        },
+    },
+    legrand_master_switch_center: {
+        cluster: 'manuSpecificLegrandDevices',
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            if (
+                msg.data && msg.data.length === 6 &&
+                msg.data[0] === 0x15 && msg.data[1] === 0x21 && msg.data[2] === 0x10 &&
+                msg.data[3] === 0x00 && msg.data[4] === 0x03 && msg.data[5] === 0xff
+            ) {
+                return {
+                    action: 'center',
+                };
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

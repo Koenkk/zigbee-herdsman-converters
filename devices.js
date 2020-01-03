@@ -406,6 +406,29 @@ const osram = {
     },
 };
 
+const legrand = {
+    pairing_security_event: async (type, data, device) => {
+        // support Legrand security protocol
+        // when pairing, a powered device will send a read frame to every device on the network
+        // it expects at least one answer. The payload contains the number of seconds
+        // since when the device is powered. If the value is too high, it will leave & not pair
+        // 23 works, 200 doesn't
+        if (data.type === 'read' && data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
+            const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+            const payload = {0xf00: {value: 23, type: 35}};
+            await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+        }
+    },
+    read_initial_battery_state: async (type, data, device) => {
+        if (['deviceAnnounce'].includes(type) && typeof store[device.ieeeAddr] === 'undefined') {
+            const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+            await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
+        }
+    },
+};
+
 const devices = [
     // Xiaomi
     {
@@ -6592,6 +6615,136 @@ const devices = [
                 },
             ];
             await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+        },
+    },
+
+    // Legrand
+    {
+        zigbeeModel: [' Shutter switch with neutral\u0000\u0000\u0000'],
+        model: '067776',
+        vendor: 'Legrand',
+        description: 'Netatmo wired shutter switch',
+        // the physical LED will be green when permit join is true, off otherwise and red when not linked
+        supports: 'open, close, stop, position, tilt',
+        fromZigbee: [
+            // Devices can send an identify message when the configuration button is pressed
+            // (behind the physical buttons)
+            // Used on the official gateway to send to every devices an identify command (green)
+            fz.identify, fz.ignore_basic_report,
+            // support binary report on moving state (supposed)
+            fz.legrand_binary_input_moving, fz.cover_position_tilt,
+        ],
+        toZigbee: [
+            tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+        },
+        onEvent: async (type, data, device) => {
+            await legrand.pairing_security_event(type, data, device);
+        },
+    },
+    {
+        zigbeeModel: [
+            ' Remote switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+        ],
+        model: '067773',
+        vendor: 'Legrand',
+        // led blink RED when battery is low
+        description: 'Wireless remote switch',
+        supports: 'action',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.cmd_move, fz.cmd_stop, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+        },
+        onEvent: async (type, data, device, options) => {
+            await legrand.pairing_security_event(type, data, device);
+            await legrand.read_initial_battery_state(type, data, device);
+        },
+    },
+    {
+        zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
+        model: '067771',
+        vendor: 'Legrand',
+        // led blink RED when battery is low
+        description: 'Wired switch without neutral',
+        supports: 'on/off',
+        fromZigbee: [fz.identify, fz.on_off],
+        toZigbee: [
+            tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_settingEnableDimmer, tz.legrand_identify,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+        },
+        onEvent: async (type, data, device) => {
+            await legrand.pairing_security_event(type, data, device);
+        },
+    },
+    {
+        zigbeeModel: [' Master remote SW Home / Away\u0000\u0000'],
+        model: '064873',
+        vendor: 'Legrand',
+        // led blink RED when battery is low
+        description: 'Home & away switch / master switch',
+        supports: 'action',
+        fromZigbee: [
+            fz.legrand_master_switch_scenes, fz.legrand_master_switch_center,
+            fz.ignore_poll_ctrl, fz.battery_3V,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
+        },
+        onEvent: async (type, data, device) => {
+            await legrand.pairing_security_event(type, data, device);
+            await legrand.read_initial_battery_state(type, data, device);
+
+            if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
+                // TODO current solution is a work around, it would be cleaner to answer to the request
+                const endpoint = device.getEndpoint(1);
+                const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+                /* await endpoint.command('genPollCtrl', 'checkinRsp', {
+                    startfastpolling: false,
+                    fastpolltimeout: 0,
+                }, {
+                    transactionSequenceNumber:data.meta.zclTransactionSequenceNumber,
+                    manufacturerCode: 0x1021, disableDefaultResponse: true
+                }); */
+                await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
+            }
+        },
+    },
+
+    // BTicino (Legrand brand)
+    {
+        zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
+        model: 'K3004C',
+        vendor: 'BTicino',
+        description: 'Light switch with neutral',
+        supports: 'on/off, led color',
+        fromZigbee: [fz.identify, fz.on_off],
+        toZigbee: [
+            tz.on_off, tz.legrand_settingAlwaysEnableLed_3,
+            tz.legrand_settingEnableLedIfOn, tz.legrand_identify,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
+        },
+        onEvent: async (type, data, device) => {
+            await legrand.pairing_security_event(type, data, device);
         },
     },
 ];

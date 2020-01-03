@@ -26,6 +26,10 @@ const options = {
     tint: {
         manufacturerCode: 0x121b,
     },
+    legrand: {
+        manufacturerCode: 0x1021,
+        disableDefaultResponse: true,
+    },
 };
 
 function getTransition(entity, key, meta) {
@@ -1448,6 +1452,80 @@ const converters = {
         key: ['tint_scene'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genBasic', {0x4005: {value, type: 0x20}}, options.tint);
+        },
+    },
+
+    // legrand custom cluster : settings
+    legrand_identify: {
+        key: ['identify'],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value.timeout) {
+                const effects = {
+                    'blink3': 0x00,
+                    'fixed': 0x01,
+                    'blinkgreen': 0x02,
+                    'blinkblue': 0x03,
+                };
+                // only works for blink3 & fixed
+                const colors = {
+                    'default': 0x00,
+                    'red': 0x01,
+                    'green': 0x02,
+                    'blue': 0x03,
+                    'lightblue': 0x04,
+                    'yellow': 0x05,
+                    'pink': 0x06,
+                    'white': 0x07,
+                };
+
+                const selectedEffect = effects[value.effect] | effects['blink3'];
+                const selectedColor = colors[value.color] | colors['default'];
+
+                const payload = {effectid: selectedEffect, effectvariant: selectedColor};
+                await entity.command('genIdentify', 'triggerEffect', payload, {});
+            } else {
+                await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
+            }
+            // await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta));
+        },
+    },
+    legrand_settingAlwaysEnableLed: {
+        key: ['permanent_led'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable or disable the LED (blue) when permitJoin=false (LED off)
+            const enableLedIfOn = value === 'ON' || !!value;
+            const payload = {1: {value: enableLedIfOn, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+        },
+    },
+    // Some devices requires have the functionality on the 3rd attribute and not 1rst (BTicino sub-brand)
+    legrand_settingAlwaysEnableLed_3: {
+        key: ['permanent_led'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable or disable the LED (blue) when permitJoin=false (LED off)
+            const enableLedIfOn = value === 'ON' || !!value;
+            const payload = {3: {value: enableLedIfOn, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+        },
+    },
+    legrand_settingEnableLedIfOn: {
+        key: ['led_when_on'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable the LED when the light object is "doing something"
+            // on the light switch, the LED is on when the light is on,
+            // on the shutter switch, the LED is on when te shutter is moving
+            const enableLedIfOn = value === 'ON' || !!value;
+            const payload = {2: {value: enableLedIfOn, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+        },
+    },
+    legrand_settingEnableDimmer: {
+        key: ['dimmer_enabled'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable the dimmer, requires a recent firmware on the device
+            const enableDimmer = value === 'ON' || !!value;
+            const payload = {0: {value: enableDimmer ? '0101' : '0100', type: 9}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
 
