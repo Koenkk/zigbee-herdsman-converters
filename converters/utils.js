@@ -46,16 +46,6 @@ function hexToXY(hex) {
     return rgbToXY(rgb.r, rgb.g, rgb.b);
 }
 
-function hslToXY(hsl) {
-    const rgb = hslToRgb(hsl);
-    return rgbToXY(rgb.r, rgb.g, rgb.b);
-}
-
-function hsvToXY(hsv) {
-    const rgb = hsvToRgb(hsv);
-    return rgbToXY(rgb.r, rgb.g, rgb.b);
-}
-
 function miredsToKelvin(mireds) {
     return 1000000 / mireds;
 }
@@ -75,117 +65,24 @@ function xyToMireds(x, y) {
     return Math.round(kelvinToMireds(Math.abs(kelvin)));
 }
 
+function hslToHsb(h, s, l) {
+    h = h % 360;
+    s = s / 100;
+    l = l / 100;
+
+    let retH = h;
+    let retB = s * Math.min(l, 1-l) + l;
+    let retS = retB ? 2-2*l/retB : 0;
+
+    return {h: retH, s: retS, b: retB};
+}
+
 function hexToRgb(hex) {
     hex = hex.replace('#', '');
     const bigint = parseInt(hex, 16);
     const r = (bigint >> 16) & 255;
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
-
-    return {r: r, g: g, b: b};
-}
-
-/**
- * From: https://www.rapidtables.com/convert/color/hsl-to-rgb.html
- * Converts HSL color space to RGB color space
- * @param {String} hsl
- * @return {Array} Array that contains the CIE color values for r, g and b
- */
-function hslToRgb(hsl) {
-    const arHsl = hsl.split(',');
-    const h = arHsl[0] % 360;
-    const s = arHsl[1] / 100;
-    const l = arHsl[2] / 100;
-
-    const C = (1 - Math.abs(2*l - 1)) * s;
-    const X = C * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - C/2;
-
-    let r2;
-    let g2;
-    let b2;
-    if (h >= 0 && h < 60) {
-        r2 = C;
-        g2 = X;
-        b2 = 0;
-    } else if (h >= 60 && h < 120) {
-        r2 = X;
-        g2 = C;
-        b2 = 0;
-    } else if (h >= 120 && h < 180) {
-        r2 = 0;
-        g2 = C;
-        b2 = X;
-    } else if (h >= 180 && h < 240) {
-        r2 = 0;
-        g2 = X;
-        b2 = C;
-    } else if (h >= 240 && h < 300) {
-        r2 = X;
-        g2 = 0;
-        b2 = C;
-    } else if (h >= 300 && h < 360) {
-        r2 = C;
-        g2 = 0;
-        b2 = X;
-    }
-
-    const r = Math.round((r2+m)*255);
-    const g = Math.round((g2+m)*255);
-    const b = Math.round((b2+m)*255);
-
-    return {r: r, g: g, b: b};
-}
-
-
-/**
- * From: https://www.rapidtables.com/convert/color/hsv-to-rgb.html
- * Converts HSV/HSB color space to RGB color space
- * @param {String} hsv
- * @return {Array} Array that contains the CIE color values for r, g and b
- */
-function hsvToRgb(hsv) {
-    const arHsv = hsv.split(',');
-    const h = arHsv[0] % 360;
-    const s = arHsv[1] / 100;
-    const v = arHsv[2] / 100;
-
-    const C = v * s;
-    const X = C * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = v - C;
-
-    let r2;
-    let g2;
-    let b2;
-    if (h >= 0 && h < 60) {
-        r2 = C;
-        g2 = X;
-        b2 = 0;
-    } else if (h >= 60 && h < 120) {
-        r2 = X;
-        g2 = C;
-        b2 = 0;
-    } else if (h >= 120 && h < 180) {
-        r2 = 0;
-        g2 = C;
-        b2 = X;
-    } else if (h >= 180 && h < 240) {
-        r2 = 0;
-        g2 = X;
-        b2 = C;
-    } else if (h >= 240 && h < 300) {
-        r2 = X;
-        g2 = 0;
-        b2 = C;
-    } else if (h >= 300 && h < 360) {
-        r2 = C;
-        g2 = 0;
-        b2 = X;
-    }
-
-    const r = Math.round((r2+m)*255);
-    const g = Math.round((g2+m)*255);
-    const b = Math.round((b2+m)*255);
 
     return {r: r, g: g, b: b};
 }
