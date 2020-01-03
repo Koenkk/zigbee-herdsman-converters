@@ -1104,24 +1104,9 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI motion sensor'],
-        model: 'E1525',
+        model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        supports: 'occupancy',
-        fromZigbee: [fz.generic_battery, fz.tradfri_occupancy],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['TRADFRI motion sensor'],
-        model: 'E1745',
-        vendor: 'IKEA',
-        description: 'TRADFRI motion sensor (2nd gen)',
         supports: 'occupancy',
         fromZigbee: [fz.generic_battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
