@@ -3469,6 +3469,90 @@ const converters = {
             return payload;
         },
     },
+    wiser_device_info: {
+        cluster: 'wiserDeviceInfo',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const data = msg.data['deviceInfo'].split(',');
+            if (data[0] === 'ALG') {
+                // TODO What is ALG
+                result['ALG'] = data.slice(1).join(',');
+            } else if (data[0] === 'ADC') {
+                // TODO What is ADC
+                result['ADC'] = data.slice(1).join(',');
+            } else if (data[0] === 'UI') {
+                if (data[1] === 'BoostUp') {
+                    result['boost'] = 'Up';
+                } else if (data[1] === 'BoostDown') {
+                    result['boost'] = 'Down';
+                } else {
+                    result['boost'] = 'None';
+                }
+            } else if (data[0] === 'MOT') {
+                // Info about the motor
+                result['MOT'] = data[1];
+            }
+            return result;
+        },
+    },
+    wiser_itrv_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data['batteryVoltage'] == 'number') {
+                const battery = {max: 30, min: 22};
+                const voltage = msg.data['batteryVoltage'];
+                result.battery = toPercentage(voltage, battery.min, battery.max);
+                result.voltage = voltage / 10;
+            }
+            if (typeof msg.data['batteryAlarmState'] == 'number') {
+                const battLow = msg.data['batteryAlarmState'];
+                if (battLow) {
+                    result['battery_low'] = true;
+                } else {
+                    result['battery_low'] = false;
+                }
+            }
+            return result;
+        },
+    },
+    wiser_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data['localTemp'] == 'number') {
+                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+            }
+            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
+                result.occupied_heating_setpoint =
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 2);
+            }
+            return result;
+        },
+    },
+    wiser_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            if (typeof msg.data['keypadLockout'] == 'number') {
+                const kLock = msg.data['keypadLockout'];
+                if (kLock) {
+                    result['keypad_lockout'] = true;
+                } else {
+                    result['keypad_lockout'] = false;
+                }
+            }
+            return result;
+        },
+    },
+
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
@@ -3589,6 +3673,21 @@ const converters = {
     ignore_genLevelCtrl_report: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_genOta: {
+        cluster: 'genOta',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_haDiagnostic: {
+        cluster: 'haDiagnostic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => null,
+    },
+    ignore_zclversion_read: {
+        cluster: 'genBasic',
+        type: 'read',
         convert: (model, msg, publish, options) => null,
     },
 };
