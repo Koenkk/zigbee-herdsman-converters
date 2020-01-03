@@ -464,11 +464,10 @@ const converters = {
 
             switch (cmd) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
-                zclData.brightness = value.brightness;
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(brightness), transtime: getTransition(entity, key, meta)},
+                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta)},
                     getOptions(meta),
                 );
                 zclData.enhancehue = value.hue;
