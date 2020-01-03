@@ -739,7 +739,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    E1525_occupancy: {
+    tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options) => {
@@ -760,6 +760,17 @@ const converters = {
             }
 
             return {occupancy: true};
+        },
+    },
+    E1745_requested_brightness: {
+        // Possible values are 76 (30%) or 254 (100%)
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publush, options) => {
+            return {
+                requested_brightness_level: msg.data.level,
+                requested_brightness_percent: Math.round(msg.data.level / 254 * 100),
+            };
         },
     },
     occupancy_with_timeout: {
@@ -1541,7 +1552,12 @@ const converters = {
             if (msg.data.hasOwnProperty('instantaneousDemand')) {
                 result.power = msg.data['instantaneousDemand'];
             }
-
+            // Summation is reported in Watthours
+            if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                const data = msg.data['currentSummDelivered'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                result.energy = value / 1000.0;
+            }
             return result;
         },
     },
@@ -3145,6 +3161,32 @@ const converters = {
             }
         },
     },
+    orvibo_raw2: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options) => {
+            const buttonLookup = {
+                1: 'button_1',
+                2: 'button_2',
+                3: 'button_3',
+                4: 'button_4',
+                5: 'button_5',
+                6: 'button_6',
+                7: 'button_7',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    },
     diyruz_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -3154,15 +3196,15 @@ const converters = {
     },
     diyruz_rspm: {
         cluster: 'genOnOff',
-        type: ['attReport', 'readRsp'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const power = precisionRound(msg.data.data['41365'], 2);
+            const power = precisionRound(msg.data['41365'], 2);
             return {
-                state: msg.data.data['onOff'] === 1 ? 'ON' : 'OFF',
-                cpu_temperature: precisionRound(msg.data.data['41361'], 2),
+                state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
+                cpu_temperature: precisionRound(msg.data['41361'], 2),
                 power: power,
                 current: precisionRound(power/230, 2),
-                action: msg.data.data['41367'] === 1 ? 'hold' : 'release',
+                action: msg.data['41367'] === 1 ? 'hold' : 'release',
             };
         },
     },
