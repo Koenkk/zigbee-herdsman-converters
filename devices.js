@@ -3766,7 +3766,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['ZLL-ColorTempera'],
+        zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
