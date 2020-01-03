@@ -356,6 +356,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // Check if we need to convert from RGB to XY and which cmd to use
             let cmd;
+            const newState = {};
+
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
                 value.x = xy.x;
@@ -369,30 +371,35 @@ const converters = {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
+                newState.color = {h: value.h, s: value.s};
                 value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
             } else if (value.hasOwnProperty('h')) {
+                newState.color = {h: value.h};
                 value.hue = value.h % 360 * (65535 / 360);
                 cmd = 'enhancedMoveToHue';
             } else if (value.hasOwnProperty('s')) {
+                newState.color = {s: value.s};
                 value.saturation = value.s * (2.54);
                 cmd = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
+                newState.color = {hue: value.hue, saturation: value.saturation};
                 value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue')) {
+                newState.color = {hue: value.hue};
                 value.hue = value.hue % 360 * (65535 / 360);
                 cmd = 'enhancedMoveToHue';
             } else if (value.hasOwnProperty('saturation')) {
+                newState.color = {saturation: value.saturation};
                 value.saturation = value.saturation * (2.54);
                 cmd = 'moveToSaturation';
             }
 
             const zclData = {transtime: getTransition(entity, key, meta)};
 
-            let newState = null;
             switch (cmd) {
             case 'enhancedMoveToHueAndSaturation':
                 zclData.enhancehue = value.hue;
@@ -410,7 +417,7 @@ const converters = {
 
             default:
                 cmd = 'moveToColor';
-                newState = {color: {x: value.x, y: value.y}};
+                newState.color = {x: value.x, y: value.y};
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
@@ -438,11 +445,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state) {
+                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
                     result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
-                    result.state = {color: {h: value.hue / 65535 * 360, s: value.saturation / 2.55}};
                 }
+
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
