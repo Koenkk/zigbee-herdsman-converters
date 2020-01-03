@@ -2841,6 +2841,15 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['E1D-G73'],
+        model: 'E1D-G73WNA',
+        vendor: 'Sengled',
+        description: 'Smart window and door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['E1C-NB6'],
         model: 'E1C-NB6',
         vendor: 'Sengled',
