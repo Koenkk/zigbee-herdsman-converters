@@ -2651,7 +2651,7 @@ const devices = [
         zigbeeModel: ['DL15S'],
         model: 'DL15S-1BZ',
         vendor: 'Leviton',
-        description: 'Lumina RF 15A Switch, 120/277V',
+        description: 'Lumina RF 15A switch, 120/277V',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
