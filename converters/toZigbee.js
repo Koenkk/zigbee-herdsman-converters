@@ -1440,6 +1440,16 @@ const converters = {
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
+    // Some devices requires have the functionality on the 3rd attribute and not 1rst (BTicino sub-brand)
+    legrand_settingAlwaysEnableLed_3: {
+        key: ['permanent_led'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable or disable the LED (blue) when permitJoin=false (LED off)
+            const enableLedIfOn = value === 'ON' || !!value;
+            const payload = {3: {value: enableLedIfOn, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+        },
+    },
     legrand_settingEnableLedIfOn: {
         key: ['led_when_on'],
         convertSet: async (entity, key, value, meta) => {

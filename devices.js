@@ -6527,6 +6527,32 @@ const devices = [
             }
         },
     },
+    // BTicino (Legrand brand)
+    {
+        zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
+        model: 'K3004C',
+        vendor: 'BTicino',
+        description: 'Light switch with neutral',
+        supports: 'on, off, led color',
+        fromZigbee: [
+            fz.identify,
+            fz.on_off,
+        ],
+        toZigbee: [
+            tz.on_off,
+            tz.legrand_settingAlwaysEnableLed_3,
+            tz.legrand_settingEnableLedIfOn,
+            tz.legrand_identify,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
+        },
+        onEvent: async (type, data, device) => {
+            await legrand.pairing_security_event(type, data, device);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
