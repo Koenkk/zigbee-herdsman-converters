@@ -737,8 +737,15 @@ const devices = [
         description: 'Aqara curtain motor',
         supports: 'open, close, stop, position',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
-        toZigbee: [tz.ZNCLDJ11LM_ZNCLDJ12LM_control],
+        fromZigbee: [
+            fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output,
+            fz.cover_position_tilt,
+            fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_options_output,
+        ],
+        toZigbee: [
+            tz.ZNCLDJ11LM_ZNCLDJ12LM_control,
+            tz.ZNCLDJ11LM_ZNCLDJ12LM_options,
+        ],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],

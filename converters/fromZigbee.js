@@ -1210,6 +1210,21 @@ const converters = {
             }
         },
     },
+    ZNCLDJ11LM_ZNCLDJ12LM_curtain_options_output: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            if (msg.data['1025']) {
+                const d1025 = msg.data['1025'];
+                return {
+                    options: { // next values update only when curtain finished initial setup and knows current position
+                        reverse_direction: d1025[2]=='\u0001',
+                        hand_open: d1025[5]=='\u0000',
+                    },
+                };
+            }
+        },
+    },
     ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],

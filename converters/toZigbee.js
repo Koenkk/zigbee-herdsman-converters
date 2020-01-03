@@ -767,6 +767,43 @@ const converters = {
             await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta));
         },
     },
+    ZNCLDJ11LM_ZNCLDJ12LM_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value, meta) => {
+            const opts = {
+                'reverse_direction': false,
+                'hand_open': true,
+                'reset_move': false,
+                ...value,
+            };
+
+            const payload = [
+                0x07,
+                0x00,
+                opts.reset_move ? 0x01: 0x02,
+                0x00,
+                opts.reverse_direction ? 0x01: 0x00,
+                0x04,
+                !opts.hand_open ? 0x01: 0x00,
+                0x12,
+            ];
+
+
+            meta.logger.info('ZNCLDJ11LM setting ' +
+                (opts.reverse_direction ? 'reverse' : 'original') + ' direction' +
+                (opts.reset_move ? ' and resetting move':''));
+            await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+
+            if (value.hand_open !== undefined) { // requires a separate request with slightly different payload
+                payload[2] = 0x08;
+                meta.logger.info('ZNCLDJ11LM ' + (opts.hand_open ? 'enabling' : 'disabling') + ' hand open');
+                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0x0401], options.xiaomi);
+        },
+    },
     ZNCLDJ11LM_ZNCLDJ12LM_control: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
@@ -786,6 +823,9 @@ const converters = {
                 const payload = {0x0055: {value, type: 0x39}};
                 await entity.write('genAnalogOutput', payload);
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genAnalogOutput', [0x0055]);
         },
     },
     osram_cmds: {
