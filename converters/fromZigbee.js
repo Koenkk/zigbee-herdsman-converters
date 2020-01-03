@@ -374,6 +374,13 @@ const converters = {
             return {action: 'on'};
         },
     },
+    command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options) => {
+            return {action: 'off'};
+        },
+    },
     command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
