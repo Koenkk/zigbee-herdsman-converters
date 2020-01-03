@@ -5844,7 +5844,7 @@ const devices = [
     {
         zigbeeModel: ['TS0003'],
         model: 'ZM-L03E-Z',
-        vendor: 'ZEMISMART',
+        vendor: 'Zemismart',
         description: 'Smart light switch - 3 gang with neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
