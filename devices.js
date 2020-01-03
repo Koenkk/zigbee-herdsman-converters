@@ -1114,11 +1114,11 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI motion sensor'],
-        model: 'E1525',
+        model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.generic_battery, fz.E1525_occupancy],
+        fromZigbee: [fz.generic_battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
