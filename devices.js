@@ -1535,6 +1535,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colorxy,
     },
     {
+        zigbeeModel: ['1742930P7'],
+        model: '1742930P7',
+        vendor: 'Philips',
+        description: 'Hue Wall Lamp',
+        extend: hue.light_onoff_brightness_colorxy,
+    },    
+    {
         zigbeeModel: ['LLC006'],
         model: '7099930PH',
         vendor: 'Philips',
