@@ -768,10 +768,10 @@ const converters = {
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publush, options) => {
             return {
-                "requested_brightness_level": msg.data.level,
-                "requested_brightness_percent": Math.round(msg.data.level / 254 * 100)
-            }
-        }
+                requested_brightness_level: msg.data.level,
+                requested_brightness_percent: Math.round(msg.data.level / 254 * 100),
+            };
+        },
     },
     occupancy_with_timeout: {
         // This is for occupancy sensor that only send a message when motion detected,
