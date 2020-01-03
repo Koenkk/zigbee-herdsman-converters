@@ -5028,7 +5028,7 @@ const devices = [
         description: 'Scene Controller ',
         supports: 'buttons',
         fromZigbee: [fz.orvibo_raw2],
-        toZigbee: [], 
+        toZigbee: [],
     },
 
     // Stelpro
