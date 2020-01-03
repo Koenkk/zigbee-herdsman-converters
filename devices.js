@@ -6410,12 +6410,12 @@ const devices = [
         toZigbee: [tz.on_off],
     },
 
-    // Schneider Electric
+    // Drayton
     {
         zigbeeModel: ['iTRV'],
         model: 'WV704R0A0902',
-        vendor: 'Schneider Electric',
-        description: 'Smart heating thermostatic radiator valve',
+        vendor: 'Drayton',
+        description: 'Wiser radiator thermostat',
         supports: 'temperature, battery, keypad lock, heating demand',
         fromZigbee: [
             fz.ignore_basic_report,
