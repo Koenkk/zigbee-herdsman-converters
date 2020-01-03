@@ -6726,11 +6726,11 @@ const devices = [
         },
     },
 
-    // Bticino (Legrand brand)
+    // BTicino (Legrand brand)
     {
         zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
         model: 'K3004C',
-        vendor: 'Bticino',
+        vendor: 'BTicino',
         description: 'Light switch with neutral',
         supports: 'on, off, led color',
         fromZigbee: [fz.identify, fz.on_off],
