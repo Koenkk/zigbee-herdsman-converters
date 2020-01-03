@@ -3154,7 +3154,7 @@ const converters = {
     },
     diyruz_rspm: {
         cluster: 'genOnOff',
-        type: ['attReport', 'readRsp'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             const power = precisionRound(msg.data.data['41365'], 2);
             return {
