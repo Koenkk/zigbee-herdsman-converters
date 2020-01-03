@@ -3440,7 +3440,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
             return {
-                moving: msg.data.presentValue,
+                action: msg.data.presentValue ? 'moving' : 'stopped',
             };
         },
     },
