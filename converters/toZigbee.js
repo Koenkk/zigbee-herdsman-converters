@@ -66,7 +66,7 @@ function getTransition(entity, key, meta) {
 //   message: the full message, used for e.g. {brightness; transition;}
 //   options: {disableFeedback: skip waiting for feedback, e.g. Hampton Bay 99432 doesn't respond}
 //   endpoint_name: name of the endpoint, used for e.g. livolo where left and right is
-//                  separated by transition time instead of separte endpoint
+//                  separated by transition time instead of separated endpoint
 // }
 
 const getOptions = (meta) => {
@@ -486,13 +486,13 @@ const converters = {
         },
     },
     thermostat_local_temperature: {
-        key: 'local_temperature',
+        key: ['local_temperature'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['localTemp']);
         },
     },
     thermostat_local_temperature_calibration: {
-        key: 'local_temperature_calibration',
+        key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)});
         },
@@ -501,13 +501,13 @@ const converters = {
         },
     },
     thermostat_occupancy: {
-        key: 'occupancy',
+        key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ocupancy']);
         },
     },
     thermostat_occupied_heating_setpoint: {
-        key: 'occupied_heating_setpoint',
+        key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
@@ -517,7 +517,7 @@ const converters = {
         },
     },
     thermostat_unoccupied_heating_setpoint: {
-        key: 'unoccupied_heating_setpoint',
+        key: ['unoccupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
@@ -527,7 +527,7 @@ const converters = {
         },
     },
     thermostat_occupied_cooling_setpoint: {
-        key: 'occupied_cooling_setpoint',
+        key: ['occupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1))/2).toFixed(1) * 100;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
@@ -537,7 +537,7 @@ const converters = {
         },
     },
     thermostat_remote_sensing: {
-        key: 'remote_sensing',
+        key: ['remote_sensing'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {remoteSensing: value});
         },
@@ -546,7 +546,7 @@ const converters = {
         },
     },
     thermostat_control_sequence_of_operation: {
-        key: 'control_sequence_of_operation',
+        key: ['control_sequence_of_operation'],
         convertSet: async (entity, key, value, meta) => {
             const ctrlSeqeOfOper = utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value);
             await entity.write('hvacThermostat', {ctrlSeqeOfOper});
@@ -556,7 +556,7 @@ const converters = {
         },
     },
     thermostat_system_mode: {
-        key: 'system_mode',
+        key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
             await entity.write('hvacThermostat', {systemMode});
@@ -567,14 +567,14 @@ const converters = {
         },
     },
     thermostat_setpoint_raise_lower: {
-        key: 'setpoint_raise_lower',
+        key: ['setpoint_raise_lower'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
             await entity.command('hvacThermostat', 'setpointRaiseLower', payload, getOptions(meta));
         },
     },
     thermostat_weekly_schedule: {
-        key: 'weekly_schedule',
+        key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 temperature_setpoint_hold: value.temperature_setpoint_hold,
@@ -589,19 +589,19 @@ const converters = {
         },
     },
     thermostat_clear_weekly_schedule: {
-        key: 'clear_weekly_schedule',
+        key: ['clear_weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, getOptions(meta));
         },
     },
     thermostat_relay_status_log: {
-        key: 'relay_status_log',
+        key: ['relay_status_log'],
         convertGet: async (entity, key, meta) => {
             await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta));
         },
     },
     thermostat_weekly_schedule_rsp: {
-        key: 'weekly_schedule_rsp',
+        key: ['weekly_schedule_rsp'],
         convertGet: async (entity, key, meta) => {
             const payload = {
                 number_of_transitions: meta.message[key].numoftrans, // TODO: Lookup in Zigbee documentation
@@ -613,7 +613,7 @@ const converters = {
         },
     },
     thermostat_relay_status_log_rsp: {
-        key: 'relay_status_log_rsp',
+        key: ['relay_status_log_rsp'],
         attr: [],
         convertGet: async (entity, key, meta) => {
             const payload = {
@@ -628,26 +628,26 @@ const converters = {
         },
     },
     thermostat_running_mode: {
-        key: 'running_mode',
+        key: ['running_mode'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['runningMode']);
         },
     },
     thermostat_running_state: {
-        key: 'running_state',
+        key: ['running_state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['runningState']);
         },
     },
     thermostat_temperature_display_mode: {
-        key: 'temperature_display_mode',
+        key: ['temperature_display_mode'],
         convertSet: async (entity, key, value, meta) => {
             const tempDisplayMode = utils.getKeyByValue(common.temperatureDisplayMode, value, value);
             await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
         },
     },
     thermostat_keypad_lockout: {
-        key: 'keypad_lockout',
+        key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKeyByValue(common.keypadLockoutMode, value, value);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout});
@@ -807,7 +807,7 @@ const converters = {
         },
     },
     eurotronic_thermostat_system_mode: {
-        key: 'system_mode',
+        key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
             const hostFlags = {};
@@ -843,17 +843,19 @@ const converters = {
                 const hostFlags = {...currentHostFlags, ...value};
 
                 // calculate bit value
-                let bitValue = 0;
+                let bitValue = 1; // bit 0 always 1
                 if (hostFlags.mirror_display) {
                     bitValue |= 1 << 1;
                 }
                 if (hostFlags.boost) {
                     bitValue |= 1 << 2;
                 }
-                if (hostFlags.window_open) {
-                    bitValue |= 1 << 5;
-                } else {
-                    bitValue |= 1 << 4;
+                if (value.hasOwnProperty('window_open') && value.window_open != currentHostFlags.window_open) {
+                    if (hostFlags.window_open) {
+                        bitValue |= 1 << 5;
+                    } else {
+                        bitValue |= 1 << 4;
+                    }
                 }
                 if (hostFlags.child_protection) {
                     bitValue |= 1 << 7;
@@ -870,13 +872,13 @@ const converters = {
         },
     },
     eurotronic_error_status: {
-        key: 'eurotronic_error_status',
+        key: ['eurotronic_error_status'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4002], options.eurotronic);
         },
     },
     eurotronic_current_heating_setpoint: {
-        key: 'current_heating_setpoint',
+        key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 0x4003: {
@@ -891,7 +893,7 @@ const converters = {
         },
     },
     eurotronic_valve_position: {
-        key: 'eurotronic_valve_position',
+        key: ['eurotronic_valve_position'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4001: {value, type: 0x20}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
@@ -901,7 +903,7 @@ const converters = {
         },
     },
     eurotronic_trv_mode: {
-        key: 'eurotronic_trv_mode',
+        key: ['eurotronic_trv_mode'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4000: {value, type: 0x30}};
             await entity.write('hvacThermostat', payload, options.eurotronic);
@@ -1139,7 +1141,7 @@ const converters = {
 
     // Sinope
     sinope_thermostat_occupancy: {
-        key: 'thermostat_occupancy',
+        key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {
                 0: 'unoccupied',
@@ -1150,7 +1152,7 @@ const converters = {
         },
     },
     sinope_thermostat_backlight_autodim_param: {
-        key: 'backlight_auto_dim',
+        key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {
                 0: 'on demand',
@@ -1161,7 +1163,7 @@ const converters = {
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
-        key: 'enable_outdoor_temperature',
+        key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
@@ -1172,7 +1174,7 @@ const converters = {
         },
     },
     sinope_thermostat_outdoor_temperature: {
-        key: 'thermostat_outdoor_temperature',
+        key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value > -100 && value < 100) {
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100});
@@ -1180,7 +1182,7 @@ const converters = {
         },
     },
     sinope_thermostat_time: {
-        key: 'thermostat_time',
+        key: ['thermostat_time'],
         convertSet: async (entity, key, value, meta) => {
             if (value === '') {
                 const thermostatDate = new Date();

@@ -88,6 +88,8 @@ describe('index.js', () => {
                     converterKey,
                 );
 
+                expect(Array.isArray(converter.key)).toBe(true);
+
                 if (converter.converSet && 4 != converter.convertSet.length) {
                     throw new Error(`${converterKey}: convert() invalid arguments length`)
                 }
