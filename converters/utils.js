@@ -69,11 +69,9 @@ function hslToHsb(h, s, l) {
     h = h % 360;
     s = s / 100;
     l = l / 100;
-
-    let retH = h;
-    let retB = s * Math.min(l, 1-l) + l;
-    let retS = retB ? 2-2*l/retB : 0;
-
+    const retH = h;
+    const retB = s * Math.min(l, 1-l) + l;
+    const retS = retB ? 2-2*l/retB : 0;
     return {h: retH, s: retS, b: retB};
 }
 
