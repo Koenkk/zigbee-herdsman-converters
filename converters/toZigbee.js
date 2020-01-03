@@ -389,11 +389,20 @@ const converters = {
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
+                const xy = utils.hslToXY(value.h + "," + value.s + "," + value.l);
+                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hsl')) {
                 const xy = utils.hslToXY(value.hsl);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
+                const xy = utils.hsvToXY(value.h + "," + value.s + "," + value.b);
+                value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hsb')) {
                 const xy = utils.hsvToXY(value.hsb);
+                value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
+                const xy = utils.hsvToXY(value.h + "," + value.s + "," + value.v);
                 value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('hsv')) {
                 const xy = utils.hsvToXY(value.hsv);
