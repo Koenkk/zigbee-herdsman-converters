@@ -6551,7 +6551,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
- 
+
     // Drayton
     {
         zigbeeModel: ['iTRV'],
