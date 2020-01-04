@@ -393,7 +393,7 @@ const converters = {
                 value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 const hsb = utils.hslToHsb(value.h, value.s, value.l);
-                newState.color = {h: hsb.h, s: hsb.s, b: hsb.b};
+                newState.color = {h: value.h, s: value.s, l: value.l};
                 value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
@@ -401,7 +401,7 @@ const converters = {
             } else if (value.hasOwnProperty('hsl')) {
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsb = utils.hslToHsb(hsl.h, hsl.s, hsl.l);
-                newState.color = {h: hsb.h, s: hsb.s, b: hsb.b};
+                newState.color = {hsl: value.hsl};
                 value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
