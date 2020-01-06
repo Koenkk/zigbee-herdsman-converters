@@ -1125,7 +1125,7 @@ const converters = {
                     type: 0x30,
                 },
             };
-            await entity.write('genOnOff', payload, options.hue);
+            await entity.write('genOnOff', payload);
         },
     },
     hue_power_on_brightness: {
