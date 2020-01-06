@@ -3884,9 +3884,9 @@ const devices = [
     },
     {
         zigbeeModel: ['Dimmablelight '],
-        model: '50045',
+        model: '50044/50045',
         vendor: 'Paulmann',
-        description: 'SmartHome Zigbee LED-stripe',
+        description: 'SmartHome Zigbee Dimmer or LED-stripe',
         extend: generic.light_onoff_brightness,
     },
     {
