@@ -2371,8 +2371,8 @@ const devices = [
         zigbeeModel: ['RB 278 T'],
         model: 'RB 278 T',
         vendor: 'Innr',
-        description: 'E27 bulb',
-        extend: generic.light_onoff_brightness,
+        description: 'Smart bulb tunable white E27',
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['RB 285 C'],
