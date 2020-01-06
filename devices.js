@@ -1747,6 +1747,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWV002'],
+        model: '046677551780',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST19 LED',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
