@@ -4713,6 +4713,60 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['RM01'],
+        model: 'RM01',
+        vendor: 'Busch-Jaeger',
+        description: 'Busch-Jaeger 6735, 6736, 6737',
+        supports: 'on/off',
+        endpoint: (device) => {
+            return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'light': 0x12};
+        },
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            let firstEndpoint = 0x0a;
+
+            const switchEndpoint = device.getEndpoint(0x12);
+            if (switchEndpoint != null) {
+                firstEndpoint++;
+                await bind(switchEndpoint, coordinatorEndpoint, ['genOnOff']);
+            }
+
+            // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
+            for (let i = firstEndpoint; i <= 0x0d; i++) {
+                const endpoint = device.getEndpoint(i);
+                if (endpoint != null) {
+                    await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genScenes']);
+                }
+            }
+        },
+        fromZigbee: [
+            fz.ignore_basic_report, fz.on_off, fz.RM01_on_click, fz.RM01_off_click,
+            fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
+        ],
+        toZigbee: [tz.on_off],
+        onEvent: async (type, data, device) => {
+            const switchEndpoint = device.getEndpoint(0x12);
+            if (switchEndpoint == null) {
+                return;
+            }
+
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await switchEndpoint.read('genOnOff', ['onOff']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 5000);
+            }
+        },
+    },
 
     // Müller Licht
     {
