@@ -2144,8 +2144,13 @@ const converters = {
                 result.occupancy = msg.data['occupancy'];
             }
             if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint =
-                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                const ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                if (ohs < -250) {
+                    // Stelpro will return -325.65 when set to off
+                    result.occupied_heating_setpoint = 0;
+                } else {
+                    result.occupied_heating_setpoint = ohs;
+                }
             }
             if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
                 result.unoccupied_heating_setpoint =
@@ -2188,6 +2193,40 @@ const converters = {
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
+            }
+            return result;
+        },
+    },
+    hvac_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const lockoutMode = msg.data['keypadLockout'];
+            if (typeof lockoutMode == 'number') {
+                result.keypad_lockout = lockoutMode;
+            }
+            return result;
+        },
+    },
+    stelpro_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const mode = msg.data['StelproSystemMode'];
+            if (mode == 'number') {
+                result.stelpro_mode = mode;
+                switch (mode) {
+                case 5:
+                    // "Eco" mode is translated into "auto" here
+                    result.system_mode = common.thermostatSystemModes[1];
+                    break;
+                }
+            }
+            const piHeatingDemand = msg.data['pIHeatingDemand'];
+            if (typeof piHeatingDemand == 'number') {
+                result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
             }
             return result;
         },

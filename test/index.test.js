@@ -62,6 +62,10 @@ describe('index.js', () => {
             Object.keys(device.fromZigbee).forEach((converterKey) => {
                 const converter = device.fromZigbee[converterKey];
 
+                if(!converter) {
+                    throw new Error(`fromZigbee[${converterKey}] not defined on device ${device.model}.`);
+                }
+
                 const keys = Object.keys(converter);
                 verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
 
@@ -74,6 +78,10 @@ describe('index.js', () => {
             Object.keys(device.toZigbee).forEach((converterKey) => {
                 const converter = device.toZigbee[converterKey];
 
+                if(!converter) {
+                    throw new Error(`toZigbee[${converterKey}] not defined on device ${device.model}.`);
+                }
+
                 verifyKeys(
                     ['key'],
                     Object.keys(converter),
@@ -82,7 +90,7 @@ describe('index.js', () => {
 
                 expect(Array.isArray(converter.key)).toBe(true);
 
-                if (converter.converSet && 4 != converter.convertSet.length) {
+                if (converter.convertSet && 4 != converter.convertSet.length) {
                     throw new Error(`${converterKey}: convert() invalid arguments length`)
                 }
             });

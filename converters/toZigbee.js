@@ -1255,6 +1255,14 @@ const converters = {
             }
         },
     },
+    stelpro_thermostat_outdoor_temperature: {
+        key: ['thermostat_outdoor_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value > -100 && value < 100) {
+                await entity.write('hvacThermostat', {StelproOutdoorTemp: value * 100});
+            }
+        },
+    },
     DTB190502A1_LED: {
         key: ['LED'],
         convertSet: async (entity, key, value, meta) => {
