@@ -3088,6 +3088,15 @@ const devices = [
 
     // Gledopto
     {
+        zigbeeModel: ['GLEDOPTO'],
+        model: 'GL-C-007/GL-C-008',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT or RGBW',
+        extend: gledopto.light,
+        meta: {options: {disableDefaultResponse: true}},
+        supports: 'on/off, brightness, color temperature or white, color',
+    },
+    {
         zigbeeModel: ['GL-C-006'],
         model: 'GL-C-006',
         vendor: 'Gledopto',
@@ -3104,7 +3113,7 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
-        zigbeeModel: ['GL-C-008', 'GLEDOPTO'],
+        zigbeeModel: ['GL-C-008'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT',
