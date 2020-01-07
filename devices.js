@@ -1190,10 +1190,11 @@ const devices = [
         vendor: 'IKEA',
         fromZigbee: [fz.E1746_linkquality],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
+            await bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
         },
     },
@@ -1808,9 +1809,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(85);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
@@ -1824,9 +1826,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(85);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
@@ -2294,10 +2297,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.generic_power, fz.temperature],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
@@ -2623,9 +2626,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1); await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            const endpoint = device.getEndpoint(1); 
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
@@ -2787,10 +2791,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
@@ -3512,9 +3516,10 @@ const devices = [
             fz.STS_PRS_251_beeping,
         ],
         toZigbee: [tz.STS_PRS_251_beep],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput']);
             await configureReporting.batteryVoltage(endpoint);
             await configureReporting.presentValue(endpoint);
         },
@@ -3847,9 +3852,10 @@ const devices = [
             fz.ZYCT202_on, fz.ZYCT202_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
         ],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
@@ -4092,10 +4098,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
@@ -4145,10 +4151,10 @@ const devices = [
         supports: 'switch and power meter',
         fromZigbee: [fz.on_off, fz.RZHAC_4256251_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);
@@ -4207,10 +4213,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.bitron_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
         },
     },
@@ -4921,9 +4927,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 1},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -4936,9 +4943,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -4956,9 +4964,10 @@ const devices = [
 
         ],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -5003,9 +5012,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.battery_percentage_remaining, fz.lock_operation_event],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -5036,9 +5046,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -5051,9 +5062,10 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {options: {disableDefaultResponse: true}, configureKey: 2},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -5579,13 +5591,14 @@ const devices = [
         supports: 'on/off, power and energy measurement',
         fromZigbee: [fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint1);
 
             const endpoint10 = device.getEndpoint(10);
+            await bind(endpoint10, coordinatorEndpoint, ['seMetering']);
             await configureReporting.instantaneousDemand(endpoint10);
             await configureReporting.currentSummDelivered(endpoint10);
             await configureReporting.currentSummReceived(endpoint10);
@@ -5730,10 +5743,10 @@ const devices = [
         supports: 'on/off, power consumption',
         fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
         },
@@ -5746,10 +5759,10 @@ const devices = [
         supports: 'on/off, power consumption',
         fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
         },
@@ -6336,10 +6349,10 @@ const devices = [
         supports: 'on/off, power and energy measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -6363,9 +6376,10 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -6381,9 +6395,10 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
+            await bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -6396,9 +6411,10 @@ const devices = [
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [fz.on_off, fz.brightness, fz.generic_power],
         toZigbee: [tz.light_onoff_brightness],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
+            await bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -6468,9 +6484,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
