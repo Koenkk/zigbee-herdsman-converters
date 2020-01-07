@@ -2628,7 +2628,7 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1); 
+            const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
