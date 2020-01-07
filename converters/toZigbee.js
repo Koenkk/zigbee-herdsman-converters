@@ -397,6 +397,7 @@ const converters = {
                 value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('hsl')) {
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
@@ -405,12 +406,14 @@ const converters = {
                 value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, b: value.b};
                 value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
                 value.brightness = value.b * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('hsb')) {
                 const hsb = value.hsb.split(',').map((i) => parseInt(i));
@@ -418,12 +421,14 @@ const converters = {
                 value.hue = hsb[0] % 360 * (65535 / 360);
                 value.saturation = hsb[1] * (2.54);
                 value.brightness = hsb[2] * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
                 newState.color = {h: value.h, s: value.s, v: value.v};
                 value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
                 value.brightness = value.v * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('hsv')) {
                 const hsv = value.hsv.split(',').map((i) => parseInt(i));
@@ -431,6 +436,7 @@ const converters = {
                 value.hue = hsv[0] % 360 * (65535 / 360);
                 value.saturation = hsv[1] * (2.54);
                 value.brightness = hsv[2] * (2.54);
+                newState.brightness = value.brightness;
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
