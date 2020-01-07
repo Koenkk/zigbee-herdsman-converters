@@ -1038,6 +1038,15 @@ const converters = {
                 entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(15);
             }
 
+            if (meta.mapped.model === 'GL-C-007/GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
+                // GL-C-007/GL-C-008 RGBW
+                if (key === 'state' && value.toUpperCase() === 'OFF') {
+                    await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(13), key, value, meta);
+                }
+
+                entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(13);
+            }
+
             return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
@@ -1098,6 +1107,31 @@ const converters = {
                             readAfterWriteTime: 0,
                         };
                     }
+                }
+            }
+
+            // GL-C-007/GL-C-008 RGBW
+            if (meta.mapped.model === 'GL-C-007/GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
+                if (key === 'white_value') {
+                    // Switch from RGB to white
+                    await meta.device.getEndpoint(13).command('genOnOff', 'on', {});
+                    await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
+
+                    const result = await converters.light_brightness.convertSet(
+                        meta.device.getEndpoint(13), key, value, meta
+                    );
+                    return {
+                        state: {white_value: value, ...result.state, color: xyWhite},
+                        readAfterWriteTime: 0,
+                    };
+                } else {
+                    if (meta.state.white_value !== -1) {
+                        // Switch from white to RGB
+                        await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
+                        await meta.device.getEndpoint(13).command('genOnOff', 'off', {});
+                        state.white_value = -1;
+                    }
+                    entity = meta.device.getEndpoint(11);
                 }
             }
 
