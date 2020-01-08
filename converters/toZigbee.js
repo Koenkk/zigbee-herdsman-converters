@@ -395,6 +395,53 @@ const converters = {
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
                 value = {x: xy.x, y: xy.y};
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
+                const hsb = utils.hslToHsb(value.h, value.s, value.l);
+                newState.color = {h: value.h, s: value.s, l: value.l};
+                value.hue = hsb.h % 360 * (65535 / 360);
+                value.saturation = hsb.s * (2.54);
+                value.brightness = hsb.b * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+            } else if (value.hasOwnProperty('hsl')) {
+                const hsl = value.hsl.split(',').map((i) => parseInt(i));
+                const hsb = utils.hslToHsb(hsl.h, hsl.s, hsl.l);
+                newState.color = {hsl: value.hsl};
+                value.hue = hsb.h % 360 * (65535 / 360);
+                value.saturation = hsb.s * (2.54);
+                value.brightness = hsb.b * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
+                newState.color = {h: value.h, s: value.s, b: value.b};
+                value.hue = value.h % 360 * (65535 / 360);
+                value.saturation = value.s * (2.54);
+                value.brightness = value.b * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+            } else if (value.hasOwnProperty('hsb')) {
+                const hsb = value.hsb.split(',').map((i) => parseInt(i));
+                newState.color = {hsb: value.hsb};
+                value.hue = hsb[0] % 360 * (65535 / 360);
+                value.saturation = hsb[1] * (2.54);
+                value.brightness = hsb[2] * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+            } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
+                newState.color = {h: value.h, s: value.s, v: value.v};
+                value.hue = value.h % 360 * (65535 / 360);
+                value.saturation = value.s * (2.54);
+                value.brightness = value.v * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+            } else if (value.hasOwnProperty('hsv')) {
+                const hsv = value.hsv.split(',').map((i) => parseInt(i));
+                newState.color = {hsv: value.hsv};
+                value.hue = hsv[0] % 360 * (65535 / 360);
+                value.saturation = hsv[1] * (2.54);
+                value.brightness = hsv[2] * (2.54);
+                newState.brightness = value.brightness;
+                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
                 value.hue = value.h % 360 * (65535 / 360);
@@ -426,6 +473,18 @@ const converters = {
             const zclData = {transtime: getTransition(entity, key, meta)};
 
             switch (cmd) {
+            case 'enhancedMoveToHueAndSaturationAndBrightness':
+                await entity.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta)},
+                    getOptions(meta),
+                );
+                zclData.enhancehue = value.hue;
+                zclData.saturation = value.saturation;
+                zclData.direction = value.direction || 0;
+                cmd = 'enhancedMoveToHueAndSaturation';
+                break;
             case 'enhancedMoveToHueAndSaturation':
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
