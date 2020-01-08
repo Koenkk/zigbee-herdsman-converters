@@ -5504,7 +5504,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['ON/OFF'],
+        zigbeeModel: ['ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'ZigBee AC in-wall switch',
