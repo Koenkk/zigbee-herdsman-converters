@@ -4307,6 +4307,7 @@ const devices = [
         zigbeeModel: [
             'SMOK_V16',
             'b5db59bfd81e4f1f95dc57fdbba17931',
+            '98293058552c49f38ad0748541ee96ba',
             'SMOK_YDLV10',
             'SmokeSensor-EM',
             'FB56-SMF02HM1.4',
