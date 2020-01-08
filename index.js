@@ -30,4 +30,8 @@ module.exports = {
     },
     toZigbeeConverters: toZigbee,
     fromZigbeeConverters: fromZigbee,
+    // Can be used to handle events for devices which are not fully paired yet (no modelID).
+    // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
+    onEvent: async (type, data, device) => {
+    },
 };
