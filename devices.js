@@ -575,7 +575,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['lumi.ctrl_ln2.aq1'],
+        zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
