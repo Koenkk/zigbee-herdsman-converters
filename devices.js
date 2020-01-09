@@ -6878,7 +6878,7 @@ const devices = [
         supports: 'on/off, led color',
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off, tz.legrand_settingAlwaysEnableLed_3,
+            tz.on_off, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
