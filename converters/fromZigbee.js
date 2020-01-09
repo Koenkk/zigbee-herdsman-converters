@@ -3266,7 +3266,7 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options) => {
-            const power = precisionRound(msg.data['41365'], 2);
+            const power = precisionRound(msg.data['41364'], 2);
             return {
                 state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
                 cpu_temperature: precisionRound(msg.data['41361'], 2),
