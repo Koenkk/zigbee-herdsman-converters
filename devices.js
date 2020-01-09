@@ -688,7 +688,7 @@ const devices = [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.ZNCZ02LM_power_outage_memory],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             // By default this device is in group 0; remove it otherwise the E1743 will control it.
