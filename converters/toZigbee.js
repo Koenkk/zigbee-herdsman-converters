@@ -797,6 +797,17 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
         },
     },
+    ZNCZ02LM_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = value ?
+                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
+                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
+
+            await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
+            await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
+        },
+    },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
