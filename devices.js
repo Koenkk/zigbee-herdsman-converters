@@ -5331,6 +5331,7 @@ const devices = [
                 'genGroups',
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
                 'msTemperatureMeasurement',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
