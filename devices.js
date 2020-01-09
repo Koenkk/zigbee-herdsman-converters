@@ -6834,6 +6834,20 @@ const devices = [
         },
     },
     {
+        zigbeeModel: [' Micromodule switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '064888',
+        vendor: 'Legrand',
+        description: 'Wired micromodule switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
+        },
+    },
+    {
         zigbeeModel: [' Master remote SW Home / Away\u0000\u0000'],
         model: '064873',
         vendor: 'Legrand',
