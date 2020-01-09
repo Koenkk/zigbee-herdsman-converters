@@ -688,7 +688,7 @@ const devices = [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_power_outage_memory],
+        toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             // By default this device is in group 0; remove it otherwise the E1743 will control it.
@@ -6180,6 +6180,66 @@ const devices = [
         model: 'TH1124ZB',
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['TH1400ZB'],
+        model: 'TH1400ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee low volt thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['TH1500ZB'],
+        model: 'TH1500ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee dual pole line volt thermostat',
         supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
         fromZigbee: [
             fz.thermostat_att_report,
