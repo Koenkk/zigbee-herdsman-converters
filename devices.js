@@ -3963,6 +3963,13 @@ const devices = [
         description: 'SmartHome led spot',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['500.45'],
+        model: '798.15',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee Pendulum Light Aptare',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Bitron
     {
