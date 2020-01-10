@@ -6455,6 +6455,7 @@ const devices = [
         },
     },
     
+    
    {
         zigbeeModel: ['PM-B530-ZB'],
         model: 'PM-B530-ZB',
