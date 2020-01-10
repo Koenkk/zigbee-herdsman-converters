@@ -4249,6 +4249,21 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
         },
     },
+    {
+        zigbeeModel: ['PRS3CH1_00.00.05.10TC'],
+        model: '12126',
+        vendor: 'Lupus',
+        description: '1 chanel relay',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
+    },
 
     // Climax
     {
