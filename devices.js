@@ -4722,7 +4722,7 @@ const devices = [
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'light': 0x12};
         },
-        meta: {configureKey: 3},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             let firstEndpoint = 0x0a;
 
@@ -4736,7 +4736,7 @@ const devices = [
             for (let i = firstEndpoint; i <= 0x0d; i++) {
                 const endpoint = device.getEndpoint(i);
                 if (endpoint != null) {
-                    await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genScenes']);
+                    await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
                 }
             }
         },
@@ -4744,7 +4744,7 @@ const devices = [
             fz.ignore_basic_report, fz.on_off, fz.RM01_on_click, fz.RM01_off_click,
             fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.RM01_on_off],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
