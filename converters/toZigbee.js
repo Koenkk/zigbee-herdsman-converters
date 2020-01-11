@@ -1216,20 +1216,22 @@ const converters = {
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {
+            const lookupOnOff = {
                 'default': 0x01,
                 'on': 0x01,
                 'off': 0x00,
                 'recover': 0xff,
             };
 
-            const payload = {
-                0x4003: {
-                    value: lookup[value],
-                    type: 0x30,
-                },
+            const lookupGenLevelCtrl = {
+                'default': 0xfe,
+                'on': 0xfe,
+                'off': 0xfe,
+                'recover': 0xff,
             };
-            await entity.write('genOnOff', payload);
+
+            entity.write('genOnOff', {0x4003: {value: lookupOnOff[value], type: 0x30}});
+            entity.write('genLevelCtrl', {0x4000: {value: lookupGenLevelCtrl[value], type: 0x20}});
         },
     },
     hue_power_on_brightness: {
