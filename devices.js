@@ -6836,7 +6836,7 @@ const devices = [
     {
         zigbeeModel: [
             ' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
-            '\u0000\u0000\u0000\u0000\u0000'
+            '\u0000\u0000\u0000\u0000\u0000',
         ],
         model: '067775',
         vendor: 'Legrand',
