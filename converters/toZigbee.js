@@ -1594,7 +1594,7 @@ const converters = {
         key: ['permanent_led'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
-            const enableLedIfOn = value === 'ON' || !!value;
+            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {1: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
@@ -1604,7 +1604,7 @@ const converters = {
         key: ['permanent_led'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
-            const enableLedIfOn = value === 'ON' || !!value;
+            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {1: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
@@ -1615,7 +1615,7 @@ const converters = {
             // enable the LED when the light object is "doing something"
             // on the light switch, the LED is on when the light is on,
             // on the shutter switch, the LED is on when te shutter is moving
-            const enableLedIfOn = value === 'ON' || !!value;
+            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {2: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
@@ -1624,7 +1624,7 @@ const converters = {
         key: ['dimmer_enabled'],
         convertSet: async (entity, key, value, meta) => {
             // enable the dimmer, requires a recent firmware on the device
-            const enableDimmer = value === 'ON' || !!value;
+            const enableDimmer = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {0: {value: enableDimmer ? '0101' : '0100', type: 9}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
