@@ -6105,12 +6105,8 @@ const devices = [
         vendor: 'TUYATEC',
         description: 'Zigbee smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [
-            fz.tuya_dimmer, fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.tuya_dimmer_state, tz.tuya_dimmer_level
-        ],
+        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
