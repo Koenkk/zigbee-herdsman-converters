@@ -1672,7 +1672,7 @@ const converters = {
                 },
                 {disableDefaultResponse: true},
             );
-        }
+        },
     },
     RM01_on_off: {
         key: ['state'],

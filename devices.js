@@ -4736,6 +4736,12 @@ const devices = [
             for (let i = firstEndpoint; i <= 0x0d; i++) {
                 const endpoint = device.getEndpoint(i);
                 if (endpoint != null) {
+                    // The total number of bindings seems to be severely limited with these devices.
+                    // In order to be able to toggle groups, we need to remove the scenes cluster
+                    const index = endpoint.outputClusters.indexOf(5);
+                    if (index > -1) {
+                        endpoint.outputClusters.splice(index, 1);
+                    }
                     await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
                 }
             }
