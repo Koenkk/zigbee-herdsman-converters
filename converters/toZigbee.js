@@ -574,6 +574,7 @@ const converters = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)});
+            return {state: {local_temperature_calibration: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['localTemperatureCalibration']);
