@@ -6834,6 +6834,33 @@ const devices = [
         },
     },
     {
+        zigbeeModel: [
+            ' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
+            '\u0000\u0000\u0000\u0000\u0000'
+        ],
+        model: '067775',
+        vendor: 'Legrand',
+        description: 'Power socket with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [
+            fz.identify, fz.on_off, fz.electrical_measurement,
+        ],
+        toZigbee: [
+            tz.on_off, tz.legrand_settingAlwaysEnableLed_1, tz.legrand_identify,
+        ],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.activePower(endpoint);
+        },
+    },
+    {
         zigbeeModel: [' Micromodule switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '064888',
         vendor: 'Legrand',

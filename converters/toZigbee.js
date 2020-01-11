@@ -1599,6 +1599,16 @@ const converters = {
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
+    // connected power outlet is on attribute 2 and not 1
+    legrand_settingAlwaysEnableLed_1: {
+        key: ['permanent_led'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable or disable the LED (blue) when permitJoin=false (LED off)
+            const enableLedIfOn = value === 'ON' || !!value;
+            const payload = {1: {value: enableLedIfOn, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+        },
+    },
     legrand_settingEnableLedIfOn: {
         key: ['led_when_on'],
         convertSet: async (entity, key, value, meta) => {
