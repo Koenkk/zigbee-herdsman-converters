@@ -6099,6 +6099,24 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['gq8b1uv'],
+        model: 'gq8b1uv',
+        vendor: 'TUYATEC',
+        description: 'Zigbee smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [
+            fz.tuya_dimmer, fz.ignore_basic_report,
+        ],
+        toZigbee: [
+            tz.tuya_dimmer_state, tz.tuya_dimmer_level
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
 
     // Zemismart
     {
