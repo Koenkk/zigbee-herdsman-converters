@@ -6866,8 +6866,8 @@ const devices = [
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.identify, fz.on_off],
+        toZigbee: [tz.on_off, tz.legrand_identify],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
