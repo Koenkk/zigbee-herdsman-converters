@@ -38,7 +38,8 @@ module.exports = {
         // it expects at least one answer. The payload contains the number of seconds
         // since when the device is powered. If the value is too high, it will leave & not pair
         // 23 works, 200 doesn't
-        if (data.meta.manufacturerCode === 0x1021 && type === 'message' && data.type === 'read' && data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
+        if (data.meta.manufacturerCode === 0x1021 && type === 'message' && data.type === 'read' &&
+            data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
             const payload = {0xf00: {value: 23, type: 35}};
