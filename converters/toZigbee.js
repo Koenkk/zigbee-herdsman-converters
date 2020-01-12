@@ -1645,7 +1645,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await entity.command(
                 'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 257, fn: 0, data: [1, (value === 'ON') ? 1 : 0]
+                    status: 0, transid: 16, dp: 257, fn: 0, data: [1, (value === 'ON') ? 1 : 0],
                 },
                 {disableDefaultResponse: true},
             );
@@ -1655,17 +1655,17 @@ const converters = {
         key: ['brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
             // upscale to 1000
-            let newValue; 
+            let newValue;
             if (key === 'brightness_percent') {
                 newValue = Math.round(Number(value) * 10);
             } else {
                 newValue = Math.round(Number(value) * 1000 / 255);
             }
             const b1 = newValue >> 8;
-            const b2 = newValue & 0xFF; 
+            const b2 = newValue & 0xFF;
             await entity.command(
                 'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 515, fn: 0, data: [4, 0, 0, b1, b2]
+                    status: 0, transid: 16, dp: 515, fn: 0, data: [4, 0, 0, b1, b2],
                 },
                 {disableDefaultResponse: true},
             );
