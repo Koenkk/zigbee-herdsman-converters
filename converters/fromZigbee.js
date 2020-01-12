@@ -3662,8 +3662,8 @@ const converters = {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: (model, msg, publish, options) => {
-            const key = msg.data.dp,
-                  val = msg.data.data;
+            const key = msg.data.dp;
+            const val = msg.data.data;
             if (key === 257) {
                 return {state: (val[0]) ? 'ON': 'OFF'};
             } else {
