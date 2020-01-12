@@ -432,19 +432,6 @@ const osram = {
 };
 
 const legrand = {
-    pairing_security_event: async (type, data, device) => {
-        // support Legrand security protocol
-        // when pairing, a powered device will send a read frame to every device on the network
-        // it expects at least one answer. The payload contains the number of seconds
-        // since when the device is powered. If the value is too high, it will leave & not pair
-        // 23 works, 200 doesn't
-        if (data.type === 'read' && data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
-            const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-            const payload = {0xf00: {value: 23, type: 35}};
-            await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
-        }
-    },
     read_initial_battery_state: async (type, data, device) => {
         if (['deviceAnnounce'].includes(type) && typeof store[device.ieeeAddr] === 'undefined') {
             const endpoint = device.getEndpoint(1);
@@ -6902,9 +6889,6 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
-        onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
-        },
     },
     {
         zigbeeModel: [
@@ -6924,7 +6908,6 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
         onEvent: async (type, data, device, options) => {
-            await legrand.pairing_security_event(type, data, device);
             await legrand.read_initial_battery_state(type, data, device);
         },
     },
@@ -6945,8 +6928,46 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
         },
-        onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
+    },
+    {
+        zigbeeModel: [
+            ' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
+            '\u0000\u0000\u0000\u0000\u0000',
+        ],
+        model: '067775',
+        vendor: 'Legrand',
+        description: 'Power socket with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [
+            fz.identify, fz.on_off, fz.electrical_measurement,
+        ],
+        toZigbee: [
+            tz.on_off, tz.legrand_settingAlwaysEnableLed_1, tz.legrand_identify,
+        ],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: [' Micromodule switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '064888',
+        vendor: 'Legrand',
+        description: 'Wired micromodule switch',
+        supports: 'on/off',
+        fromZigbee: [fz.identify, fz.on_off],
+        toZigbee: [tz.on_off, tz.legrand_identify],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
         },
     },
     {
@@ -6967,7 +6988,6 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
         onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
             await legrand.read_initial_battery_state(type, data, device);
 
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
@@ -6995,16 +7015,13 @@ const devices = [
         supports: 'on/off, led color',
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off, tz.legrand_settingAlwaysEnableLed_3,
+            tz.on_off, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
-        },
-        onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
         },
     },
 ];
