@@ -3639,6 +3639,21 @@ const converters = {
             }
         },
     },
+    tuya_dimmer: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options) => {
+            const key = msg.data.dp;
+            const val = msg.data.data;
+            if (key === 257) {
+                return {state: (val[0]) ? 'ON': 'OFF'};
+            } else {
+                const level = val[2]*256 + val[3];
+                const normalised = (level - 10) / (1000 - 10);
+                return {brightness: (normalised * 254).toFixed(2), level: level};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
