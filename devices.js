@@ -1353,6 +1353,13 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWA002'],
+        model: '9290018215',
+        vendor: 'Philips',
+        description: 'Hue white A19 bulb E26 bluetooth',
+        extend: hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['LTA001'],
         model: '9290022169',
         vendor: 'Philips',
