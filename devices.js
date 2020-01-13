@@ -1618,6 +1618,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['1743230P7'],
+        model: '1743230P7',
+        vendor: 'Philips',
+        description: 'Hue outdoor Impress lantern',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LLC006'],
         model: '7099930PH',
         vendor: 'Philips',
