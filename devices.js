@@ -901,6 +901,19 @@ const devices = [
             ]);
         },
     },
+    {
+        zigbeeModel: ['lumi.sen_ill.mgl01'],
+        model: 'GZCGQ01LM',
+        vendor: 'Xiaomi',
+        description: 'MiJia light intensity sensor',
+        supports: 'illuminance',
+        fromZigbee: [fz.battery_percentage_remaining, fz.generic_illuminance],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
+        },
+    },
 
     // TuYa
     {
