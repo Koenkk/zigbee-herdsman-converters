@@ -4715,7 +4715,7 @@ const devices = [
     },
     {
         zigbeeModel: ['RM01'],
-        model: 'RM01',
+        model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
         description: 'Busch-Jaeger 6735, 6736, 6737',
         supports: 'on/off',
