@@ -2,6 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const options = {
     xiaomi: {
@@ -239,6 +240,10 @@ const converters = {
             const arr = [value.toString()];
             if (arr.filter(stop).length) {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta));
+
+                // As we cannot determine the new brightness state, we read it from the device
+                await wait(1000);
+                await entity.read('genLevelCtrl', ['currentLevel']);
             } else {
                 const moverate = meta.message.hasOwnProperty('rate') ? parseInt(meta.message.rate) : 55;
                 const payload = {movemode: arr.filter(up).length ? 0 : 1, rate: moverate};
