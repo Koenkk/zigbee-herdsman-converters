@@ -1474,17 +1474,18 @@ const converters = {
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
                 msg.data.hasOwnProperty('currentSummReceived'))) {
-                result.energy = 0;
+                let energy = 0;
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    result.energy += value * factor;
+                    energy += value * factor;
                 }
                 if (msg.data.hasOwnProperty('currentSummReceived')) {
                     const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    result.energy -= value * factor;
+                    energy -= value * factor;
                 }
+                result.energy = precisionRound(energy, 2);
             }
 
             return result;
