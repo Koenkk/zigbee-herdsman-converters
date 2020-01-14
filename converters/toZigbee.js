@@ -1679,6 +1679,25 @@ const converters = {
             );
         },
     },
+    RM01_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.on_off.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('OnOff not supported on this RM01 device.');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.on_off.convertGet(endpoint, key, meta);
+            } else {
+                throw new Error('OnOff not supported on this RM01 device.');
+            }
+        },
+    },
 
     /**
      * Ignore converters

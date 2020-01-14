@@ -2682,6 +2682,56 @@ const converters = {
             return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
         },
     },
+    RM01_on_click: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {action: `${button}_on`};
+        },
+    },
+    RM01_off_click: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {action: `${button}_off`};
+        },
+    },
+    RM01_down_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {
+                action: `${button}_down`,
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    RM01_up_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {
+                action: `${button}_up`,
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    RM01_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {action: `${button}_stop`};
+        },
+    },
     GIRA2430_scene_click: {
         cluster: 'genScenes',
         type: 'commandRecall',

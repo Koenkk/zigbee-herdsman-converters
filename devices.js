@@ -4740,6 +4740,74 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter) and
+        // 6711 U (Relay) back-ends. The dimmer has not been verified to work yet, though it's
+        // safe to assume that it can at least been turned on or off with this integration.
+        //
+        // In order to manually capture scenes as described in the devices manual, the endpoint
+        // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
+        // If that operation was successful, the switch will respond to button presses on that
+        // by blinking multiple times (vs. just blinking once if it's bound).
+        zigbeeModel: ['RM01'],
+        model: '6735/6736/6737',
+        vendor: 'Busch-Jaeger',
+        description: 'Zigbee Light Link power supply/relay/dimmer',
+        supports: 'on/off',
+        endpoint: (device) => {
+            return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            let firstEndpoint = 0x0a;
+
+            const switchEndpoint = device.getEndpoint(0x12);
+            if (switchEndpoint != null) {
+                firstEndpoint++;
+                await bind(switchEndpoint, coordinatorEndpoint, ['genOnOff']);
+            }
+
+            // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
+            for (let i = firstEndpoint; i <= 0x0d; i++) {
+                const endpoint = device.getEndpoint(i);
+                if (endpoint != null) {
+                    // The total number of bindings seems to be severely limited with these devices.
+                    // In order to be able to toggle groups, we need to remove the scenes cluster
+                    const index = endpoint.outputClusters.indexOf(5);
+                    if (index > -1) {
+                        endpoint.outputClusters.splice(index, 1);
+                    }
+                    await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+                }
+            }
+        },
+        fromZigbee: [
+            fz.ignore_basic_report, fz.on_off, fz.RM01_on_click, fz.RM01_off_click,
+            fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
+        ],
+        toZigbee: [tz.RM01_on_off],
+        onEvent: async (type, data, device) => {
+            const switchEndpoint = device.getEndpoint(0x12);
+            if (switchEndpoint == null) {
+                return;
+            }
+
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await switchEndpoint.read('genOnOff', ['onOff']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 5000);
+            }
+        },
+    },
 
     // Müller Licht
     {
