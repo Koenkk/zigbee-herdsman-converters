@@ -4714,6 +4714,14 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
+        // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter) and
+        // 6711 U (Relais) back-ends. The dimmer has not been verified to work yet, though it's
+        // safe to assume that it can at least been turned on or off with this integration.
+        //
+        // In order to manually capture scenes as described in the devices manual, the endpoint
+        // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
+        // If that operation was successful, the switch will respond to button presses on that
+        // by blinking multiple times (vs. just blinking once if it's bound).
         zigbeeModel: ['RM01'],
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
