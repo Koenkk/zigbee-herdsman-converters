@@ -1282,6 +1282,13 @@ const devices = [
 
     // Philips
     {
+        zigbeeModel: ['LTC002'],
+        model: '4034031P7',
+        vendor: 'Philips',
+        description: 'Hue Fair',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTC012'],
         model: '3306431P7',
         vendor: 'Philips',
