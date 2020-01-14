@@ -4715,7 +4715,7 @@ const devices = [
     },
     {
         // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter) and
-        // 6711 U (Relais) back-ends. The dimmer has not been verified to work yet, though it's
+        // 6711 U (Relay) back-ends. The dimmer has not been verified to work yet, though it's
         // safe to assume that it can at least been turned on or off with this integration.
         //
         // In order to manually capture scenes as described in the devices manual, the endpoint
@@ -4725,10 +4725,10 @@ const devices = [
         zigbeeModel: ['RM01'],
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
-        description: 'Busch-Jaeger 6735, 6736, 6737',
+        description: 'Zigbee Light Link power supply/relay/dimmer',
         supports: 'on/off',
         endpoint: (device) => {
-            return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'light': 0x12};
+            return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
