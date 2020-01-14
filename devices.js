@@ -6141,6 +6141,15 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
+    {
+        zigbeeModel: ['HY0017'],
+        model: 'HY0017',
+        vendor: 'REXENSE',
+        description: 'Smart 6 key scene wall switch',
+        supports: 'click',
+        fromZigbee: [fz.scenes_recall_click],
+        toZigbee: [],
+    },
 
     // Zemismart
     {
