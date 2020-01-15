@@ -907,11 +907,12 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia light intensity sensor',
         supports: 'illuminance',
-        fromZigbee: [fz.battery_percentage_remaining, fz.generic_illuminance],
+        fromZigbee: [fz.battery_3V, fz.generic_illuminance],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
+            await configureReporting.batteryVoltage(coordinatorEndpoint);
         },
     },
 
