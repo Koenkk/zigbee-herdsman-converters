@@ -4695,6 +4695,13 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['JZ-CT-Z01'],
+        model: '4034031P7',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-FLAG LED Panel, Smart-Home CCT',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // iCasa
     {
