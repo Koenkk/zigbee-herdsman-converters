@@ -6613,7 +6613,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.on_off, fz.generic_power],
+        fromZigbee: [fz.generic_state_multi_ep, fz.generic_power],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
