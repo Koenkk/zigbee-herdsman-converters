@@ -4697,9 +4697,9 @@ const devices = [
     },
     {
         zigbeeModel: ['JZ-CT-Z01'],
-        model: '4034031P7',
+        model: '100.110.51',
         vendor: 'Paul Neuhaus',
-        description: 'Q-FLAG LED Panel, Smart-Home CCT',
+        description: 'Q-FLAG LED panel, Smart-Home CCT',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
