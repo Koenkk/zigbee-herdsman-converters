@@ -6601,7 +6601,7 @@ const devices = [
     },
     {
         zigbeeModel: ['PM-B430-ZB'],
-        model: 'PM-B530-ZB',
+        model: 'PM-B430-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart plug 10A',
         supports: 'on/off, power and energy measurement',
