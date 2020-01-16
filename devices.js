@@ -5322,7 +5322,7 @@ const devices = [
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = [
@@ -6146,54 +6146,49 @@ const devices = [
 
     // Sinope
     {
-    zigbeeModel: ['TH1123ZB'],
-    model: 'TH1123ZB',
-    vendor: 'Sinope',
-    description: 'Zigbee line volt thermostat',
-    supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
-    fromZigbee: [
-        fz.thermostat_att_report,
-        fz.hvac_user_interface,
-        fz.generic_power,
-        fz.ignore_temperature_report,
-        fz.sinope_thermostat_state,
-    ],
-    toZigbee: [
-        tz.thermostat_local_temperature,
-        tz.thermostat_occupied_heating_setpoint,
-        tz.thermostat_unoccupied_heating_setpoint,
-        tz.thermostat_temperature_display_mode,
-        tz.thermostat_keypad_lockout,
-        tz.thermostat_system_mode,
-        tz.thermostat_running_state,
-        tz.sinope_thermostat_occupancy,
-        tz.sinope_thermostat_backlight_autodim_param,
-        tz.sinope_thermostat_time,
-        tz.sinope_thermostat_enable_outdoor_temperature,
-        tz.sinope_thermostat_outdoor_temperature,
-    ],
-    meta: {configureKey: 1},
-    configure: async (device, coordinatorEndpoint) => {
+        zigbeeModel: ['TH1123ZB'],
+        model: 'TH1123ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee line volt thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.hvac_user_interface,
+            fz.generic_power,
+            fz.ignore_temperature_report,
+            fz.sinope_thermostat_state,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.sinope_thermostat_occupancy,
+            tz.sinope_thermostat_backlight_autodim_param,
+            tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature,
+            tz.sinope_thermostat_outdoor_temperature,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic',
-                'genIdentify',
-                'genGroups',
-                'hvacThermostat',
-                'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement',
-                'seMetering',
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat',
+                'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'seMetering',
             ];
 
-        await bind(endpoint, coordinatorEndpoint, binds);
-        await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-        await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-        await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-        await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-        await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
-        await configureReporting.instantaneousDemand(endpoint);
-        await endpoint.read('seMetering', ['multiplier', 'divisor']);
-      },
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
+            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
+            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+            await configureReporting.instantaneousDemand(endpoint);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+        },
     },
     {
         zigbeeModel: ['TH1124ZB'],
