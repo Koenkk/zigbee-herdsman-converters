@@ -6587,7 +6587,7 @@ const devices = [
         zigbeeModel: ['PM-B530-ZB'],
         model: 'PM-B530-ZB',
         vendor: 'Dawon DNS',
-        description: 'IOT smart plug',
+        description: 'IOT smart plug 16A',
         supports: 'on/off, power and energy measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off],
@@ -6599,6 +6599,22 @@ const devices = [
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
     },
+    {
+        zigbeeModel: ['PM-B430-ZB'],
+        model: 'PM-B530-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart plug 10A',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.on_off, fz.generic_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.instantaneousDemand(endpoint);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+        },
+    },    
 
     // CREE
     {
