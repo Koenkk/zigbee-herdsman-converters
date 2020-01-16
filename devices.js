@@ -6614,8 +6614,8 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
-    },    
-
+    },
+    
     // CREE
     {
         zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
