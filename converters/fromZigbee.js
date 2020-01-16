@@ -2231,6 +2231,18 @@ const converters = {
             return result;
         },
     },
+    sinope_thermostat_state: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options) => {
+            const result = {};
+            const piHeatingDemand = msg.data['pIHeatingDemand'];
+            if (typeof piHeatingDemand == 'number') {
+                result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
+            }
+            return result;
+        },
+    },
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
