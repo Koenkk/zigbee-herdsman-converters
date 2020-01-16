@@ -2774,7 +2774,7 @@ const devices = [
         zigbeeModel: ['Edge-lit Under Cabinet TW'],
         model: '72569',
         vendor: 'Sylvania',
-        description: 'SMART+ ZigBee Adjustable White Edge-Lit Under Cabinet Light',
+        description: 'SMART+ Zigbee adjustable white edge-lit under cabinet light',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
