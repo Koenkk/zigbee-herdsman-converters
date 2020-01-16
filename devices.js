@@ -2775,7 +2775,7 @@ const devices = [
         model: '75269',
         vendor: 'Sylvania',
         description: 'SMART+ ZigBee Adjustable White Edge-Lit Under Cabinet Light',
-        extend: generic.light_onoff_brightness_colortemp
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // Leviton
