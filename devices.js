@@ -2770,6 +2770,13 @@ const devices = [
         description: 'Smart Home soft white PAR38 outdoor bulb',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['Edge-lit Under Cabinet TW'],
+        model: '72569',
+        vendor: 'Sylvania',
+        description: 'SMART+ Zigbee adjustable white edge-lit under cabinet light',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Leviton
     {
