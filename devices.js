@@ -4485,18 +4485,21 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
-    {
-        zigbeeModel: ['RC_V14', 'RC-EM'],
-        model: 'HS1RC-M',
-        vendor: 'HEIMAN',
-        description: 'Smart remote controller',
-        supports: 'action',
-        fromZigbee: [
-            fz.battery_200,
-            fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
-        ],
-        toZigbee: [],
-    },
+    // Removed support due to:
+    // - https://github.com/Koenkk/zigbee2mqtt/issues/2750
+    // - https://github.com/Koenkk/zigbee2mqtt/issues/1957
+    // {
+    //     zigbeeModel: ['RC_V14', 'RC-EM'],
+    //     model: 'HS1RC-M',
+    //     vendor: 'HEIMAN',
+    //     description: 'Smart remote controller',
+    //     supports: 'action',
+    //     fromZigbee: [
+    //         fz.battery_200,
+    //         fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
+    //     ],
+    //     toZigbee: [],
+    // },
     {
         zigbeeModel: ['COSensor-EM', 'COSensor-N'],
         model: 'HS1CA-E',
