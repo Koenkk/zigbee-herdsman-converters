@@ -69,7 +69,7 @@ describe('index.js', () => {
                 const keys = Object.keys(converter);
                 verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
 
-                if (4 != converter.convert.length) {
+                if (5 != converter.convert.length) {
                     throw new Error(`${converterKey}: convert() invalid arguments length`)
                 }
             });
