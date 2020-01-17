@@ -6146,7 +6146,7 @@ const devices = [
         model: 'U86KCJ-ZP',
         vendor: 'TUYATEC',
         description: 'Smart 6 key scene wall switch',
-        supports: 'click',
+        supports: 'action',
         fromZigbee: [fz.scenes_recall_scene],
         toZigbee: [],
     },
