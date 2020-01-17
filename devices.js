@@ -3076,7 +3076,7 @@ const devices = [
         fromZigbee: [fz.scenes_recall_click, fz.ignore_power_report],
     },
     {
-        zigbeeModel: ['LXN56-DC27LX1.1'],
+        zigbeeModel: ['LXN56-DC27LX1.1', 'LXN56-DS27LX1.1'],
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
