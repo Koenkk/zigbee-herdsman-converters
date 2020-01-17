@@ -395,6 +395,13 @@ const converters = {
             return {action: 'identify'};
         },
     },
+    scenes_recall_scene: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options) => {
+            return {action: `scene_${msg.data.sceneid}`};
+        },
+    },
 
     /**
      * Device specific converters, not recommended for re-use.
