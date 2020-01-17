@@ -6238,6 +6238,15 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
+    {
+        zigbeeModel: ['HY0017'],
+        model: 'U86KCJ-ZP',
+        vendor: 'TUYATEC',
+        description: 'Smart 6 key scene wall switch',
+        supports: 'action',
+        fromZigbee: [fz.scenes_recall_scene],
+        toZigbee: [],
+    },
 
     // Zemismart
     {
