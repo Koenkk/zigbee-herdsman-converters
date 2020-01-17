@@ -794,6 +794,31 @@ const converters = {
             };
         },
     },
+    SP600_power: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === '20160120') {
+                // Cannot use generic_power, divisor/multiplier is not according to ZCL.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2233
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
+
+                const result = {};
+                if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                    result.power = msg.data['instantaneousDemand'];
+                }
+                // Summation is reported in Watthours
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy = value / 1000.0;
+                }
+                return result;
+            } else {
+                return converters.generic_power.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     occupancy_with_timeout: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
