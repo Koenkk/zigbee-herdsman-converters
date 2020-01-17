@@ -6143,11 +6143,11 @@ const devices = [
     },
     {
         zigbeeModel: ['HY0017'],
-        model: 'HY0017',
-        vendor: 'REXENSE',
+        model: 'U86KCJ-ZP',
+        vendor: 'TUYATEC',
         description: 'Smart 6 key scene wall switch',
         supports: 'click',
-        fromZigbee: [fz.scenes_recall_click],
+        fromZigbee: [fz.scenes_recall_scene],
         toZigbee: [],
     },
 
