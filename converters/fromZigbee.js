@@ -279,6 +279,7 @@ const converters = {
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.power = precisionRound(msg.data['activePower'] * factor, 2);
             }
+
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
                     'haElectricalMeasurement', 'acCurrentMultiplier',
@@ -287,6 +288,7 @@ const converters = {
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
             }
+
             if (msg.data.hasOwnProperty('rmsVoltage')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
                     'haElectricalMeasurement', 'acVoltageMultiplier',
@@ -295,7 +297,8 @@ const converters = {
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
             }
-			if (msg.data.hasOwnProperty('reactivePower')) {
+
+            if (msg.data.hasOwnProperty('reactivePower')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
                     'haElectricalMeasurement', 'acPowerMultiplier'
                 );
@@ -303,9 +306,10 @@ const converters = {
                     'haElectricalMeasurement', 'acPowerDivisor'
                 );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.reactivepower = precisionRound(msg.data['reactivePower'] * factor, 2);
+                payload.power_reactive = precisionRound(msg.data['reactivePower'] * factor, 2);
             }
-			if (msg.data.hasOwnProperty('acFrequency')) {
+
+            if (msg.data.hasOwnProperty('acFrequency')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
                     'haElectricalMeasurement', 'acFrequencyMultiplier'
                 );
@@ -313,8 +317,9 @@ const converters = {
                     'haElectricalMeasurement', 'acFrequencyDivisor'
                 );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.acFrequency = precisionRound(msg.data['acFrequency'] * factor, 2);
+                payload.ac_frequency = precisionRound(msg.data['acFrequency'] * factor, 2);
             }
+
             return payload;
         },
     },
