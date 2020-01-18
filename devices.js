@@ -270,7 +270,7 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-	acFrequency: async (endpoint) => {
+    acFrequency: async (endpoint) => {
         const payload = [{
             attribute: 'acFrequency',
             minimumReportInterval: 1,
