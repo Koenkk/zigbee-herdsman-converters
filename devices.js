@@ -261,6 +261,24 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
+    reactivePower: async (endpoint) => {
+        const payload = [{
+            attribute: 'reactivePower',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
+	acFrequency: async (endpoint) => {
+        const payload = [{
+            attribute: 'acFrequency',
+            minimumReportInterval: 1,
+            maximumReportInterval: repInterval.MINUTES_5,
+            reportableChange: 1,
+        }];
+        await endpoint.configureReporting('haElectricalMeasurement', payload);
+    },
     powerFactor: async (endpoint) => {
         const payload = [{
             attribute: 'powerFactor',
@@ -7216,6 +7234,35 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
         },
     },
+    
+    // Develco
+	{
+		zigbeeModel: ['SPLZB-131'],
+		model: 'SPLZB-131',
+		vendor: 'Develco',
+		description: 'Zigbee smart plug with power meter',
+		supports: 'on/off, power measurement',
+		fromZigbee: [fz.on_off, fz.electrical_measurement],
+		toZigbee: [tz.on_off],
+		endpoint: (device) => {
+			return {'system': 1, 'default': 2};
+		},
+		meta: {configureKey: 1},
+		configure: async (device, coordinatorEndpoint) => {
+			const endpoint = device.getEndpoint(2);
+			await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+			await endpoint.read('haElectricalMeasurement', [
+				'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+				'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+				'acFrequencyDivisor', 'acFrequencyMultiplier',
+			]);
+			await configureReporting.onOff(endpoint);
+			await configureReporting.rmsVoltage(endpoint);
+			await configureReporting.rmsCurrent(endpoint);
+			await configureReporting.activePower(endpoint);
+			await configureReporting.reactivePower(endpoint);
+			await configureReporting.acFrequency(endpoint);
+	},
 ];
 
 module.exports = devices.map((device) =>
