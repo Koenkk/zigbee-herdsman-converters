@@ -5961,6 +5961,37 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SZ-DWS04N_SF'],
+        model: 'SZ-DWS04N_SF',
+        vendor: 'Sercomm',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_3V_2100],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SZ-PIR02_SF'],
+        model: 'SZ-PIR02_SF',
+        vendor: 'Sercomm',
+        description: 'PIR motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_3V_2100],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Leedarson
     {
