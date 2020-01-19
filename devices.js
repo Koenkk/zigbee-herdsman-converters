@@ -4572,7 +4572,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, [
                 'msRelativeHumidity',
                 'msTemperatureMeasurement',
-                'genPowerCfg'
+                'genPowerCfg',
             ]);
             await configureReporting.temperature(endpoint);
             await configureReporting.humidity(endpoint);
