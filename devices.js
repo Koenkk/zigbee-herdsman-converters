@@ -4349,6 +4349,21 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['PIRSensor-EM'],
+        model: 'HS1MS',
+        vendor: 'HEIMAN',
+        description: 'Smart Montion Sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SmartPlug'],
         model: 'HS2SK',
         description: 'Smart metering plug',
