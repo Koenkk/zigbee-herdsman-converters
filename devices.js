@@ -4559,6 +4559,27 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['HT-EM'],
+        model: 'HS1HT',
+        vendor: 'HEIMAN',
+        description: 'Smart Temperature & Humidity Sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, [
+                'msRelativeHumidity',
+                'msTemperatureMeasurement',
+                'genPowerCfg'
+            ]);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SKHMP30-I1'],
         model: 'SKHMP30-I1',
         description: 'Smart metering plug',
