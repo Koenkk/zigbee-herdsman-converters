@@ -3245,7 +3245,7 @@ const devices = [
     },
     {
         zigbeeModel: ['NUET56-DL27LX1.2'],
-        model: 'LXZB-12A',
+        model: 'DL27LX1.2',
         vendor: 'Nue / 3A',
         description: 'RGB LED downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
