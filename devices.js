@@ -3643,15 +3643,34 @@ const devices = [
         zigbeeModel: ['outletv4'],
         model: 'STS-OUT-US-2',
         vendor: 'SmartThings',
-        description: 'Outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        description: 'Zigbee smart plug with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            const payload = [{
+                attribute: 'rmsVoltage',
+                minimumReportInterval: 1,
+                maximumReportInterval: repInterval.MINUTES_5,
+                reportableChange: 10,
+            }];
+            await endpoint.configureReporting('haElectricalMeasurement', payload);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'activePower', 'rmsCurrent', 'rmsVoltage',
+            ]);
+            await endpoint.read('genOnOff', ['onOff']);
         },
     },
     {
