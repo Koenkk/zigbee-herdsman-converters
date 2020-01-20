@@ -3250,6 +3250,7 @@ const devices = [
         description: 'RGB LED downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
     // Smart Home Pty
     {
         zigbeeModel: ['FB56-ZCW11HG1.2', 'FB56-ZCW11HG1.4', 'LXT56-LS27LX1.7'],
