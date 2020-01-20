@@ -1675,6 +1675,24 @@ const converters = {
             );
         },
     },
+    tuya_switch_state: {
+        key: ['state_1', 'state_2', 'state_3', 'state_4'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {
+                'state_1': 1,
+                'state_2': 2,
+                'state_3': 3,
+                'state_4': 4,
+            };
+            const keyid = lookup[key];
+            await entity.command(
+                'manuSpecificTuyaDimmer', 'setData', {
+                    status: 0, transid: 16, dp: 256+keyid, fn: 0, data: [1, (value === 'ON') ? 1 : 0],
+                },
+                {disableDefaultResponse: true},
+            );
+        },
+    },
     RM01_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
