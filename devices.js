@@ -3243,6 +3243,13 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['NUET56-DL27LX1.2'],
+        model: 'HGZB-DLC4-N12B',
+        vendor: 'Nue / 3A',
+        description: 'RGB LED downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Smart Home Pty
     {
