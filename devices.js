@@ -5198,6 +5198,59 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
+    {
+        zigbeeModel: ['HS2SW1L-EFR-3.0'],
+        model: 'HS2SW1L-EFR-3.0',
+        vendor: 'HEIMAN',
+        description: 'Smart switch - 1 gang with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+
+    {
+        zigbeeModel: ['HS2SW2L-EFR-3.0'],
+        model: 'HS2SW2L-EFR-3.0',
+        vendor: 'HEIMAN',
+        description: 'Smart switch - 2 gang with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 3};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
+    {
+        zigbeeModel: ['HS2SW3L-EFR-3.0'],
+        model: 'HS2SW3L-EFR-3.0',
+        vendor: 'HEIMAN',
+        description: 'Smart switch - 3 gang with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
     // Oujiabao
     {
         zigbeeModel: ['OJB-CR701-YZ'],
