@@ -3625,6 +3625,34 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ZB-ONOFFPlug-D0005'],
+        model: 'GP-WOU019BBDWG',
+        vendor: 'SmartThings',
+        description: 'Outlet with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasuremen$
+            await configureReporting.onOff(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'activePower', 'rmsCurrent', 'rmsVoltage',
+            ]);
+            await endpoint.read('genOnOff', ['onOff']);
+        },
+    },
+    {
         zigbeeModel: ['outlet'],
         model: 'IM6001-OTP05',
         vendor: 'SmartThings',
