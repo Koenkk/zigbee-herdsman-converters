@@ -6060,7 +6060,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SZ-DWS04'],
+        zigbeeModel: ['SZ-DWS04', 'SZ-DWS04N_SF'],
         model: 'SZ-DWS04',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
@@ -6072,6 +6072,21 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SZ-PIR02_SF'],
+        model: 'AL-PIR02',
+        vendor: 'Sercomm',
+        description: 'PIR motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_3V_2100],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
