@@ -926,7 +926,7 @@ const devices = [
         fromZigbee: [fz.battery_percentage_remaining, fz.temperature, fz.humidity],
         toZigbee: [],
     },
-    
+
     // Norkmles
     {
         zigbeeModel: ['qnazj70'],
