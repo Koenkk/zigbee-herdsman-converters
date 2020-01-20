@@ -5946,24 +5946,8 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SZ-DWS04'],
+        zigbeeModel: ['SZ-DWS04', 'SZ-DWS04N_SF'],
         model: 'SZ-DWS04',
-        vendor: 'Sercomm',
-        description: 'Magnetic door & window contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_3V_2100],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-            await configureReporting.temperature(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['SZ-DWS04N_SF'],
-        model: 'SZ-DWS04N_SF',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact',
