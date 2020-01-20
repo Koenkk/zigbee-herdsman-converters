@@ -4123,6 +4123,15 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['902010/21A'],
+        model: 'AV2010/21A',
+        vendor: 'Bitron',
+        description: 'Compact magnetic contact sensor',
+        supports: 'contact, tamper',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
 
     // Iris
     {
