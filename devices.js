@@ -4352,7 +4352,7 @@ const devices = [
         zigbeeModel: ['PIRSensor-EM'],
         model: 'HS1MS',
         vendor: 'HEIMAN',
-        description: 'Smart Montion Sensor',
+        description: 'Smart motion Sensor',
         supports: 'occupancy',
         fromZigbee: [fz.iaszone_occupancy_1],
         toZigbee: [],
