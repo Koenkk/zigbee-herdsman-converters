@@ -5580,6 +5580,15 @@ const devices = [
             await configureReporting.acPowerDivisor(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZB2-BU01'],
+        model: 'ZB2-BU01',
+        vendor: 'Securifi',
+        description: 'Almond Click multi-function button',
+        supports: 'single, double and long click',
+        fromZigbee: [fz.almond_click],
+        toZigbee: [],
+    },
 
     // Visonic
     {

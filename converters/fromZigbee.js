@@ -3749,6 +3749,37 @@ const converters = {
             }
         },
     },
+    almond_click: {
+        cluster: 'ssIasAce',
+        type: ['commandArm'],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data['armmode'];
+            delete msg.data['armmode'];
+            const lookup = {
+                3: {click: 'single'}, // single click
+                0: {click: 'double'}, // double
+                2: {click: 'long'}, // hold
+            };
+
+            // Workaround to ignore duplicated (false) presses that
+            // are 100ms apart, since the button often generates
+            // multiple duplicated messages for a single click event.
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {since: 0};
+            }
+
+            const now = Date.now();
+            const since = store[deviceID].since;
+
+            if ((now-since)>100) {
+                store[deviceID].since = now;
+                return lookup[action] ? lookup[action] : null;
+            } else {
+                return;
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
