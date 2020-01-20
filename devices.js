@@ -4580,7 +4580,7 @@ const devices = [
         zigbeeModel: ['E_Socket'],
         model: 'HS2ESK-E',
         vendor: 'HEIMAN',
-        description: 'Smart In Wall Plug',
+        description: 'Smart in wall plug',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
