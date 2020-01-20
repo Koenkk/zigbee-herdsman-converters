@@ -3756,9 +3756,9 @@ const converters = {
             const action = msg.data['armmode'];
             delete msg.data['armmode'];
             const lookup = {
-                3: {click: 'single'}, // single click
-                0: {click: 'double'}, // double
-                2: {click: 'long'}, // hold
+                3: {action: 'single'}, // single click
+                0: {action: 'double'}, // double
+                2: {action: 'long'}, // hold
             };
 
             // Workaround to ignore duplicated (false) presses that
