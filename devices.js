@@ -4562,7 +4562,7 @@ const devices = [
         zigbeeModel: ['HT-EM'],
         model: 'HS1HT',
         vendor: 'HEIMAN',
-        description: 'Smart Temperature & Humidity Sensor',
+        description: 'Smart temperature & humidity Sensor',
         supports: 'temperature and humidity',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
