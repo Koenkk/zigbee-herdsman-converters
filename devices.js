@@ -7015,7 +7015,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.SA003_on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
