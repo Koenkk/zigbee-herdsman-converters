@@ -367,6 +367,18 @@ const converters = {
             };
         },
     },
+    ias_water_leak_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -2048,16 +2060,6 @@ const converters = {
             return {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
-            };
-        },
-    },
-    st_leak: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'commandStatusChangeNotification', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                water_leak: (zoneStatus & 1) > 0, // Bit 1 = wet
             };
         },
     },
