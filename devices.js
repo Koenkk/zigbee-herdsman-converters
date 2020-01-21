@@ -932,7 +932,7 @@ const devices = [
         zigbeeModel: ['qnazj70'],
         model: 'MKS-CM-W5',
         vendor: 'Norkmles',
-        description: 'Norkmles 4 gang switch ',
+        description: '1, 2, 3 or 4 gang switch',
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
