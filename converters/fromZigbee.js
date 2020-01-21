@@ -3756,10 +3756,10 @@ const converters = {
             const key = msg.data[5];
             const val = msg.data[9];
             const lookup = {
-                1: 'state_1',
-                2: 'state_2',
-                3: 'state_3',
-                4: 'state_4',
+                1: 'state_l1',
+                2: 'state_l2',
+                3: 'state_l3',
+                4: 'state_l4',
             };
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
         },
