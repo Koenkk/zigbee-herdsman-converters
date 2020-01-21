@@ -3749,6 +3749,21 @@ const converters = {
             }
         },
     },
+    tuya_switch: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const key = msg.data[5];
+            const val = msg.data[9];
+            const lookup = {
+                1: 'state_l1',
+                2: 'state_l2',
+                3: 'state_l3',
+                4: 'state_l4',
+            };
+            return {[lookup[key]]: (val) ? 'ON': 'OFF'};
+        },
+    },
     almond_click: {
         cluster: 'ssIasAce',
         type: ['commandArm'],

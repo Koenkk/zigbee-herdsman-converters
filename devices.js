@@ -927,6 +927,25 @@ const devices = [
         toZigbee: [],
     },
 
+    // Norkmles
+    {
+        zigbeeModel: ['qnazj70'],
+        model: 'MKS-CM-W5',
+        vendor: 'Norkmles',
+        description: '1, 2, 3 or 4 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+    },
+
     // IKEA
     {
         zigbeeModel: [
