@@ -927,11 +927,11 @@ const devices = [
         toZigbee: [],
     },
 
-    // Norkmles
+    // Norklmes
     {
         zigbeeModel: ['qnazj70'],
         model: 'MKS-CM-W5',
-        vendor: 'Norkmles',
+        vendor: 'Norklmes',
         description: '1, 2, 3 or 4 gang switch',
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
