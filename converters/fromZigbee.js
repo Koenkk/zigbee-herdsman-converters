@@ -2373,6 +2373,19 @@ const converters = {
             };
         },
     },
+    SA003_on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const last = store[msg.device.ieeeAddr];
+            const current = msg.meta.zclTransactionSequenceNumber;
+
+            if (last !== current && msg.data.hasOwnProperty('onOff')) {
+                store[msg.device.ieeeAddr] = current;
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
     tint404011_scene: {
         cluster: 'genBasic',
         type: 'write',
