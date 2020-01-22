@@ -7370,6 +7370,14 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
         },
     },
+    {
+        zigbeeModel: ['ZBT-CCTLight-D0106'],
+        model: 'ZBT-CCTLight-D0106',
+        vendor: 'lk',
+        description: 'Linkind Smart Zigbee LED Bulb',
+        supports: 'on/off, brightness',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 module.exports = devices.map((device) =>
