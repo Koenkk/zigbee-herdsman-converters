@@ -2381,7 +2381,7 @@ const converters = {
             const current = msg.meta.zclTransactionSequenceNumber;
 
             if (last !== current && msg.data.hasOwnProperty('onOff')) {
-                store[msg.device.ieeeAddr] = last;
+                store[msg.device.ieeeAddr] = current;
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
