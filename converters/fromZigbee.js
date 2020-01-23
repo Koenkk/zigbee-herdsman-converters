@@ -3804,7 +3804,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             msg.data.occupancy = msg.data.dp === 1027 ? 1 : 0;
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
-            
         },
     },
 
