@@ -237,7 +237,7 @@ const configureReporting = {
     activePower: async (endpoint) => {
         const payload = [{
             attribute: 'activePower',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -246,7 +246,7 @@ const configureReporting = {
     rmsCurrent: async (endpoint) => {
         const payload = [{
             attribute: 'rmsCurrent',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -255,7 +255,7 @@ const configureReporting = {
     rmsVoltage: async (endpoint) => {
         const payload = [{
             attribute: 'rmsVoltage',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -2651,7 +2651,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.SP120_power, fz.on_off, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
