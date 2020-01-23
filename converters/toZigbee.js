@@ -1124,6 +1124,7 @@ const converters = {
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
                     await converters.on_off.convertSet(entity, key, value, meta);
+                    await wait(1000);
                 }
             }
 
