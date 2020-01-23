@@ -3944,6 +3944,11 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
+    ignore_time_read: {
+        cluster: 'genTime',
+        type: 'read',
+        convert: (model, msg, publish, options, meta) => null,
+    },
 };
 
 module.exports = converters;

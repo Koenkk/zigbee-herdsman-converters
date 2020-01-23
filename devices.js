@@ -7387,7 +7387,7 @@ const devices = [
         vendor: 'BlitzWolf',
         description: 'Rechargeable ZigBee Contact Sensor', 
         supports: 'contact',
-        fromZigbee: [ fz.ias_contact_alarm_1, fz.battery_200 ], 
+        fromZigbee: [ fz.ias_contact_alarm_1, fz.battery_200, fz.ignore_basic_report, fz.ignore_time_read ], 
         toZigbee: [],
     },
     {
