@@ -5797,6 +5797,13 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
+        zigbeeModel: ['Micro Smart Dimmer'],
+        model: 'ZG2835RAC',
+        vendor: 'Sunricher',
+        description: 'ZigBee knob smart dimmer',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['ZG2833K4_EU06'],
         model: 'SR-ZG9001K4-DIM2',
         vendor: 'Sunricher',
