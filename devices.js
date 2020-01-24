@@ -7383,20 +7383,20 @@ const devices = [
     // BlitzWolf
     {
         zigbeeModel: ['RH3001'],
-        model: 'BW-IS2', 
+        model: 'BW-IS2',
         vendor: 'BlitzWolf',
-        description: 'Rechargeable Zigbee contact sensor', 
+        description: 'Rechargeable Zigbee contact sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_200, fz.ignore_basic_report, fz.ignore_time_read], 
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_200, fz.ignore_basic_report, fz.ignore_time_read],
         toZigbee: [],
     },
     {
         zigbeeModel: ['5j6ifxj'],
-        model: 'BW-IS3', 
+        model: 'BW-IS3',
         vendor: 'BlitzWolf',
-        description: 'Rechargeable Zigbee PIR motion sensor', 
+        description: 'Rechargeable Zigbee PIR motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.blitzwolf_occupancy_with_timeout], 
+        fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
     },
 ];
