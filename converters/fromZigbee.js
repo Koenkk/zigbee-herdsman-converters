@@ -2206,6 +2206,32 @@ const converters = {
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
             }
+            if (typeof msg.data['tempSetpointHold'] == 'number') {
+                result.temperature_setpoint_hold = msg.data['tempSetpointHold'];
+            }
+            if (typeof msg.data['tempSetpointHoldDuration'] == 'number') {
+                result.temperature_setpoint_hold_duration = msg.data['tempSetpointHoldDuration'];
+            }
+            return result;
+        },
+    },
+    thermostat_weekly_schedule_rsp: {
+        cluster: 'hvacThermostat',
+        type: ['commandGetWeeklyScheduleRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            result.weekly_schedule = {};
+            if (typeof msg.data['dayofweek'] == 'number') {
+                result.weekly_schedule[msg.data['dayofweek']] = msg.data;
+                for (const elem of result.weekly_schedule[msg.data['dayofweek']]['transitions']) {
+                    if (typeof elem['heatSetpoint'] == 'number') {
+                        elem['heatSetpoint'] /= 100;
+                    }
+                    if (typeof elem['coolSetpoint'] == 'number') {
+                        elem['coolSetpoint'] /= 100;
+                    }
+                }
+            }
             return result;
         },
     },
