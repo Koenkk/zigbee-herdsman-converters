@@ -1459,6 +1459,14 @@ const converters = {
                 result.angle = data;
             }
 
+            if (msg.data['1285']) {
+                // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/748#issuecomment-419669995
+                // Only first 2 bytes are relevant.
+                const data = (msg.data['1285'] >> 8);
+                // Swap byte order
+                result.strength = ((data & 0xFF) << 8) | ((data >> 8) & 0xFF);
+            }
+
             if (msg.data['1288']) {
                 const data = msg.data['1288'];
 
