@@ -26,6 +26,7 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
+    MINUTES_15: 900,
     MINUTES_10: 600,
     MINUTES_5: 300,
     MINUTE: 60,
@@ -8077,9 +8078,9 @@ const devices = [
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.thermostatTemperature(endpoint);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
+            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_15, 25);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_15, 25);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_15, 1);
             const userInterfaceConfig = [
                 {
                     attribute: 'keypadLockout',
