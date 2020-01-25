@@ -8089,7 +8089,7 @@ const devices = [
                 },
             ];
             await endpoint.configureReporting('hvacUserInterfaceCfg', userInterfaceConfig);
-            const draytonDeviceConfig = [
+            const wiserDeviceConfig = [
                 {
                     attribute: 'ALG',
                     minimumReportInterval: repInterval.MINUTE,
@@ -8109,7 +8109,7 @@ const devices = [
                     reportableChange: 0,
                 },
             ];
-            await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+            await endpoint.configureReporting('wiserDeviceInfo', wiserDeviceConfig);
         },
     },
     {
