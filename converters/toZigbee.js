@@ -1125,7 +1125,7 @@ const converters = {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
-                    await converters.on_off.convertSet(entity, key, value, meta);
+                    await converters.on_off.convertSet(entity, key, 'ON', meta);
                     await wait(1000);
                 }
             }
