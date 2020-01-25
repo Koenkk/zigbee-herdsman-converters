@@ -384,7 +384,9 @@ const gledopto = {
     },
 };
 
-const tzHuePowerOnBehavior = [tz.hue_power_on_behavior, tz.hue_power_on_brightness, tz.hue_power_on_color_temperature];
+const tzHuePowerOnBehavior = [
+    tz.hue_power_on_behavior, tz.hue_power_on_error,
+];
 const hue = {
     light_onoff_brightness: {
         supports: generic.light_onoff_brightness.supports + ', power-on behavior',
