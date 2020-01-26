@@ -4365,6 +4365,15 @@ const devices = [
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
+        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC'],
+        model: 'LS12128',
+        vendor: 'Lupus',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+    },
+    {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],
         model: '12050',
         vendor: 'Lupus',
