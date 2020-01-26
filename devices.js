@@ -2128,7 +2128,7 @@ const devices = [
         zigbeeModel: ['A60 DIM Z3'],
         model: 'AC10786-DIM',
         vendor: 'OSRAM',
-        description: 'SMART+ Classic E27 Dimmable',
+        description: 'SMART+ classic E27 dimmable',
         extend: osram.light_onoff_brightness,
     },
     {
