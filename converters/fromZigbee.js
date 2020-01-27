@@ -2388,6 +2388,10 @@ const converters = {
             const last = store[msg.device.ieeeAddr];
             const current = msg.meta.zclTransactionSequenceNumber;
 
+            if (msg.type === 'attributeReport') {
+                msg.meta.frameControl.disableDefaultResponse = true;
+            }
+
             if (last !== current && msg.data.hasOwnProperty('onOff')) {
                 store[msg.device.ieeeAddr] = current;
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
