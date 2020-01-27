@@ -3369,7 +3369,8 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // it is like xiaomi_battery_3v, but not parsed
             // https://github.com/Koenkk/zigbee-herdsman/blob/master/src/zcl/buffaloZcl.ts#L93
-            // data: { '247': <Buffer 01 21 b8 0b 03 28 19 04 21 a8 13 05 21 44 01 06 24 02 00 00 00 00 08 21 11 01 0a 21 00 00 0c 20 01 64 10 00> }
+            // data: { '247': <Buffer 01 21 b8 0b 03 28 19 04 21 a8 13 05 21 44 01 06 24 02 
+            //                        00 00 00 00 08 21 11 01 0a 21 00 00 0c 20 01 64 10 00> }
             let voltage = null;
 
             if (msg.data['247']) {
@@ -3382,7 +3383,7 @@ const converters = {
                     voltage: voltage,
                 };
             }
-        }
+        },
     },
     aqara_opple_multistate: {
         cluster: 'genMultistateInput',
