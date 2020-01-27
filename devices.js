@@ -858,7 +858,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
-            //await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            // await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
