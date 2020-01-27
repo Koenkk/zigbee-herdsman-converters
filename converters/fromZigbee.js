@@ -2379,7 +2379,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const last = store[msg.device.ieeeAddr];
             const current = msg.meta.zclTransactionSequenceNumber;
-            
+     
             if (msg.type === 'attributeReport') {
                 msg.meta.frameControl.disableDefaultResponse = true;
             }
