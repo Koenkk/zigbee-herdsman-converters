@@ -1459,6 +1459,14 @@ const converters = {
                 result.angle = data;
             }
 
+            if (msg.data['1285']) {
+                // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/748#issuecomment-419669995
+                // Only first 2 bytes are relevant.
+                const data = (msg.data['1285'] >> 8);
+                // Swap byte order
+                result.strength = ((data & 0xFF) << 8) | ((data >> 8) & 0xFF);
+            }
+
             if (msg.data['1288']) {
                 const data = msg.data['1288'];
 
@@ -3802,6 +3810,14 @@ const converters = {
             }
         },
     },
+    blitzwolf_occupancy_with_timeout: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options, meta) => {
+            msg.data.occupancy = msg.data.dp === 1027 ? 1 : 0;
+            return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
@@ -3936,6 +3952,11 @@ const converters = {
     },
     ignore_zclversion_read: {
         cluster: 'genBasic',
+        type: 'read',
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_time_read: {
+        cluster: 'genTime',
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },

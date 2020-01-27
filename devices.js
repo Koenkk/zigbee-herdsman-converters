@@ -13,6 +13,8 @@ const repInterval = {
     MINUTE: 60,
 };
 
+const defaultBindGroup = 901;
+
 const bind = async (endpoint, target, clusters) => {
     for (const cluster of clusters) {
         await endpoint.bind(cluster, target);
@@ -237,7 +239,7 @@ const configureReporting = {
     activePower: async (endpoint) => {
         const payload = [{
             attribute: 'activePower',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -246,7 +248,7 @@ const configureReporting = {
     rmsCurrent: async (endpoint) => {
         const payload = [{
             attribute: 'rmsCurrent',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -255,7 +257,7 @@ const configureReporting = {
     rmsVoltage: async (endpoint) => {
         const payload = [{
             attribute: 'rmsVoltage',
-            minimumReportInterval: 1,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
@@ -384,7 +386,9 @@ const gledopto = {
     },
 };
 
-const tzHuePowerOnBehavior = [tz.hue_power_on_behavior, tz.hue_power_on_brightness, tz.hue_power_on_color_temperature];
+const tzHuePowerOnBehavior = [
+    tz.hue_power_on_behavior, tz.hue_power_on_error,
+];
 const hue = {
     light_onoff_brightness: {
         supports: generic.light_onoff_brightness.supports + ', power-on behavior',
@@ -676,13 +680,6 @@ const devices = [
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off, tz.ZNCZ02LM_power_outage_memory],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            // By default this device is in group 0; remove it otherwise the E1743 will control it.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2059
-            const endpoint = device.getEndpoint(1);
-            await endpoint.removeFromGroup(0);
-        },
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -1163,6 +1160,9 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -1181,6 +1181,11 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            // By default this device controls group 0, some devices are by default in
+            // group 0 causing the remote to control them.
+            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -2125,6 +2130,13 @@ const devices = [
         extend: osram.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['A60 DIM Z3'],
+        model: 'AC10786-DIM',
+        vendor: 'OSRAM',
+        description: 'SMART+ classic E27 dimmable',
+        extend: osram.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW Z3'],
         model: 'AC03647',
         vendor: 'OSRAM',
@@ -2653,7 +2665,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.SP120_power, fz.on_off, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
@@ -2671,6 +2683,12 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['SP 224'],
@@ -4352,6 +4370,15 @@ const devices = [
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
+        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC'],
+        model: 'LS12128',
+        vendor: 'Lupus',
+        description: 'Roller shutter',
+        supports: 'open/close',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+    },
+    {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],
         model: '12050',
         vendor: 'Lupus',
@@ -5797,6 +5824,13 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['Micro Smart Dimmer'],
+        model: 'ZG2835RAC',
+        vendor: 'Sunricher',
+        description: 'ZigBee knob smart dimmer',
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['ZG2833K4_EU06'],
@@ -7369,6 +7403,35 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
         },
+    },
+
+    // Linkind
+    {
+        zigbeeModel: ['ZBT-CCTLight-D0106'],
+        model: 'ZL1000100-CCT-US-V1A02',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 9W A19 bulb, dimmable & tunable',
+        extend: generic.light_onoff_brightness,
+    },
+
+    // BlitzWolf
+    {
+        zigbeeModel: ['RH3001'],
+        model: 'BW-IS2',
+        vendor: 'BlitzWolf',
+        description: 'Rechargeable Zigbee contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_200, fz.ignore_basic_report, fz.ignore_time_read],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['5j6ifxj'],
+        model: 'BW-IS3',
+        vendor: 'BlitzWolf',
+        description: 'Rechargeable Zigbee PIR motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
+        toZigbee: [],
     },
 ];
 

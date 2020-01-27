@@ -239,8 +239,10 @@ const converters = {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta));
 
                 // As we cannot determine the new brightness state, we read it from the device
-                await wait(1000);
-                await entity.read('genLevelCtrl', ['currentLevel']);
+                if (entity.constructor.name === 'Endpoint') {
+                    await wait(1000);
+                    await entity.read('genLevelCtrl', ['currentLevel']);
+                }
             } else {
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 await entity.command('genLevelCtrl', 'moveWithOnOff', payload, getOptions(meta));
@@ -1119,6 +1121,15 @@ const converters = {
                 entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(13);
             }
 
+            if (meta.mapped.model === 'GL-S-007ZS') {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2757
+                // Device doesn't support ON with moveToLevelWithOnOff command
+                if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
+                    await converters.on_off.convertSet(entity, key, 'ON', meta);
+                    await wait(1000);
+                }
+            }
+
             return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
@@ -1218,54 +1229,69 @@ const converters = {
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const lookupOnOff = {
-                'default': 0x01,
-                'on': 0x01,
-                'off': 0x00,
-                'recover': 0xff,
-            };
-
-            const lookupGenLevelCtrl = {
-                'default': 0xfe,
-                'on': 0xfe,
-                'off': 0xfe,
-                'recover': 0xff,
-            };
-
-            entity.write('genOnOff', {0x4003: {value: lookupOnOff[value], type: 0x30}});
-            entity.write('genLevelCtrl', {0x4000: {value: lookupGenLevelCtrl[value], type: 0x20}});
-        },
-    },
-    hue_power_on_brightness: {
-        key: ['hue_power_on_brightness'],
-        convertSet: async (entity, key, value, meta) => {
             if (value === 'default') {
-                value = 255;
+                value = 'on';
             }
 
-            const payload = {
-                0x4000: {
-                    value,
-                    type: 0x20,
-                },
-            };
-            await entity.write('genLevelCtrl', payload, options.hue);
+            if (value === 'off') {
+                await entity.write('genOnOff', {0x4003: {value: 0x00, type: 0x30}});
+            } else if (value === 'recover') {
+                await entity.write('genOnOff', {0x4003: {value: 0xff, type: 0x30}});
+                await entity.write('genLevelCtrl', {0x4000: {value: 0xff, type: 0x20}});
+
+                if (entity.supportsInputCluster('lightingColorCtrl')) {
+                    await entity.write('lightingColorCtrl', {0x4010: {value: 0xffff, type: 0x21}});
+                    await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, options.hue);
+                    await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, options.hue);
+                }
+            } else if (value === 'on') {
+                await entity.write('genOnOff', {0x4003: {value: 0x01, type: 0x30}});
+
+                let brightness = meta.message.hasOwnProperty('hue_power_on_brightness') ?
+                    meta.message.hue_power_on_brightness : 0xfe;
+                if (brightness === 255) {
+                    // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
+                    brightness = 254;
+                }
+                await entity.write('genLevelCtrl', {0x4000: {value: brightness, type: 0x20}});
+
+                if (entity.supportsInputCluster('lightingColorCtrl')) {
+                    if (
+                        meta.message.hasOwnProperty('hue_power_on_color_temperature') &&
+                        meta.message.hasOwnProperty('hue_power_on_color')
+                    ) {
+                        meta.logger.error(`Provide either color temperature or color, not both`);
+                    } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
+                        const colortemp = meta.message.hue_power_on_color_temperature;
+                        await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});
+                        // Set color to default
+                        await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, options.hue);
+                        await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, options.hue);
+                    } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
+                        const xy = utils.hexToXY(value);
+                        value = {x: xy.x * 65535, y: xy.y * 65535};
+
+                        // Set colortemp to default
+                        await entity.write('lightingColorCtrl', {0x4010: {value: 366, type: 0x21}});
+
+                        await entity.write('lightingColorCtrl', {0x0003: {value: value.x, type: 0x21}}, options.hue);
+                        await entity.write('lightingColorCtrl', {0x0004: {value: value.y, type: 0x21}}, options.hue);
+                    } else {
+                        // Set defaults for colortemp and color
+                        await entity.write('lightingColorCtrl', {0x4010: {value: 366, type: 0x21}});
+                        await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, options.hue);
+                        await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, options.hue);
+                    }
+                }
+            }
         },
     },
-    hue_power_on_color_temperature: {
-        key: ['hue_power_on_color_temperature'],
+    hue_power_on_error: {
+        key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
-            if (value === 'default') {
-                value = 366;
+            if (!meta.message.hasOwnProperty('hue_power_on_behavior')) {
+                meta.logger.error(`Provide a value for 'hue_power_on_behavior'`);
             }
-
-            const payload = {
-                0x4010: {
-                    value,
-                    type: 0x21,
-                },
-            };
-            await entity.write('lightingColorCtrl', payload, options.hue);
         },
     },
     hue_motion_sensitivity: {
