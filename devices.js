@@ -13,6 +13,8 @@ const repInterval = {
     MINUTE: 60,
 };
 
+const defaultBindGroup = 901;
+
 const bind = async (endpoint, target, clusters) => {
     for (const cluster of clusters) {
         await endpoint.bind(cluster, target);
@@ -1158,6 +1160,9 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
@@ -1180,7 +1185,7 @@ const devices = [
             // group 0 causing the remote to control them.
             // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', 901);
+            await endpoint.bind('genOnOff', defaultBindGroup);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
