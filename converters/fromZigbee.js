@@ -546,6 +546,24 @@ const converters = {
             return result;
         },
     },
+    bitron_zone_status: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                alarm_1: (zoneStatus & 1) > 0,
+                alarm_2: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                trouble: (zoneStatus & 1<<6) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+
+            };
+        },
+    },
     scenes_recall_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
