@@ -850,6 +850,7 @@ const devices = [
         description: 'Aqara Opple switch 1 band',
         supports: 'click',
         fromZigbee: [
+            fz.aqara_opple_on, fz.aqara_opple_off, fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
         toZigbee: [],
@@ -857,6 +858,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            //await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
@@ -866,6 +868,8 @@ const devices = [
         description: 'Aqara Opple switch 2 bands',
         supports: 'click',
         fromZigbee: [
+            fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step,
+            fz.aqara_opple_step_color_temp, fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
         toZigbee: [],
@@ -873,6 +877,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            // await bind(endpoint, coordinatorEndpoint, [
+            //     'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
+            // ]);
         },
     },
     {
@@ -882,6 +889,9 @@ const devices = [
         description: 'Aqara Opple switch 3 bands',
         supports: 'click',
         fromZigbee: [
+            fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_move,
+            fz.aqara_opple_stop, fz.aqara_opple_step_color_temp, fz.aqara_opple_move_color_temp,
+            fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
         toZigbee: [],
@@ -889,6 +899,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            // await bind(endpoint, coordinatorEndpoint, [
+            //     'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
+            // ]);
         },
     },
     {
