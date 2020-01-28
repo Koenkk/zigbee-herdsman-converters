@@ -588,6 +588,7 @@ const converters = {
             if (msg.data['65281']) {
                 const convertToLux = options && options.hasOwnProperty('lux');
                 let illuminance = msg.data['65281']['11'];
+                // DEPRECATED: always convert to lux here.
                 illuminance = convertToLux ? Math.round(Math.pow(10, illuminance / 10000) - 1) : illuminance;
                 return {illuminance};
             }
@@ -955,6 +956,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const convertToLux = options && options.hasOwnProperty('lux');
             let illuminance = msg.data['measuredValue'];
+            // DEPRECATED: always convert to lux here.
             illuminance = convertToLux ? Math.round(Math.pow(10, illuminance / 10000) - 1) : illuminance;
             illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             return {illuminance};
