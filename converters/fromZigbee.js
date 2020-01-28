@@ -952,7 +952,7 @@ const converters = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const illuminance = msg.data['measuredValue'];
+            const illuminance = Math.round(Math.pow(10, msg.data['measuredValue'] / 10000) - 1);
             return {illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
         },
     },
