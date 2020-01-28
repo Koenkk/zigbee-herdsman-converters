@@ -245,7 +245,7 @@ const converters = {
                 }
             } else {
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
-                await entity.command('genLevelCtrl', 'moveWithOnOff', payload, getOptions(meta));
+                await entity.command('genLevelCtrl', 'move', payload, getOptions(meta));
             }
         },
     },
