@@ -3479,7 +3479,7 @@ const converters = {
             if (stop) {
                 button = store[deviceID].button;
                 const duration = Date.now() - store[deviceID].start;
-                result.click = `${button}_release`;
+                result.action = `button_${button}_release`;
                 result.duration = duration;
             } else {
                 button = msg.data.movemode === 3 ? '6' : '5';
