@@ -586,9 +586,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
-                return {
-                    illuminance: calibrateAndPrecisionRoundOptions(msg.data['65281']['11'], options, 'illuminance'),
-                };
+                const convertToLux = options && options.hasOwnProperty('lux');
+                let illuminance = msg.data['65281']['11'];
+                illuminance = convertToLux ? Math.round(Math.pow(10, illuminance / 10000) - 1) : illuminance;
+                return {illuminance};
             }
         },
     },
@@ -952,8 +953,11 @@ const converters = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const illuminance = Math.round(Math.pow(10, msg.data['measuredValue'] / 10000) - 1);
-            return {illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+            const convertToLux = options && options.hasOwnProperty('lux');
+            let illuminance = msg.data['measuredValue'];
+            illuminance = convertToLux ? Math.round(Math.pow(10, illuminance / 10000) - 1) : illuminance;
+            illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
+            return {illuminance};
         },
     },
     generic_pressure: {
