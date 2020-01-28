@@ -3398,21 +3398,21 @@ const converters = {
             };
             const btn = msg.endpoint.ID;
             const value = msg.data.presentValue;
-            return {click: `${btn}_${actionLookup[value]}`};
+            return {action: `button_${btn}_${actionLookup[value]}`};
         },
     },
     aqara_opple_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {click: '2_single'};
+            return {action: 'button_2_single'};
         },
     },
     aqara_opple_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {click: '1_single'};
+            return {action: 'button_1_single'};
         },
     },
     aqara_opple_step: {
@@ -3420,7 +3420,7 @@ const converters = {
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const button = msg.data.stepmode === 0 ? '4' : '3';
-            return {click: `${button}_single`};
+            return {action: `button_${button}_single`};
         },
     },
     aqara_opple_stop: {
@@ -3431,7 +3431,7 @@ const converters = {
             if (store[deviceID]) {
                 const duration = Date.now() - store[deviceID].start;
                 const button = store[deviceID].button;
-                return {click: `${button}_release`, duration: duration};
+                return {action: `button_${button}_release`, duration: duration};
             }
         },
     },
@@ -3447,7 +3447,7 @@ const converters = {
             const button = msg.data.movemode === 0 ? '4' : '3';
             store[deviceID].button = button;
             store[deviceID].start = Date.now();
-            return {click: `${button}_hold`};
+            return {action: `button_${button}_hold`};
         },
     },
     aqara_opple_step_color_temp: {
@@ -3462,7 +3462,7 @@ const converters = {
                 // but for WXCJKG13LM model it's single click event on buttons 5 and 6
                 act = (msg.data.stepmode === 1) ? '5_single' : '6_single';
             }
-            return {click: act};
+            return {action: `button_${act}`};
         },
     },
     aqara_opple_move_color_temp: {
@@ -3483,7 +3483,7 @@ const converters = {
                 result.duration = duration;
             } else {
                 button = msg.data.movemode === 3 ? '6' : '5';
-                result.click = `${button}_hold`;
+                result.action = `button_${button}_hold`;
                 // store button and start moment
                 store[deviceID].button = button;
                 store[deviceID].start = Date.now();
