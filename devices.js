@@ -2460,10 +2460,6 @@ const devices = [
         supports: 'none, communicate via thermostat',
         fromZigbee: [],
         toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            // There is nothing to do here but mata and configure are required to have device "configured".
-        },
     },
 
     // Innr
