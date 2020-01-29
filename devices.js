@@ -2274,6 +2274,13 @@ const devices = [
         extend: osram.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['Gardenpole RGBW Z3'],
+        model: '4058075147126',
+        vendor: 'OSRAM',
+        description: 'Smart+ gardenpole RGBW',
+        extend: osram.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['Gardenpole Mini RGBW OSRAM'],
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
