@@ -300,7 +300,7 @@ const converters = {
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
                 if (transition && (state === 'off' || state === 'on')) {
-                    const level = state === 'off' ? 0 : (meta.state ? meta.state.brightness : 255);
+                    const level = state === 'off' ? 0 : meta.state.brightness || 255;
                     const payload = {level, transtime: transition};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta));
                     return {state: {state: state.toUpperCase()}};
