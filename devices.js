@@ -4969,7 +4969,7 @@ const devices = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         supports: 'click',
-        fromZigbee: [fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff],
+        fromZigbee: [fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.battery_percentage_remaining],
         toZigbee: [],
     },
     {
