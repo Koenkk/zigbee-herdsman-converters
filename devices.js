@@ -3591,15 +3591,9 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -3629,15 +3623,9 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
@@ -4959,15 +4947,9 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -5905,15 +5887,9 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
     {
@@ -6105,15 +6081,9 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
