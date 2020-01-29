@@ -21,7 +21,7 @@ const calibrateAndPrecisionRoundOptions = (number, options, type) => {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
     let calibrationOffset = options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0;
-    if (type == 'illuminance') {
+    if (type == 'illuminance' || type === 'illuminance_lux') {
         // linear calibration because measured value is zero based
         // +/- percent
         calibrationOffset = Math.round(number * calibrationOffset / 100);
@@ -586,8 +586,12 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
+                // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+                const illuminance = msg.data['65281']['11'];
+                const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
                 return {
-                    illuminance: calibrateAndPrecisionRoundOptions(msg.data['65281']['11'], options, 'illuminance'),
+                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
                 };
             }
         },
@@ -952,8 +956,13 @@ const converters = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            return {illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
+            return {
+                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
+            };
         },
     },
     generic_pressure: {
