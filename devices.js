@@ -927,8 +927,9 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
-            await configureReporting.batteryVoltage(coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
 
