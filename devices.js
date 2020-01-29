@@ -227,6 +227,24 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
+    thermostatTemperatureSetpointHold: async (endpoint, min=0, max=repInterval.HOUR) => {
+        const payload = [{
+            attribute: 'tempSetpointHold',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: 0,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatTemperatureSetpointHoldDuration: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
+        const payload = [{
+            attribute: 'tempSetpointHoldDuration',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
     presentValue: async (endpoint) => {
         const payload = [{
             attribute: 'presentValue',
@@ -2063,8 +2081,7 @@ const devices = [
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
-            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2424,6 +2441,45 @@ const devices = [
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['SLR1b'],
+        model: 'SLR1b',
+        vendor: 'Hive',
+        description: 'Heating thermostat',
+        supports: 'thermostat, occupied heating, weekly schedule',
+        fromZigbee: [fz.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration,
+        ],
+        meta: {
+            configureKey: 1,
+            options: {disableDefaultResponse: true},
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(5);
+            const binds = [
+                'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.HOUR, 1);
+            await configureReporting.thermostatRunningState(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatTemperatureSetpointHold(endpoint);
+            await configureReporting.thermostatTemperatureSetpointHoldDuration(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['WPT1'],
+        model: 'WPT1',
+        vendor: 'Hive',
+        description: 'Heating thermostat remote control',
+        supports: 'none, communicate via thermostat',
+        fromZigbee: [],
+        toZigbee: [],
     },
 
     // Innr
@@ -6673,8 +6729,7 @@ const devices = [
             tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_weekly_schedule_rsp,
-            tz.thermostat_relay_status_log, tz.thermostat_relay_status_log_rsp,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

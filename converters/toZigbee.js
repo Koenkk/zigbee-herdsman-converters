@@ -660,15 +660,27 @@ const converters = {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
-                temperature_setpoint_hold: value.temperature_setpoint_hold,
-                temperature_setpoint_hold_duration: value.temperature_setpoint_hold_duration,
-                thermostat_programming_operation_mode: value.thermostat_programming_operation_mode,
-                thermostat_running_state: value.thermostat_running_state,
+                numoftrans: value.numoftrans,
+                dayofweek: value.dayofweek,
+                mode: value.mode,
+                transitions: value.transitions,
             };
+            for (const elem of payload['transitions']) {
+                if (typeof elem['heatSetpoint'] == 'number') {
+                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
+                }
+                if (typeof elem['coolSetpoint'] == 'number') {
+                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                }
+            }
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, getOptions(meta));
         },
         convertGet: async (entity, key, meta) => {
-            await entity.command('hvacThermostat', 'getWeeklySchedule', {}, getOptions(meta));
+            const payload = {
+                daystoreturn: 0xff, // Sun-Sat and vacation
+                modetoreturn: 3, // heat + cool
+            };
+            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, getOptions(meta));
         },
     },
     thermostat_clear_weekly_schedule: {
@@ -681,33 +693,6 @@ const converters = {
         key: ['relay_status_log'],
         convertGet: async (entity, key, meta) => {
             await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta));
-        },
-    },
-    thermostat_weekly_schedule_rsp: {
-        key: ['weekly_schedule_rsp'],
-        convertGet: async (entity, key, meta) => {
-            const payload = {
-                number_of_transitions: meta.message[key].numoftrans, // TODO: Lookup in Zigbee documentation
-                day_of_week: meta.message[key].dayofweek,
-                mode: meta.message[key].mode,
-                thermoseqmode: meta.message[key].thermoseqmode,
-            };
-            await entity.command('hvacThermostat', 'getWeeklyScheduleRsp', payload, getOptions(meta));
-        },
-    },
-    thermostat_relay_status_log_rsp: {
-        key: ['relay_status_log_rsp'],
-        attr: [],
-        convertGet: async (entity, key, meta) => {
-            const payload = {
-                time_of_day: meta.message[key].timeofday, // TODO: Lookup in Zigbee documentation
-                relay_status: meta.message[key].relaystatus,
-                local_temperature: meta.message[key].localtemp,
-                humidity: meta.message[key].humidity,
-                setpoint: meta.message[key].setpoint,
-                unread_entries: meta.message[key].unreadentries,
-            };
-            await entity.command('hvacThermostat', 'getRelayStatusLogRsp', payload, getOptions(meta));
         },
     },
     thermostat_running_mode: {
@@ -734,6 +719,28 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKeyByValue(common.keypadLockoutMode, value, value);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+        },
+    },
+    thermostat_temperature_setpoint_hold: {
+        key: ['temperature_setpoint_hold'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHold = value;
+            await entity.write('hvacThermostat', {tempSetpointHold});
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHold']);
+        },
+    },
+    thermostat_temperature_setpoint_hold_duration: {
+        key: ['temperature_setpoint_hold_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHoldDuration = value;
+            await entity.write('hvacThermostat', {tempSetpointHoldDuration});
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHoldDuration']);
         },
     },
     fan_mode: {
