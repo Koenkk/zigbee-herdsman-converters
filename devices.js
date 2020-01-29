@@ -3044,6 +3044,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['E11-U2E'],
+        model: 'E11-U2E',
+        vendor: 'Sengled',
+        description: 'Element Plus Color (A60?)',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['E12-N14'],
         model: 'E12-N14',
         vendor: 'Sengled',
