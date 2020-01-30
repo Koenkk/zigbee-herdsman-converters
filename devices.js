@@ -3641,13 +3641,26 @@ const devices = [
         model: 'ROB_200-004-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_light_brightness_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        meta: {configureKey: 1},
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['ROB_200-003-0'],
+        model: 'ROB_200-003-0',
+        vendor: 'ROBB',
+        description: 'Zigbee AC in wall switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
@@ -3657,14 +3670,27 @@ const devices = [
         zigbeeModel: ['4512700'],
         model: '4512700',
         vendor: 'Namron',
-        description: 'ZigBee AC phase-cut dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_light_brightness_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        meta: {configureKey: 1},
+        description: 'ZigBee dimmer 400W',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['4512704'],
+        model: '4512704',
+        vendor: 'Namron',
+        description: 'Zigbee switch 400W',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
     },
@@ -4966,17 +4992,29 @@ const devices = [
         zigbeeModel: ['ICZB-IW11D'],
         model: 'ICZB-IW11D',
         vendor: 'iCasa',
-        description: 'Zigbee 3.0 Dimmer',
+        description: 'ZigBee AC dimmer',
         extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
-        description: 'Zigbee 3.0 Switch',
+        description: 'Zigbee 3.0 AC switch',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['ICZB-KPD18S'],
@@ -5894,15 +5932,27 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
-        description: 'ZigBee AC in-wall switch',
+        description: 'Zigbee AC in wall switch',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['Micro Smart Dimmer'],
@@ -6065,8 +6115,14 @@ const devices = [
         zigbeeModel: ['511.201'],
         model: '511.201',
         vendor: 'Iluminize',
-        description: 'HV LED dimmer',
+        description: 'ZigBee 3.0 Dimm-Aktor mini 1x 230V',
         extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['511.012'],
@@ -6079,21 +6135,15 @@ const devices = [
         zigbeeModel: ['511.202'],
         model: '511.202',
         vendor: 'Iluminize',
-        description: 'switch',
+        description: 'Zigbee 3.0 Schalt-Aktor mini 1x230V, 200W/400W',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const ep1 = device.getEndpoint(1);
-            if (ep1 != null) {
-                await bind(ep1, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep1);
-            } else {
-                const ep3 = device.getEndpoint(3);
-                await bind(ep3, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(ep3);
-            }
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
