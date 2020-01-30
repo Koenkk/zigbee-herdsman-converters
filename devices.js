@@ -3570,7 +3570,7 @@ const devices = [
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -3600,7 +3600,7 @@ const devices = [
         vendor: 'Namron',
         description: 'ZigBee Dimmer 400W',
         extend: generic.light_onoff_brightness,
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
