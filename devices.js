@@ -4175,8 +4175,8 @@ const devices = [
         model: 'AV2010/24A',
         vendor: 'Bitron',
         description: 'Optical Smoke Detector',
-        supports: 'tamper',
-        fromZigbee: [fz.bitron_zone_status],
+        supports: 'smoke, tamper and battery',
+        fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [],
     },
 
