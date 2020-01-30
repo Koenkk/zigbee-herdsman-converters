@@ -4284,6 +4284,15 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['902010/24A'],
+        model: 'AV2010/24A',
+        vendor: 'Bitron',
+        description: 'Optical smoke detector',
+        supports: 'smoke, tamper and battery',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [],
+    },
 
     // Iris
     {
