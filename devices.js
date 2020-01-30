@@ -2282,6 +2282,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        meta: {options: {disableDefaultResponse: true}},
     },
     {
         zigbeeModel: ['Gardenpole Mini RGBW OSRAM'],
