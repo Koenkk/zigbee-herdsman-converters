@@ -3581,7 +3581,7 @@ const devices = [
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
-        description: 'Zigbee AC In Wall Switch',
+        description: 'Zigbee AC in wall switch',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
