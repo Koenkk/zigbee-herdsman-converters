@@ -254,31 +254,34 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('genBinaryInput', payload);
     },
-    activePower: async (endpoint) => {
+    activePower: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'activePower',
             minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-    rmsCurrent: async (endpoint) => {
+    rmsCurrent: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'rmsCurrent',
             minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-    rmsVoltage: async (endpoint) => {
+    rmsVoltage: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'rmsVoltage',
             minimumReportInterval: 5,
             maximumReportInterval: repInterval.MINUTES_5,
             reportableChange: 1,
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
     powerFactor: async (endpoint) => {
@@ -4264,7 +4267,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 4},
+        meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
@@ -4273,9 +4276,9 @@ const devices = [
                 'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
             ]);
             await configureReporting.onOff(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
-            await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
+            await configureReporting.activePower(endpoint); // Power reports in 0.1W
         },
     },
     {
