@@ -1344,6 +1344,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LDT001'],
+        model: '5900131C5',
+        vendor: 'Philips',
+        description: 'Hue Aphelion downlight',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LLC012', 'LLC011'],
         model: '7299760PH',
         vendor: 'Philips',
