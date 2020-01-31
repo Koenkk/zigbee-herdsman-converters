@@ -3675,6 +3675,19 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ROB_200-014-0'],
+        model: 'ROB_200-014-0',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut rotary dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Namron
     {
