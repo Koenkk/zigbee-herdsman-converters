@@ -3355,7 +3355,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LXN56-0S27LX1.1'],
+        zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.3'],
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',
