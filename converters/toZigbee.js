@@ -1283,7 +1283,7 @@ const converters = {
                         await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, options.hue);
                         await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, options.hue);
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        const xy = utils.hexToXY(value);
+                        const xy = utils.hexToXY(meta.message.hue_power_on_color);
                         value = {x: xy.x * 65535, y: xy.y * 65535};
 
                         // Set colortemp to default
