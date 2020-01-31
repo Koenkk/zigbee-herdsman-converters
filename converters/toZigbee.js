@@ -4,6 +4,8 @@ const utils = require('./utils');
 const common = require('./common');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const store = {};
+
 const options = {
     xiaomi: {
         manufacturerCode: 0x115F,
@@ -300,10 +302,25 @@ const converters = {
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
                 if (transition && (state === 'off' || state === 'on')) {
-                    const level = state === 'off' ? 0 : meta.state.brightness || 255;
+                    if (state === 'off') {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
+                        // We need to remember the state before turning the device off as we need to restore
+                        // it once we turn it on again.
+                        // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
+                        // it brightness while decreasing the brightness.
+                        store[entity.deviceIeeeAddress] = meta.state.brightness;
+                    }
+
+                    const level = state === 'off' ? 0 : store[entity.deviceIeeeAddress] || 255;
                     const payload = {level, transtime: transition};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta));
-                    return {state: {state: state.toUpperCase()}};
+
+                    const newState = {state: state.toUpperCase()};
+                    if (state === 'on') {
+                        newState['brightness'] = level;
+                    }
+
+                    return {state: newState};
                 } else {
                     const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                     if (state === 'on') {
