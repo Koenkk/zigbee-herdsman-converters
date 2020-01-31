@@ -4451,7 +4451,7 @@ const devices = [
         supports: 'on/off, brightness, power meter',
         fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.light_onoff_restorable_brightness],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
@@ -4460,9 +4460,9 @@ const devices = [
                 'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
             ]);
             await configureReporting.onOff(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
-            await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
+            await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
         },
     },
 
