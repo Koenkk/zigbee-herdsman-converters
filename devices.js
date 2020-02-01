@@ -5061,6 +5061,9 @@ const devices = [
         vendor: 'Paul Neuhaus',
         description: 'Q-FLAG LED Panel, Smart-Home RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        endpoint: (device) => {
+            return {'default': 2};
+        },
     },
     {
         zigbeeModel: ['NLG-plug '],
