@@ -1442,6 +1442,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LCP003'],
+        model: '4090631P7',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance pendant light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
