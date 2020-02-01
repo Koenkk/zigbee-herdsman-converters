@@ -4884,6 +4884,42 @@ const devices = [
             await configureReporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SGMHM-I1'],
+        model: 'SGMHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['STHM-I1H'],
+        model: 'STHM-I1H',
+        vendor: 'HEIMAN',
+        description: 'Heiman temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await bind(endpoint, coordinatorEndpoint, bindClusters);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint, 0, repInterval.HOUR, 25);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+
+    // GS
+    {
+        zigbeeModel: ['BDHM8E27W70-I1'],
+        model: 'BDHM8E27W70-I1',
+        vendor: 'GS',
+        description: 'Active light, warm to cool white (E27 & B22)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Oujiabao
     {
