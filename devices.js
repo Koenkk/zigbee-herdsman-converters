@@ -2976,7 +2976,8 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.instantaneousDemand(endpoint, {'minimumReportInterval': 10, 'reportableChange': 2});
+            await configureReporting.instantaneousDemand(endpoint,
+                {'minimumReportInterval': 10, 'reportableChange': 2});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
     },
