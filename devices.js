@@ -121,13 +121,14 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('msIlluminanceMeasurement', payload);
     },
-    instantaneousDemand: async (endpoint) => {
+    instantaneousDemand: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'instantaneousDemand',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
             reportableChange: 1,
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
     currentSummDelivered: async (endpoint) => {
@@ -2970,12 +2971,12 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off, fz.generic_power],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.instantaneousDemand(endpoint);
+            await configureReporting.instantaneousDemand(endpoint, {'min': 10, 'reportableChange': 2});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
     },
