@@ -2953,7 +2953,7 @@ const devices = [
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off],
+        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2968,7 +2968,7 @@ const devices = [
         vendor: 'GE',
         description: 'Plug-in smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.generic_power],
+        fromZigbee: [fz.on_off, fz.generic_power, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
