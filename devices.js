@@ -7661,7 +7661,7 @@ const devices = [
         model: 'TS0001',
         supports: 'on/off',
         vendor: '_TYZB01_seqwasot',
-        description: 'TS0001 wired wall switch 1 gag',
+        description: 'TS0001 wired wall switch 1 gang',
         fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
     },
