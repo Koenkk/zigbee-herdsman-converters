@@ -7297,7 +7297,7 @@ const devices = [
         vendor: 'CR Smart Home',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_percentage_remaining, fz.ignore_basic_report],
+        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_percentage_remaining, fz.ignore_basic_report],
         toZigbee: [],
     },
     {
