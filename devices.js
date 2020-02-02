@@ -2,6 +2,7 @@
 
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
+const ota = require('./ota');
 
 const store = {};
 
@@ -1051,6 +1052,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colorxy,
+        ota: ota.tradfri,
     },
     {
         zigbeeModel: [
