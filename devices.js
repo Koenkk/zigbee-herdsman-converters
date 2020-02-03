@@ -642,7 +642,7 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.occupancy_with_timeout, fz.generic_illuminance,
+            fz.xiaomi_battery_3v, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance,
             fz.RTCGQ11LM_interval,
         ],
         toZigbee: [],
