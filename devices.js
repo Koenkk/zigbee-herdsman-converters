@@ -4618,6 +4618,15 @@ const devices = [
         },
     },
     {
+	zigbeeModel: ['PIRSensor-EM'],
+	model: 'HS3MS',
+	vendor: 'HEIMAN',
+	description: 'Smart motion sensor EM',
+	supports: 'occupancy',
+	fromZigbee: [fz.iaszone_occupancy_1],
+	toZigbee: [],
+    },
+    {
         zigbeeModel: ['PIRSensor-N'],
         model: 'HS3MS',
         vendor: 'HEIMAN',
