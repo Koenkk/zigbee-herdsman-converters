@@ -4923,6 +4923,21 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['WarningDevice-EF-3.0'],
+        model: 'M420',
+        vendor: 'HEIMAN',
+        description: 'Zigbee 3.0 smart siren',
+        supports: 'warning',
+        fromZigbee: [fz.battery_200],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // GS
     {
