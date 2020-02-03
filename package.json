@@ -30,7 +30,9 @@
     "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
   },
   "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
-  "dependencies": {},
+  "dependencies": {
+    "axios": "*"
+  },
   "devDependencies": {
     "eslint": "*",
     "eslint-config-google": "*",
