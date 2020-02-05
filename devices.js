@@ -4795,7 +4795,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['WarningDevice','WarningDevice-EF-3.0'],
+        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
         description: 'Smart siren',
