@@ -1383,7 +1383,7 @@ const devices = [
         zigbeeModel: ['LCF002'],
         model: '8718696167991',
         vendor: 'Philips',
-        description: 'Hue Calla Outdoor',
+        description: 'Hue Calla outdoor',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
