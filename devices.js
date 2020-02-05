@@ -4795,7 +4795,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['WarningDevice'],
+        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
         description: 'Smart siren',
@@ -4921,21 +4921,6 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.humidity(endpoint, 0, repInterval.HOUR, 25);
             await configureReporting.batteryVoltage(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['WarningDevice-EF-3.0'],
-        model: 'M420',
-        vendor: 'HEIMAN',
-        description: 'Zigbee 3.0 smart siren',
-        supports: 'warning',
-        fromZigbee: [fz.battery_200],
-        toZigbee: [tz.warning],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
