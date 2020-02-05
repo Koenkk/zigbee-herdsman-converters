@@ -1821,7 +1821,7 @@ const devices = [
         description: 'Hue smart plug - EU',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
@@ -1836,7 +1836,7 @@ const devices = [
         description: 'Hue smart plug bluetooth',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
