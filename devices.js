@@ -7663,6 +7663,14 @@ const devices = [
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['zbt-dimlight-gls0006'], 
+        model: 'GP-LBU019BBAWU', 
+        vendor: 'SmartThings', 
+        description: 'Smart Bulb', 
+        supports: 'on/off', 
+        extend: generic.light_onoff_brightness
+    },
 ];
 
 module.exports = devices.map((device) =>
