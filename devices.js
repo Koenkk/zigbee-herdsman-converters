@@ -7669,7 +7669,7 @@ const devices = [
         vendor: 'SmartThings', 
         description: 'Smart Bulb', 
         supports: 'on/off', 
-        extend: generic.light_onoff_brightness
+        extend: generic.light_onoff_brightness,
     },
 ];
 
