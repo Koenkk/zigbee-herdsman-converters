@@ -7638,7 +7638,7 @@ const devices = [
     // Linkind
     {
         zigbeeModel: ['ZBT-CCTLight-D0106'],
-        model: 'ZL1000100-CCT-US-V1A02',
+        model: 'ZBT-CCTLight-D0106',
         vendor: 'Linkind',
         description: 'Zigbee LED 9W A19 bulb, dimmable & tunable',
         extend: generic.light_onoff_brightness_colortemp,
