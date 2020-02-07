@@ -4123,6 +4123,13 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
     },
+    {
+        zigbeeModel: ['zbt-dimlight-gls0006'],
+        model: 'GP-LBU019BBAWU',
+        vendor: 'SmartThings',
+        description: 'Smart bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Trust
     {
@@ -7662,14 +7669,6 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
-    },
-    {
-        zigbeeModel: ['zbt-dimlight-gls0006'], 
-        model: 'GP-LBU019BBAWU', 
-        vendor: 'SmartThings', 
-        description: 'Smart Bulb', 
-        supports: 'on/off', 
-        extend: generic.light_onoff_brightness,
     },
 ];
 
