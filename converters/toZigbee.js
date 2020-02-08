@@ -1233,7 +1233,7 @@ const converters = {
                     await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
 
                     const result = await converters.light_brightness.convertSet(
-                        meta.device.getEndpoint(13), key, value, meta
+                        meta.device.getEndpoint(13), key, value, meta,
                     );
                     return {
                         state: {white_value: value, ...result.state, color: xyWhite},
