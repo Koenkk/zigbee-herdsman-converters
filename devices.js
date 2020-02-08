@@ -7670,6 +7670,14 @@ const devices = [
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
     },
+    // HORNBACH
+    {
+        zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
+        model: '10011725',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smarte LED Lampe RGB E27',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) =>
