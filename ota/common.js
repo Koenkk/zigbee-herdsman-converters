@@ -43,7 +43,7 @@ function parseOtaImage(buffer) {
 function update(endpoint, logger, otaImage, onProgress) {
     return new Promise((resolve, reject) => {
         let imageBlockRequest = null;
-        const logLevels = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100];
+        let lastUpdate = null;
         const waitAndAnswerNextImageBlockRequest = () => {
             imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 60000);
             const fulfilled = (response) => {
@@ -69,12 +69,12 @@ function update(endpoint, logger, otaImage, onProgress) {
                     response.header.transactionSequenceNumber,
                 );
 
-                const percentage = (response.payload.fileOffset / otaImage.header.totalImageSize) * 100;
-                const logLevel = logLevels.find((l) => percentage > l);
-                if (logLevel) {
-                    logLevels.splice(logLevels.indexOf(logLevel), 1);
-                    logger.debug(`OTA update at ${logLevel}%`);
-                    onProgress(logLevel);
+                if (lastUpdate === null || (Date.now() - lastUpdate) > 30000) {
+                    let percentage = response.payload.fileOffset / otaImage.header.totalImageSize;
+                    percentage = Math.round(percentage * 10000) / 100;
+                    logger.debug(`OTA update at ${percentage}%`);
+                    onProgress(percentage);
+                    lastUpdate = Date.now();
                 }
             };
 
