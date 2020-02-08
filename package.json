@@ -6,7 +6,8 @@
   "files": [
     "/index.js",
     "/converters",
-    "/devices.js"
+    "/devices.js",
+    "/ota"
   ],
   "repository": {
     "type": "git",
