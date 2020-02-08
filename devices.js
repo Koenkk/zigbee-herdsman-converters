@@ -2378,7 +2378,7 @@ const devices = [
         model: 'AC08562',
         vendor: 'OSRAM',
         description: 'SMART+ Candle E14 Dimmable White',
-        extend: osram.light_onoff_brightness_colortemp,
+        extend: osram.light_onoff_brightness,
     },
     {
         zigbeeModel: ['Motion Sensor-A'],
