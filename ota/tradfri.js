@@ -9,9 +9,14 @@ function getEndpoint(device) {
 }
 
 async function getDeviceInfo(endpoint) {
-    const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', 10000);
-    await endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100});
-    return await queryNextImageRequest;
+    const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, 10000);
+    try {
+        await endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100});
+        return await queryNextImageRequest.promise;
+    } catch (e) {
+        queryNextImageRequest.cancel();
+        throw e;
+    }
 }
 
 async function getImage(imageType) {
@@ -32,15 +37,15 @@ async function isUpdateAvailable(device, logger) {
     logger.debug(`Using endpoint '${endpoint.ID}'`);
 
     const info = await getDeviceInfo(endpoint);
-    logger.debug(`Got device info '${JSON.stringify(info)}'`);
+    logger.debug(`Got device info '${JSON.stringify(info.payload)}'`);
 
-    const image = await getImage(info.imageType);
+    const image = await getImage(info.payload.imageType);
     logger.debug(`Got image '${JSON.stringify(image)}'`);
 
-    return image.fileVersion > info.fileVersion;
+    return image.fileVersion > info.payload.fileVersion;
 }
 
-async function updateToLatest(device, logger) {
+async function updateToLatest(device, logger, onProgress) {
     logger.debug(`Update to latest '${device.ieeeAddr}' (${device.modelID})`);
 
     const endpoint = getEndpoint(device);
@@ -64,10 +69,8 @@ async function updateToLatest(device, logger) {
     assert(otaImage.header.imageType === info.payload.imageType, 'Image type mismatch');
     logger.debug('Image parsed and verified');
 
-    // Wait 5 seconds, otherwise device doesn't start with block requests
-    await wait(5000);
-
-    await common.update(endpoint, logger, otaImage);
+    onProgress(0);
+    await common.update(endpoint, logger, otaImage, onProgress);
 
     // Give device some time to reboot after update
     await wait(30000);

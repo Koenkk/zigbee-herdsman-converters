@@ -40,13 +40,12 @@ function parseOtaImage(buffer) {
     return {header, elements, raw};
 }
 
-function update(endpoint, logger, otaImage) {
+function update(endpoint, logger, otaImage, onProgress) {
     return new Promise((resolve, reject) => {
         let imageBlockRequest = null;
-        let finished = false;
         const logLevels = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100];
         const waitAndAnswerNextImageBlockRequest = () => {
-            imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', 30000);
+            imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 30000);
             const fulfilled = (response) => {
                 waitAndAnswerNextImageBlockRequest();
 
@@ -75,21 +74,21 @@ function update(endpoint, logger, otaImage) {
                 if (logLevel) {
                     logLevels.splice(logLevels.indexOf(logLevel), 1);
                     logger.debug(`OTA update at ${logLevel}%`);
+                    onProgress(logLevel);
                 }
             };
 
             const rejected = () => {
-                if (!finished) {
-                    reject(new Error('Did not receive imageBlockRequest'));
-                }
+                reject(new Error('Did not receive imageBlockRequest'));
             };
 
-            imageBlockRequest.then(fulfilled, rejected);
+            imageBlockRequest.promise.then(fulfilled, rejected);
         };
 
         logger.debug('Starting upgrade');
         waitAndAnswerNextImageBlockRequest();
-        endpoint.commandResponse('genOta', 'queryNextImageResponse',
+
+        const queryNextImageResponse = () => endpoint.commandResponse('genOta', 'queryNextImageResponse',
             {
                 status: 0,
                 manufacturerCode: otaImage.header.manufacturerCode,
@@ -99,10 +98,13 @@ function update(endpoint, logger, otaImage) {
             },
         );
 
-        const upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', 1000 * 3600);
+        queryNextImageResponse();
+        setTimeout(queryNextImageResponse, 5000);
+
+        const upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', null, 1000 * 3600);
         const fulfilled = (response) => {
             if (imageBlockRequest) {
-                finished = true;
+                imageBlockRequest.cancel();
             }
 
             if (response.payload.status === 0) {
@@ -129,7 +131,7 @@ function update(endpoint, logger, otaImage) {
             reject(new Error('Upgrade end request timeout'));
         };
 
-        upgradeEndRequest.then(fulfilled, rejected);
+        upgradeEndRequest.promise.then(fulfilled, rejected);
     });
 }
 
