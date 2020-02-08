@@ -4252,6 +4252,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['371000001'],
+        model: '371000001',
+        vendor: 'Paulmann',
+        description: 'SmartHome led spot tuneable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['500.45'],
         model: '798.15',
         vendor: 'Paulmann',
