@@ -45,7 +45,7 @@ function update(endpoint, logger, otaImage, onProgress) {
         let imageBlockRequest = null;
         const logLevels = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100];
         const waitAndAnswerNextImageBlockRequest = () => {
-            imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 30000);
+            imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 60000);
             const fulfilled = (response) => {
                 waitAndAnswerNextImageBlockRequest();
 

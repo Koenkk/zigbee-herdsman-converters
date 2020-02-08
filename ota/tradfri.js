@@ -15,7 +15,7 @@ async function getDeviceInfo(endpoint) {
         return await queryNextImageRequest.promise;
     } catch (e) {
         queryNextImageRequest.cancel();
-        throw e;
+        throw new Error(`Device didn't respond to OTA request`);
     }
 }
 
