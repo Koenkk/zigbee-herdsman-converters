@@ -72,15 +72,15 @@ async function updateToLatest(device, logger) {
     // Give device some time to reboot after update
     await wait(30000);
 
-    const from_ = {swBuildId: device.swBuildId, dateCode: device.dateCode};
+    const from_ = {softwareBuildID: device.softwareBuildID, dateCode: device.dateCode};
 
     const genBasicEndpoint = device.endpoints.find((e) => e.supportsInputCluster('genBasic'));
     const result = await genBasicEndpoint.read('genBasic', ['dateCode', 'swBuildId']);
-    device.swBuildId = result.swBuildId;
+    device.softwareBuildID = result.swBuildId;
     device.dateCode = result.dateCode;
     device.save();
 
-    const to = {swBuildId: device.swBuildId, dateCode: device.dateCode};
+    const to = {softwareBuildID: device.softwareBuildID, dateCode: device.dateCode};
 
     logger.debug(`Updated from '${JSON.stringify(from_)}' to '${JSON.stringify(to)}'`);
     return {from: from_, to: to};
