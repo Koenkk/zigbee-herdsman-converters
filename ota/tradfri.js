@@ -1,5 +1,5 @@
 const axios = require('axios');
-const url = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
+const url = 'https://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const assert = require('assert');
 const common = require('./common');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -25,7 +25,7 @@ async function getImage(imageType) {
     return {
         fileVersion: (image.fw_file_version_MSB << 16) | image.fw_file_version_LSB,
         fileSize: image.fw_filesize,
-        url: image.fw_binary_url,
+        url: image.fw_binary_url.replace(/^http:\/\//, 'https://'),
     };
 }
 
