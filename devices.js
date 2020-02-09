@@ -4577,7 +4577,7 @@ const devices = [
 
     // Blaupunkt
     {
-        zigbeeModel: ['SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC'],
+        zigbeeModel: ['SCM-2_00.00.03.15', 'SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC'],
         model: 'SCM-S1',
         vendor: 'Blaupunkt',
         description: 'Roller shutter',
