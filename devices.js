@@ -4583,7 +4583,7 @@ const devices = [
         description: 'Roller shutter',
         supports: 'open/close',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness, tz.osram_cmds],
     },
 
     // Lupus
