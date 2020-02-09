@@ -2,26 +2,15 @@ const axios = require('axios');
 const url = 'https://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const assert = require('assert');
 const common = require('./common');
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function getEndpoint(device) {
-    return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
-}
+/**
+ * Helper functions
+ */
 
-async function getDeviceInfo(endpoint) {
-    const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, 10000);
-    try {
-        await endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100});
-        return await queryNextImageRequest.promise;
-    } catch (e) {
-        queryNextImageRequest.cancel();
-        throw new Error(`Device didn't respond to OTA request`);
-    }
-}
-
-async function getImage(imageType) {
+async function getImageMeta(imageType) {
     const images = (await axios.get(url)).data;
     const image = images.find((i) => i.fw_image_type === imageType);
+    assert(image !== null, `No image available for imageType '${imageType}'`);
     return {
         fileVersion: (image.fw_file_version_MSB << 16) | image.fw_file_version_LSB,
         fileSize: image.fw_filesize,
@@ -29,64 +18,38 @@ async function getImage(imageType) {
     };
 }
 
+async function getNewImage(current, logger, device) {
+    const meta = await getImageMeta(current.imageType);
+    assert(meta.fileVersion > current.fileVersion, 'No new image available');
+
+    const download = await axios.get(meta.url, {responseType: 'arraybuffer'});
+    const start = download.data.indexOf(common.upgradeFileIdentifier);
+
+    const image = common.parseImage(download.data.slice(start));
+    assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
+    assert(image.header.totalImageSize === meta.fileSize, 'Image size mismatch');
+    assert(image.header.manufacturerCode === 4476, 'Manufacturer code mismatch');
+    assert(image.header.imageType === current.imageType, 'Image type mismatch');
+    return image;
+}
+
+async function isNewImageAvailable(current, logger, device) {
+    const meta = await getImageMeta(current.imageType);
+    const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
+    logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
+    return meta.fileVersion > current.fileVersion;
+}
+
+/**
+ * Interface implementation
+ */
+
 async function isUpdateAvailable(device, logger) {
-    logger.debug(`Check if update available for '${device.ieeeAddr}' (${device.modelID})`);
-
-    const endpoint = getEndpoint(device);
-    assert(endpoint !== null, `Failed to find endpoint which support OTA cluster`);
-    logger.debug(`Using endpoint '${endpoint.ID}'`);
-
-    const info = await getDeviceInfo(endpoint);
-    logger.debug(`Got device info '${JSON.stringify(info.payload)}'`);
-
-    const image = await getImage(info.payload.imageType);
-    logger.debug(`Got image '${JSON.stringify(image)}'`);
-
-    return image.fileVersion > info.payload.fileVersion;
+    return common.isUpdateAvailable(device, logger, isNewImageAvailable);
 }
 
 async function updateToLatest(device, logger, onProgress) {
-    logger.debug(`Update to latest '${device.ieeeAddr}' (${device.modelID})`);
-
-    const endpoint = getEndpoint(device);
-    assert(endpoint !== null, `Failed to find endpoint which support OTA cluster`);
-    logger.debug(`Using endpoint '${endpoint.ID}'`);
-
-    const info = await getDeviceInfo(endpoint);
-    logger.debug(`Got device info '${JSON.stringify(info.payload)}'`);
-    const image = await getImage(info.payload.imageType);
-    logger.debug(`Got image '${JSON.stringify(image)}'`);
-
-    assert(image.fileVersion > info.payload.fileVersion, 'No update available');
-
-    const imageResponse = await axios.get(image.url, {responseType: 'arraybuffer'});
-    const start = imageResponse.data.indexOf(common.upgradeFileIdentifier);
-
-    const otaImage = common.parseOtaImage(imageResponse.data.slice(start));
-    assert(otaImage.header.fileVersion === image.fileVersion, 'File version mismatch');
-    assert(otaImage.header.totalImageSize === image.fileSize, 'Image size mismatch');
-    assert(otaImage.header.manufacturerCode === 4476, 'Manufacturer code mismatch');
-    assert(otaImage.header.imageType === info.payload.imageType, 'Image type mismatch');
-    logger.debug('Image parsed and verified');
-
-    onProgress(0);
-    await common.update(endpoint, logger, otaImage, onProgress);
-
-    // Give device some time to reboot after update
-    await wait(30000);
-
-    const from_ = {softwareBuildID: device.softwareBuildID, dateCode: device.dateCode};
-
-    const genBasicEndpoint = device.endpoints.find((e) => e.supportsInputCluster('genBasic'));
-    const result = await genBasicEndpoint.read('genBasic', ['dateCode', 'swBuildId']);
-    device.softwareBuildID = result.swBuildId;
-    device.dateCode = result.dateCode;
-    device.save();
-
-    const to = {softwareBuildID: device.softwareBuildID, dateCode: device.dateCode};
-
-    logger.debug(`Updated from '${JSON.stringify(from_)}' to '${JSON.stringify(to)}'`);
-    return {from: from_, to: to};
+    return common.updateToLatest(device, logger, onProgress, getNewImage);
 }
 
 module.exports = {
