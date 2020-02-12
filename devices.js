@@ -1021,6 +1021,14 @@ const devices = [
         ota: ota.tradfri,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
+        model: 'LED1903C5',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+        ota: ota.tradfri,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
         model: 'LED1837R5',
         vendor: 'IKEA',
