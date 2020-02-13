@@ -53,16 +53,16 @@ function getTransition(entity, key, meta) {
          * https://github.com/Koenkk/zigbee2mqtt/issues/1810
          */
         if (key === 'brightness' && (message.hasOwnProperty('color') || message.hasOwnProperty('color_temp'))) {
-            return 0;
+            return {time: 0, specified: false};
         }
     }
 
     if (message.hasOwnProperty('transition')) {
-        return message.transition * 10;
+        return {time: message.transition * 10, specified: true};
     } else if (options.hasOwnProperty('transition')) {
-        return options.transition * 10;
+        return {time: options.transition * 10, specified: true};
     } else {
-        return 0;
+        return {time: 0, specified: false};
     }
 }
 
@@ -263,7 +263,7 @@ const converters = {
                 result.state.brightness = 0;
                 return result;
             } else {
-                const payload = {level: Number(value), transtime: getTransition(entity, key, meta)};
+                const payload = {level: Number(value), transtime: getTransition(entity, key, meta).time};
                 await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta));
                 return {state: {brightness: Number(value)}, readAfterWriteTime: payload.transtime * 100};
             }
@@ -301,7 +301,7 @@ const converters = {
 
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
-                if (transition && (state === 'off' || state === 'on')) {
+                if (transition.specified && (state === 'off' || state === 'on')) {
                     if (state === 'off') {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
@@ -312,7 +312,7 @@ const converters = {
                     }
 
                     const level = state === 'off' ? 0 : store[entity.deviceIeeeAddress] || 255;
-                    const payload = {level, transtime: transition};
+                    const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta));
 
                     const newState = {state: state.toUpperCase()};
@@ -331,7 +331,7 @@ const converters = {
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                 return await converters.on_off.convertSet(entity, 'state', 'off', meta);
             } else {
-                const transition = getTransition(entity, 'brightness', meta);
+                const transition = getTransition(entity, 'brightness', meta).time;
                 let brightness = 0;
 
                 if (message.hasOwnProperty('brightness')) {
@@ -396,7 +396,7 @@ const converters = {
             }
 
             value = Number(value);
-            const payload = {colortemp: value, transtime: getTransition(entity, key, meta)};
+            const payload = {colortemp: value, transtime: getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
@@ -498,14 +498,14 @@ const converters = {
                 cmd = 'moveToSaturation';
             }
 
-            const zclData = {transtime: getTransition(entity, key, meta)};
+            const zclData = {transtime: getTransition(entity, key, meta).time};
 
             switch (cmd) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta)},
+                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
                     getOptions(meta),
                 );
                 zclData.enhancehue = value.hue;
@@ -1213,7 +1213,7 @@ const converters = {
                 } else if (utils.hasEndpoints(meta.device, [11, 13])) {
                     if (key === 'white_value') {
                         // Switch to white channel
-                        const payload = {colortemp: 500, transtime: getTransition(entity, key, meta)};
+                        const payload = {colortemp: 500, transtime: getTransition(entity, key, meta).time};
                         await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta));
 
                         const result = await converters.light_brightness.convertSet(entity, key, value, meta);
