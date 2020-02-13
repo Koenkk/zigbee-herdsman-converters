@@ -3802,6 +3802,19 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['1402755'],
+        model: '1402755',
+        vendor: 'Namron',
+        description: 'ZigBee LED dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // SmartThings
     {
