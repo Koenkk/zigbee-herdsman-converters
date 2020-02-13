@@ -241,9 +241,11 @@ const converters = {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta));
 
                 // As we cannot determine the new brightness state, we read it from the device
+                await wait(1000);
                 if (entity.constructor.name === 'Endpoint') {
-                    await wait(1000);
                     await entity.read('genLevelCtrl', ['currentLevel']);
+                } else if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+                    await entity.members[0].read('genLevelCtrl', ['currentLevel']);
                 }
             } else {
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
