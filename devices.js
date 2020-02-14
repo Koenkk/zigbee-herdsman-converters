@@ -4350,6 +4350,13 @@ const devices = [
         description: 'SmartHome Zigbee Pendulum Light Aptare',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['500.48'],
+        model: '500.48',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee YourLED dim/switch controller max. 60 W',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Bitron
     {
