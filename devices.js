@@ -6999,7 +6999,7 @@ const devices = [
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
+            const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
