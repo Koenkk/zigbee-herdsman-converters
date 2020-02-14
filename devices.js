@@ -1655,6 +1655,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTD003'],
+        model: '4503848C5',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Muscari pendant light',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LCW001'],
         model: '4090130P7',
         vendor: 'Philips',
