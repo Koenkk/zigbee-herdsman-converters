@@ -26,7 +26,6 @@ function parseSubElement(buffer, position) {
 }
 
 function parseImage(buffer) {
-    const headerLength = 56;
     const header = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -45,15 +44,15 @@ function parseImage(buffer) {
     assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, 'Not an OTA file');
     assert(header.otaHeaderFieldControl === 0, 'Non zero field control not implemented yet');
 
-    let remaining = header.totalImageSize - headerLength;
+    let position = header.otaHeaderLength;
     const elements = [];
-    while (remaining !== 0) {
-        const element = parseSubElement(buffer, headerLength);
+    while (position < header.totalImageSize) {
+        const element = parseSubElement(buffer, position);
         elements.push(element);
-        remaining -= element.data.length + 6;
+        position += element.data.length + 6;
     }
 
-    assert(remaining === 0, 'Size mismatch');
+    assert(position === header.totalImageSize, 'Size mismatch');
     return {header, elements, raw};
 }
 
