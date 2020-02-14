@@ -2980,6 +2980,14 @@ const devices = [
         description: 'SMART+ Zigbee adjustable white edge-lit under cabinet light',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['Flushmount TW'],
+        model: '72567',
+        vendor: 'Sylvania',
+        description: 'SMART+ Zigbee adjustable white edge-lit flush mount light',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+        
 
     // Leviton
     {
