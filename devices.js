@@ -4354,7 +4354,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart motion Sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1],
+        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
