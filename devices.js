@@ -948,6 +948,15 @@ const devices = [
         fromZigbee: [fz.battery_percentage_remaining, fz.temperature, fz.humidity],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TS0042'],
+        model: 'TS0042',
+        vendor: 'TuYa',
+        description: 'Touch Wall Remote 2 gang',
+        supports: 'action',
+        fromZigbee: [fz.ts0042_click],
+        toZigbee: [],
+    },
 
     // Norklmes
     {
