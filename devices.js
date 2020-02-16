@@ -3549,6 +3549,14 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
+        zigbeeModel: ['GL-C-007S'],
+        model: 'GL-C-007S',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGBW plus model',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color, white',
+    },
+    {
         zigbeeModel: ['GL-C-008'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
