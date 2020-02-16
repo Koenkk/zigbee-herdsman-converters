@@ -952,7 +952,7 @@ const devices = [
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
-        description: 'Touch Wall Remote 2 gang',
+        description: 'Touch wall remote 2 gang',
         supports: 'action',
         fromZigbee: [fz.ts0042_click],
         toZigbee: [],
