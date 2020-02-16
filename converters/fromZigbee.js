@@ -2374,6 +2374,15 @@ const converters = {
             return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
         },
     },
+    ts0042_click: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonMapping = {1: 'left', 2: 'right'};
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
+        },
+    },
     tint404011_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
