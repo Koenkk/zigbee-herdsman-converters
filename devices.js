@@ -1601,7 +1601,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LTW011'],
+        zigbeeModel: ['LTW011', 'LTB002'],
         model: '464800',
         vendor: 'Philips',
         description: 'Hue white ambiance BR30 flood light',
