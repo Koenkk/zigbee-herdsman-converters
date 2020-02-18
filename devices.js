@@ -7416,10 +7416,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Contact sensor',
         supports: 'contact',
-        fromZigbee: [
-            fz.ias_contact_alarm_1,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7433,11 +7430,8 @@ const devices = [
         model: 'RHK07',
         vendor: 'eWeLink',
         description: 'Wireless button',
-        supports: 'click, double click, long click',
-        fromZigbee: [
-            fz.ewelink_click,
-            fz.battery_3V,
-        ],
+        supports: 'single, double, long',
+        fromZigbee: [fz.ewelink_click, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7452,11 +7446,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
-        fromZigbee: [
-            fz.temperature,
-            fz.humidity,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7474,10 +7464,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [
-            fz.iaszone_occupancy_1_with_timeout,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
