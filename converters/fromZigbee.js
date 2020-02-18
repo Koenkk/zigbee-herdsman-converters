@@ -3911,14 +3911,14 @@ const converters = {
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
-    ewelink_click: {
+    ewelink_action: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff', 'commandToggle'],
         convert: (model, msg, publish, options, meta) => {
             const lookup = {
-                'commandToggle': {click: 'single'},
-                'commandOn': {click: 'double'},
-                'commandOff': {click: 'long'},
+                'commandToggle': {action: 'single'},
+                'commandOn': {action: 'double'},
+                'commandOff': {action: 'long'},
             };
             return lookup[msg.type];
         },
