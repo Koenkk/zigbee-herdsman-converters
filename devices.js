@@ -7431,7 +7431,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Wireless button',
         supports: 'single, double, long',
-        fromZigbee: [fz.ewelink_click, fz.battery_3V],
+        fromZigbee: [fz.ewelink_action, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
