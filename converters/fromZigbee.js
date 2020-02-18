@@ -3911,6 +3911,18 @@ const converters = {
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
+    ewelink_click: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff', 'commandToggle'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                'commandToggle': {click: 'single'},
+                'commandOn': {click: 'double'},
+                'commandOff': {click: 'long'},
+            };
+            return lookup[msg.type];
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
