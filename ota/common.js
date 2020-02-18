@@ -129,17 +129,20 @@ function callOnProgress(startTime, lastUpdate, imageBlockRequest, image, logger,
     }
 }
 
-async function isUpdateAvailable(device, logger, isNewImageAvailable) {
+async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload) {
     logger.debug(`Check if update available for '${device.ieeeAddr}' (${device.modelID})`);
 
-    const endpoint = getOTAEndpoint(device);
-    assert(endpoint !== null, `Failed to find endpoint which support OTA cluster`);
-    logger.debug(`Using endpoint '${endpoint.ID}'`);
+    if (requestPayload === null) {
+        const endpoint = getOTAEndpoint(device);
+        assert(endpoint !== null, `Failed to find endpoint which support OTA cluster`);
+        logger.debug(`Using endpoint '${endpoint.ID}'`);
 
-    const request = await requestOTA(endpoint);
-    logger.debug(`Got OTA request '${JSON.stringify(request.payload)}'`);
+        const request = await requestOTA(endpoint);
+        logger.debug(`Got OTA request '${JSON.stringify(request.payload)}'`);
+        requestPayload = request.payload;
+    }
 
-    const available = await isNewImageAvailable(request.payload, logger, device);
+    const available = await isNewImageAvailable(requestPayload, logger, device);
     logger.debug(`Updata available for '${device.ieeeAddr}': ${available ? 'YES' : 'NO'}`);
     return available;
 }

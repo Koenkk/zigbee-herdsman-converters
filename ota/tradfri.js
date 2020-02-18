@@ -44,8 +44,8 @@ async function isNewImageAvailable(current, logger, device) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger) {
-    return common.isUpdateAvailable(device, logger, isNewImageAvailable);
+async function isUpdateAvailable(device, logger, requestPayload=null) {
+    return common.isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload);
 }
 
 async function updateToLatest(device, logger, onProgress) {
