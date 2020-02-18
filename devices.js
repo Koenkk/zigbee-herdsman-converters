@@ -869,6 +869,17 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['lumi.lock.aq1'],
+        model: 'ZNMS11LM',
+        description: 'Xiaomi Aqara Smart Lock',
+        supports: 'report: open, close, operation',
+        vendor: 'Xiaomi',
+        fromZigbee: [
+            fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report,
+        ],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['lumi.remote.b286opcn01'],
         model: 'WXCJKG11LM',
         vendor: 'Xiaomi',
