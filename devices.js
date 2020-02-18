@@ -849,34 +849,28 @@ const devices = [
     {
         zigbeeModel: ['lumi.lock.acn02'],
         model: 'ZNMS12LM',
-        description: 'Aqara S2 Lock',
-        supports: 'report: open, close, operation',
+        description: 'Aqara S2 lock',
+        supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
         model: 'ZNMS13LM',
-        description: 'Aqara S2 Lock Pro',
-        supports: 'report: open, close, operation',
+        description: 'Aqara S2 lock pro',
+        supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.lock.aq1'],
         model: 'ZNMS11LM',
-        description: 'Xiaomi Aqara Smart Lock',
-        supports: 'report: open, close, operation',
+        description: 'Xiaomi Aqara smart lock',
+        supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
     },
     {
