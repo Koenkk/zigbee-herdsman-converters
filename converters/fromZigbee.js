@@ -371,6 +371,13 @@ const converters = {
             };
         },
     },
+    command_panic: {
+        cluster: 'ssIasAce',
+        type: 'commandPanic',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'panic'};
+        },
+    },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1044,14 +1051,6 @@ const converters = {
                 3: 'away',
             };
             return {action: modeLookup[action]};
-        },
-    },
-    KEF1PA_panic: {
-        cluster: 'ssIasAce',
-        type: 'commandPanic',
-        convert: (model, msg, publish, options, meta) => {
-            delete msg.data['armmode'];
-            return {action: 'panic'};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {
