@@ -1018,6 +1018,20 @@ const converters = {
             return {click: 'single'};
         },
     },
+    immax_07046L_arm: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data['armmode'];
+            delete msg.data['armmode'];
+            const modeLookup = {
+                0: 'disarm',
+                1: 'arm_stay',
+                3: 'arm_away',
+            };
+            return {action: modeLookup[action]};
+        },
+    },
     KEF1PA_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',

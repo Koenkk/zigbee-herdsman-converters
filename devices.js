@@ -5578,6 +5578,24 @@ const devices = [
         description: 'Neo SMART LED E27 8,5W color, dimmable, Zigbee 3.0',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['Keyfob-ZB3.0'],
+        model: '07046L',
+        vendor: 'Immax',
+        description: '4-Touch single click buttons',
+        supports: 'click',
+        fromZigbee: [fz.immax_07046L_arm, fz.KEF1PA_panic],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['DoorWindow-Sensor-ZB3.0'],
+        model: '07045L',
+        vendor: 'Immax',
+        description: '4-Touch single click buttons',
+        supports: 'contact, tamper',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
 
     // Yale
     {
