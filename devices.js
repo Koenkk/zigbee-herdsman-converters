@@ -7393,11 +7393,9 @@ const devices = [
         zigbeeModel: ['TERNCY-SD01'],
         model: 'TERNCY-SD01',
         vendor: 'TERNCY',
-        description: 'Terncy knob smart dimmer',
-        supports: 'click, double click, triple click, rotate',
-        fromZigbee: [
-            fz.terncy_raw, fz.terncy_knob, fz.generic_battery,
-        ],
+        description: 'Knob smart dimmer',
+        supports: 'single, double and triple click, rotate',
+        fromZigbee: [fz.terncy_raw, fz.terncy_knob, fz.generic_battery],
         toZigbee: [],
     },
 
