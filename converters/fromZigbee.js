@@ -3412,6 +3412,18 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    terncy_knob: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (typeof msg.data['27'] === 'number') {
+                return {
+                    direction: (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise'),
+                    number: (Math.abs(msg.data['27']) / 12),
+                };
+            }
+        },
+    },
     orvibo_raw: {
         cluster: 23,
         type: 'raw',
