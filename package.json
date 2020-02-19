@@ -33,7 +33,7 @@
   "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
   "dependencies": {
     "axios": "*",
-    "tar-stream": "^2.1.0"
+    "tar-stream": "*"
   },
   "devDependencies": {
     "eslint": "*",
