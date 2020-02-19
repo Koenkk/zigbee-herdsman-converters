@@ -371,6 +371,13 @@ const converters = {
             };
         },
     },
+    command_panic: {
+        cluster: 'ssIasAce',
+        type: 'commandPanic',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'panic'};
+        },
+    },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1018,6 +1025,20 @@ const converters = {
             return {click: 'single'};
         },
     },
+    immax_07046L_arm: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data['armmode'];
+            delete msg.data['armmode'];
+            const modeLookup = {
+                0: 'disarm',
+                1: 'arm_stay',
+                3: 'arm_away',
+            };
+            return {action: modeLookup[action]};
+        },
+    },
     KEF1PA_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -1030,14 +1051,6 @@ const converters = {
                 3: 'away',
             };
             return {action: modeLookup[action]};
-        },
-    },
-    KEF1PA_panic: {
-        cluster: 'ssIasAce',
-        type: 'commandPanic',
-        convert: (model, msg, publish, options, meta) => {
-            delete msg.data['armmode'];
-            return {action: 'panic'};
         },
     },
     SJCGQ11LM_water_leak_iaszone: {

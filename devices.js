@@ -3219,7 +3219,7 @@ const devices = [
         vendor: 'Swann',
         description: 'Key fob remote',
         supports: 'panic, home, away, sleep',
-        fromZigbee: [fz.KEF1PA_arm, fz.KEF1PA_panic],
+        fromZigbee: [fz.KEF1PA_arm, fz.command_panic],
         toZigbee: [tz.factory_reset],
     },
     {
@@ -5578,6 +5578,24 @@ const devices = [
         vendor: 'Immax',
         description: 'Neo SMART LED E27 8,5W color, dimmable, Zigbee 3.0',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['Keyfob-ZB3.0'],
+        model: '07046L',
+        vendor: 'Immax',
+        description: '4-Touch single click buttons',
+        supports: 'action',
+        fromZigbee: [fz.immax_07046L_arm, fz.command_panic],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['DoorWindow-Sensor-ZB3.0'],
+        model: '07045L',
+        vendor: 'Immax',
+        description: 'Magnetic contact sensor',
+        supports: 'contact, tamper',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
     },
 
     // Yale
