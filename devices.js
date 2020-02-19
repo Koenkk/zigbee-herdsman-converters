@@ -1669,6 +1669,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['3402831P7'],
+        model: '3402831P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Bathroo Mirror light Adore',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTD003'],
         model: '4503848C5',
         vendor: 'Philips',
