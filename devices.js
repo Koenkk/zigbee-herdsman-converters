@@ -5422,6 +5422,7 @@ const devices = [
             await configureReporting.currentSummDelivered(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
+        ota: ota.salus,
     },
 
     // AduroSmart
