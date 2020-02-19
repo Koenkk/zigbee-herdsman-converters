@@ -1672,7 +1672,7 @@ const devices = [
         zigbeeModel: ['3402831P7'],
         model: '3402831P7',
         vendor: 'Philips',
-        description: 'Hue white ambiance Bathroo Mirror light Adore',
+        description: 'Hue white ambiance bathroom mirror light Adore',
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
