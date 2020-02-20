@@ -8,16 +8,6 @@ const common = require('./common');
  * Helper functions
  */
 
-function fileVersionToVersion(fileVersion) {
-    const version = ('00000000' + fileVersion.toString(16)).substr(-8);
-
-    return {
-        major: parseInt(version.substr(0, 3)),
-        minor: parseInt(version.substr(3, 2)),
-        build: parseInt(version.substr(5, 3)),
-    };
-}
-
 function versionToFileVersion(version) {
     return parseInt(version.major * 100000 + version.minor * 1000 + version.build, 16);
 }
@@ -26,11 +16,9 @@ function versionToString(version) {
     return `${version.major}.${version.minor}.${version.build}`;
 }
 
-async function getImageMeta(manufacturerCode, imageType, fileVersion) {
-    const version = fileVersionToVersion(fileVersion);
-
+async function getImageMeta(manufacturerCode, imageType) {
     const {data} = await axios.get(updateCheckUrl +
-        `?company=${manufacturerCode}&product=${imageType}&version=${versionToString(version)}`);
+        `?company=${manufacturerCode}&product=${imageType}&version=0.0.0`);
 
     assert(data && data.firmwares && data.firmwares.length > 0,
         `No image available for manufacturerCode '${manufacturerCode}' imageType '${imageType}'`);
@@ -46,7 +34,7 @@ async function getImageMeta(manufacturerCode, imageType, fileVersion) {
 }
 
 async function getNewImage(current, logger, device) {
-    const meta = await getImageMeta(current.manufacturerCode, current.imageType, current.fileVersion);
+    const meta = await getImageMeta(current.manufacturerCode, current.imageType);
     assert(meta.fileVersion > current.fileVersion, 'No new image available');
 
     const download = await axios.get(meta.url, {responseType: 'arraybuffer'});
@@ -60,7 +48,7 @@ async function getNewImage(current, logger, device) {
 }
 
 async function isNewImageAvailable(current, logger, device) {
-    const meta = await getImageMeta(current.manufacturerCode, current.imageType, current.fileVersion);
+    const meta = await getImageMeta(current.manufacturerCode, current.imageType);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
     return meta.fileVersion > current.fileVersion;
