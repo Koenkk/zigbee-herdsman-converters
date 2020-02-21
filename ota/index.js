@@ -1,5 +1,5 @@
 module.exports = {
-    osram: require('./osram'),
+    ledvance: require('./ledvance'),
     salus: require('./salus'),
     tradfri: require('./tradfri'),
 };
