@@ -5604,6 +5604,26 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['Plug-230V-ZB3.0'],
+        model: '07048L',
+        vendor: 'Immax',
+        description: 'NEO SMART plug',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 9},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await configureReporting.activePower(endpoint);
+        },
+    },
 
     // Yale
     {
