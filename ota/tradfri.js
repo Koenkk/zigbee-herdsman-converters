@@ -37,7 +37,7 @@ async function isNewImageAvailable(current, logger, device) {
     const meta = await getImageMeta(current.imageType);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
-    return meta.fileVersion > current.fileVersion;
+    return Math.sign(current.fileVersion - meta.fileVersion);
 }
 
 /**
