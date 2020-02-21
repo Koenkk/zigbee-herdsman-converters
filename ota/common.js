@@ -143,7 +143,7 @@ async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPay
     }
 
     const available = await isNewImageAvailable(requestPayload, logger, device);
-    logger.debug(`Updata available for '${device.ieeeAddr}': ${available ? 'YES' : 'NO'}`);
+    logger.debug(`Update available for '${device.ieeeAddr}': ${available ? 'YES' : 'NO'}`);
     return available;
 }
 
