@@ -74,6 +74,11 @@ async function isNewImageAvailable(current, logger, device) {
     const meta = await getImageMeta(device.modelID);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
+    if (meta.fileVersion < current.fileVersion) {
+        logger.debug(`Current image on '${device.ieeeAddr}' is NEWER than the latest one published.`);
+        logger.debug(`Device: '${currentS}'`);
+        logger.debug(`Latest Firmware: '${metaS}'`);
+    }
     return meta.fileVersion > current.fileVersion;
 }
 
