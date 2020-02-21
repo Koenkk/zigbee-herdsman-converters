@@ -145,7 +145,7 @@ async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPay
     const available = await isNewImageAvailable(requestPayload, logger, device);
     logger.debug(`Update available for '${device.ieeeAddr}': ${available < 0 ? 'YES' : 'NO'}`);
     if (available > 0) {
-        logger.debug(`Firmware on '${device.ieeeAddr}' is newer than latest firmware online. This is either a beta firmware or version mismatch.`);
+        logger.debug(`Firmware on '${device.ieeeAddr}' is newer than latest firmware online.`);
     }
     return (available < 0);
 }
