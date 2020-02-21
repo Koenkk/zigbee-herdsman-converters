@@ -8,14 +8,6 @@ const common = require('./common');
  * Helper functions
  */
 
-function versionToFileVersion(version) {
-    return parseInt(version.major * 100000 + version.minor * 1000 + version.build, 16);
-}
-
-function versionToString(version) {
-    return `${version.major}.${version.minor}.${version.build}`;
-}
-
 async function getImageMeta(manufacturerCode, imageType) {
     const {data} = await axios.get(updateCheckUrl +
         `?company=${manufacturerCode}&product=${imageType}&version=0.0.0`);
@@ -23,13 +15,18 @@ async function getImageMeta(manufacturerCode, imageType) {
     assert(data && data.firmwares && data.firmwares.length > 0,
         `No image available for manufacturerCode '${manufacturerCode}' imageType '${imageType}'`);
 
-    const {identity, length} = data.firmwares[0];
+    const {identity, fullName, length} = data.firmwares[0];
+
+    const fileVersionMatch = /\/(\d+)\//.exec(fullName);
+    const fileVersion = parseInt(`0x${fileVersionMatch[1]}`, 16);
+
+    const versionString = `${identity.version.major}.${identity.version.minor}.${identity.version.build}`;
 
     return {
-        fileVersion: versionToFileVersion(identity.version),
+        fileVersion,
         fileSize: length,
         url: updateDownloadUrl +
-            `?company=${identity.company}&product=${identity.product}&version=${versionToString(identity.version)}`,
+            `?company=${identity.company}&product=${identity.product}&version=${versionString}`,
     };
 }
 
