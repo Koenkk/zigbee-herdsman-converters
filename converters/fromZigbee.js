@@ -3102,6 +3102,9 @@ const converters = {
                 } else if (type === '02') {
                     result.action = lockStatusLookup[2];
                     result.repeat = parseInt(times, 16);
+                } else if (type === '00') {
+                    result.action = lockStatusLookup[13];
+                    result.repeat = null;
                 }
             } else if (msg.data['65281'] && msg.data['65281']['1']) { // user added/delete
                 const data = msg.data['65281']['1'].toString(16);
