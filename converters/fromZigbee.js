@@ -493,7 +493,7 @@ const converters = {
             };
         },
     },
-    AC0251100NJ_long_middle: {
+    osram_lightify_switch_long_middle: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
@@ -2698,28 +2698,28 @@ const converters = {
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
-    AC0251100NJ_cmdOn: {
+    osram_lightify_switch_cmdOn: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'up'};
         },
     },
-    AC0251100NJ_cmdOff: {
+    osram_lightify_switch_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'down'};
         },
     },
-    AC0251100NJ_cmdMoveWithOnOff: {
+    osram_lightify_switch_cmdMoveWithOnOff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'up_hold'};
         },
     },
-    AC0251100NJ_cmdStop: {
+    osram_lightify_switch_AC0251100NJ_cmdStop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
@@ -2731,14 +2731,14 @@ const converters = {
             return {action: map[msg.endpoint.ID]};
         },
     },
-    AC0251100NJ_cmdMove: {
+    osram_lightify_switch_cmdMove: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'down_hold'};
         },
     },
-    AC0251100NJ_cmdMoveHue: {
+    osram_lightify_switch_cmdMoveHue: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
@@ -2747,24 +2747,31 @@ const converters = {
             }
         },
     },
-    AC0251100NJ_cmdMoveToSaturation: {
+    osram_lightify_switch_cmdMoveToSaturation: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'circle_hold'};
         },
     },
-    AC0251100NJ_cmdMoveToLevelWithOnOff: {
+    osram_lightify_switch_cmdMoveToLevelWithOnOff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'circle_click'};
         },
     },
-    AC0251100NJ_cmdMoveToColorTemp: {
+    osram_lightify_switch_cmdMoveToColorTemp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => null,
+    },
+    osram_lightify_switch_73743_cmdStop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'release'};
+        },
     },
     OJBCR701YZ_statuschange: {
         cluster: 'ssIasZone',
