@@ -5263,7 +5263,7 @@ const devices = [
         supports: 'on/off, brightness, scenes',
         fromZigbee: [
             fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.battery_percentage_remaining,
-            fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff
+            fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
         ],
         toZigbee: [],
     },
