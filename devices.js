@@ -4213,15 +4213,16 @@ const devices = [
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',
         description: 'Button',
-        supports: 'single click, double click, hold and temperature',
-        fromZigbee: [
-            fz.st_button_state,
-            fz.generic_battery,
-            fz.temperature,
-            fz.ignore_iaszone_attreport,
-            fz.ignore_temperature_report,
-        ],
+        supports: 'single, double and hold click, temperature',
+        fromZigbee: [fz.st_button_state, fz.generic_battery, fz.temperature, fz.ignore_iaszone_attreport],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['Z-SRN12N'],
