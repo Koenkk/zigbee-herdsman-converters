@@ -4469,12 +4469,21 @@ const devices = [
         zigbeeModel: ['902010/24A'],
         model: 'AV2010/24A',
         vendor: 'Bitron',
-        description: 'Optical smoke detector',
+        description: 'Optical smoke detector (hardware version v2)',
         supports: 'smoke, tamper and battery',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [],
     },
-
+    {
+        zigbeeModel: ['902010/24'],
+        model: '902010/24',
+        vendor: 'Bitron',
+        description: 'Optical smoke detector (hardware version v1)',
+        supports: 'smoke, tamper and battery',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [],
+    },
+    
     // Iris
     {
         zigbeeModel: ['3210-L'],
