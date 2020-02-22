@@ -4483,7 +4483,7 @@ const devices = [
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [],
     },
-    
+
     // Iris
     {
         zigbeeModel: ['3210-L'],
