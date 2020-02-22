@@ -2716,6 +2716,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {direction: null};
+            }
+            store[deviceID].direction = 'up';
             return {action: 'up_hold'};
         },
     },
@@ -2735,6 +2740,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {direction: null};
+            }
+            store[deviceID].direction = 'down';
             return {action: 'down_hold'};
         },
     },
@@ -2770,7 +2780,15 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'release'};
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = {direction: null};
+            }
+            let direction;
+            if (store[deviceID].direction) {
+                direction = `${store[deviceID].direction}_`;
+            }
+            return {action: `${direction}release`};
         },
     },
     OJBCR701YZ_statuschange: {
