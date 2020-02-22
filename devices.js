@@ -5260,7 +5260,7 @@ const devices = [
         model: 'ICZB-KPD14S',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 4S',
-        supports: 'on/off, brightness, scenes',
+        supports: 'click, action, brightness, scenes',
         fromZigbee: [
             fz.scenes_recall_click, fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.battery_percentage_remaining,
             fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
