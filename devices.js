@@ -2463,10 +2463,11 @@ const devices = [
         description: 'Smart+ switch mini',
         supports: 'circle, up, down and hold/release',
         fromZigbee: [
-            fz.AC0251100NJ_cmdOn, fz.AC0251100NJ_cmdMoveWithOnOff, fz.AC0251100NJ_cmdStop,
-            fz.AC0251100NJ_cmdMoveToColorTemp, fz.AC0251100NJ_cmdMoveHue, fz.AC0251100NJ_cmdMoveToSaturation,
-            fz.AC0251100NJ_cmdOff, fz.AC0251100NJ_cmdMove, fz.battery_3V,
-            fz.AC0251100NJ_cmdMoveToLevelWithOnOff,
+            fz.osram_lightify_switch_cmdOn, fz.osram_lightify_switch_cmdMoveWithOnOff,
+            fz.osram_lightify_switch_AC0251100NJ_cmdStop, fz.osram_lightify_switch_cmdMoveToColorTemp,
+            fz.osram_lightify_switch_cmdMoveHue, fz.osram_lightify_switch_cmdMoveToSaturation,
+            fz.osram_lightify_switch_cmdOff, fz.osram_lightify_switch_cmdMove, fz.battery_3V,
+            fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2908,6 +2909,24 @@ const devices = [
     },
 
     // Sylvania
+    {
+        zigbeeModel: ['LIGHTIFY Dimming Switch'],
+        model: '73743',
+        vendor: 'Sylvania',
+        description: 'Lightify Smart Dimming Switch',
+        supports: 'up, down and hold/release',
+        fromZigbee: [
+            fz.osram_lightify_switch_cmdOn, fz.osram_lightify_switch_cmdMoveWithOnOff, fz.osram_lightify_switch_cmdOff,
+            fz.osram_lightify_switch_cmdMove, fz.osram_lightify_switch_73743_cmdStop, fz.battery_3V,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
     {
         zigbeeModel: ['LIGHTIFY RT Tunable White'],
         model: '73742',
