@@ -995,7 +995,8 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('16') ? parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
+            const pressure = msg.data.hasOwnProperty('16') ?
+                parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
