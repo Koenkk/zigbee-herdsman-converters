@@ -2233,6 +2233,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Outdoor Lantern B50 RGBW OSRAM'],
@@ -2240,6 +2241,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ outdoor lantern RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Classic A60 RGBW'],
@@ -2247,6 +2249,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['A60 TW Z3'],
@@ -2254,6 +2257,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['CLA60 RGBW OSRAM'],
@@ -2261,6 +2265,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['CLA60 TW OSRAM'],
@@ -2268,6 +2273,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ CLASSIC A 60 TW',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['PAR16 DIM Z3'],
@@ -2275,6 +2281,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ LED PAR16 GU10',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['A60 DIM Z3'],
@@ -2282,6 +2289,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 dimmable',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['CLA60 RGBW Z3'],
@@ -2289,6 +2297,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         // AA70155 is model number of both bulbs.
@@ -2297,6 +2306,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['PAR16 50 TW'],
@@ -2304,6 +2314,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
@@ -2311,6 +2322,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic B40 tunable white',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Ceiling TW OSRAM'],
@@ -2318,6 +2330,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ Ceiling TW',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Classic A60 W clear - LIGHTIFY'],
@@ -2325,6 +2338,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic A60 clear',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Surface Light W �C LIGHTIFY'],
@@ -2332,6 +2346,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light TW',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Surface Light TW'],
@@ -2339,6 +2354,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light LED Tunable White',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Plug 01'],
@@ -2349,6 +2365,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
+        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2364,6 +2381,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
+        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             let endpoint = device.getEndpoint(3);
             // Endpoint 3 is not always present, use endpoint 1 in that case
@@ -2379,6 +2397,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Flex RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['LIGHTIFY Outdoor Flex RGBW', 'LIGHTIFY FLEX OUTDOOR RGBW'],
@@ -2386,6 +2405,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Gardenpole RGBW-Lightify'],
@@ -2393,6 +2413,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 8.7W RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Gardenpole RGBW Z3'],
@@ -2401,6 +2422,7 @@ const devices = [
         description: 'Smart+ gardenpole 4W RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
         meta: {options: {disableDefaultResponse: true}},
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Gardenpole Mini RGBW OSRAM'],
@@ -2408,6 +2430,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
@@ -2415,6 +2438,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['PAR16 RGBW Z3'],
@@ -2422,6 +2446,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
         extend: osram.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['B40 DIM Z3'],
@@ -2429,6 +2454,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ Candle E14 Dimmable White',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Motion Sensor-A'],
@@ -2442,6 +2468,7 @@ const devices = [
         ],
         toZigbee: [],
         meta: {configureKey: 1},
+        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
@@ -2455,6 +2482,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini blue'],
@@ -2471,6 +2499,7 @@ const devices = [
         ],
         toZigbee: [],
         meta: {configureKey: 1},
+        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -2487,6 +2516,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
         extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Panel TW 595 UGR22'],
@@ -2494,6 +2524,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'OSRAM LED panel TW 595 UGR22',
         extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
     },
 
     // Hive
