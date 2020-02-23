@@ -4046,6 +4046,45 @@ const converters = {
         },
     },
 
+    ubisys_c4_scenes: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            return {click: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
+        },
+    },
+    ubisys_c4_onoff: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff', 'commandToggle'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `${msg.endpoint.ID}_${msg.type.substr(7).toLowerCase()}`};
+        },
+    },
+    ubisys_c4_level: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveWithOnOff', 'commandStopWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            switch (msg.type) {
+            case 'commandMoveWithOnOff':
+                return {action: `${msg.endpoint.ID}_level_move_${msg.data.movemode ? 'down' : 'up'}`};
+            case 'commandStopWithOnOff':
+                return {action: `${msg.endpoint.ID}_level_stop`};
+            }
+        },
+    },
+    ubisys_c4_cover: {
+        cluster: 'closuresWindowCovering',
+        type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                'commandUpOpen': 'open',
+                'commandDownClose': 'close',
+                'commandStop': 'stop',
+            };
+            return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
+        },
+    },
+
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
