@@ -1676,6 +1676,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['LTC021'],
+        model: '3435011P7',
+        vendor: 'Philips',
+        description: 'Hue white ambiance bathroom ceiling light Adore',
+        extend: hue.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['LTD003'],
         model: '4503848C5',
         vendor: 'Philips',
