@@ -38,11 +38,25 @@ function parseImage(buffer) {
         otaHeaderString: buffer.toString('utf8', 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
+    let headerPos = 56;
+    if (header.otaHeaderFieldControl & 1) {
+        header.securityCredentialVersion = buffer.readUInt8(headerPos);
+        headerPos += 1;
+    }
+    if (header.otaHeaderFieldControl & 2) {
+        header.upgradeFileDestination = buffer.subarray(headerPos, headerPos + 8);
+        headerPos += 8;
+    }
+    if (header.otaHeaderFieldControl & 4) {
+        header.minimumHardwareVersion = buffer.readUInt16LE(headerPos);
+        headerPos += 2;
+        header.maximumHardwareVersion = buffer.readUInt16LE(headerPos);
+        headerPos += 2;
+    }
 
     const raw = buffer.slice(0, header.totalImageSize);
 
     assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, 'Not an OTA file');
-    assert(header.otaHeaderFieldControl === 0, 'Non zero field control not implemented yet');
 
     let position = header.otaHeaderLength;
     const elements = [];
