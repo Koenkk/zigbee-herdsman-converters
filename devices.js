@@ -7354,7 +7354,7 @@ const devices = [
         description: 'Power switch S1',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.generic_power],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.ubisys_device_setup],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -7371,7 +7371,7 @@ const devices = [
         description: 'Power switch S2',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.generic_state_multi_ep, fz.generic_power],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.ubisys_device_setup],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -7391,7 +7391,7 @@ const devices = [
         description: 'Universal dimmer D1',
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [fz.on_off, fz.brightness, fz.generic_power],
-        toZigbee: [tz.light_onoff_brightness],
+        toZigbee: [tz.light_onoff_brightness, tz.ubisys_device_setup],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -7408,7 +7408,7 @@ const devices = [
         description: 'Shutter control J1',
         supports: 'open, close, stop, position, tilt',
         fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
         ota: ota.ubisys,
     },
     {
@@ -7418,7 +7418,7 @@ const devices = [
         description: 'Control unit C4',
         supports: 'action',
         fromZigbee: [fz.ubisys_c4_scenes, fz.ubisys_c4_onoff, fz.ubisys_c4_level, fz.ubisys_c4_cover],
-        toZigbee: [],
+        toZigbee: [tz.ubisys_device_setup],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
