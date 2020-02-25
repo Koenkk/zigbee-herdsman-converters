@@ -5008,7 +5008,7 @@ const devices = [
         supports: 'warning',
         fromZigbee: [fz.battery_200],
         toZigbee: [tz.warning],
-        meta: {configureKey: 1},
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
