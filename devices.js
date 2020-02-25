@@ -7346,6 +7346,7 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
@@ -7365,6 +7366,7 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['D1 (5503)', 'D1-R (5603)'],
@@ -7381,6 +7383,7 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['J1 (5502)', 'J1-R (5602)'],
@@ -7390,6 +7393,7 @@ const devices = [
         supports: 'open, close, stop, position, tilt',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1],
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['C4 (5504)'],
