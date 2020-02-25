@@ -4045,12 +4045,11 @@ const converters = {
             return lookup[msg.type];
         },
     },
-
     ubisys_c4_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {click: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            return {action: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },
     ubisys_c4_onoff: {
