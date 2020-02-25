@@ -7391,6 +7391,24 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1],
     },
+    {
+        zigbeeModel: ['C4 (5504)'],
+        model: 'C4',
+        vendor: 'Ubisys',
+        description: 'Control unit C4',
+        supports: 'action',
+        fromZigbee: [fz.ubisys_c4_scenes, fz.ubisys_c4_onoff, fz.ubisys_c4_level, fz.ubisys_c4_cover],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ep of [1, 2, 3, 4]) {
+                await bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
+            }
+            for (const ep of [5, 6]) {
+                await bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'closuresWindowCovering']);
+            }
+        },
+    },
 
     // Lutron
     {
