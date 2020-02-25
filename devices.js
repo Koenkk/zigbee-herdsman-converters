@@ -570,6 +570,9 @@ const devices = [
             fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        endpoint: (device) => {
+            return {'system': 1};
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -600,7 +603,7 @@ const devices = [
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {'left': 1, 'right': 2, 'system': 1};
         },
     },
     {
