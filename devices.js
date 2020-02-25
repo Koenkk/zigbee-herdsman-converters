@@ -4268,7 +4268,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Button',
         supports: 'single, double and hold click, temperature',
-        fromZigbee: [fz.st_button_state, fz.generic_battery, fz.temperature, fz.ignore_iaszone_attreport],
+        fromZigbee: [fz.st_button_state, fz.battery_percentage_remaining, fz.temperature, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
