@@ -2540,7 +2540,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['SLP2b', 'SLP2c'],
+        zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
         model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',
