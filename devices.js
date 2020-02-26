@@ -3829,6 +3829,14 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['GL-D-003ZS'],
+        model: 'GL-D-003ZS',
+        vendor: 'Gledopto',
+        description: 'Smart+ 6W LED spot',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
 
     // ROBB
     {
