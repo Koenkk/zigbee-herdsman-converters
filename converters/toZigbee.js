@@ -1704,6 +1704,28 @@ const converters = {
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
+    legrand_cover_position_tilt: {
+        key: ['position', 'tilt'],
+        convertSet: async (entity, key, value, meta) => {
+            const isPosition = (key === 'position');
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // But Legrand expects "open" to be 100 and "closed" to be 0
+            await entity.command(
+                'closuresWindowCovering',
+                isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
+                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                getOptions(meta),
+            );
+        },
+        convertGet: async (entity, key, meta) => {
+            const isPosition = (key === 'position');
+            await entity.read(
+                'closuresWindowCovering',
+                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage'],
+            );
+        },
+    },
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {

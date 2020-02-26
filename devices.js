@@ -7840,10 +7840,10 @@ const devices = [
             // Used on the official gateway to send to every devices an identify command (green)
             fz.identify, fz.ignore_basic_report,
             // support binary report on moving state (supposed)
-            fz.legrand_binary_input_moving, fz.cover_position_tilt,
+            fz.legrand_binary_input_moving, fz.legrand_cover_position_tilt,
         ],
         toZigbee: [
-            tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed,
+            tz.cover_state, tz.legrand_cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
