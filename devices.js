@@ -3728,7 +3728,7 @@ const devices = [
         zigbeeModel: ['GL-D-003ZS'],
         model: 'GL-D-003ZS',
         vendor: 'Gledopto',
-        description: 'Smart+ 6W LED Süpt',
+        description: 'Smart+ 6W LED Spot',
         extend: gledopto.light,
         supports: 'on/off, brightness, color temperature, color',
     },
