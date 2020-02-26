@@ -531,6 +531,16 @@ const converters = {
 
             default:
                 cmd = 'moveToColor';
+
+                // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
+                // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
+                // If we slighlty modify these values the bulb will respond.
+                // https://github.com/home-assistant/home-assistant/issues/31094
+                if (meta.options.applyRedFix && value.x == 0.701 && value.y === 0.299) {
+                    value.x = 0.7006;
+                    value.y = 0.2993;
+                }
+
                 newState.color = {x: value.x, y: value.y};
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
