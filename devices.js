@@ -3725,11 +3725,20 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
-        zigbeeModel: ['GL-B-007ZS'],
-        model: 'GL-B-007ZS',
+        zigbeeModel: ['GL-D-003ZS'],
+        model: 'GL-D-003ZS',
         vendor: 'Gledopto',
-        description: 'Smart+ 6W E27 RGB / CCT LED bulb',
+        description: 'Smart+ 6W LED Süpt',
         extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
+        zigbeeModel: ['GL-C-008'],
+        model: 'GL-C-008',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT',
+        extend: gledopto.light,
+        meta: {options: {disableDefaultResponse: true}},
         supports: 'on/off, brightness, color temperature, color',
     },
     {
