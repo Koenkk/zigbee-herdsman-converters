@@ -2,15 +2,16 @@ const common = require("../ota/common");
 const otaImages = require("./stub/otaImages");
 
 describe("ota/common.js", () => {
-    it("Can correctly parse OTA image files", () => {
-        otaImages.forEach(otaImage => {
-            const start = otaImage.data.indexOf(common.upgradeFileIdentifier);
+    it.each(otaImages)("Can correctly parse OTA image file %s", (_, otaImage) => {
+        const start = otaImage.data.indexOf(common.upgradeFileIdentifier);
 
-            const image = common.parseImage(otaImage.data.slice(start));
+        const image = common.parseImage(otaImage.data.slice(start));
 
-            if (image.elements.length !== otaImage.elements) {
-                throw new Error(`${otaImage.filename}: parseImage() returned incorrect number of sub-elements`);
-            }
-        });
+        expect(image.header.otaHeaderFieldControl).toBe(otaImage.headerField);
+
+        expect(image.header.minimumHardwareVersion).toBe(otaImage.minimumHardwareVersion);
+        expect(image.header.maximumHardwareVersion).toBe(otaImage.maximumHardwareVersion);
+
+        expect(image.elements.length).toBe(otaImage.elements);
     });
 });
