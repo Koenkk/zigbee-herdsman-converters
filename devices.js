@@ -596,7 +596,7 @@ const devices = [
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
-        supports: 'on/off, power measurement',
+        supports: 'on/off, power measurement, temperature',
         fromZigbee: [
             fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
             fz.QBKG12LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
