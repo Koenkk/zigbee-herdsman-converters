@@ -7533,6 +7533,30 @@ const devices = [
         fromZigbee: [fz.orvibo_raw],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['31c989b65ebb45beaf3b67b1361d3965'],
+        model: 'T18W3Z',
+        vendor: 'ORVIBO',
+        description: 'Neutral smart switch 3 gang',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint3);
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+    },
 
     // SONOFF
     {
