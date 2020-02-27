@@ -204,11 +204,22 @@ const converters = {
     cover_position_tilt: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
-            const isPosition = (key === 'position');
             // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
             // HomeAssistant etc. work the other way round.
             value = 100 - value;
-
+            await converters.cover_position_tilt_inverted.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await converters.cover_position_tilt_inverted.convertGet(entity, key, meta);
+        },
+    },
+    cover_position_tilt_inverted: {
+        key: ['position', 'tilt'],
+        convertSet: async (entity, key, value, meta) => {
+            const isPosition = (key === 'position');
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // But e.g. Legrand expects "open" to be 100 and "closed" to be 0
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',

@@ -2836,6 +2836,25 @@ const converters = {
             return result;
         },
     },
+    cover_position_tilt_inverted: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // But e.g. Legrand reports "open" to be 100 and "closed" to be 0
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                result.position = liftPercentage <= 100 ? liftPercentage : null;
+            }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
+                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
+                result.tilt = tiltPercentage <= 100 ? tiltPercentage : null;
+            }
+            return result;
+        },
+    },
     generic_fan_mode: {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
