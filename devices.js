@@ -5270,9 +5270,9 @@ const devices = [
     },
     {
         zigbeeModel: ['Neuhaus NLG-TW light', 'NLG-TW light'],
-        model: '100.469.65,8195-55',
+        model: '8195-55',
         vendor: 'Paul Neuhaus',
-        description: 'Q-INIGO Ceiling Light, Smart-Home',
+        description: 'Q-Inigo ceiling light, Smart-Home',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
