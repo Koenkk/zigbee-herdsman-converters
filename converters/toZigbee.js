@@ -204,11 +204,22 @@ const converters = {
     cover_position_tilt: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
-            const isPosition = (key === 'position');
             // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
             // HomeAssistant etc. work the other way round.
             value = 100 - value;
-
+            await converters.cover_position_tilt_inverted.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await converters.cover_position_tilt_inverted.convertGet(entity, key, meta);
+        },
+    },
+    cover_position_tilt_inverted: {
+        key: ['position', 'tilt'],
+        convertSet: async (entity, key, value, meta) => {
+            const isPosition = (key === 'position');
+            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // But e.g. Legrand expects "open" to be 100 and "closed" to be 0
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
@@ -1702,28 +1713,6 @@ const converters = {
             const enableDimmer = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {0: {value: enableDimmer ? '0101' : '0100', type: 9}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
-        },
-    },
-    legrand_cover_position_tilt: {
-        key: ['position', 'tilt'],
-        convertSet: async (entity, key, value, meta) => {
-            const isPosition = (key === 'position');
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // But Legrand expects "open" to be 100 and "closed" to be 0
-            await entity.command(
-                'closuresWindowCovering',
-                isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
-                getOptions(meta),
-            );
-        },
-        convertGet: async (entity, key, meta) => {
-            const isPosition = (key === 'position');
-            await entity.read(
-                'closuresWindowCovering',
-                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage'],
-            );
         },
     },
     tuya_dimmer_state: {
