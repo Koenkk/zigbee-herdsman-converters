@@ -2836,7 +2836,7 @@ const converters = {
             return result;
         },
     },
-    inverted_cover_position_tilt: {
+    cover_position_tilt_inverted: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
