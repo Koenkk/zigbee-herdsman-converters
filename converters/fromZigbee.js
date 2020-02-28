@@ -117,10 +117,8 @@ const ictcg1 = (model, msg, publish, options, action) => {
         if (s.direction) {
             const duration = Date.now() - s.since;
             const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
+            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
+            s.value = newValue;
         }
         payload.action = 'rotate_stop';
         payload.brightness = s.value;
@@ -134,10 +132,8 @@ const ictcg1 = (model, msg, publish, options, action) => {
         s.timerId = setInterval(() => {
             const duration = Date.now() - s.since;
             const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
+            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
+            s.value = newValue;
             payload.brightness = s.value;
             s.since = Date.now();
             s.publish(payload);
