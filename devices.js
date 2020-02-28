@@ -4441,10 +4441,9 @@ const devices = [
     },
     {
         zigbeeModel: ['371000002'],
-        model: '371000002',
+        model: '798.09',
         vendor: 'Paulmann',
-        description: 'RGBW panel light',
-        supports: 'rgb, brightness and temperature',
+        description: 'LED panel Amaris 595x595mm 35W matt white',
         extend: generic.light_onoff_brightness_colortemp_colorxy
     },
     {
