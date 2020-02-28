@@ -4084,14 +4084,14 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return { click: `on`, key: `${msg.endpoint.ID}` };
+            return {click: `on`, key: `${msg.endpoint.ID}`};
         },
     },
     multiOnOff_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return { click: `off`, key: `${msg.endpoint.ID}` };
+            return {click: `off`, key: `${msg.endpoint.ID}`};
         },
     },
     multi_move_with_onoff: {
@@ -4100,7 +4100,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             ictcg1(model, msg, publish, options, 'move');
             const direction = msg.data.movemode === 1 ? 'left' : 'right';
-            return { action: `rotate_${direction}`, rate: msg.data.rate, key: `${msg.endpoint.ID}` };
+            return {action: `rotate_${direction}`, rate: msg.data.rate, key: `${msg.endpoint.ID}`};
         },
     },
     multi_stop_with_onoff: {
@@ -4108,7 +4108,7 @@ const converters = {
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             const value = ictcg1(model, msg, publish, options, 'stop');
-            return { action: `rotate_stop`, brightness: value, key: `${msg.endpoint.ID}`};
+            return {action: `rotate_stop`, brightness: value, key: `${msg.endpoint.ID}`};
         },
     },
 
