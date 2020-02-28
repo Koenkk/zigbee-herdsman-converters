@@ -4440,6 +4440,14 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['371000002'],
+        model: '371000002',
+        vendor: 'Paulmann',
+        description: 'RGBW panel light',
+        supports: 'rgb, brightness and temperature',
+        extend: generic.light_onoff_brightness_colortemp_colorxy
+    },
+    {
         zigbeeModel: ['500.45'],
         model: '798.15',
         vendor: 'Paulmann',
