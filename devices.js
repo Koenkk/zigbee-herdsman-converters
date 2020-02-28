@@ -3924,6 +3924,18 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512703'],
+        model: '4512703',
+        vendor: 'Namron',
+        description: 'ZigBee 4 channel switch K8',
+        supports: 'click, brightness',
+        fromZigbee: [
+            fz.multiOnOff_cmdOn, fz.multiOnOff_cmdOff, fz.generic_battery,
+            fz.multi_move_with_onoff, fz.multi_stop_with_onoff,
+        ],
+        toZigbee: [],
+    },
 
     // SmartThings
     {
