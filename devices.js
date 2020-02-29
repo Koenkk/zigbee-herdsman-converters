@@ -6780,10 +6780,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Multi-function button',
         supports: 'single, double and long click',
-        fromZigbee: [
-            fz.konke_click,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.konke_click, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

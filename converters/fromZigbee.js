@@ -48,7 +48,7 @@ const toPercentage = (value, min, max) => {
     }
 
     const normalised = (value - min) / (max - min);
-    return (normalised * 100).toFixed(2);
+    return Math.round(normalised * 100);
 };
 
 const toPercentageCR2032 = (voltage) => {
@@ -585,7 +585,7 @@ const converters = {
 
             if (voltage) {
                 return {
-                    battery: parseFloat(toPercentageCR2032(voltage)),
+                    battery: toPercentageCR2032(voltage),
                     voltage: voltage, // @deprecated
                     // voltage: voltage / 1000.0,
                 };
@@ -3579,7 +3579,7 @@ const converters = {
 
             if (voltage) {
                 return {
-                    battery: parseFloat(toPercentageCR2032(voltage)),
+                    battery: toPercentageCR2032(voltage),
                     voltage: voltage,
                 };
             }
