@@ -2468,7 +2468,6 @@ const devices = [
         ],
         toZigbee: [],
         meta: {configureKey: 1},
-        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
