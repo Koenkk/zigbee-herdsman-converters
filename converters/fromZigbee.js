@@ -1956,6 +1956,28 @@ const converters = {
             return {action: `rotate_${direction}`, rate: msg.data.rate};
         },
     },
+    cmd_step_with_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            // Get/adjust stored brightness
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) {
+                store[deviceID] = { since: false, direction: false, value: 255, publish: publish };
+            }
+            const s = store[deviceID];
+            const delta = Math.round(msg.data.stepsize * (msg.data.stepmode === 1 ? -1 : 1));
+            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
+            s.value = newValue;
+            return {
+                action: msg.data.stepmode === 1 ? 'down' : 'up', 
+                brightness: s.value,
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
     cmd_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',

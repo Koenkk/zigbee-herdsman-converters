@@ -3936,6 +3936,18 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['4512702'],
+        model: '4512702',
+        vendor: 'Namron',
+        description: 'ZigBee 1 channel switch K4',
+        supports: 'click, brightness',
+        fromZigbee: [
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.generic_battery,
+            fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.cmd_step_with_onoff,
+        ],
+        toZigbee: [],
+    },
 
     // SmartThings
     {
