@@ -5998,6 +5998,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192'],
+        model: 'SM10ZW',
+        vendor: 'ORVIBO',
+        description: 'Door or window contact switch',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
         model: 'LVS-SN10ZW_SN11',
         vendor: 'LivingWise',
