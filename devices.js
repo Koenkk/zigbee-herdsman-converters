@@ -5998,7 +5998,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192'],
+        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6'],
         model: 'SM10ZW',
         vendor: 'ORVIBO',
         description: 'Door or window contact switch',
