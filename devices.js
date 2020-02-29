@@ -8060,6 +8060,31 @@ const devices = [
         description: 'FLAIR Viyu Smarte LED bulb RGB E27',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // Alecto Smart Home
+    {
+        // this device needs its contact return value inverted from what 'fz.ias_contact_alarm_1' to work with domoticz
+        zigbeeModel: ['RH3001'],
+        model: 'RH3001',
+        vendor: 'Alecto',
+        description: 'Door & Window sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1_inverted],
+        toZigbee: [],
+    },
+    {
+        // This device is very similar to the TUYATEC TT001ZAV20 temp and humidity sensor but reports a different model
+        // and seems to need a unique entry in order to work with the domoticz plugin
+        zigbeeModel: ['RH3052'],
+        model: 'RH3052',
+        vendor: 'Alecto',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
+        toZigbee: [],
+    },
+
+
 ];
 
 module.exports = devices.map((device) =>

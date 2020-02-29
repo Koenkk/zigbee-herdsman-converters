@@ -371,6 +371,18 @@ const converters = {
             };
         },
     },
+    ias_contact_alarm_1_inverted: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                contact: !((zoneStatus & 1) < 1),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
