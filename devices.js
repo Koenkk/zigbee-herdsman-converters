@@ -7570,6 +7570,15 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
+    {
+        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6'],
+        model: 'SM10ZW',
+        vendor: 'ORVIBO',
+        description: 'Door or window contact switch',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
 
     // SONOFF
     {
