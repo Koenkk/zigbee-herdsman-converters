@@ -7868,7 +7868,7 @@ const devices = [
                     reportableChange: 0,
                 },
             ];
-            await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+            await endpoint.configureReporting('wiserDeviceInfo', draytonDeviceConfig);
         },
     },
 
