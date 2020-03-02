@@ -257,6 +257,18 @@ const converters = {
             }
         },
     },
+    brightness_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                const key = `brightness_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
+                const payload = {};
+                payload[key] = msg.data['currentLevel'];
+                return payload;
+            }
+        },
+    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -304,6 +316,18 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    on_off_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
+                const payload = {};
+                payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                return payload;
             }
         },
     },
@@ -2002,16 +2026,6 @@ const converters = {
                 payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             }
-        },
-    },
-    generic_state_multi_ep: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-            const payload = {};
-            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-            return payload;
         },
     },
     RZHAC_4256251_power: {
