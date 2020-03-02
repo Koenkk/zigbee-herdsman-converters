@@ -1644,6 +1644,32 @@ const converters = {
             ], options.ubisys));
         },
     },
+    ubisys_device_setup: {
+        key: ['configure_device_setup'],
+        convertSet: async (entity, key, value, meta) => {
+            const devMgmtEp = meta.device.getEndpoint(232);
+            if (value.hasOwnProperty('inputConfigurations')) {
+                // example: [0, 0, 0, 0]
+                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
+                    {'inputConfigurations': {elementType: 'data8', elements: value.inputConfigurations}});
+            }
+            if (value.hasOwnProperty('inputActions')) {
+                // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
+                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: value.inputActions}});
+            }
+            converters.ubisys_device_setup.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            const log = (json) => {
+                meta.logger.warn(
+                    `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(json)}`);
+            };
+            const devMgmtEp = meta.device.getEndpoint(232);
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations']));
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions']));
+        },
+    },
 
     tint_scene: {
         key: ['tint_scene'],
