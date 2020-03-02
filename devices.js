@@ -7428,6 +7428,7 @@ const devices = [
                 await bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'closuresWindowCovering']);
             }
         },
+        ota: ota.ubisys,
     },
 
     // Lutron
