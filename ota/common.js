@@ -38,16 +38,20 @@ function parseImage(buffer) {
         otaHeaderString: buffer.toString('utf8', 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
-
+    let headerPos = 56;
     if (header.otaHeaderFieldControl & 1) {
-        header.securityCredentialVersion = buffer.readUInt8(56);
+        header.securityCredentialVersion = buffer.readUInt8(headerPos);
+        headerPos += 1;
     }
     if (header.otaHeaderFieldControl & 2) {
-        header.upgradeFileDestination = buffer.subarray(56, 64);
+        header.upgradeFileDestination = buffer.subarray(headerPos, headerPos + 8);
+        headerPos += 8;
     }
     if (header.otaHeaderFieldControl & 4) {
-        header.minimumHardwareVersion = buffer.readUInt16LE(56);
-        header.maximumHardwareVersion = buffer.readUInt16LE(58);
+        header.minimumHardwareVersion = buffer.readUInt16LE(headerPos);
+        headerPos += 2;
+        header.maximumHardwareVersion = buffer.readUInt16LE(headerPos);
+        headerPos += 2;
     }
 
     const raw = buffer.slice(0, header.totalImageSize);

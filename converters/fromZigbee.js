@@ -257,6 +257,18 @@ const converters = {
             }
         },
     },
+    brightness_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                const key = `brightness_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
+                const payload = {};
+                payload[key] = msg.data['currentLevel'];
+                return payload;
+            }
+        },
+    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -304,6 +316,18 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    on_off_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
+                const payload = {};
+                payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                return payload;
             }
         },
     },
@@ -2004,16 +2028,6 @@ const converters = {
             }
         },
     },
-    generic_state_multi_ep: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-            const payload = {};
-            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-            return payload;
-        },
-    },
     RZHAC_4256251_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -2403,6 +2417,14 @@ const converters = {
             const buttonMapping = {1: 'left', 2: 'right'};
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
+        },
+    },
+    ts0041_click: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            return {action: `${clickMapping[msg.data[3]]}`};
         },
     },
     tint404011_off: {

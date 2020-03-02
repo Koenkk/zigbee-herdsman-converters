@@ -2468,7 +2468,6 @@ const devices = [
         ],
         toZigbee: [],
         meta: {configureKey: 1},
-        ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
@@ -3392,7 +3391,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
@@ -3410,7 +3409,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 16, 'center': 17, 'bottom': 18};
@@ -3437,7 +3436,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
@@ -3454,7 +3453,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang v2.0',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 11, 'bottom': 12};
@@ -3580,7 +3579,7 @@ const devices = [
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
@@ -5369,6 +5368,19 @@ const devices = [
         description: 'Zigbee 3.0 Filament Lamp 60/64/95/125 mm, 806 lumen, dimmable, clear',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ICZB-R11D'],
+        model: 'ICZB-R11D',
+        vendor: 'iCasa',
+        description: 'Zigbee AC dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Busch-Jaeger
     {
@@ -6883,7 +6895,7 @@ const devices = [
         vendor: 'TUYATEC',
         description: 'Smart light switch - 2 gang without neutral wire',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -6900,7 +6912,7 @@ const devices = [
         vendor: 'TUYATEC',
         description: 'Smart light switch - 3 gang without neutral wire',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -6943,7 +6955,7 @@ const devices = [
         vendor: 'Zemismart',
         description: '2 gang switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep, fz.generic_power],
+        fromZigbee: [fz.on_off_multi_endpoint, fz.generic_power],
         toZigbee: [tz.on_off, tz.ignore_transition],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -6987,7 +6999,7 @@ const devices = [
         vendor: 'Zemismart',
         description: 'Smart light switch - 3 gang with neutral wire',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -7194,7 +7206,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 2 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -7211,7 +7223,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 3 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
@@ -7229,7 +7241,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 4 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
@@ -7248,7 +7260,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 5 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
@@ -7268,7 +7280,7 @@ const devices = [
         vendor: 'Hej',
         description: 'Goqual 6 gang Switch',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {
@@ -7370,7 +7382,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.generic_state_multi_ep, fz.generic_power],
+        fromZigbee: [fz.on_off_multi_endpoint, fz.generic_power],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -7577,7 +7589,7 @@ const devices = [
         vendor: 'ORVIBO',
         description: 'Door or window contact switch',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery_percentage_remaining],
         toZigbee: [],
     },
 
@@ -7778,10 +7790,19 @@ const devices = [
 
     // Smart9
     {
-        zigbeeModel: ['TS0043'],
-        model: 'S9TSZGB',
+        zigbeeModel: ['TS0041'],
+        model: 'S9TSZGB_1',
         vendor: 'Smart9',
-        description: 'Touch switch',
+        description: 'Touch switch (1 button)',
+        supports: 'action',
+        fromZigbee: [fz.ts0041_click],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0043'],
+        model: 'S9TSZGB_3',
+        vendor: 'Smart9',
+        description: 'Touch switch (3 button)',
         supports: 'action',
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
@@ -7870,6 +7891,29 @@ const devices = [
                 },
             ];
             await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+        },
+    },
+    {
+        zigbeeModel: ['U202DST600ZB'],
+        model: 'U202DST600ZB',
+        vendor: 'Schneider Electric',
+        description: 'EZinstall3 2 gang 2x300W dimmer module',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.on_off_multi_endpoint, fz.brightness_multi_endpoint],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(10);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint1);
+            await configureReporting.brightness(endpoint1);
+            const endpoint2 = device.getEndpoint(11);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint2);
+            await configureReporting.brightness(endpoint2);
+        },
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
         },
     },
 
