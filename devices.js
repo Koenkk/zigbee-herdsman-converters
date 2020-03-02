@@ -5368,6 +5368,19 @@ const devices = [
         description: 'Zigbee 3.0 Filament Lamp 60/64/95/125 mm, 806 lumen, dimmable, clear',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ICZB-R11D'],
+        model: 'ICZB-R11D',
+        vendor: 'iCasa',
+        description: 'Zigbee AC dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Busch-Jaeger
     {
