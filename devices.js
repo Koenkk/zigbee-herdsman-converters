@@ -7148,6 +7148,15 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SW2500ZB'],
+        model: 'SW2500ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee smart light switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
 
     // Lutron
     {
