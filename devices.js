@@ -8140,15 +8140,15 @@ const devices = [
     },
 
     // Alecto
-    {
-        zigbeeModel: ['RH3001'],
-        model: 'SMART-DOOR10',
-        vendor: 'Alecto',
-        description: 'Door & window sensor',
-        supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-    },
+    // {
+    //     zigbeeModel: ['RH3001'],
+    //     model: 'SMART-DOOR10',
+    //     vendor: 'Alecto',
+    //     description: 'Door & window sensor',
+    //     supports: 'contact',
+    //     fromZigbee: [fz.ias_contact_alarm_1],
+    //     toZigbee: [],
+    // },
     {
         zigbeeModel: ['RH3052'],
         model: 'SMART-TEMP10',
