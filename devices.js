@@ -8138,6 +8138,26 @@ const devices = [
         description: 'FLAIR Viyu Smarte LED bulb RGB E27',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // Alecto
+    {
+        zigbeeModel: ['RH3001'],
+        model: 'SMART-DOOR10',
+        vendor: 'Alecto',
+        description: 'Door & window sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['RH3052'],
+        model: 'SMART-TEMP10',
+        vendor: 'Alecto',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
