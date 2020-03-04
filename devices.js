@@ -4228,9 +4228,9 @@ const devices = [
     },
     {
         zigbeeModel: ['3315-Seu'],
-        model: '3315-Seu',
+        model: 'WTR-UK-V2',
         vendor: 'SmartThings',
-        description: 'Water sensor (EU model)',
+        description: 'Water leak sensor (2015 model)',
         supports: 'water and temperature',
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery_3V],
         toZigbee: [],
