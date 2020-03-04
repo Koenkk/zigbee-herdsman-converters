@@ -8165,15 +8165,15 @@ const devices = [
     //     fromZigbee: [fz.ias_contact_alarm_1],
     //     toZigbee: [],
     // },
-    {
-        zigbeeModel: ['RH3052'],
-        model: 'SMART-TEMP10',
-        vendor: 'Alecto',
-        description: 'Temperature & humidity sensor',
-        supports: 'temperature and humidity',
-        fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
-        toZigbee: [],
-    },
+    // {
+    //     zigbeeModel: ['RH3052'],
+    //     model: 'SMART-TEMP10',
+    //     vendor: 'Alecto',
+    //     description: 'Temperature & humidity sensor',
+    //     supports: 'temperature and humidity',
+    //     fromZigbee: [fz.humidity, fz.temperature, fz.battery_200],
+    //     toZigbee: [],
+    // },
 ];
 
 module.exports = devices.map((device) =>
