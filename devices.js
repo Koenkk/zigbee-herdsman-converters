@@ -4227,6 +4227,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3315-Seu'],
+        model: '3315-Seu',
+        vendor: 'SmartThings',
+        description: 'Water sensor (EU model)',
+        supports: 'water and temperature',
+        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['water'],
         model: 'IM6001-WLP01',
         vendor: 'SmartThings',
