@@ -4000,9 +4000,12 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {'maximumReportInterval': 600, 'reportableChange': 3}); // Limit updates to 3V and max 600s (10m)
-            await configureReporting.rmsCurrent(endpoint, {'maximumReportInterval': 600, 'reportableChange': 10}); // Limit updates to 0.01A and max 600s (10m)
-            await configureReporting.activePower(endpoint, {'maximumReportInterval': 600, 'reportableChange': 40}); // Limit updates to 4.0W and max 600s (10m)
+            // Limit updates to 3V and max 600s (10m)
+            await configureReporting.rmsVoltage(endpoint, {'maximumReportInterval': 600, 'reportableChange': 3});
+            // Limit updates to 0.01A and max 600s (10m)
+            await configureReporting.rmsCurrent(endpoint, {'maximumReportInterval': 600, 'reportableChange': 10});
+            // Limit updates to 4.0W and max 600s (10m)
+            await configureReporting.activePower(endpoint, {'maximumReportInterval': 600, 'reportableChange': 40});
             await endpoint.read('haElectricalMeasurement', [
                 'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
             ]);
