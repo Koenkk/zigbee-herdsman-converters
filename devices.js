@@ -3991,15 +3991,30 @@ const devices = [
         zigbeeModel: ['3200-Sgb'],
         model: 'F-APP-UK-V2',
         vendor: 'SmartThings',
-        description: 'Outlet UK',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        description: 'Zigbee Outlet UK with power meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
+            // Limit updates to 3V and max 600s (10m)
+            await configureReporting.rmsVoltage(endpoint, {'maximumReportInterval': 600, 'reportableChange': 3});
+            // Limit updates to 0.01A and max 600s (10m)
+            await configureReporting.rmsCurrent(endpoint, {'maximumReportInterval': 600, 'reportableChange': 10});
+            // Limit updates to 4.0W and max 600s (10m)
+            await configureReporting.activePower(endpoint, {'maximumReportInterval': 600, 'reportableChange': 40});
+            await endpoint.read('haElectricalMeasurement', [
+                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
+            ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'activePower', 'rmsCurrent', 'rmsVoltage',
+            ]);
         },
     },
     {
