@@ -8154,36 +8154,30 @@ const devices = [
         description: 'FLAIR Viyu Smarte LED bulb RGB E27',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
-    
+
+    // FGMAX
     {
         zigbeeModel: ['FGMAXSW001'],
         model: 'FGMAXSW001',
         vendor: 'FGMAX',
-        description: 'FGMAX Switch 8 positions',
-        fromZigbee: [fz.generic_state_multi_ep],
+        description: 'Switch 8 positions',
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [],
         endpoint: (device) => {
-            return {
-            'ep1': 8, 'ep2': 9, 'ep3': 10, 'ep4': 11,
-            'ep5': 12, 'ep6': 13, 'ep7': 14, 'ep8': 15
-            };
+            return {'l1': 8, 'l2': 9, 'l3': 10, 'l4': 11, 'l5': 12, 'l6': 13, 'l7': 14, 'l8': 15};
         },
     },
-
     {
         zigbeeModel: ['FGMAXPW001'],
         model: 'FGMAXPW001',
         vendor: 'FGMAX',
-        description: 'FGMAX relay 8 positions',
+        description: 'Relay 8 positions',
         supports: 'relay 8 relays',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.onoff],
         endpoint: (device) => {
-            return {
-                'ep1': 8, 'ep2': 9, 'ep3': 10, 'ep4': 11,
-                'ep5': 12, 'ep6': 13, 'ep7': 14, 'ep8': 15
-            };
-         },
+            return {'l1': 8, 'l2': 9, 'l3': 10, 'l4': 11, 'l5': 12, 'l6': 13, 'l7': 14, 'l8': 15};
+        },
     },
 
     // Alecto
