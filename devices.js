@@ -8154,6 +8154,37 @@ const devices = [
         description: 'FLAIR Viyu Smarte LED bulb RGB E27',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    
+    {
+        zigbeeModel: ['FGMAXSW001'],
+        model: 'FGMAXSW001',
+        vendor: 'FGMAX',
+        description: 'FGMAX Switch 8 positions',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {
+            'ep1': 8, 'ep2': 9, 'ep3': 10, 'ep4': 11,
+            'ep5': 12, 'ep6': 13, 'ep7': 14, 'ep8': 15
+            };
+        },
+    },
+
+    {
+        zigbeeModel: ['FGMAXPW001'],
+        model: 'FGMAXPW001',
+        vendor: 'FGMAX',
+        description: 'FGMAX relay 8 positions',
+        supports: 'relay 8 relays',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.onoff],
+        endpoint: (device) => {
+            return {
+                'ep1': 8, 'ep2': 9, 'ep3': 10, 'ep4': 11,
+                'ep5': 12, 'ep6': 13, 'ep7': 14, 'ep8': 15
+            };
+         },
+    },
 
     // Alecto
     // {
