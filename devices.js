@@ -2679,6 +2679,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {options: {enhancedHue: false}},
     },
     {
         zigbeeModel: ['RB 265'],
