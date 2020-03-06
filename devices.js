@@ -8163,6 +8163,7 @@ const devices = [
         description: 'Switch 8 positions',
         fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [],
+        supports: 'on/off',
         endpoint: (device) => {
             return {'l1': 8, 'l2': 9, 'l3': 10, 'l4': 11, 'l5': 12, 'l6': 13, 'l7': 14, 'l8': 15};
         },
@@ -8172,7 +8173,7 @@ const devices = [
         model: 'FGMAXPW001',
         vendor: 'FGMAX',
         description: 'Relay 8 positions',
-        supports: 'relay 8 relays',
+        supports: 'on/off',
         fromZigbee: [fz.on_off_multi_endpoint],
         toZigbee: [tz.onoff],
         endpoint: (device) => {
