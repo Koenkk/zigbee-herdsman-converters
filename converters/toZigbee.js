@@ -499,7 +499,7 @@ const converters = {
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation') &&
                        meta.options.enhancedHue === false) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
-                value.hue = value.hue;
+                value.hue = Math.round(value.hue / 360 * 254);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'moveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
@@ -509,7 +509,7 @@ const converters = {
                 cmd = 'enhancedMoveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue') && meta.options.enhancedHue === false) {
                 newState.color = {hue: value.hue};
-                value.hue = value.hue;
+                value.hue = Math.round(value.hue / 360 * 254);
                 cmd = 'moveToHue';
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
