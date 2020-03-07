@@ -496,11 +496,21 @@ const converters = {
                 newState.color = {s: value.s};
                 value.saturation = value.s * (2.54);
                 cmd = 'moveToSaturation';
+            } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation') &&
+                       meta.options.enhancedHue === false) {
+                newState.color = {hue: value.hue, saturation: value.saturation};
+                value.hue = Math.round(value.hue / 360 * 254);
+                value.saturation = value.saturation * (2.54);
+                cmd = 'moveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
+            } else if (value.hasOwnProperty('hue') && meta.options.enhancedHue === false) {
+                newState.color = {hue: value.hue};
+                value.hue = Math.round(value.hue / 360 * 254);
+                cmd = 'moveToHue';
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 value.hue = value.hue % 360 * (65535 / 360);
@@ -535,7 +545,15 @@ const converters = {
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
-
+            case 'moveToHueAndSaturation':
+                zclData.hue = value.hue;
+                zclData.saturation = value.saturation;
+                zclData.direction = value.direction || 0;
+                break;
+            case 'moveToHue':
+                zclData.hue = value.hue;
+                zclData.direction = value.direction || 0;
+                break;
             case 'moveToSaturation':
                 zclData.saturation = value.saturation;
                 break;
@@ -560,7 +578,7 @@ const converters = {
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['currentX', 'currentY']);
+            await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'currentHue', 'currentSaturation']);
         },
     },
     light_color_colortemp: {
