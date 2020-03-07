@@ -6441,6 +6441,21 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
+    {
+        zigbeeModel: ['3RSS007Z'],
+        model: '3RSS007Z',
+        vendor: 'Third Reality',
+        description: 'RealitySwitch',
+        supports: 'on/off, battery',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        meta: {options: {disableDefaultResponse: true}, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Hampton Bay
     {
