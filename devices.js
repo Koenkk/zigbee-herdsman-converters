@@ -8175,7 +8175,7 @@ const devices = [
         description: 'Relay 8 positions',
         supports: 'on/off',
         fromZigbee: [fz.on_off_multi_endpoint],
-        toZigbee: [tz.onoff],
+        toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 8, 'l2': 9, 'l3': 10, 'l4': 11, 'l5': 12, 'l6': 13, 'l7': 14, 'l8': 15};
         },
