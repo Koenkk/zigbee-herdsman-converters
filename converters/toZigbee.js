@@ -578,7 +578,7 @@ const converters = {
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['currentX', 'currentY']);
+            await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'currentHue', 'currentSaturation']);
         },
     },
     light_color_colortemp: {
