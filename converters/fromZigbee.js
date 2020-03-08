@@ -388,6 +388,13 @@ const converters = {
             return {action: 'off'};
         },
     },
+    command_off_with_effect: {
+        cluster: 'genOnOff',
+        type: 'commandOffWithEffect',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'off'};
+        },
+    },
     command_move_with_on_off: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
