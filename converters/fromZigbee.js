@@ -442,7 +442,7 @@ const converters = {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             return {
                 action: `brightness_${direction}_hold_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`,
-                action_rate: msg.data.rate
+                action_rate: msg.data.rate,
             };
         },
     },
