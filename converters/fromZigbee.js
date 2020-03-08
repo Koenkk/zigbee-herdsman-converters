@@ -388,11 +388,62 @@ const converters = {
             return {action: 'off'};
         },
     },
-    command_off_with_effect: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
+    command_move_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            return {action: `brightness_${direction}_hold`, action_rate: msg.data.rate};
+        },
+    },
+    command_stop_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'brightness_release'};
+        },
+    },
+    command_step_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_${direction}_step`,
+                action_step_size: msg.data.stepsize,
+            };
+        },
+    },
+    command_on_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `on_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
+        },
+    },
+    command_off_multi_endpoint: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `off_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
+        },
+    },
+    command_move_with_on_off_multi_endpoint: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_${direction}_hold_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`,
+                action_rate: msg.data.rate
+            };
+        },
+    },
+    command_stop_with_on_off_multi_endpoint: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `brightness_release_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
         },
     },
     identify: {
@@ -4099,21 +4150,6 @@ const converters = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    },
-    // Switches with multiple set of switches identified by endpoints
-    multiOnOff_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: `on`, key: `${msg.endpoint.ID}`};
-        },
-    },
-    multiOnOff_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: `off`, key: `${msg.endpoint.ID}`};
         },
     },
     multi_move_with_onoff: {
