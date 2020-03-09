@@ -505,7 +505,7 @@ const converters = {
                 value.saturation = value.s * (2.54);
                 cmd = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation') &&
-                       meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                       meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 value.hue = Math.round(value.hue / 360 * 254);
                 value.saturation = value.saturation * (2.54);
@@ -515,7 +515,8 @@ const converters = {
                 value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
                 cmd = 'enhancedMoveToHueAndSaturation';
-            } else if (value.hasOwnProperty('hue') && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+            } else if (value.hasOwnProperty('hue') && meta.mapped && meta.mapped.meta &&
+                       meta.mapped.meta.enhancedHue === false) {
                 newState.color = {hue: value.hue};
                 value.hue = Math.round(value.hue / 360 * 254);
                 cmd = 'moveToHue';
@@ -573,7 +574,8 @@ const converters = {
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
                 // If we slighlty modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
-                if (meta.mapped.meta && meta.mapped.meta.applyRedFix && value.x == 0.701 && value.y === 0.299) {
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.applyRedFix &&
+                    value.x == 0.701 && value.y === 0.299) {
                     value.x = 0.7006;
                     value.y = 0.2993;
                 }
