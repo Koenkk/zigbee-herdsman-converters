@@ -1,6 +1,16 @@
 const index = require('../index');
 const devices = require('../devices');
 
+function containsOnly(array1, array2){
+    for (const elem of array2) {
+        if (!array1.includes(elem)) {
+            throw new Error(`Contains '${elem}' while it should only contains: '${array1}'`)
+        }
+    }
+
+    return true;
+}
+
 describe('index.js', () => {
     it('Find device by model ID', () => {
         const device = index.findByZigbeeModel('WaterSensor-N');
@@ -52,10 +62,6 @@ describe('index.js', () => {
                 device.model,
             );
 
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
-            }
-
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
             // Verify fromConverters
@@ -105,6 +111,19 @@ describe('index.js', () => {
             // Check for duplicate model ids
             if (foundModels.includes(device.model)) {
                 throw new Error(`Duplicate model ${device.model}`)
+            }
+
+            // Verify meta
+            if (device.configure && (!device.meta || !device.meta.configureKey)) {
+                throw new Error(`${device.model} requires configureKey because it has configure`)
+            }
+
+            if (device.meta) {
+                containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
+
+                if (device.meta.multiEndpoint && !device.endpoint) {
+                    throw new Error(`multiEndpoint specified but no endpoint function defined`);
+                }
             }
 
             foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
