@@ -6470,6 +6470,21 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ignore_transition],
     },
+    {
+        zigbeeModel: ['3RSS007Z'],
+        model: '3RSS007Z',
+        vendor: 'Third Reality',
+        description: 'Smart light switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        meta: {disableDefaultResponse: true, configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Hampton Bay
     {
@@ -8107,6 +8122,24 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
+    },
+
+    // Kwikset
+    {
+        zigbeeModel: ['SMARTCODE_CONVERT_GEN1'],
+        model: '66492-001',
+        vendor: 'Kwikset',
+        description: 'Home connect smart lock conversion kit',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
+        toZigbee: [tz.generic_lock],
+        meta: {disableDefaultResponse: true, configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
 
     // HORNBACH
