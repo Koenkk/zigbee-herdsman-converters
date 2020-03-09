@@ -888,7 +888,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20160120') {
-                // Cannot use generic_power, divisor/multiplier is not according to ZCL.
+                // Cannot use metering_power, divisor/multiplier is not according to ZCL.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2233
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
 
@@ -904,7 +904,7 @@ const converters = {
                 }
                 return result;
             } else {
-                return converters.generic_power.convert(model, msg, publish, options, meta);
+                return converters.metering_power.convert(model, msg, publish, options, meta);
             }
         },
     },
