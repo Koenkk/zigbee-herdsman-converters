@@ -6445,11 +6445,11 @@ const devices = [
         zigbeeModel: ['3RSS007Z'],
         model: '3RSS007Z',
         vendor: 'Third Reality',
-        description: 'RealitySwitch',
+        description: 'Smart light switch',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {options: {disableDefaultResponse: true}, configureKey: 3},
+        meta: {disableDefaultResponse: true, configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -8062,17 +8062,17 @@ const devices = [
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
     },
-    
-    //KwikSet locks
+
+    // Kwikset
     {
         zigbeeModel: ['SMARTCODE_CONVERT_GEN1'],
         model: '66492-001',
-        vendor: 'KwikSet',
-        description: 'Home Connect Smart Lock Conversion Kit',
+        vendor: 'Kwikset',
+        description: 'Home connect smart lock conversion kit',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {options: {disableDefaultResponse: true}, configureKey: 3},
+        meta: {disableDefaultResponse: true, configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -8080,7 +8080,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
-    
+
     // HORNBACH
     {
         zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
