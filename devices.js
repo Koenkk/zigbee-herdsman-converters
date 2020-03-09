@@ -1945,7 +1945,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['1744530P7'],
+        zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
         model: '8718696170625',
         vendor: 'Philips',
         description: 'Hue Fuzo outdoor wall light',
@@ -2679,6 +2679,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {options: {enhancedHue: false}},
     },
     {
         zigbeeModel: ['RB 265'],
@@ -4768,7 +4769,7 @@ const devices = [
 
     // Blaupunkt
     {
-        zigbeeModel: ['SCM-2_00.00.03.15', 'SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC'],
+        zigbeeModel: ['SCM-2_00.00.03.15', 'SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC', 'SCM_00.00.03.05TC'],
         model: 'SCM-S1',
         vendor: 'Blaupunkt',
         description: 'Roller shutter',
@@ -6575,7 +6576,7 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
+            const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
