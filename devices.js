@@ -8062,15 +8062,7 @@ const devices = [
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
     },
-
-    // HORNBACH
-    {
-        zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
-        model: '10011725',
-        vendor: 'HORNBACH',
-        description: 'FLAIR Viyu Smarte LED bulb RGB E27',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
+    
     //KwikSet locks
     {
         zigbeeModel: ['SMARTCODE_CONVERT_GEN1'],
@@ -8087,6 +8079,15 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    
+    // HORNBACH
+    {
+        zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
+        model: '10011725',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smarte LED bulb RGB E27',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 ];
 
