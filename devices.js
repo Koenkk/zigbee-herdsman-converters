@@ -8308,6 +8308,37 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
+    // Aurora
+    {
+        zigbeeModel: ['DoubleSocket50AU'],
+        model: 'AU-A1ZBDSS',
+        vendor: 'Aurora',
+        description: 'AOne 13A smart double socket',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint1);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint1);
+            await configureReporting.activePower(endpoint1);
+            await configureReporting.rmsCurrent(endpoint1);
+            await configureReporting.rmsVoltage(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint2);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint2);
+            await configureReporting.activePower(endpoint2);
+            await configureReporting.rmsCurrent(endpoint2);
+            await configureReporting.rmsVoltage(endpoint2);
+        },
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+    },
+
     // Alecto
     // {
     //     zigbeeModel: ['RH3001'],
