@@ -1585,7 +1585,7 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['LCT002'],
+        zigbeeModel: ['LCT002', 'LCT011'],
         model: '9290002579A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
