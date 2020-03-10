@@ -5754,7 +5754,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 3},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5770,7 +5770,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 2},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5807,7 +5807,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 2},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5823,7 +5823,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 1},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5855,7 +5855,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.generic_battery],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 1},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5873,7 +5873,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 3},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -5889,7 +5889,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 3},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -6427,7 +6427,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 5},
+        meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -8133,7 +8133,7 @@ const devices = [
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_200],
         toZigbee: [tz.generic_lock],
-        meta: {disableDefaultResponse: true, configureKey: 3},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
