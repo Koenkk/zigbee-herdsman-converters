@@ -117,8 +117,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
         if (s.direction) {
             const duration = Date.now() - s.since;
             const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
-            s.value = newValue;
+            const newValue = s.value + delta;
+            if (newValue >= 0 && newValue <= 255) {
+                s.value = newValue;
+            }
         }
         payload.action = 'rotate_stop';
         payload.brightness = s.value;
@@ -132,8 +134,10 @@ const ictcg1 = (model, msg, publish, options, action) => {
         s.timerId = setInterval(() => {
             const duration = Date.now() - s.since;
             const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
-            s.value = newValue;
+            const newValue = s.value + delta;
+            if (newValue >= 0 && newValue <= 255) {
+                s.value = newValue;
+            }
             payload.brightness = s.value;
             s.since = Date.now();
             s.publish(payload);
@@ -378,14 +382,14 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
+            return {action: getProperty('on', msg, model)};
         },
     },
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            return {action: getProperty('off', msg, model)};
         },
     },
     command_off_with_effect: {
@@ -400,14 +404,15 @@ const converters = {
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            return {action: `brightness_${direction}_hold`, action_rate: msg.data.rate};
+            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            return {action, action_rate: msg.data.rate};
         },
     },
     command_stop_with_on_off: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'brightness_release'};
+            return {action: getProperty(`brightness_stop`, msg, model)};
         },
     },
     command_step_with_on_off: {
@@ -416,41 +421,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             return {
-                action: `brightness_${direction}_step`,
+                action: `brightness_step_${direction}`,
                 action_step_size: msg.data.stepsize,
             };
-        },
-    },
-    command_on_multi_endpoint: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `on_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
-        },
-    },
-    command_off_multi_endpoint: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `off_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
-        },
-    },
-    command_move_with_on_off_multi_endpoint: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            return {
-                action: `brightness_${direction}_hold_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`,
-                action_rate: msg.data.rate,
-            };
-        },
-    },
-    command_stop_with_on_off_multi_endpoint: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `brightness_release_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`};
         },
     },
     identify: {
