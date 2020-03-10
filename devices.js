@@ -3949,6 +3949,34 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512703'],
+        model: '4512703',
+        vendor: 'Namron',
+        description: 'Zigbee 4 channel switch K8',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.battery_percentage_remaining,
+            fz.command_move_with_on_off, fz.command_stop_with_on_off,
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+    },
+    {
+        zigbeeModel: ['4512702'],
+        model: '4512702',
+        vendor: 'Namron',
+        description: 'Zigbee 1 channel switch K4',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.battery_percentage_remaining,
+            fz.command_move_with_on_off, fz.command_stop_with_on_off, fz.command_step_with_on_off,
+        ],
+        toZigbee: [],
+    },
 
     // SmartThings
     {

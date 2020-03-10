@@ -449,14 +449,14 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
+            return {action: getProperty('on', msg, model)};
         },
     },
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            return {action: getProperty('off', msg, model)};
         },
     },
     command_off_with_effect: {
@@ -464,6 +464,33 @@ const converters = {
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'off'};
+        },
+    },
+    command_move_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            return {action, action_rate: msg.data.rate};
+        },
+    },
+    command_stop_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getProperty(`brightness_stop`, msg, model)};
+        },
+    },
+    command_step_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_step_${direction}`,
+                action_step_size: msg.data.stepsize,
+            };
         },
     },
     identify: {
