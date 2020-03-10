@@ -3931,10 +3931,11 @@ const devices = [
         description: 'Zigbee 4 channel switch K8',
         supports: 'action',
         fromZigbee: [
-            fz.command_on_multi_endpoint, fz.command_off_multi_endpoint, fz.generic_battery,
-            fz.command_move_with_on_off_multi_endpoint, fz.command_stop_with_on_off_multi_endpoint,
+            fz.command_on, fz.command_off, fz.generic_battery,
+            fz.command_move_with_on_off, fz.command_stop_with_on_off,
         ],
         toZigbee: [],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
