@@ -3931,7 +3931,7 @@ const devices = [
         description: 'Zigbee 4 channel switch K8',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.generic_battery,
+            fz.command_on, fz.command_off, fz.battery_percentage_remaining,
             fz.command_move_with_on_off, fz.command_stop_with_on_off,
         ],
         toZigbee: [],
@@ -3947,7 +3947,7 @@ const devices = [
         description: 'Zigbee 1 channel switch K4',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.generic_battery,
+            fz.command_on, fz.command_off, fz.battery_percentage_remaining,
             fz.command_move_with_on_off, fz.command_stop_with_on_off, fz.command_step_with_on_off,
         ],
         toZigbee: [],
