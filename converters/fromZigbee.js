@@ -213,12 +213,25 @@ const converters = {
             }
         },
     },
-    battery_percentage_remaining: {
+    battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2)};
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                payload['battery_low'] = msg.data.batteryAlarmState;
+            }
+
+            if (Object.keys(payload).length !== 0) {
+                return payload;
             }
         },
     },
@@ -1448,31 +1461,6 @@ const converters = {
             return {action: 'click'};
         },
     },
-    battery_200: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const batt = msg.data.batteryPercentageRemaining;
-            const battLow = msg.data.batteryAlarmState;
-            const voltage = msg.data.batteryVoltage;
-            const results = {};
-            if (batt != null) {
-                const value = Math.round(batt/200.0*10000)/100; // Out of 200
-                results['battery'] = value;
-            }
-            if (battLow != null) {
-                if (battLow) {
-                    results['battery_low'] = true;
-                } else {
-                    results['battery_low'] = false;
-                }
-            }
-            if (voltage != null) {
-                results['voltage'] = voltage * 100;
-            }
-            return results;
-        },
-    },
     heiman_smoke_enrolled: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -1961,7 +1949,7 @@ const converters = {
             return {};
         },
     },
-    generic_battery: {
+    legacy_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1970,7 +1958,7 @@ const converters = {
             }
         },
     },
-    generic_battery_voltage: {
+    legacy_battery_voltage: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
