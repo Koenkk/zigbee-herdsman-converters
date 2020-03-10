@@ -446,21 +446,31 @@ const converters = {
                 value = {x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 const hsb = utils.hslToHsb(value.h, value.s, value.l);
-                newState.color = {h: value.h, s: value.s, l: value.l};
-                value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
+                newState.color = {h: value.h, s: value.s, l: value.l};
                 newState.brightness = value.brightness;
-                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(hsb.h / 360 * 254);
+                    cmd = 'moveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = hsb.h % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                }
             } else if (value.hasOwnProperty('hsl')) {
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsb = utils.hslToHsb(hsl.h, hsl.s, hsl.l);
-                newState.color = {hsl: value.hsl};
-                value.hue = hsb.h % 360 * (65535 / 360);
                 value.saturation = hsb.s * (2.54);
                 value.brightness = hsb.b * (2.54);
+                newState.color = {hsl: value.hsl};
                 newState.brightness = value.brightness;
-                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(hsb.h / 360 * 254);
+                    cmd = 'moveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = hsb.h % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, b: value.b};
                 value.hue = value.h % 360 * (65535 / 360);
@@ -470,60 +480,84 @@ const converters = {
                 cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
             } else if (value.hasOwnProperty('hsb')) {
                 const hsb = value.hsb.split(',').map((i) => parseInt(i));
-                newState.color = {hsb: value.hsb};
-                value.hue = hsb[0] % 360 * (65535 / 360);
                 value.saturation = hsb[1] * (2.54);
                 value.brightness = hsb[2] * (2.54);
+                newState.color = {hsb: value.hsb};
                 newState.brightness = value.brightness;
-                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(hsb[0] / 360 * 254);
+                    cmd = 'moveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = hsb[0] % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
-                newState.color = {h: value.h, s: value.s, v: value.v};
-                value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
                 value.brightness = value.v * (2.54);
+                newState.color = {h: value.h, s: value.s, v: value.v};
                 newState.brightness = value.brightness;
-                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(value.h / 360 * 254);
+                    cmd = 'moveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = value.h % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                }
             } else if (value.hasOwnProperty('hsv')) {
                 const hsv = value.hsv.split(',').map((i) => parseInt(i));
-                newState.color = {hsv: value.hsv};
-                value.hue = hsv[0] % 360 * (65535 / 360);
                 value.saturation = hsv[1] * (2.54);
                 value.brightness = hsv[2] * (2.54);
+                newState.color = {hsv: value.hsv};
                 newState.brightness = value.brightness;
-                cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(hsv[0] / 360 * 254);
+                    cmd = 'moveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = hsv[0] % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
-                value.hue = value.h % 360 * (65535 / 360);
                 value.saturation = value.s * (2.54);
-                cmd = 'enhancedMoveToHueAndSaturation';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(value.h / 360 * 254);
+                    cmd = 'moveToHueAndSaturation';
+                } else {
+                    value.hue = value.h % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturation';
+                }
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
-                value.hue = value.h % 360 * (65535 / 360);
-                cmd = 'enhancedMoveToHue';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(value.h / 360 * 254);
+                    cmd = 'moveToHue';
+                } else {
+                    value.hue = value.h % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHue';
+                }
             } else if (value.hasOwnProperty('s')) {
                 newState.color = {s: value.s};
                 value.saturation = value.s * (2.54);
                 cmd = 'moveToSaturation';
-            } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation') &&
-                       meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
-                newState.color = {hue: value.hue, saturation: value.saturation};
-                value.hue = Math.round(value.hue / 360 * 254);
-                value.saturation = value.saturation * (2.54);
-                cmd = 'moveToHueAndSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
-                value.hue = value.hue % 360 * (65535 / 360);
                 value.saturation = value.saturation * (2.54);
-                cmd = 'enhancedMoveToHueAndSaturation';
-            } else if (value.hasOwnProperty('hue') && meta.mapped && meta.mapped.meta &&
-                       meta.mapped.meta.enhancedHue === false) {
-                newState.color = {hue: value.hue};
-                value.hue = Math.round(value.hue / 360 * 254);
-                cmd = 'moveToHue';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(value.hue / 360 * 254);
+                    cmd = 'moveToHueAndSaturation';
+                } else {
+                    value.hue = value.hue % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHueAndSaturation';
+                }
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
-                value.hue = value.hue % 360 * (65535 / 360);
-                cmd = 'enhancedMoveToHue';
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                    value.hue = Math.round(value.hue / 360 * 254);
+                    cmd = 'moveToHue';
+                } else {
+                    value.hue = value.hue % 360 * (65535 / 360);
+                    cmd = 'enhancedMoveToHue';
+                }
             } else if (value.hasOwnProperty('saturation')) {
                 newState.color = {saturation: value.saturation};
                 value.saturation = value.saturation * (2.54);
@@ -553,6 +587,18 @@ const converters = {
             case 'enhancedMoveToHue':
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
+                break;
+            case 'moveToHueAndSaturationAndBrightness':
+                await entity.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
+                    getOptions(meta.mapped),
+                );
+                zclData.hue = value.hue;
+                zclData.saturation = value.saturation;
+                zclData.direction = value.direction || 0;
+                cmd = 'moveToHueAndSaturatio';
                 break;
             case 'moveToHueAndSaturation':
                 zclData.hue = value.hue;
