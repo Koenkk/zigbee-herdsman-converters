@@ -1444,6 +1444,13 @@ const devices = [
         extend: hue.light_onoff_brightness_colorxy,
     },
     {
+        zigbeeModel: ['LCP001', 'LCP002'],
+        model: '4090331P9',
+        vendor: 'Philips',
+        description: 'Hue Ensis',
+        extend: hue.light_onoff_brightness_colorxy,
+    },
+    {
         zigbeeModel: ['LLC020'],
         model: '7146060PH',
         vendor: 'Philips',
