@@ -2014,28 +2014,6 @@ const converters = {
             return {action: `rotate_${direction}`, rate: msg.data.rate};
         },
     },
-    cmd_step_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            // Get/adjust stored brightness
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {since: false, direction: false, value: 255, publish: publish};
-            }
-            const s = store[deviceID];
-            const delta = Math.round(msg.data.stepsize * (msg.data.stepmode === 1 ? -1 : 1));
-            const newValue = Math.min(Math.max(s.value + delta, 0), 255);
-            s.value = newValue;
-            return {
-                action: msg.data.stepmode === 1 ? 'down' : 'up',
-                brightness: s.value,
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-        },
-    },
     cmd_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
@@ -4157,23 +4135,6 @@ const converters = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    },
-    multi_move_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            ictcg1(model, msg, publish, options, 'move');
-            const direction = msg.data.movemode === 1 ? 'left' : 'right';
-            return {action: `rotate_${direction}`, rate: msg.data.rate, key: `${msg.endpoint.ID}`};
-        },
-    },
-    multi_stop_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const value = ictcg1(model, msg, publish, options, 'stop');
-            return {action: `rotate_stop`, brightness: value, key: `${msg.endpoint.ID}`};
         },
     },
 
