@@ -598,7 +598,7 @@ const converters = {
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
-                cmd = 'moveToHueAndSaturatio';
+                cmd = 'moveToHueAndSaturation';
                 break;
             case 'moveToHueAndSaturation':
                 zclData.hue = value.hue;
