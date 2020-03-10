@@ -148,7 +148,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
 
 const getProperty = (name, msg, definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
-        return `${name}_${getKey(definition.endpoint(msg.device), msg.endpoint.ID)}}`;
+        return `${name}_${getKey(definition.endpoint(msg.device), msg.endpoint.ID)}`;
     } else {
         return name;
     }
