@@ -5188,6 +5188,15 @@ const devices = [
             await configureReporting.batteryVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SOS-EM'],
+        model: 'HS1EB',
+        vendor: 'HEIMAN',
+        description: 'Smart emergency button',
+        supports: 'single',
+        fromZigbee: [fz.st_button_state],
+        toZigbee: [],
+    },
 
     // GS
     {
