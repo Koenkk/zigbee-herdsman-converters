@@ -146,6 +146,14 @@ const ictcg1 = (model, msg, publish, options, action) => {
     return payload.brightness;
 };
 
+const getProperty = (name, msg, definition) => {
+    if (definition.meta && definition.meta.multiEndpoint) {
+        return `${name}_${getKey(definition.endpoint(msg.device), msg.endpoint.ID)}`;
+    } else {
+        return name;
+    }
+};
+
 const ratelimitedDimmer = (model, msg, publish, options, meta) => {
     const deviceID = msg.device.ieeeAddr;
     const payload = {};
@@ -205,12 +213,25 @@ const converters = {
             }
         },
     },
-    battery_percentage_remaining: {
+    battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2)};
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                payload['battery_low'] = msg.data.batteryAlarmState;
+            }
+
+            if (Object.keys(payload).length !== 0) {
+                return payload;
             }
         },
     },
@@ -236,6 +257,27 @@ const converters = {
             }
         },
     },
+    illuminance: {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+            const illuminance = msg.data['measuredValue'];
+            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
+            return {
+                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
+            };
+        },
+    },
+    pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const pressure = parseFloat(msg.data['measuredValue']);
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
     occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
         // Note: options.occupancy_timeout not available yet, to implement it will be
@@ -253,17 +295,51 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
-                return {brightness: msg.data['currentLevel']};
+                const property = getProperty('brightness', msg, model);
+                return {[property]: msg.data['currentLevel']};
             }
         },
     },
-    electrical_measurement: {
+    metering_power: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
+            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
+            const factor = multiplier && divisor ? multiplier / divisor : null;
+
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                let power = msg.data['instantaneousDemand'];
+                if (factor != null) {
+                    power = (power * factor) * 1000; // kWh to Watt
+                }
+                payload.power = precisionRound(power, 2);
+            }
+
+            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.hasOwnProperty('currentSummReceived'))) {
+                let energy = 0;
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy += value * factor;
+                }
+                if (msg.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data['currentSummReceived'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy -= value * factor;
+                }
+                payload.energy = precisionRound(energy, 2);
+            }
+
+            return payload;
+        },
+    },
+    electrical_measurement_power: {
         /**
          * When using this converter also add the following to the configure method of the device:
-         * await endpoint.read('haElectricalMeasurement', [
-         *   'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
-         *   'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
-         * ]);
+         * await readEletricalMeasurementConverterAttributes(endpoint);
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -277,7 +353,8 @@ const converters = {
                     'haElectricalMeasurement', 'acPowerDivisor',
                 );
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.power = precisionRound(msg.data['activePower'] * factor, 2);
+                const property = getProperty('power', msg, model);
+                payload[property] = precisionRound(msg.data['activePower'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
@@ -285,7 +362,8 @@ const converters = {
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.current = precisionRound(msg.data['rmsCurrent'] * factor, 2);
+                const property = getProperty('current', msg, model);
+                payload[property] = precisionRound(msg.data['rmsCurrent'] * factor, 2);
             }
             if (msg.data.hasOwnProperty('rmsVoltage')) {
                 const multiplier = msg.endpoint.getClusterAttributeValue(
@@ -293,7 +371,8 @@ const converters = {
                 );
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
-                payload.voltage = precisionRound(msg.data['rmsVoltage'] * factor, 2);
+                const property = getProperty('voltage', msg, model);
+                payload[property] = precisionRound(msg.data['rmsVoltage'] * factor, 2);
             }
             return payload;
         },
@@ -303,7 +382,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const property = getProperty('state', msg, model);
+                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
     },
@@ -382,14 +462,14 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
+            return {action: getProperty('on', msg, model)};
         },
     },
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            return {action: getProperty('off', msg, model)};
         },
     },
     command_off_with_effect: {
@@ -397,6 +477,33 @@ const converters = {
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'off'};
+        },
+    },
+    command_move_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            return {action, action_rate: msg.data.rate};
+        },
+    },
+    command_stop_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getProperty(`brightness_stop`, msg, model)};
+        },
+    },
+    command_step_with_on_off: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            return {
+                action: `brightness_step_${direction}`,
+                action_step_size: msg.data.stepsize,
+            };
         },
     },
     identify: {
@@ -821,7 +928,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20160120') {
-                // Cannot use generic_power, divisor/multiplier is not according to ZCL.
+                // Cannot use metering_power, divisor/multiplier is not according to ZCL.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2233
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
 
@@ -837,7 +944,7 @@ const converters = {
                 }
                 return result;
             } else {
-                return converters.generic_power.convert(model, msg, publish, options, meta);
+                return converters.metering_power.convert(model, msg, publish, options, meta);
             }
         },
     },
@@ -968,27 +1075,6 @@ const converters = {
             if (clickLookup[clicks]) {
                 return {click: clickLookup[clicks]};
             }
-        },
-    },
-    generic_illuminance: {
-        cluster: 'msIlluminanceMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-            const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
-            return {
-                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
-            };
-        },
-    },
-    generic_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = parseFloat(msg.data['measuredValue']);
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     WSDCGQ11LM_pressure: {
@@ -1375,31 +1461,6 @@ const converters = {
             return {action: 'click'};
         },
     },
-    battery_200: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const batt = msg.data.batteryPercentageRemaining;
-            const battLow = msg.data.batteryAlarmState;
-            const voltage = msg.data.batteryVoltage;
-            const results = {};
-            if (batt != null) {
-                const value = Math.round(batt/200.0*10000)/100; // Out of 200
-                results['battery'] = value;
-            }
-            if (battLow != null) {
-                if (battLow) {
-                    results['battery_low'] = true;
-                } else {
-                    results['battery_low'] = false;
-                }
-            }
-            if (voltage != null) {
-                results['voltage'] = voltage * 100;
-            }
-            return results;
-        },
-    },
     heiman_smoke_enrolled: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -1532,42 +1593,6 @@ const converters = {
                 const R = Math.sqrt(x * x + y * y + z * z);
                 result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
                 result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
-            }
-
-            return result;
-        },
-    },
-    generic_power: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
-            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
-            const factor = multiplier && divisor ? multiplier / divisor : null;
-
-            if (msg.data.hasOwnProperty('instantaneousDemand')) {
-                let power = msg.data['instantaneousDemand'];
-                if (factor != null) {
-                    power = (power * factor) * 1000; // kWh to Watt
-                }
-                result.power = precisionRound(power, 2);
-            }
-
-            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
-                msg.data.hasOwnProperty('currentSummReceived'))) {
-                let energy = 0;
-                if (msg.data.hasOwnProperty('currentSummDelivered')) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    energy += value * factor;
-                }
-                if (msg.data.hasOwnProperty('currentSummReceived')) {
-                    const data = msg.data['currentSummReceived'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    energy -= value * factor;
-                }
-                result.energy = precisionRound(energy, 2);
             }
 
             return result;
@@ -1924,7 +1949,7 @@ const converters = {
             return {};
         },
     },
-    generic_battery: {
+    legacy_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1933,7 +1958,7 @@ const converters = {
             }
         },
     },
-    generic_battery_voltage: {
+    legacy_battery_voltage: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -2002,16 +2027,6 @@ const converters = {
                 payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 return payload;
             }
-        },
-    },
-    generic_state_multi_ep: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-            const payload = {};
-            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-            return payload;
         },
     },
     RZHAC_4256251_power: {
@@ -2403,6 +2418,14 @@ const converters = {
             const buttonMapping = {1: 'left', 2: 'right'};
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
+        },
+    },
+    ts0041_click: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            return {action: `${clickMapping[msg.data[3]]}`};
         },
     },
     tint404011_off: {
