@@ -5200,7 +5200,7 @@ const devices = [
 
     {
         zigbeeModel: ['HS2SW1L-EFR-3.0'],
-        model: 'HS2SW1L-EFR-3.0',
+        model: 'HM-900SW_1',
         vendor: 'HEIMAN',
         description: 'Smart switch - 1 gang with neutral wire',
         supports: 'on/off',
@@ -5213,19 +5213,18 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-
     {
         zigbeeModel: ['HS2SW2L-EFR-3.0'],
-        model: 'HS2SW2L-EFR-3.0',
+        model: 'HM-900SW_2',
         vendor: 'HEIMAN',
         description: 'Smart switch - 2 gang with neutral wire',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'left': 1, 'right': 3};
+            return {left: 1, right: 3};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -5234,16 +5233,16 @@ const devices = [
 
     {
         zigbeeModel: ['HS2SW3L-EFR-3.0'],
-        model: 'HS2SW3L-EFR-3.0',
+        model: 'HM-900SW_3',
         vendor: 'HEIMAN',
         description: 'Smart switch - 3 gang with neutral wire',
         supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.generic_state_multi_ep],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
+            return {left: 1, center: 2, right: 3};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
