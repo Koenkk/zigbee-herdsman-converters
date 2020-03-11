@@ -3760,7 +3760,7 @@ const devices = [
         description: 'Smart 4 key scene wall switch',
         supports: 'on/off, click',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click],
+        fromZigbee: [fz.command_recall],
     },
 
     // Gledopto
