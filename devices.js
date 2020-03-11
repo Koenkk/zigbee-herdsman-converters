@@ -5193,7 +5193,7 @@ const devices = [
         model: 'HS1EB',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        supports: 'single',
+        supports: 'click',
         fromZigbee: [fz.st_button_state],
         toZigbee: [],
     },
