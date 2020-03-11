@@ -3720,7 +3720,7 @@ const devices = [
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ2.2'],
-        model: 'SLS301ZB',
+        model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
         supports: 'on/off',
@@ -3737,7 +3737,7 @@ const devices = [
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ2.2'],
-        model: 'SLS301ZB',
+        model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
         supports: 'on/off',
