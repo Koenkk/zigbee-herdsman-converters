@@ -782,6 +782,8 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
