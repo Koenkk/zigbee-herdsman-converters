@@ -5024,7 +5024,7 @@ const devices = [
         description: 'Smart carbon monoxide sensor',
         supports: 'carbon monoxide',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery],
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
