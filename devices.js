@@ -1448,7 +1448,7 @@ const devices = [
         model: '4090331P9',
         vendor: 'Philips',
         description: 'Hue Ensis',
-        extend: hue.light_onoff_brightness_colorxy,
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['LLC020'],
