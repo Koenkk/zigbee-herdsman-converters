@@ -4698,12 +4698,12 @@ const devices = [
         vendor: 'Centralite',
         description: 'Micro-Door sensor',
         supports: 'contact and temperature',
-        fromZigbee: [fz.centralite_3323G_contact, fz.temperature],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await configureReporting.temperature(endpoint);
         },
     },
