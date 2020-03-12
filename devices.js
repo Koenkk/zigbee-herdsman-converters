@@ -8278,6 +8278,33 @@ const devices = [
     //     fromZigbee: [fz.humidity, fz.temperature, fz.battery],
     //     toZigbee: [],
     // },
+
+    // LifeControl
+    {
+        zigbeeModel: ['Leak_Sensor'],
+        model: 'LifeControl_Leak_Sensor',
+        vendor: 'LifeControl',
+        description: 'Water leak switch',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['Door_Sensor'],
+        model: 'LifeControl_Door_Sensor',
+        vendor: 'LifeControl',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['vivi ZLight'],
+        model: 'LifeControl_RGB_Led',
+        vendor: 'LifeControl',
+        description: 'RGB LED lamp',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) =>
