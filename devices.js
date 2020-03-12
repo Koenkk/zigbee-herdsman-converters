@@ -4691,6 +4691,23 @@ const devices = [
         toZigbee: [],
     },
 
+    // Centralite
+    {
+        zigbeeModel: ['3323-G'],
+        model: '3323-G',
+        vendor: 'Centralite',
+        description: 'Micro-Door sensor',
+        supports: 'contact and temperature',
+        fromZigbee: [fz.centralite_3323G_contact, fz.temperature],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+        },
+    },
+
     // ksentry
     {
         zigbeeModel: ['Lamp_01'],

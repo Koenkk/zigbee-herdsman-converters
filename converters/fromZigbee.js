@@ -2017,6 +2017,13 @@ const converters = {
             return {contact: msg.data.zonestatus === 36};
         },
     },
+    centralite_3323G_contact: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: msg.data.zonestatus === 32};
+        },
+    },
     nue_power_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
