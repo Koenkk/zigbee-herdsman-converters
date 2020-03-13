@@ -1004,7 +1004,7 @@ const devices = [
     {
         zigbeeModel: ['TS0002'],
         model: 'TS0002',
-        vendor: 'Zemismart',
+        vendor: 'TuYa',
         description: '2 gang switch (white-label: Zemismart, Lonhonso)',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
