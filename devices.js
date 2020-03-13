@@ -8216,7 +8216,6 @@ const devices = [
         model: 'ZL1000400-CCT-EU-2-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
-        supports: 'on/off, brightness',
         extend: generic.light_onoff_brightness_colortemp,
     },
 
