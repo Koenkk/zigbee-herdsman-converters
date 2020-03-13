@@ -1001,6 +1001,23 @@ const devices = [
         fromZigbee: [fz.ts0042_click],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TS0002'],
+        model: 'TS0002',
+        vendor: 'Zemismart',
+        description: '2 gang switch (white-label: Zemismart, Lonhonso)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {configureKey: 3, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Norklmes
     {
@@ -7082,23 +7099,6 @@ const devices = [
     },
 
     // Zemismart
-    {
-        zigbeeModel: ['TS0002'],
-        model: 'ZM-CSW002-D',
-        vendor: 'Zemismart',
-        description: '2 gang switch',
-        supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {configureKey: 3, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
     {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
