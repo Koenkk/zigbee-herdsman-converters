@@ -7088,17 +7088,15 @@ const devices = [
         vendor: 'Zemismart',
         description: '2 gang switch',
         supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.metering_power],
-        toZigbee: [tz.on_off, tz.ignore_transition],
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {configureKey: 2, multiEndpoint: true},
+        meta: {configureKey: 3, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await configureReporting.onOff(endpoint);
-            await readMeteringPowerConverterAttributes(endpoint);
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
