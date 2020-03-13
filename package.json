@@ -22,7 +22,7 @@
     "zigbee-shepherd"
   ],
   "scripts": {
-    "eslint": "node_modules/.bin/eslint .",
+    "lint": "eslint .",
     "test": "jest test"
   },
   "author": "Koen Kanters",

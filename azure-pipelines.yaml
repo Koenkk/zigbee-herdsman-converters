@@ -19,7 +19,7 @@ steps:
   displayName: 'Install dependencies'
 - bash: npm test
   displayName: 'Test'
-- bash: npm run eslint
+- bash: npm run lint
   displayName: 'Lint'
 - task: Npm@1
   inputs:
