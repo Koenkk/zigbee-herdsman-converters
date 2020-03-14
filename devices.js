@@ -7519,7 +7519,50 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
         },
     },
-
+    {
+        zigbeeModel: ['PM-S140-ZB'],
+        model: 'PM-S140-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart switch 1Gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['PM-S240-ZB'],
+        model: 'PM-S240-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart switch 2Gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['PM-S340-ZB'],
+        model: 'PM-S340-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart switch 3Gang',
+        supports: 'on/off',
+        fromZigbee: [fz.generic_state_multi_ep],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
     // CREE
     {
         zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
