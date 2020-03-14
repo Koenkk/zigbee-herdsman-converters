@@ -3967,6 +3967,15 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZG2833K8_EU05'],
+        model: 'ROB_200-007-0',
+        vendor: 'ROBB',
+        description: 'Zigbee 8 button wall switch',
+        supports: 'click',
+        fromZigbee: [ fz.robb_genOnOff_cmdOn, fz.robb_genOnOff_cmdOff, fz.robb_genLevelCtrl_commandMoveWithOnOff, fz.generic_battery, ],
+        toZigbee: [],
+    },
 
     // Namron
     {

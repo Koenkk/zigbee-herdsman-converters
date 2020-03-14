@@ -4125,6 +4125,34 @@ const converters = {
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
         },
     },
+    robb_genOnOff_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            if (button) {
+                return {click: `${msg.endpoint.ID}_on`};
+            }
+        },
+    },
+    robb_genOnOff_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {click: `${msg.endpoint.ID}_off`};
+        },
+    },
+    robb_genLevelCtrl_commandMoveWithOnOff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode == 0 ? 'up' : 'down';
+            const button = msg.endpoint.ID;        
+            if (button) {
+                return {action: `${button}_${direction}`, rate: msg.data.rate};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
