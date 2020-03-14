@@ -118,6 +118,12 @@ describe('index.js', () => {
                 throw new Error(`${device.model} requires configureKey because it has configure`)
             }
 
+            if (device.whiteLabel) {
+                for (const definition of device.whiteLabel) {
+                    expect(['vendor', 'model']).toStrictEqual(Object.keys(definition));
+                }
+            }
+
             if (device.meta) {
                 containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
 

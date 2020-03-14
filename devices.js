@@ -495,6 +495,27 @@ const legrand = {
     },
 };
 
+const xiaomi = {
+    prevent_reset: async (type, data, device) => {
+        if (
+            // options.allow_reset ||
+            type !== 'message' ||
+            data.type !== 'attributeReport' ||
+            data.cluster !== 'genBasic' ||
+            !data.data[0xfff0] ||
+            // eg: [0xaa, 0x10, 0x05, 0x41, 0x87, 0x01, 0x01, 0x10, 0x00]
+            !data.data[0xFFF0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
+        ) {
+            return;
+        }
+        const options = {manufacturerCode: 0x115f};
+        const payload = {[0xfff0]: {
+            value: [0xaa, 0x10, 0x05, 0x41, 0x47, 0x01, 0x01, 0x10, 0x01],
+            type: 0x41,
+        }};
+        await device.getEndpoint(1).write('genBasic', payload, options);
+    },
+};
 const devices = [
     // Xiaomi
     {
@@ -553,6 +574,7 @@ const devices = [
             fz.xiaomi_action_click_multistate,
         ],
         toZigbee: [],
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01'],
@@ -568,6 +590,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'both': 3};
         },
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral1'],
@@ -600,6 +623,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1};
         },
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -632,6 +656,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
@@ -1000,6 +1025,27 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.ts0042_click],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0002'],
+        model: 'TS0002',
+        vendor: 'TuYa',
+        description: '2 gang switch',
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZM-CSW002-D'},
+            {vendor: 'Lonhonso', model: 'X702'},
+        ],
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {configureKey: 3, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
     },
 
     // Norklmes
@@ -4762,7 +4808,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
-    // Centralite Swiss Plug
+    // Centralite
     {
         zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
         model: '4256251-RZHAC',
@@ -4798,6 +4844,21 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
             await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
+        },
+    },
+    {
+        zigbeeModel: ['3323-G'],
+        model: '3323-G',
+        vendor: 'Centralite',
+        description: 'Micro-door sensor',
+        supports: 'contact, temperature',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint);
         },
     },
 
@@ -7083,25 +7144,6 @@ const devices = [
 
     // Zemismart
     {
-        zigbeeModel: ['TS0002'],
-        model: 'ZM-CSW002-D',
-        vendor: 'Zemismart',
-        description: '2 gang switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.metering_power],
-        toZigbee: [tz.on_off, tz.ignore_transition],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {configureKey: 2, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await configureReporting.onOff(endpoint);
-            await readMeteringPowerConverterAttributes(endpoint);
-        },
-    },
-    {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
         vendor: 'Zemismart',
@@ -8210,6 +8252,13 @@ const devices = [
         vendor: 'Linkind',
         description: 'Zigbee LED 9W A19 bulb, dimmable & tunable',
         extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['ZBT-CCTLight-C4700107'],
+        model: 'ZL1000400-CCT-EU-2-V1A02',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // BlitzWolf
