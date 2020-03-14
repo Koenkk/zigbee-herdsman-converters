@@ -4347,6 +4347,97 @@ const converters = {
             return result;
         },
     },
+    ZG2819S_change_color: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColor',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action_color: {
+                    x: precisionRound(msg.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.colory / 65535, 3),
+                },
+                action: 'color_wheel',
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    ZG2819S_change_brightness: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            var endpointGroup = msg.endpoint.ID;
+            return {
+                action: (msg.data.stepmode == 0) ? "up" : "down",
+                step_mode: msg.data.stepmode,
+                step_size: msg.data.stepsize,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    ZG2819S_command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337)
+            {
+                return null;
+            }
+            return {action: 'on'};
+        },
+    },
+    ZG2819S_command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337)
+            {
+                return null;
+            }
+            return {action: 'off'};
+        },
+    },
+    ZG2819S_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action: `color_temp`,
+                action_color_temperature: msg.data.colortemp,
+                transition_time: msg.data.transtime,
+            };
+        },
+    },
+    ZG2819S_command_move_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.movemode === 0)
+            {
+                return {action: 'start'};
+            }
+            else
+            {
+                return {action: 'stop'};
+            }
+        },
+    },
+    ZG2819S_command_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337)
+            {
+                return null;
+            }
+            return {action: `scene_${msg.data.sceneid}`};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
