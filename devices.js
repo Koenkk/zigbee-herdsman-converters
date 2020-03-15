@@ -8073,8 +8073,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl',
-                'hvacThermostat', 'hvacUserInterfaceCfg', 'haDiagnostic',
+                'genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.batteryVoltage(endpoint);
