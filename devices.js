@@ -8132,7 +8132,59 @@ const devices = [
             await configureReporting.brightness(endpoint2);
         },
         endpoint: (device) => {
-            return {'l1': 10, 'l2': 11};
+            return {l1: 10, l2: 11};
+        },
+    },
+    {
+        zigbeeModel: ['U201DST600ZB'],
+        model: 'U201DST600ZB',
+        vendor: 'Schneider Electric',
+        description: 'EZinstall3 1 gang 550W dimmer module',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.on_off, fz.brightness],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['U201SRY2KWZB'],
+        model: 'U201SRY2KWZB',
+        vendor: 'Schneider Electric',
+        description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['U202SRY2KWZB'],
+        model: 'U202SRY2KWZB',
+        vendor: 'Schneider Electric',
+        description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(10);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(11);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 10, l2: 11};
         },
     },
 
