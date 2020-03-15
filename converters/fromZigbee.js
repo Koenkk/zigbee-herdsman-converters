@@ -4125,6 +4125,16 @@ const converters = {
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
         },
     },
+    AUA1ZBDSS_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Device doesn't report divisor therefore we need to use a custom converter.
+            if (msg.data.hasOwnProperty('activePower')) {
+                return {power: precisionRound(msg.data['activePower'] / 100, 2)};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
