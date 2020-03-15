@@ -3,5 +3,6 @@ module.exports = {
     salus: require('./salus'),
     tradfri: require('./tradfri'),
     ubisys: require('./ubisys'),
+    zigbeeOTA: require('./zigbeeOTA'),
 };
 
