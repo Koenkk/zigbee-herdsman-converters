@@ -7523,7 +7523,7 @@ const devices = [
         zigbeeModel: ['PM-S140-ZB'],
         model: 'PM-S140-ZB',
         vendor: 'Dawon DNS',
-        description: 'IOT smart switch 1Gang',
+        description: 'IOT smart switch 1 gang',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -7532,14 +7532,14 @@ const devices = [
         zigbeeModel: ['PM-S240-ZB'],
         model: 'PM-S240-ZB',
         vendor: 'Dawon DNS',
-        description: 'IOT smart switch 2Gang',
+        description: 'IOT smart switch 2 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'top': 1, 'bottom': 2};
+            return {top: 1, bottom: 2};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -7549,20 +7549,21 @@ const devices = [
         zigbeeModel: ['PM-S340-ZB'],
         model: 'PM-S340-ZB',
         vendor: 'Dawon DNS',
-        description: 'IOT smart switch 3Gang',
+        description: 'IOT smart switch 3 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'top': 1, 'center': 2, 'bottom': 3};
+            return {top: 1, center: 2, bottom: 3};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+
     // CREE
     {
         zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
