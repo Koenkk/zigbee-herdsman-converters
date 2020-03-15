@@ -3972,9 +3972,10 @@ const devices = [
         model: 'ROB_200-007-0',
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
-        supports: 'click',
-        fromZigbee: [ fz.robb_genOnOff_cmdOn, fz.robb_genOnOff_cmdOff, fz.robb_genLevelCtrl_commandMoveWithOnOff, fz.generic_battery, ],
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.battery],
         toZigbee: [],
+        meta: {multiEndpoint: true},
     },
 
     // Namron
