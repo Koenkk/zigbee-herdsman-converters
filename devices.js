@@ -8080,36 +8080,23 @@ const devices = [
             await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_15, 25);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_15, 25);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_15, 1);
-            const userInterfaceConfig = [
+            // bind of hvacUserInterfaceCfg fails with 'Table Full', does this have any effect?
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [
                 {
                     attribute: 'keypadLockout',
                     minimumReportInterval: repInterval.MINUTE,
                     maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
+                    reportableChange: 1,
                 },
-            ];
-            await endpoint.configureReporting('hvacUserInterfaceCfg', userInterfaceConfig);
-            const wiserDeviceConfig = [
+            ]);
+            await endpoint.configureReporting('wiserDeviceInfo', [
                 {
-                    attribute: 'ALG',
+                    attribute: 'deviceInfo',
                     minimumReportInterval: repInterval.MINUTE,
                     maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
+                    reportableChange: 1,
                 },
-                {
-                    attribute: 'ADC',
-                    minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
-                },
-                {
-                    attribute: 'boost',
-                    minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
-                },
-            ];
-            await endpoint.configureReporting('wiserDeviceInfo', wiserDeviceConfig);
+            ]);
         },
     },
     {
