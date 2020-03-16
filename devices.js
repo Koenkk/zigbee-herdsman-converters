@@ -4052,7 +4052,10 @@ const devices = [
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
         supports: 'action',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off, fz.battery],
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.battery,
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },

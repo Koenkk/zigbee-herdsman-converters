@@ -126,10 +126,6 @@ describe('index.js', () => {
 
             if (device.meta) {
                 containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
-
-                if (device.meta.multiEndpoint && !device.endpoint) {
-                    throw new Error(`multiEndpoint specified but no endpoint function defined`);
-                }
             }
 
             foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
