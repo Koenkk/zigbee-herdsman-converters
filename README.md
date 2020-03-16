@@ -8,7 +8,7 @@ To get started clone this repo and install the requirements with `npm ci`. To ad
 
 If you'd like to submit a pull request, you should run the following commands to ensure your changes will pass the tests:
 ```sh
-npm run lint
+npm run lintd
 npm test
 ```
 If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.
