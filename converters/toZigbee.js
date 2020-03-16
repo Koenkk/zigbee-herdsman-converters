@@ -1896,6 +1896,19 @@ const converters = {
             }
         },
     },
+    aqara_opple_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for binding
+            // 1 - 'event' mode. keys send events. useful for handling
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {'mode': value}, {manufacturerCode: 0x115f});
+        },
+        convertGet: async (entity, key, meta) => {
+            await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+        },
+    },
 
     /**
      * Ignore converters

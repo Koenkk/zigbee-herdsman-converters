@@ -948,11 +948,12 @@ const devices = [
             fz.aqara_opple_on, fz.aqara_opple_off, fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
-        toZigbee: [],
+        toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
@@ -966,11 +967,14 @@ const devices = [
             fz.aqara_opple_step_color_temp, fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
-        toZigbee: [],
+        toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await bind(endpoint, coordinatorEndpoint, [
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+            ]);
         },
     },
     {
@@ -985,11 +989,14 @@ const devices = [
             fz.battery_3V,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
-        toZigbee: [],
+        toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await bind(endpoint, coordinatorEndpoint, [
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+            ]);
         },
     },
     {
