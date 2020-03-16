@@ -26,6 +26,7 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
+    MINUTES_15: 900,
     MINUTES_10: 600,
     MINUTES_5: 300,
     MINUTE: 60,
@@ -8156,44 +8157,30 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl',
-                'hvacThermostat', 'hvacUserInterfaceCfg', 'haDiagnostic',
+                'genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.thermostatTemperature(endpoint);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
-            const userInterfaceConfig = [
+            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_15, 25);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_15, 25);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_15, 1);
+            // bind of hvacUserInterfaceCfg fails with 'Table Full', does this have any effect?
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [
                 {
                     attribute: 'keypadLockout',
                     minimumReportInterval: repInterval.MINUTE,
                     maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
+                    reportableChange: 1,
                 },
-            ];
-            await endpoint.configureReporting('hvacUserInterfaceCfg', userInterfaceConfig);
-            const draytonDeviceConfig = [
+            ]);
+            await endpoint.configureReporting('wiserDeviceInfo', [
                 {
-                    attribute: 'ALG',
+                    attribute: 'deviceInfo',
                     minimumReportInterval: repInterval.MINUTE,
                     maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
+                    reportableChange: 1,
                 },
-                {
-                    attribute: 'ADC',
-                    minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
-                },
-                {
-                    attribute: 'boost',
-                    minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 0,
-                },
-            ];
-            await endpoint.configureReporting('draytonDeviceInfo', draytonDeviceConfig);
+            ]);
         },
     },
     {
