@@ -247,7 +247,7 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
                         setTimeout(() => {
                             onProgress(100, null);
                             resolve();
-                        }, 60 * 1000);
+                        }, 90 * 1000);
                     },
                     (e) => {
                         const message = `Upgrade end reponse failed (${e.message})`;
