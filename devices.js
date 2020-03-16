@@ -4662,6 +4662,13 @@ const devices = [
         description: 'SmartHome Zigbee YourLED dim/switch controller max. 60 W',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['H036-0001'],
+        model: '93999',
+        vendor: 'Paulmann',
+        description: 'Plug Shine Zigbee controller',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Bitron
     {
