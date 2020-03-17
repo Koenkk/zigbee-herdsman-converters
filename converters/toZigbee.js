@@ -1902,10 +1902,12 @@ const converters = {
             // modes:
             // 0 - 'command' mode. keys send commands. useful for binding
             // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': value}, {manufacturerCode: 0x115f});
+            await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
         },
         convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
         },
     },
