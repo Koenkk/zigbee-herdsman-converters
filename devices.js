@@ -2638,7 +2638,7 @@ const devices = [
         supports: 'occupancy, tamper and temperature',
         fromZigbee: [
             fz.temperature,
-            fz.iaszone_occupancy_2,
+            fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4173,10 +4173,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Motion sensor (2015 model)',
         supports: 'occupancy and temperature',
-        fromZigbee: [
-            fz.temperature,
-            fz.iaszone_occupancy_2,
-        ],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4285,7 +4282,7 @@ const devices = [
         fromZigbee: [
             fz.temperature,
             fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_1, fz.battery_3V,
+            fz.ias_occupancy_alarm_1, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4303,8 +4300,8 @@ const devices = [
         description: 'Motion sensor (2016 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.temperature, fz.iaszone_occupancy_2,
-            fz.iaszone_occupancy_1, fz.battery_3V,
+            fz.temperature, fz.ias_occupancy_alarm_2,
+            fz.ias_occupancy_alarm_1, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -4322,7 +4319,7 @@ const devices = [
         description: 'Motion sensor (2014 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.temperature, fz.iaszone_occupancy_2,
+            fz.temperature, fz.ias_occupancy_alarm_2,
             fz.battery_3V,
         ],
         toZigbee: [],
@@ -4583,7 +4580,7 @@ const devices = [
         description: 'Motion Sensor',
         supports: 'occupancy',
         fromZigbee: [
-            fz.iaszone_occupancy_2, fz.battery,
+            fz.ias_occupancy_alarm_2, fz.battery,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
@@ -4701,7 +4698,7 @@ const devices = [
         vendor: 'Bitron',
         description: 'Wireless motion detector',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1_with_timeout],
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
     },
     {
@@ -4803,7 +4800,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Motion and temperature sensor',
         supports: 'occupancy and temperature',
-        fromZigbee: [fz.iaszone_occupancy_2, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -4835,7 +4832,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Motion Sensor',
         supports: 'motion, tamper and battery',
-        fromZigbee: [fz.iaszone_occupancy_2],
+        fromZigbee: [fz.ias_occupancy_alarm_2],
         toZigbee: [],
     },
 
@@ -5076,7 +5073,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
     {
@@ -5224,7 +5221,7 @@ const devices = [
     //     supports: 'action',
     //     fromZigbee: [
     //         fz.battery,
-    //         fz.heiman_smart_controller_armmode, fz.heiman_smart_controller_emergency,
+    //         fz.heiman_smart_controller_armmode, fz.command_emergency,
     //     ],
     //     toZigbee: [],
     // },
@@ -5283,7 +5280,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
     {
@@ -5934,7 +5931,7 @@ const devices = [
         vendor: 'Bosch',
         description: 'Wireless motion detector',
         supports: 'occupancy and temperature',
-        fromZigbee: [fz.temperature, fz.battery_3V, fz.iaszone_occupancy_1],
+        fromZigbee: [fz.temperature, fz.battery_3V, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5952,7 +5949,7 @@ const devices = [
         supports: 'occupancy and temperature',
         fromZigbee: [
             fz.temperature,
-            fz.battery_3V, fz.iaszone_occupancy_1,
+            fz.battery_3V, fz.ias_occupancy_alarm_1,
             fz.ignore_iaszone_report,
         ],
         toZigbee: [],
@@ -6296,7 +6293,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'Occupancy sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.battery, fz.iaszone_occupancy_1_with_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
     },
     {
@@ -6451,7 +6448,7 @@ const devices = [
             fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.legacy_battery, fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_2, fz.ias_contact_alarm_1,
+            fz.ias_occupancy_alarm_2, fz.ias_contact_alarm_1,
         ],
         toZigbee: [],
     },
@@ -6465,7 +6462,7 @@ const devices = [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.legacy_battery, fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_2,
+            fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
     },
@@ -6479,7 +6476,7 @@ const devices = [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.legacy_battery, fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_2,
+            fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
     },
@@ -6493,7 +6490,7 @@ const devices = [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.legacy_battery, fz.ignore_iaszone_report,
-            fz.iaszone_occupancy_2,
+            fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
     },
@@ -6538,7 +6535,7 @@ const devices = [
         vendor: 'Visonic',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
     {
@@ -6951,7 +6948,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'PIR motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1, fz.battery_3V_2100],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery_3V_2100],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7103,7 +7100,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_3V],
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery_3V],
         toZigbee: [],
     },
     {
@@ -7155,7 +7152,7 @@ const devices = [
         fromZigbee: [
             fz.battery, fz.legacy_battery_voltage,
             fz.ignore_basic_report,
-            fz.iaszone_occupancy_1,
+            fz.ias_occupancy_alarm_1,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -7843,7 +7840,7 @@ const devices = [
         vendor: 'iHORN',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
 
@@ -8008,7 +8005,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery_3V],
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8035,7 +8032,7 @@ const devices = [
         vendor: 'CR Smart Home',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.iaszone_occupancy_1_with_timeout, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
     },
     {
