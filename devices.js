@@ -5390,8 +5390,8 @@ const devices = [
     },
 
     {
-        zigbeeModel: ['HS2SW1L-EFR-3.0'],
-        model: 'HM-900SW_1',
+        zigbeeModel: ['HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
+        model: 'HS2SW1A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 1 gang with neutral wire',
         supports: 'on/off',
@@ -5405,15 +5405,15 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['HS2SW2L-EFR-3.0'],
-        model: 'HM-900SW_2',
+        zigbeeModel: ['HS2SW2L-EFR-3.0', 'HS2SW2A-N'],
+        model: 'HS2SW2A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 2 gang with neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.ignore_basic_report, fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {left: 1, right: 3};
+            return {left: 1, right: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -5423,8 +5423,8 @@ const devices = [
     },
 
     {
-        zigbeeModel: ['HS2SW3L-EFR-3.0'],
-        model: 'HM-900SW_3',
+        zigbeeModel: ['HS2SW3L-EFR-3.0', 'HS2SW3A-N'],
+        model: 'HS2SW3A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 3 gang with neutral wire',
         supports: 'on/off',
