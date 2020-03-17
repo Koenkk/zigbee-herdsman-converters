@@ -973,7 +973,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await bind(endpoint, coordinatorEndpoint, [
-                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
         },
     },
@@ -995,7 +995,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await bind(endpoint, coordinatorEndpoint, [
-                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg'
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
         },
     },
