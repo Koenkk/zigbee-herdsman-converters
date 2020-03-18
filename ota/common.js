@@ -109,7 +109,8 @@ async function requestOTA(endpoint) {
 
 function getImageBlockResponsePayload(image, imageBlockRequest) {
     const start = imageBlockRequest.payload.fileOffset;
-    let end = start + imageBlockRequest.payload.maximumDataSize;
+    // When the data size is too big, OTA gets unstable.
+    let end = start + Math.min(50, imageBlockRequest.payload.maximumDataSize);
     if (end > image.raw.length) {
         end = image.raw.length;
     }
