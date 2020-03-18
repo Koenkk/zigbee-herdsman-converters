@@ -6661,6 +6661,19 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HOMA1005'],
+        model: 'HLC614-ZLL',
+        vendor: 'Shenzhen Homa',
+        description: '3 channel relay module',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+    },
 
     // Honyar
     {
