@@ -8535,6 +8535,34 @@ const devices = [
         description: 'RGB LED lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // Develco
+    {
+        zigbeeModel: ['EMIZB-132'],
+        model: 'EMIZB-132',
+        vendor: 'Develco',
+        description: 'Wattle AMS HAN power-meter sensor',
+        supports: 'Monitoring stats from central household power-meter',
+        fromZigbee: [fz.metering_power],
+        toZigbee: [],
+        meta: {configureKey: 6},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            // Kaifka meter mode https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-586455655
+            await endpoint.write('seMetering', {0x0302: {value: 0x201, type: 49}}, {manufacturerCode: 0x1015});
+            await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+            await configureReporting.currentSummReceived(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
