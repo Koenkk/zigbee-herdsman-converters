@@ -8535,6 +8535,19 @@ const devices = [
         description: 'RGB LED lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['HOMA1005'],
+        model: 'HLC614-Z-3C-IA-R-ZLL',
+        vendor: 'China',
+        description: 'Ebay 3-channel relay module',
+        supports: '3 channel on-off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
