@@ -6659,6 +6659,19 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HOMA1005'],
+        model: 'HLC614-ZLL',
+        vendor: 'Shenzhen Homa',
+        description: '3 channel relay module',
+        supports: 'on/off',
+        fromZigbee: [],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+    },
 
     // Honyar
     {
@@ -8534,19 +8547,6 @@ const devices = [
         vendor: 'LifeControl',
         description: 'RGB LED lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
-    {
-        zigbeeModel: ['HOMA1005'],
-        model: 'HLC614-Z-3C-IA-R-ZLL',
-        vendor: 'China',
-        description: 'Ebay 3-channel relay module',
-        supports: '3 channel on-off',
-        fromZigbee: [],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 1, multiEndpoint: true},
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
     },
 ];
 
