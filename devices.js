@@ -608,6 +608,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
@@ -642,6 +643,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
+        onEvent: xiaomi.prevent_reset,
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
