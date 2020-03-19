@@ -4125,6 +4125,22 @@ const converters = {
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
         },
     },
+    EMIZB_132_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('activePower')) {
+            }
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                payload.voltage = precisionRound(msg.data['rmsVoltage'] / 10, 2);
+            }
+            return payload;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
