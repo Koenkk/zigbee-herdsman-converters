@@ -343,11 +343,31 @@ const converters = {
 
                     return {state: newState};
                 } else {
-                    const result = await converters.on_off.convertSet(entity, 'state', state, meta);
-                    if (state === 'on') {
-                        result.readAfterWriteTime = 0;
+                    if (hasState && state === 'on' && store.hasOwnProperty(entity.deviceIeeeAddress)) {
+                        /**
+                         * In case the bulb it turned OFF with a transition and turned ON WITHOUT
+                         * a transition, the brightness is not recovered as it turns on with brightness 1.
+                         * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
+                         */
+                        const brightness = store[entity.deviceIeeeAddress];
+                        delete store[entity.deviceIeeeAddress];
+                        await entity.command(
+                            'genLevelCtrl',
+                            'moveToLevelWithOnOff',
+                            {level: Number(brightness), transtime: 0},
+                            getOptions(meta.mapped),
+                        );
+                        return {
+                            state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
+                            readAfterWriteTime: transition * 100,
+                        };
+                    } else {
+                        const result = await converters.on_off.convertSet(entity, 'state', state, meta);
+                        if (state === 'on') {
+                            result.readAfterWriteTime = 0;
+                        }
+                        return result;
                     }
-                    return result;
                 }
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                 return await converters.on_off.convertSet(entity, 'state', 'off', meta);
