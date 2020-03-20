@@ -8142,11 +8142,11 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0215'],
-        model: 'TS0215',
+        model: 'S9ZGBRC01',
         vendor: 'Smart9',
         description: 'Smart remote controller',
         supports: 'action',
-        fromZigbee: [fz.immax_07046L_arm, fz.command_emergency, fz.battery],
+        fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
