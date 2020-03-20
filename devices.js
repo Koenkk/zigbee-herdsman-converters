@@ -8140,6 +8140,15 @@ const devices = [
         fromZigbee: [fz.ts0043_click],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TS0215'],
+        model: 'TS0215',
+        vendor: 'Smart9',
+        description: 'Smart remote controller',
+        supports: 'action',
+        fromZigbee: [fz.immax_07046L_arm, fz.heiman_smart_controller_emergency],
+        toZigbee: [],
+    },
 
     // Ajax Online
     {
