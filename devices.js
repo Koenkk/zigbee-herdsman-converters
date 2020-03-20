@@ -8146,8 +8146,13 @@ const devices = [
         vendor: 'Smart9',
         description: 'Smart remote controller',
         supports: 'action',
-        fromZigbee: [fz.immax_07046L_arm, fz.command_emergency],
+        fromZigbee: [fz.immax_07046L_arm, fz.heiman_smart_controller_emergency, fz.battery],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
     },
 
     // Ajax Online
