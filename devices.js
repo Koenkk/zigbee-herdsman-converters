@@ -7095,7 +7095,7 @@ const devices = [
 
     // Konke
     {
-        zigbeeModel: ['3AFE170100510001'],
+        zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
         description: 'Multi-function button',
