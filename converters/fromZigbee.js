@@ -4129,6 +4129,8 @@ const converters = {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            // Cannot use electrical_measurement_power here as the reported divisor is not correct
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-600834722
             const payload = {};
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
