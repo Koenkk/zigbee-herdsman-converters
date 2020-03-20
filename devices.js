@@ -8550,6 +8550,32 @@ const devices = [
         description: 'RGB LED lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // Develco
+    {
+        zigbeeModel: ['EMIZB-132'],
+        model: 'EMIZB-132',
+        vendor: 'Develco',
+        description: 'Wattle AMS HAN power-meter sensor',
+        supports: 'power measurements',
+        fromZigbee: [fz.metering_power, fz.EMIZB_132_power],
+        toZigbee: [tz.EMIZB_132_mode],
+        meta: {configureKey: 8},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
+
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+            await configureReporting.currentSummReceived(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
