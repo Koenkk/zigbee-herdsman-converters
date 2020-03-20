@@ -8146,7 +8146,7 @@ const devices = [
         vendor: 'Smart9',
         description: 'Smart remote controller',
         supports: 'action',
-        fromZigbee: [fz.immax_07046L_arm, fz.heiman_smart_controller_emergency],
+        fromZigbee: [fz.immax_07046L_arm, fz.command_emergency],
         toZigbee: [],
     },
 
