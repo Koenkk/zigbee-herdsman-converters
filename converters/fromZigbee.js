@@ -561,6 +561,19 @@ const converters = {
             return {action: 'panic'};
         },
     },
+    command_arm: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                0: 'disarm',
+                1: 'arm_day_zones',
+                2: 'arm_night_zones',
+                3: 'arm_all_zones',
+            };
+            return {action: lookup[msg.data['armmode']]};
+        },
+    },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
