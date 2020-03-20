@@ -8542,16 +8542,12 @@ const devices = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        supports: 'Monitoring stats from central household power-meter',
+        supports: 'power measurements',
         fromZigbee: [fz.metering_power, fz.EMIZB_132_power],
-        toZigbee: [],
-        meta: {configureKey: 7},
+        toZigbee: [tz.EMIZB_132_mode],
+        meta: {configureKey: 8},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            // Kaifka meter mode https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-586455655
-            await endpoint.write('seMetering', {0x0302: {value: 0x201, type: 49}}, {manufacturerCode: 0x1015});
-            const p = await endpoint.read('haElectricalMeasurement', ['totalActivePower']);
-            console.log('\n\n\npower\n', p, '\n\n\n');
             await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
             await readEletricalMeasurementPowerConverterAttributes(endpoint);

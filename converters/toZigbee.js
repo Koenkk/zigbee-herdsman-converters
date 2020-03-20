@@ -1911,6 +1911,25 @@ const converters = {
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
         },
     },
+    EMIZB_132_mode: {
+        key: ['interface_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(2);
+            const lookup = {
+                'norwegian_han': 0x0200,
+                'norwegian_han_extra_load': 0x0201,
+                'aidon_meter': 0x0202,
+                'kaifa_and_kamstrup': 0x0203,
+            };
+
+            if (!lookup[value]) {
+                throw new Error(`Interface mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
+            }
+
+            await endpoint.write('seMetering', {0x0302: {value: lookup[value], type: 49}}, {manufacturerCode: 0x1015});
+            return {state: {interface_mode: lookup[value]}};
+        },
+    },
 
     /**
      * Ignore converters
