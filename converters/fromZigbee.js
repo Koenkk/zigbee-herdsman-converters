@@ -4130,8 +4130,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            if (msg.data.hasOwnProperty('activePower')) {
-            }
             if (msg.data.hasOwnProperty('rmsCurrent')) {
                 payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
             }
