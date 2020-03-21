@@ -3247,7 +3247,13 @@ const devices = [
         description: 'SMART+ Zigbee adjustable white edge-lit flush mount light',
         extend: generic.light_onoff_brightness_colortemp,
     },
-
+    {
+        zigbeeModel: ['Outdoor Accent RGB'],
+        model: '75541',
+        vendor: 'Sylvania',
+        description: 'SMART+ Outdoor Accent RGB Lighting Kit',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
     // Leviton
     {
         zigbeeModel: ['DL15S'],
