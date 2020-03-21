@@ -5703,7 +5703,7 @@ const devices = [
         // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
         // If that operation was successful, the switch will respond to button presses on that
         // by blinking multiple times (vs. just blinking once if it's bound).
-        zigbeeModel: ['RM01'],
+        zigbeeModel: ['RM01', 'RB01'],
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
         description: 'Zigbee Light Link power supply/relay/dimmer',
