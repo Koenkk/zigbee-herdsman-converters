@@ -1306,10 +1306,9 @@ const converters = {
                 // GL-C-007 RGBW
                 if (utils.hasEndpoints(meta.device, [11, 13, 15])) {
                     if (key === 'white_value') {
-                        // Switch from RGB to white
+                        // Activating white LEDs
                         if (!meta.options.separate_control) {
                             await meta.device.getEndpoint(15).command('genOnOff', 'on', {});
-                            await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
                             state.color = xyWhite;
                         }
 
@@ -1320,10 +1319,9 @@ const converters = {
                             state: {white_value: value, ...result.state, ...state},
                             readAfterWriteTime: 0,
                         };
-                    } else {
+                    } else if (key === 'color') {
                         if (meta.state.white_value !== -1 && !meta.options.separate_control) {
-                            // Switch from white to RGB
-                            await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
+                            // Disabling white LEDs
                             await meta.device.getEndpoint(15).command('genOnOff', 'off', {});
                             state.white_value = -1;
                         }
