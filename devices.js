@@ -3251,9 +3251,10 @@ const devices = [
         zigbeeModel: ['Outdoor Accent RGB'],
         model: '75541',
         vendor: 'Sylvania',
-        description: 'SMART+ Outdoor Accent RGB Lighting Kit',
+        description: 'SMART+ Outdoor Accent RGB lighting kit',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
     // Leviton
     {
         zigbeeModel: ['DL15S'],
