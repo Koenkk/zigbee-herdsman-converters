@@ -622,6 +622,31 @@ const converters = {
             };
         },
     },
+    command_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action: `color_temperature_move`,
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+            };
+        },
+    },
+    command_move_to_color: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColor',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action: 'color_move',
+                action_color: {
+                    x: precisionRound(msg.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.colory / 65535, 3),
+                },
+                action_transition_time: msg.data.transtime,
+            };
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',

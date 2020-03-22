@@ -6867,6 +6867,15 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
+        model: '511.557',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer',
+        supports: 'action',
+        fromZigbee: [fz.command_off, fz.command_on, fz.command_move_to_color_temp, fz.command_move_to_color],
+        toZigbee: [],
+    },
 
     // Anchor
     {
