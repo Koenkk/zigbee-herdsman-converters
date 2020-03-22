@@ -6877,16 +6877,16 @@ const devices = [
         },
     },
 
-    // Gira
+    // Insta/Gira/Jung
     {
         zigbeeModel: [' Remote'],
         model: '2430-100',
-        vendor: 'Gira',
+        vendor: 'Insta/Gira/Jung',
         description: 'ZigBee Light Link wall transmitter',
         supports: 'action',
         fromZigbee: [
-            fz.GIRA2430_scene_click, fz.GIRA2430_on_click, fz.GIRA2430_off_click, fz.GIRA2430_down_hold,
-            fz.GIRA2430_up_hold, fz.GIRA2430_stop,
+            fz.insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.insta_down_hold,
+            fz.insta_up_hold, fz.insta_stop,
         ],
         toZigbee: [],
         ota: ota.zigbeeOTA,
@@ -7465,7 +7465,7 @@ const devices = [
         vendor: 'Lutron',
         description: 'Connected bulb remote control',
         supports: 'on/off, brightness',
-        fromZigbee: [fz.GIRA2430_down_hold, fz.GIRA2430_up_hold, fz.LZL4B_onoff, fz.GIRA2430_stop],
+        fromZigbee: [fz.insta_down_hold, fz.insta_up_hold, fz.LZL4B_onoff, fz.insta_stop],
         toZigbee: [],
     },
 
