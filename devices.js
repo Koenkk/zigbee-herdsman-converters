@@ -6889,6 +6889,7 @@ const devices = [
             fz.GIRA2430_up_hold, fz.GIRA2430_stop,
         ],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
     },
 
     // RGB genie
