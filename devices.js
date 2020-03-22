@@ -6867,6 +6867,15 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
+        model: '511.557',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 Wand-Dimmer für weiße / duo-weiße / RGB LEDs, 4 Tasten, 1 Lichtzone | Kunststoff Weiß',
+        supports: 'on/off, move_to_color, move_to_color_temp',
+        fromZigbee: [fz.command_off, fz.command_on, fz.tint404011_move_to_color, fz.tint404011_move_to_color_temp],
+        toZigbee: [],
+    },
 
     // Anchor
     {
