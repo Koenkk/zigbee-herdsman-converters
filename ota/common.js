@@ -97,7 +97,8 @@ function imageNotify(endpoint) {
 }
 
 async function requestOTA(endpoint) {
-    const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, 10000);
+    // Some devices (e.g. Insta) take very long trying to discover the correct coordinator EP for OTA.
+    const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, 30000);
     try {
         await imageNotify(endpoint);
         return await queryNextImageRequest.promise;
@@ -107,10 +108,16 @@ async function requestOTA(endpoint) {
     }
 }
 
-function getImageBlockResponsePayload(image, imageBlockRequest) {
-    const start = imageBlockRequest.payload.fileOffset;
-    // When the data size is too big, OTA gets unstable.
-    let end = start + Math.min(50, imageBlockRequest.payload.maximumDataSize);
+function getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize) {
+    const start = imageBlockRequest.payload.fileOffset + pageOffset;
+    // When the data size is too big, OTA gets unstable, so default it to 50 bytes maximum.
+    // For Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
+    const maximumDataSize = imageBlockRequest.payload.manufacturerCode === 4474 ? 40 : 50;
+    let dataSize = Math.min(maximumDataSize, imageBlockRequest.payload.maximumDataSize);
+    if (pageSize) {
+        dataSize = Math.min(dataSize, pageSize - pageOffset);
+    }
+    let end = start + dataSize;
     if (end > image.raw.length) {
         end = image.raw.length;
     }
@@ -120,7 +127,7 @@ function getImageBlockResponsePayload(image, imageBlockRequest) {
         manufacturerCode: imageBlockRequest.payload.manufacturerCode,
         imageType: imageBlockRequest.payload.imageType,
         fileVersion: imageBlockRequest.payload.fileVersion,
-        fileOffset: imageBlockRequest.payload.fileOffset,
+        fileOffset: start,
         dataSize: end - start,
         data: image.raw.slice(start, end),
     };
@@ -184,35 +191,68 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
     const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
-        const answerNextImageBlockRequest = () => {
-            waiters.imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 60000);
-            waiters.imageBlockRequest.promise.then(
-                (imageBlockRequest) => {
-                    const payload = getImageBlockResponsePayload(image, imageBlockRequest);
-                    const now = Date.now();
-                    const transactionSequenceNumber = imageBlockRequest.header.transactionSequenceNumber;
-                    const timeSinceLastImageBlockResponse = now - lastImageBlockResponse;
+        const answerNextImageBlockOrPageRequest = () => {
+            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 60000);
+            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, 60000);
+            waiters.imageBlockOrPageRequest = {
+                promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
+                cancel: () => {
+                    imageBlockRequest.cancel();
+                    imagePageRequest.cancel();
+                },
+            };
 
-                    // Reduce network congestion by only sending imageBlockResponse min every 250ms.
-                    const cooldownTime = Math.max(imageBlockResponseDelay - timeSinceLastImageBlockResponse, 0);
-                    setTimeout(() => {
-                        endpoint.commandResponse(
-                            'genOta', 'imageBlockResponse', payload, null, transactionSequenceNumber,
-                        ).then(
-                            () => {
-                                answerNextImageBlockRequest();
-                                lastImageBlockResponse = Date.now();
-                            },
-                            (e) => {
-                                // Shit happens, device will probably do a new imageBlockRequest so don't care.
-                                answerNextImageBlockRequest();
-                                lastImageBlockResponse = Date.now();
-                                logger.debug(`Image block response failed (${e.message})`);
-                            },
-                        );
-                    }, cooldownTime);
+            waiters.imageBlockOrPageRequest.promise.then(
+                (imageBlockOrPageRequest) => {
+                    let pageOffset = 0;
+                    let pageSize = 0;
 
-                    lastUpdate = callOnProgress(startTime, lastUpdate, imageBlockRequest, image, logger, onProgress);
+                    const sendImageBlockResponse = (imageBlockRequest, thenCallback, transactionSequenceNumber) => {
+                        const payload = getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize);
+                        const now = Date.now();
+                        const timeSinceLastImageBlockResponse = now - lastImageBlockResponse;
+
+                        // Reduce network congestion by only sending imageBlockResponse min every 250ms.
+                        const cooldownTime = Math.max(imageBlockResponseDelay - timeSinceLastImageBlockResponse, 0);
+                        setTimeout(() => {
+                            endpoint.commandResponse(
+                                'genOta', 'imageBlockResponse', payload, null, transactionSequenceNumber,
+                            ).then(
+                                () => {
+                                    pageOffset += payload.dataSize;
+                                    lastImageBlockResponse = Date.now();
+                                    thenCallback();
+                                },
+                                (e) => {
+                                    // Shit happens, device will probably do a new imageBlockRequest so don't care.
+                                    lastImageBlockResponse = Date.now();
+                                    thenCallback();
+                                    logger.debug(`Image block response failed (${e.message})`);
+                                },
+                            );
+                        }, cooldownTime);
+
+                        lastUpdate = callOnProgress(startTime, lastUpdate, imageBlockRequest, image, logger,
+                            onProgress);
+                    };
+
+                    if ('pageSize' in imageBlockOrPageRequest.payload) {
+                        // imagePageRequest
+                        pageSize = imageBlockOrPageRequest.payload.pageSize;
+                        const handleImagePageRequestBlocks = (imagePageRequest) => {
+                            if (pageOffset < pageSize) {
+                                sendImageBlockResponse(imagePageRequest,
+                                    () => handleImagePageRequestBlocks(imagePageRequest));
+                            } else {
+                                answerNextImageBlockOrPageRequest();
+                            }
+                        };
+                        handleImagePageRequestBlocks(imageBlockOrPageRequest);
+                    } else {
+                        // imageBlockRequest
+                        sendImageBlockResponse(imageBlockOrPageRequest, answerNextImageBlockOrPageRequest,
+                            imageBlockOrPageRequest.header.transactionSequenceNumber);
+                    }
                 },
                 () => {
                     cancelWaiters(waiters);
@@ -264,7 +304,7 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
         });
 
         logger.debug('Starting upgrade');
-        answerNextImageBlockRequest();
+        answerNextImageBlockOrPageRequest();
         answerNextImageRequest();
 
         // Notify client once more about new image, client should start sending queryNextImageRequest now

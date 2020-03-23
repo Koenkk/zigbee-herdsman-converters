@@ -2974,7 +2974,7 @@ const converters = {
             return {action: `${button}_stop`};
         },
     },
-    GIRA2430_scene_click: {
+    insta_scene_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
@@ -2983,21 +2983,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_on_click: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    GIRA2430_off_click: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
-    GIRA2430_down_hold: {
+    insta_down_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
@@ -3009,7 +2995,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_up_hold: {
+    insta_up_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -3021,7 +3007,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_stop: {
+    insta_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
