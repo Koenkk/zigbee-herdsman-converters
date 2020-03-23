@@ -7955,6 +7955,13 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['8643db61de35494d93e72c1289b526a3'],
+        model: 'RL804CZB',
+        vendor: 'Orvibo',
+        description: 'Zigbee LED controller RGB + CCT or RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // SONOFF
     {
