@@ -6877,7 +6877,7 @@ const devices = [
         },
     },
 
-    // Insta/Gira/Jung
+    // Insta
     {
         zigbeeModel: [' Remote'],
         model: 'InstaRemote',
