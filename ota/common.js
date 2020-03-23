@@ -110,10 +110,10 @@ async function requestOTA(endpoint) {
 
 function getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize) {
     const start = imageBlockRequest.payload.fileOffset + pageOffset;
-    // When the data size is too big, OTA gets unstable, so Z2M default is 50 bytes maximum.
-    // For Insta devices, OTA only works for data sizes 40 and smaller.
-    const z2mMaximumDataSize = (imageBlockRequest.payload.manufacturerCode === 4474 ? 40 : 50);
-    let dataSize = Math.min(z2mMaximumDataSize, imageBlockRequest.payload.maximumDataSize);
+    // When the data size is too big, OTA gets unstable, so default it to 50 bytes maximum.
+    // For Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
+    const maximumDataSize = imageBlockRequest.payload.manufacturerCode === 4474 ? 40 : 50;
+    let dataSize = Math.min(maximumDataSize, imageBlockRequest.payload.maximumDataSize);
     if (pageSize) {
         dataSize = Math.min(dataSize, pageSize - pageOffset);
     }
