@@ -323,60 +323,6 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-    acVoltageMultiplier: async (endpoint) => {
-        const payload = [{
-            attribute: 'acVoltageMultiplier',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
-    acVoltageDivisor: async (endpoint) => {
-        const payload = [{
-            attribute: 'acVoltageDivisor',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
-    acCurrentMultiplier: async (endpoint) => {
-        const payload = [{
-            attribute: 'acCurrentMultiplier',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
-    acCurrentDivisor: async (endpoint) => {
-        const payload = [{
-            attribute: 'acCurrentDivisor',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
-    acPowerMultiplier: async (endpoint) => {
-        const payload = [{
-            attribute: 'acPowerMultiplier',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
-    acPowerDivisor: async (endpoint) => {
-        const payload = [{
-            attribute: 'acPowerDivisor',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        await endpoint.configureReporting('haElectricalMeasurement', payload);
-    },
     fanMode: async (endpoint) => {
         const payload = [{
             attribute: 'fanMode',
@@ -8641,9 +8587,9 @@ const devices = [
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
         supports: 'power measurements',
-        fromZigbee: [fz.metering_power, fz.EMIZB_132_power],
+        fromZigbee: [fz.metering_power, fz.electrical_measurement_power],
         toZigbee: [tz.EMIZB_132_mode],
-        meta: {configureKey: 8},
+        meta: {configureKey: 9},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
@@ -8657,6 +8603,21 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
             await configureReporting.currentSummReceived(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'haElectricalMeasurement') {
+                const endpoint = device.getEndpoint(2);
+                const items = ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor'];
+                for (const item of items) {
+                    const value = endpoint.getClusterAttributeValue('haElectricalMeasurement', item);
+                    if (value === 65535) {
+                        const result = await endpoint.read('haElectricalMeasurement', [item]);
+                        console.log('READ', item, result);
+                    } else {
+                        console.log('DONTREAD', item);
+                    }
+                }
+            }
         },
     },
 ];

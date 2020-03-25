@@ -395,35 +395,32 @@ const converters = {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const getFactor = (key) => {
+                const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                return factor;
+            }
+
+            const lookup = [
+                {key: 'activePower', name: 'power', factor: 'acPower'},
+                {key: 'activePowerPhB', name: 'power_phase_b', factor: 'acPower'},
+                {key: 'activePowerPhC', name: 'power_phase_c', factor: 'acPower'},
+                {key: 'rmsCurrent', name: 'current', factor: 'acCurrent'},
+                {key: 'rmsCurrentPhB', name: 'current_phase_b', factor: 'acCurrent'},
+                {key: 'rmsCurrentPhC', name: 'current_phase_c', factor: 'acCurrent'},
+                {key: 'rmsVoltage', name: 'voltage', factor: 'acVoltage'},
+                {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
+                {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
+            ];
+
             const payload = {};
-            if (msg.data.hasOwnProperty('activePower')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerDivisor',
-                );
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('power', msg, model);
-                payload[property] = precisionRound(msg.data['activePower'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acCurrentMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('current', msg, model);
-                payload[property] = precisionRound(msg.data['rmsCurrent'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acVoltageMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('voltage', msg, model);
-                payload[property] = precisionRound(msg.data['rmsVoltage'] * factor, 2);
+            for (const entry of lookup) {
+                if (msg.data.hasOwnProperty(entry.key)) {
+                    const factor = getFactor(entry.factor);
+                    const property = getProperty(entry.name, msg, model);
+                    payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
+                }
             }
             return payload;
         },
