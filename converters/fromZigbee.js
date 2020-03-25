@@ -661,11 +661,11 @@ const converters = {
             return {action: 'identify'};
         },
     },
-    scenes_recall_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
+    scenes_recall_scene_65029: {
+        cluster: 65029,
+        type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data.sceneid}`};
+            return {action: `scene_${msg.data[msg.data.length - 1]}`};
         },
     },
 

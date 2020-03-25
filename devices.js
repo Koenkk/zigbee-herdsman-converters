@@ -7317,7 +7317,7 @@ const devices = [
         vendor: 'TUYATEC',
         description: 'Smart 6 key scene wall switch',
         supports: 'action',
-        fromZigbee: [fz.scenes_recall_scene],
+        fromZigbee: [fz.scenes_recall_scene_65029],
         toZigbee: [],
     },
 
