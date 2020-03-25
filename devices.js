@@ -2525,6 +2525,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['PAR16 TW Z3'],
+        model: '4058075148338',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
+        extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Classic B40 TW - LIGHTIFY'],
         model: 'AB32840',
         vendor: 'OSRAM',
