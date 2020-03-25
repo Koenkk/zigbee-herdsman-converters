@@ -517,6 +517,20 @@ const xiaomi = {
         await device.getEndpoint(1).write('genBasic', payload, options);
     },
 };
+
+const centralite = {
+    configureReporting_3310_humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 10) => {
+        const payload = [{
+            attribute: 'measuredValue',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
+        }];
+        const options = {manufacturerCode: 0x104E};
+        await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, options);
+    },
+};
+
 const devices = [
     // Xiaomi
     {
@@ -4382,27 +4396,23 @@ const devices = [
         },
     },
     {
-        /**
-         * Note: humidity not (yet) implemented, as this seems to use proprietary cluster
-         * see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
-         * https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/861ec6b88eb45273e341436a23d35274dc367c3b/
-         * devicetypes/smartthings/smartsense-temp-humidity-sensor.src/smartsense-temp-humidity-sensor.groovy#L153-L156
-         */
         zigbeeModel: ['3310-S'],
         model: '3310-S',
         vendor: 'SmartThings',
         description: 'Temperature and humidity sensor',
-        supports: 'temperature',
+        supports: 'temperature and humidity',
         fromZigbee: [
             fz.temperature,
+            fz._3310_humidity,
             fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg']);
             await configureReporting.temperature(endpoint);
+            await centralite.configureReporting_3310_humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
     },
