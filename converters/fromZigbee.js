@@ -4173,6 +4173,28 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
+    MultiSensor_ias_contact_alarm: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 1) return;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+            };
+        },
+    },
+    MultiSensor_ias_water_leak_alarm: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 2) return;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+            };
+        },
+    },
     ZBMLC30_power: {
         cluster: 'seMetering',
         type: ['attributeReport'],

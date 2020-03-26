@@ -5011,6 +5011,13 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
+    {
+        zigbeeModel: ['3420'],
+        model: '3420-G',
+        vendor: 'Centralite',
+        description: '3-Series night light repeater',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Blaupunkt
     {
@@ -6183,6 +6190,22 @@ const devices = [
         model: 'YRD220/240 TSDB',
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.legacy_battery],
+        toZigbee: [tz.generic_lock],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['YRD246 TSDB'],
+        model: 'YRD246HA20BP',
+        vendor: 'Yale',
+        description: 'Assure lock key free deadbolt with Zigbee',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.legacy_battery],
         toZigbee: [tz.generic_lock],
@@ -8659,6 +8682,30 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
             await configureReporting.currentSummReceived(endpoint);
+        },
+    },
+
+    // Wally
+    {
+        zigbeeModel: ['MultiSensor'],
+        model: 'U02I007C.01',
+        vendor: 'Wally',
+        description: 'WallyHome multi-sensor',
+        supports: 'action, contact, water leak, temperature, humidity',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.battery, fz.temperature, fz.humidity,
+            fz.MultiSensor_ias_contact_alarm, fz.MultiSensor_ias_water_leak_alarm,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'genOnOff', 'msTemperatureMeasurement', 'msRelativeHumidity'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
         },
     },
 
