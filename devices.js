@@ -6194,6 +6194,22 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['YRD246 TSDB'],
+        model: 'YRD246HA20BP',
+        vendor: 'Yale',
+        description: 'Assure lock key free deadbolt with Zigbee',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.legacy_battery],
+        toZigbee: [tz.generic_lock],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Weiser
     {
