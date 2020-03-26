@@ -8604,13 +8604,6 @@ const devices = [
             await configureReporting.currentSummDelivered(endpoint);
             await configureReporting.currentSummReceived(endpoint);
         },
-        onEvent: async (type, data, device) => {
-            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'haElectricalMeasurement') {
-                const endpoint = device.getEndpoint(2);
-                const items = ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor'];
-                await endpoint.read('haElectricalMeasurement', items);
-            }
-        },
     },
 ];
 
