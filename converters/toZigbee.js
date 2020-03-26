@@ -343,11 +343,31 @@ const converters = {
 
                     return {state: newState};
                 } else {
-                    const result = await converters.on_off.convertSet(entity, 'state', state, meta);
-                    if (state === 'on') {
-                        result.readAfterWriteTime = 0;
+                    if (hasState && state === 'on' && store.hasOwnProperty(entity.deviceIeeeAddress)) {
+                        /**
+                         * In case the bulb it turned OFF with a transition and turned ON WITHOUT
+                         * a transition, the brightness is not recovered as it turns on with brightness 1.
+                         * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
+                         */
+                        const brightness = store[entity.deviceIeeeAddress];
+                        delete store[entity.deviceIeeeAddress];
+                        await entity.command(
+                            'genLevelCtrl',
+                            'moveToLevelWithOnOff',
+                            {level: Number(brightness), transtime: 0},
+                            getOptions(meta.mapped),
+                        );
+                        return {
+                            state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
+                            readAfterWriteTime: transition * 100,
+                        };
+                    } else {
+                        const result = await converters.on_off.convertSet(entity, 'state', state, meta);
+                        if (state === 'on') {
+                            result.readAfterWriteTime = 0;
+                        }
+                        return result;
                     }
-                    return result;
                 }
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                 return await converters.on_off.convertSet(entity, 'state', 'off', meta);
@@ -1902,11 +1922,32 @@ const converters = {
             // modes:
             // 0 - 'command' mode. keys send commands. useful for binding
             // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': value}, {manufacturerCode: 0x115f});
+            await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
         },
         convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+        },
+    },
+    EMIZB_132_mode: {
+        key: ['interface_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(2);
+            const lookup = {
+                'norwegian_han': 0x0200,
+                'norwegian_han_extra_load': 0x0201,
+                'aidon_meter': 0x0202,
+                'kaifa_and_kamstrup': 0x0203,
+            };
+
+            if (!lookup[value]) {
+                throw new Error(`Interface mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
+            }
+
+            await endpoint.write('seMetering', {0x0302: {value: lookup[value], type: 49}}, {manufacturerCode: 0x1015});
+            return {state: {interface_mode: lookup[value]}};
         },
     },
 

@@ -282,13 +282,62 @@ const converters = {
     },
     occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
-        // Note: options.occupancy_timeout not available yet, to implement it will be
-        // needed to update device report intervall as well, see devices.js
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
                 return {occupancy: msg.data.occupancy === 1};
+            }
+        },
+    },
+    occupancy_with_timeout: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : occupancyTimeout;
+            const deviceID = msg.device.ieeeAddr;
+
+            // Stop existing timers because motion is detected and set a new one.
+            if (store[deviceID]) {
+                store[deviceID].forEach((t) => clearTimeout(t));
+            }
+
+            store[deviceID] = [];
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                }, timeout * 1000);
+
+                store[deviceID].push(timer);
+            }
+
+            // No occupancy since
+            if (options && options.no_occupancy_since) {
+                options.no_occupancy_since.forEach((since) => {
+                    const timer = setTimeout(() => {
+                        publish({no_occupancy_since: since});
+                    }, since * 1000);
+                    store[deviceID].push(timer);
+                });
+            }
+
+            if (options && options.no_occupancy_since) {
+                return {occupancy: true, no_occupancy_since: 0};
+            } else {
+                return {occupancy: true};
             }
         },
     },
@@ -453,11 +502,76 @@ const converters = {
             };
         },
     },
+    ias_occupancy_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_alarm_1_with_timeout: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            const deviceID = msg.device.ieeeAddr;
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : occupancyTimeout;
+
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'panic'};
+        },
+    },
+    command_arm: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                0: 'disarm',
+                1: 'arm_day_zones',
+                2: 'arm_night_zones',
+                3: 'arm_all_zones',
+            };
+            return {action: lookup[msg.data['armmode']]};
         },
     },
     command_on: {
@@ -508,6 +622,38 @@ const converters = {
             };
         },
     },
+    command_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action: `color_temperature_move`,
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+            };
+        },
+    },
+    command_move_to_color: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColor',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                action: 'color_move',
+                action_color: {
+                    x: precisionRound(msg.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.colory / 65535, 3),
+                },
+                action_transition_time: msg.data.transtime,
+            };
+        },
+    },
+    command_emergency: {
+        cluster: 'ssIasAce',
+        type: 'commandEmergency',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'emergency'};
+        },
+    },
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
@@ -515,11 +661,11 @@ const converters = {
             return {action: 'identify'};
         },
     },
-    scenes_recall_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
+    scenes_recall_scene_65029: {
+        cluster: 65029,
+        type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data.sceneid}`};
+            return {action: `scene_${msg.data[msg.data.length - 1]}`};
         },
     },
 
@@ -947,57 +1093,6 @@ const converters = {
                 return result;
             } else {
                 return converters.metering_power.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
-    occupancy_with_timeout: {
-        // This is for occupancy sensor that only send a message when motion detected,
-        // but do not send a motion stop.
-        // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'msOccupancySensing',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.occupancy !== 1) {
-                // In case of 0 no occupancy is reported.
-                // https://github.com/Koenkk/zigbee2mqtt/issues/467
-                return;
-            }
-
-            // The occupancy sensor only sends a message when motion detected.
-            // Therefore we need to publish the no_motion detected by ourselves.
-            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
-            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.device.ieeeAddr;
-
-            // Stop existing timers because motion is detected and set a new one.
-            if (store[deviceID]) {
-                store[deviceID].forEach((t) => clearTimeout(t));
-            }
-
-            store[deviceID] = [];
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                }, timeout * 1000);
-
-                store[deviceID].push(timer);
-            }
-
-            // No occupancy since
-            if (options && options.no_occupancy_since) {
-                options.no_occupancy_since.forEach((since) => {
-                    const timer = setTimeout(() => {
-                        publish({no_occupancy_since: since});
-                    }, since * 1000);
-                    store[deviceID].push(timer);
-                });
-            }
-
-            if (options && options.no_occupancy_since) {
-                return {occupancy: true, no_occupancy_since: 0};
-            } else {
-                return {occupancy: true};
             }
         },
     },
@@ -1447,13 +1542,6 @@ const converters = {
                 const value = msg.data.armmode;
                 return {action: lookup[value] || `armmode_${value}`};
             }
-        },
-    },
-    heiman_smart_controller_emergency: {
-        cluster: 'ssIasAce',
-        type: 'commandEmergency',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'emergency'};
         },
     },
     TS0218_click: {
@@ -2039,58 +2127,6 @@ const converters = {
                 power: msg.data['activePower'],
                 current: msg.data['rmsCurrent'],
                 voltage: msg.data['rmsVoltage'],
-            };
-        },
-    },
-    iaszone_occupancy_2: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-            };
-        },
-    },
-    iaszone_occupancy_1: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
-    iaszone_occupancy_1_with_timeout: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
-            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.device.ieeeAddr;
-
-            if (store[deviceID]) {
-                clearTimeout(store[deviceID]);
-                store[deviceID] = null;
-            }
-
-            if (timeout !== 0) {
-                store[deviceID] = setTimeout(() => {
-                    publish({occupancy: false});
-                    store[deviceID] = null;
-                }, timeout * 1000);
-            }
-
-            return {
-                occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -2938,7 +2974,7 @@ const converters = {
             return {action: `${button}_stop`};
         },
     },
-    GIRA2430_scene_click: {
+    insta_scene_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
@@ -2947,21 +2983,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_on_click: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    GIRA2430_off_click: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
-    GIRA2430_down_hold: {
+    insta_down_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
@@ -2973,7 +2995,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_up_hold: {
+    insta_up_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -2985,7 +3007,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_stop: {
+    insta_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
@@ -4125,6 +4147,22 @@ const converters = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
+        },
+    },
+    EMIZB_132_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Cannot use electrical_measurement_power here as the reported divisor is not correct
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-600834722
+            const payload = {};
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                payload.voltage = precisionRound(msg.data['rmsVoltage'] / 10, 2);
+            }
+            return payload;
         },
     },
 
