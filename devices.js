@@ -3295,6 +3295,13 @@ const devices = [
         description: 'SMART+ Outdoor Accent RGB lighting kit',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['iQBR30'],
+        model: '78960',
+        vendor: 'Sylvania',
+        description: 'LED Light Bulb SYLVANIA LED11BR30/DIM/iQ/827 120VAC 60Hz 93mA 11W 700Lumens',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Leviton
     {
