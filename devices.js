@@ -8608,15 +8608,7 @@ const devices = [
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'haElectricalMeasurement') {
                 const endpoint = device.getEndpoint(2);
                 const items = ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor'];
-                for (const item of items) {
-                    const value = endpoint.getClusterAttributeValue('haElectricalMeasurement', item);
-                    if (value === 65535) {
-                        const result = await endpoint.read('haElectricalMeasurement', [item]);
-                        console.log('READ', item, result);
-                    } else {
-                        console.log('DONTREAD', item);
-                    }
-                }
+                await endpoint.read('haElectricalMeasurement', items);
             }
         },
     },
