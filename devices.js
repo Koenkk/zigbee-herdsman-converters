@@ -517,6 +517,7 @@ const xiaomi = {
         await device.getEndpoint(1).write('genBasic', payload, options);
     },
 };
+
 const devices = [
     // Xiaomi
     {
@@ -4429,27 +4430,28 @@ const devices = [
         },
     },
     {
-        /**
-         * Note: humidity not (yet) implemented, as this seems to use proprietary cluster
-         * see Smartthings device handler (profileID: 0x9194, clusterId: 0xFC45
-         * https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/861ec6b88eb45273e341436a23d35274dc367c3b/
-         * devicetypes/smartthings/smartsense-temp-humidity-sensor.src/smartsense-temp-humidity-sensor.groovy#L153-L156
-         */
         zigbeeModel: ['3310-S'],
         model: '3310-S',
         vendor: 'SmartThings',
         description: 'Temperature and humidity sensor',
-        supports: 'temperature',
-        fromZigbee: [
-            fz.temperature,
-            fz.battery_3V,
-        ],
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery_3V],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
+            await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.temperature(endpoint);
+
+            const payload = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 10,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 10,
+            }];
+            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+
             await configureReporting.batteryVoltage(endpoint);
         },
     },

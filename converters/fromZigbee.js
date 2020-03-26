@@ -4165,6 +4165,15 @@ const converters = {
             return payload;
         },
     },
+    _3310_humidity: {
+        cluster: 'manuSpecificCentraliteHumidity',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+        },
+    },
+
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
