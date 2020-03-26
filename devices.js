@@ -1977,7 +1977,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe floor light',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4080148P9'],
@@ -1985,7 +1985,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe table light',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RWL020', 'RWL021'],
