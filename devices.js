@@ -518,19 +518,6 @@ const xiaomi = {
     },
 };
 
-const centralite = {
-    configureReporting_3310_humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 10) => {
-        const payload = [{
-            attribute: 'measuredValue',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
-        const options = {manufacturerCode: 0x104E};
-        await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, options);
-    },
-};
-
 const devices = [
     // Xiaomi
     {
@@ -4401,19 +4388,23 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
-        fromZigbee: [
-            fz.temperature,
-            fz._3310_humidity,
-            fz.battery_3V,
-        ],
+        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery_3V],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.temperature(endpoint);
-            await centralite.configureReporting_3310_humidity(endpoint);
+
+            const payload = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 10,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 10,
+            }];
+            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+
             await configureReporting.batteryVoltage(endpoint);
         },
     },
