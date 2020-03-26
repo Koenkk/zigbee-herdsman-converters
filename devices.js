@@ -5011,6 +5011,13 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
+    {
+        zigbeeModel: ['3420'],
+        model: '3420',
+        vendor: 'Centralite',
+        description: '3-Series Night Light Repeater',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Blaupunkt
     {
