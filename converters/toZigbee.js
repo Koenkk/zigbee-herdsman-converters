@@ -1255,7 +1255,7 @@ const converters = {
 
             if (meta.mapped.model === 'GL-C-007' && utils.hasEndpoints(meta.device, [11, 13, 15])) {
                 // GL-C-007 RGBW
-                if (key === 'state' && value.toUpperCase() === 'OFF') {
+                if (key === 'state' && value.toUpperCase() === 'OFF' && !meta.options.separate_control) {
                     await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(15), key, value, meta);
                 }
 
