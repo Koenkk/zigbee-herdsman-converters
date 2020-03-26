@@ -8661,6 +8661,27 @@ const devices = [
             await configureReporting.currentSummReceived(endpoint);
         },
     },
+
+    // Smartenit
+    {
+        zigbeeModel: ['ZBMLC30'],
+        model: '4040B',
+        vendor: 'Smartenit',
+        description: 'Wireless Metering 30A Dual-Load Switch / Controller',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ZBMLC30_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>

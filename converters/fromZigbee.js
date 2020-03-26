@@ -4173,6 +4173,15 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
+    ZBMLC30_power: {
+        cluster: 'seMetering',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                return {power: msg.data['instantaneousDemand'] / 100.0};
+            }
+        },
+    },
 
 
     // Ignore converters (these message dont need parsing).
