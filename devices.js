@@ -8662,17 +8662,16 @@ const devices = [
         },
     },
 
-    // wallyHOME
+    // Wally
     {
         zigbeeModel: ['MultiSensor'],
-        model: '21473-MULTI',
-        vendor: 'wallyHOME',
-        description: 'Multi-Sensor',
+        model: 'U02I007C.01',
+        vendor: 'Wally',
+        description: 'WallyHome multi-sensor',
         supports: 'action, contact, water leak, temperature, humidity',
         fromZigbee: [
-            fz.command_on, fz.command_off,
+            fz.command_on, fz.command_off, fz.battery, fz.temperature, fz.humidity,
             fz.MultiSensor_ias_contact_alarm, fz.MultiSensor_ias_water_leak_alarm,
-            fz.battery, fz.temperature, fz.humidity,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
