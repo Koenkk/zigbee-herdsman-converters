@@ -8661,6 +8661,31 @@ const devices = [
             await configureReporting.currentSummReceived(endpoint);
         },
     },
+
+    // wallyHOME
+    {
+        zigbeeModel: ['MultiSensor'],
+        model: '21473-MULTI',
+        vendor: 'wallyHOME',
+        description: 'Multi-Sensor',
+        supports: 'action, contact, water leak, temperature, humidity',
+        fromZigbee: [
+            fz.command_on, fz.command_off,
+            fz.MultiSensor_ias_contact_alarm, fz.MultiSensor_ias_water_leak_alarm,
+            fz.battery, fz.temperature, fz.humidity,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'genOnOff', 'msTemperatureMeasurement', 'msRelativeHumidity'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
