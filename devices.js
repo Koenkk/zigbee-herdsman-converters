@@ -4410,7 +4410,8 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg']);
+            const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
+            await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.temperature(endpoint);
             await centralite.configureReporting_3310_humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
