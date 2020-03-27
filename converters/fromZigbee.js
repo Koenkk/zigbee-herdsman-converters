@@ -499,6 +499,29 @@ const converters = {
             };
         },
     },
+    ias_carbon_monoxide_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                carbon_monoxide: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_sos_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                sos: (zoneStatus & 1<<1) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     ias_occupancy_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -549,6 +572,13 @@ const converters = {
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
+        },
+    },
+    command_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `recall_${msg.data.sceneid}`};
         },
     },
     command_panic: {
@@ -1562,17 +1592,6 @@ const converters = {
             }
             results['zone_id'] = zoneId;
             return results;
-        },
-    },
-    heiman_carbon_monoxide: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
         },
     },
     JTQJBF01LMBW_gas: {

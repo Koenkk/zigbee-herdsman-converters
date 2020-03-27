@@ -3766,6 +3766,152 @@ const devices = [
             await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['FNB56-SOS03FB1.5'],
+        model: 'SEB01ZB',
+        vendor: 'Feibit',
+        description: 'SOS button',
+        supports: 'sos',
+        fromZigbee: [fz.ias_sos_alarm_2, fz.battery],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8'],
+        model: 'SBM01ZB',
+        vendor: 'Feibit',
+        description: 'Human body movement sensor',
+        supports: 'occupancy, tamper',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FNB56-THM14FB2.4'],
+        model: 'STH01ZB',
+        vendor: 'Feibit',
+        description: 'Smart temperature & humidity Sensor',
+        supports: 'temperature, humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['FNB56-SMF06FB1.6'],
+        model: 'SSA01ZB',
+        vendor: 'Feibit',
+        description: 'Smoke detector',
+        supports: 'smoke',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FNB56-COS06FB1.7'],
+        model: 'SCA01ZB',
+        vendor: 'Feibit',
+        description: 'Smart carbon monoxide sensor',
+        supports: 'carbon monoxide',
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FNB56-GAS05FB1.4'],
+        model: 'SGA01ZB',
+        vendor: 'Feibit',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.ias_gas_alarm_2],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['FNB56-WTS05FB2.0'],
+        model: 'SWA01ZB',
+        vendor: 'Feibit',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['FNB56-DOS07FB2.4'],
+        model: 'SDM01ZB',
+        vendor: 'Feibit',
+        description: 'Door or window contact switch',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['FB56+SKT14AL2.1'],
+        model: 'SFS01ZB',
+        vendor: 'Feibit',
+        description: 'Power plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['FB56+ZSW1HKJ2.2'],
+        model: 'SLS301ZB_2',
+        vendor: 'Feibit',
+        description: 'Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 16, 'right': 17};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['FB56+ZSW1IKJ2.2'],
+        model: 'SLS301ZB_3',
+        vendor: 'Feibit',
+        description: 'Smart light switch - 3 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 16, 'center': 17, 'right': 18};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['FB56+ZSN08KJ2.2'],
+        model: 'SSS401ZB',
+        vendor: 'Feibit',
+        description: 'Smart 4 key scene wall switch',
+        supports: 'on/off, action',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.command_recall],
+    },
 
     // Gledopto
     {
@@ -5068,7 +5214,7 @@ const devices = [
         description: 'Smart carbon monoxide sensor',
         supports: 'carbon monoxide',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery],
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5242,7 +5388,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart carbon monoxide sensor',
         supports: 'carbon monoxide',
-        fromZigbee: [fz.heiman_carbon_monoxide, fz.battery],
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
