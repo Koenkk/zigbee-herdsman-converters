@@ -1936,18 +1936,31 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(2);
             const lookup = {
-                'norwegian_han': 0x0200,
-                'norwegian_han_extra_load': 0x0201,
-                'aidon_meter': 0x0202,
-                'kaifa_and_kamstrup': 0x0203,
+                'norwegian_han': {value: 0x0200, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'norwegian_han_extra_load': {value: 0x0201, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'aidon_meter': {value: 0x0202, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'kaifa_and_kamstrup': {value: 0x0203, acVoltageDivisor: 10, acCurrentDivisor: 1000},
             };
 
             if (!lookup[value]) {
                 throw new Error(`Interface mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
             }
 
-            await endpoint.write('seMetering', {0x0302: {value: lookup[value], type: 49}}, {manufacturerCode: 0x1015});
-            return {state: {interface_mode: lookup[value]}};
+            await endpoint.write(
+                'seMetering', {0x0302: {value: lookup[value].value, type: 49}}, {manufacturerCode: 0x1015},
+            );
+
+            // As the device reports the incorrect divisor, we need to set it here
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-604347303
+            // Values for norwegian_han and aidon_meter have not been been checked
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: lookup[value].acVoltageDivisor,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: lookup[value].acCurrentDivisor,
+            });
+
+            return {state: {interface_mode: value}};
         },
     },
 
