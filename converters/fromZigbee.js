@@ -578,14 +578,14 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {action: `recall_${msg.data.sceneid}`};
+            return {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
         },
     },
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'panic'};
+            return {action: getProperty(`panic`, msg, model)};
         },
     },
     command_arm: {
@@ -598,7 +598,7 @@ const converters = {
                 2: 'arm_night_zones',
                 3: 'arm_all_zones',
             };
-            return {action: lookup[msg.data['armmode']]};
+            return {action: getProperty(lookup[msg.data['armmode']], msg, model)};
         },
     },
     command_on: {
@@ -619,7 +619,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            return {action: getProperty(`off`, msg, model)};
         },
     },
     command_move_with_on_off: {
@@ -644,7 +644,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             return {
-                action: `brightness_step_${direction}`,
+                action: getProperty(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
         },
@@ -654,7 +654,7 @@ const converters = {
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
             return {
-                action: `color_temperature_move`,
+                action: getProperty(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
@@ -665,7 +665,7 @@ const converters = {
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
             return {
-                action: 'color_move',
+                action: getProperty(`color_move`, msg, model),
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
@@ -678,21 +678,14 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'emergency'};
+            return {action: getProperty(`emergency`, msg, model)};
         },
     },
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'identify'};
-        },
-    },
-    scenes_recall_scene_65029: {
-        cluster: 65029,
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data[msg.data.length - 1]}`};
+            return {action: getProperty(`identify`, msg, model)};
         },
     },
 
@@ -700,6 +693,13 @@ const converters = {
      * Device specific converters, not recommended for re-use.
      * TODO: This has not been fully sorted out yet.
      */
+    scenes_recall_scene_65029: {
+        cluster: 65029,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 1]}`};
+        },
+    },
     HS2SK_SKHMP30I1_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
