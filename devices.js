@@ -3297,9 +3297,9 @@ const devices = [
     },
     {
         zigbeeModel: ['iQBR30'],
-        model: '78960',
+        model: '484719',
         vendor: 'Sylvania',
-        description: 'LED Light Bulb SYLVANIA LED11BR30/DIM/iQ/827 120VAC 60Hz 93mA 11W 700Lumens',
+        description: 'Dimmable soft white BR30 LED flood light bulb',
         extend: generic.light_onoff_brightness,
     },
 
