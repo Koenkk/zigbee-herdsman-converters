@@ -3365,6 +3365,13 @@ const devices = [
 
     // Sengled
     {
+        zigbeeModel: ['E12-N1E'],
+        model: 'E12-N1E',
+        vendor: 'Sengled',
+        description: 'Smart LED multicolor (BR30)',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['E11-G13'],
         model: 'E11-G13',
         vendor: 'Sengled',
