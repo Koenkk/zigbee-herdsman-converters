@@ -3781,7 +3781,7 @@ const devices = [
         vendor: 'Feibit',
         description: 'Human body movement sensor',
         supports: 'occupancy, tamper',
-        fromZigbee: [fz.iaszone_occupancy_1, fz.battery],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
