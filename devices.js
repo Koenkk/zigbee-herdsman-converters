@@ -3908,7 +3908,7 @@ const devices = [
         model: 'SSS401ZB',
         vendor: 'Feibit',
         description: 'Smart 4 key scene wall switch',
-        supports: 'on/off, click',
+        supports: 'on/off, action',
         toZigbee: [tz.on_off],
         fromZigbee: [fz.command_recall],
     },
