@@ -118,12 +118,14 @@ describe('index.js', () => {
                 throw new Error(`${device.model} requires configureKey because it has configure`)
             }
 
+            if (device.whiteLabel) {
+                for (const definition of device.whiteLabel) {
+                    expect(['vendor', 'model']).toStrictEqual(Object.keys(definition));
+                }
+            }
+
             if (device.meta) {
                 containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
-
-                if (device.meta.multiEndpoint && !device.endpoint) {
-                    throw new Error(`multiEndpoint specified but no endpoint function defined`);
-                }
             }
 
             foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
