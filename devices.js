@@ -3772,7 +3772,7 @@ const devices = [
         vendor: 'Feibit',
         description: 'SOS button',
         supports: 'sos',
-        fromZigbee: [fz.ias_sos_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_sos_alarm_2, fz.battery],
         toZigbee: [],
     },
     {
