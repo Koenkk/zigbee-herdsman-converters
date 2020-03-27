@@ -8814,6 +8814,34 @@ const devices = [
             await configureReporting.humidity(endpoint);
         },
     },
+
+    // Smartenit
+    {
+        zigbeeModel: ['ZBMLC30'],
+        model: '4040B',
+        vendor: 'Smartenit',
+        description: 'Wireless metering 30A dual-load switch/controller',
+        supports: 'on/off, power measurements',
+        fromZigbee: [fz.on_off, fz.metering_power, fz.ignore_light_brightness_report],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+
+            // Device doesn't respond to divisor read, set it here
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1096
+            endpoint2.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 100000,
+                multiplier: 1,
+            });
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
