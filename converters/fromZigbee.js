@@ -649,6 +649,17 @@ const converters = {
             };
         },
     },
+    command_step_color_temperature: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandStepColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            return {
+                action: getProperty(`color_temperature_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+            };
+        },
+    },
     command_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
