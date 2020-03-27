@@ -3241,6 +3241,13 @@ const devices = [
         description: 'SMART+ Outdoor Accent RGB lighting kit',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['iQBR30'],
+        model: '484719',
+        vendor: 'Sylvania',
+        description: 'Dimmable soft white BR30 LED flood light bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Leviton
     {
