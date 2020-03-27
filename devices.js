@@ -8714,7 +8714,7 @@ const devices = [
         zigbeeModel: ['ZBMLC30'],
         model: '4040B',
         vendor: 'Smartenit',
-        description: 'Wireless Metering 30A Dual-Load Switch / Controller',
+        description: 'Wireless metering 30A dual-load switch/controller',
         supports: 'on/off, power measurements',
         fromZigbee: [fz.on_off, fz.metering_power, fz.ignore_light_brightness_report],
         toZigbee: [tz.on_off],
