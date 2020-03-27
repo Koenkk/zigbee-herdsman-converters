@@ -3235,7 +3235,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['Outdoor Accent RGB'],
+        zigbeeModel: ['Outdoor Accent RGB', 'Outdoor Accent Light RGB'],
         model: '75541',
         vendor: 'Sylvania',
         description: 'SMART+ Outdoor Accent RGB lighting kit',
