@@ -8715,18 +8715,25 @@ const devices = [
         model: '4040B',
         vendor: 'Smartenit',
         description: 'Wireless Metering 30A Dual-Load Switch / Controller',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ZBMLC30_power],
+        supports: 'on/off, power measurements',
+        fromZigbee: [fz.on_off, fz.metering_power, fz.ignore_light_brightness_report],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             const endpoint2 = device.getEndpoint(2);
-            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+
+            // Device doesn't respond to divisor read, set it here
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1096
+            endpoint2.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 100000,
+                multiplier: 1,
+            });
         },
     },
 ];
