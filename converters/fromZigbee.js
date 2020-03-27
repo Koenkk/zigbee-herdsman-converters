@@ -400,7 +400,7 @@ const converters = {
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
                 const factor = multiplier && divisor ? multiplier / divisor : 1;
                 return factor;
-            }
+            };
 
             const lookup = [
                 {key: 'activePower', name: 'power', factor: 'acPower'},
