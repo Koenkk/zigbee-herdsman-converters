@@ -578,14 +578,18 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
+            const payload = {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`panic`, msg, model)};
+            const payload = {action: getProperty(`panic`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_arm: {
@@ -598,28 +602,36 @@ const converters = {
                 2: 'arm_night_zones',
                 3: 'arm_all_zones',
             };
-            return {action: getProperty(lookup[msg.data['armmode']], msg, model)};
+            const payload = {action: getProperty(lookup[msg.data['armmode']], msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('on', msg, model)};
+            const payload = {action: getProperty('on', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('off', msg, model)};
+            const payload = {action: getProperty('off', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`off`, msg, model)};
+            const payload = {action: getProperty(`off`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_move_with_on_off: {
@@ -628,14 +640,18 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = getProperty(`brightness_move_${direction}`, msg, model);
-            return {action, action_rate: msg.data.rate};
+            const payload = {action, action_rate: msg.data.rate};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_stop_with_on_off: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`brightness_stop`, msg, model)};
+            const payload = {action: getProperty(`brightness_stop`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_step_with_on_off: {
@@ -643,10 +659,12 @@ const converters = {
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            return {
+            const payload = {
                 action: getProperty(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_step_color_temperature: {
@@ -654,28 +672,32 @@ const converters = {
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-            return {
+            const payload = {
                 action: getProperty(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action: getProperty(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_move_to_color: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action: getProperty(`color_move`, msg, model),
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
@@ -683,13 +705,17 @@ const converters = {
                 },
                 action_transition_time: msg.data.transtime,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`emergency`, msg, model)};
+            const payload = {action: getProperty(`emergency`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     identify: {
