@@ -237,7 +237,7 @@ const converters = {
             }
         },
     },
-    battery_no_division: {
+    battery_not_divided: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
