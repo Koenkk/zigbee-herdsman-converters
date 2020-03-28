@@ -4984,6 +4984,23 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3460-L'],
+        model: '3460-L',
+        vendor: 'Iris',
+        description: 'Smart button',
+        supports: 'action, temperature',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery_3V_2100, fz.temperature],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.temperature(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['1117-S'],
         model: 'iL07_1',
         vendor: 'Iris',
