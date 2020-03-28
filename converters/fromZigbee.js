@@ -4367,7 +4367,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             var endpointGroup = msg.endpoint.ID;
             return {
-                action: (msg.data.stepmode == 0) ? "up" : "down",
+                action: (msg.data.stepmode == 0) ? getProperty('up', msg, model) : getProperty('down', msg, model),
                 step_mode: msg.data.stepmode,
                 step_size: msg.data.stepsize,
                 transition_time: msg.data.transtime,
@@ -4384,7 +4384,7 @@ const converters = {
             {
                 return null;
             }
-            return {action: 'on'};
+            return {action: getProperty('on', msg, model)};
         },
     },
     ZG2819S_command_off: {
@@ -4397,7 +4397,7 @@ const converters = {
             {
                 return null;
             }
-            return {action: 'off'};
+            return {action: getProperty('off', msg, model)};
         },
     },
     ZG2819S_move_to_color_temp: {
@@ -4405,7 +4405,7 @@ const converters = {
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
             return {
-                action: `color_temp`,
+                action: getProperty('color_temp', msg, model),
                 action_color_temperature: msg.data.colortemp,
                 transition_time: msg.data.transtime,
             };
@@ -4417,11 +4417,11 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.movemode === 0)
             {
-                return {action: 'start'};
+                return {action: getProperty('start', msg, model)};
             }
             else
             {
-                return {action: 'stop'};
+                return {action: getProperty('stop', msg, model)};
             }
         },
     },
@@ -4435,7 +4435,7 @@ const converters = {
             {
                 return null;
             }
-            return {action: `scene_${msg.data.sceneid}`};
+            return {action: getProperty(`scene_${msg.data.sceneid}`, msg, model)};
         },
     },
 
