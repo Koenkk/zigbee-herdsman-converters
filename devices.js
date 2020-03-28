@@ -6282,7 +6282,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_not_divided],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
