@@ -237,6 +237,30 @@ const converters = {
             }
         },
     },
+    battery_no_division: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full.
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                payload['battery_low'] = msg.data.batteryAlarmState;
+            }
+
+            if (Object.keys(payload).length !== 0) {
+                return payload;
+            }
+        },
+    },
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],

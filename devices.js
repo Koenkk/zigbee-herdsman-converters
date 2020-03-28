@@ -1179,7 +1179,7 @@ const devices = [
         supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
         fromZigbee: [
             fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
-            fz.cmd_move_to_level_with_onoff, fz.legacy_battery,
+            fz.cmd_move_to_level_with_onoff, fz.battery_no_division,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -1267,7 +1267,7 @@ const devices = [
             fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
-            fz.legacy_battery, fz.E1524_hold,
+            fz.battery_no_division, fz.E1524_hold,
         ],
         toZigbee: [],
         ota: ota.tradfri,
@@ -1289,7 +1289,7 @@ const devices = [
         supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
-            fz.E1743_brightness_stop, fz.legacy_battery,
+            fz.E1743_brightness_stop, fz.battery_no_division,
         ],
         toZigbee: [],
         ota: ota.tradfri,
@@ -1311,7 +1311,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
         supports: 'volume up/down, play/pause, skip forward/backward',
-        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.legacy_battery],
+        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.battery_no_division],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1},
@@ -1327,7 +1327,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.legacy_battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        fromZigbee: [fz.battery_no_division, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1},
@@ -1360,7 +1360,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.legacy_battery],
+        fromZigbee: [fz.cover_position_tilt, fz.battery_no_division],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         ota: ota.tradfri,
@@ -1377,7 +1377,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.legacy_battery],
+        fromZigbee: [fz.cover_position_tilt, fz.battery_no_division],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2},
         ota: ota.tradfri,
@@ -1394,7 +1394,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
         supports: 'click',
-        fromZigbee: [fz.legacy_battery, fz.cover_close, fz.cover_open, fz.cover_stop],
+        fromZigbee: [fz.battery_no_division, fz.cover_close, fz.cover_open, fz.cover_stop],
         toZigbee: [],
         meta: {configureKey: 1},
         ota: ota.tradfri,
@@ -2350,7 +2350,7 @@ const devices = [
         description: 'Smart heating thermostat',
         supports: 'temperature, occupancy, un-/occupied heating, schedule',
         fromZigbee: [
-            fz.legacy_battery_voltage,
+            fz.battery_no_division_voltage,
             fz.thermostat_att_report,
         ],
         toZigbee: [
@@ -6314,7 +6314,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.legacy_battery],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_no_division],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6330,7 +6330,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock key free deadbolt with Zigbee',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.legacy_battery],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_no_division],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6387,7 +6387,7 @@ const devices = [
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
             fz.cover_position_via_brightness, fz.temperature,
-            fz.legacy_battery, fz.keen_home_smart_vent_pressure,
+            fz.battery_no_division, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
         toZigbee: [
@@ -6412,7 +6412,7 @@ const devices = [
         supports: 'open, close, position, temperature, pressure, battery',
         fromZigbee: [
             fz.cover_position_via_brightness, fz.temperature,
-            fz.legacy_battery, fz.keen_home_smart_vent_pressure,
+            fz.battery_no_division, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report,
         ],
         toZigbee: [
@@ -6437,7 +6437,7 @@ const devices = [
         vendor: 'AXIS',
         description: 'Gear window shade motor',
         supports: 'open, close, position, battery',
-        fromZigbee: [fz.cover_position_via_brightness, fz.legacy_battery],
+        fromZigbee: [fz.cover_position_via_brightness, fz.battery_no_division],
         toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6656,7 +6656,7 @@ const devices = [
         fromZigbee: [
             fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
-            fz.legacy_battery, fz.ignore_iaszone_report,
+            fz.battery_no_division, fz.ignore_iaszone_report,
             fz.ias_occupancy_alarm_2, fz.ias_contact_alarm_1,
         ],
         toZigbee: [],
@@ -6670,7 +6670,7 @@ const devices = [
         fromZigbee: [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
-            fz.legacy_battery, fz.ignore_iaszone_report,
+            fz.battery_no_division, fz.ignore_iaszone_report,
             fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
@@ -6684,7 +6684,7 @@ const devices = [
         fromZigbee: [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
-            fz.legacy_battery, fz.ignore_iaszone_report,
+            fz.battery_no_division, fz.ignore_iaszone_report,
             fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
@@ -6698,7 +6698,7 @@ const devices = [
         fromZigbee: [
             fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report,
             fz.ignore_genIdentify, fz.ignore_poll_ctrl,
-            fz.legacy_battery, fz.ignore_iaszone_report,
+            fz.battery_no_division, fz.ignore_iaszone_report,
             fz.ias_occupancy_alarm_2,
         ],
         toZigbee: [],
@@ -6841,7 +6841,7 @@ const devices = [
         description: 'ZigBee double key wall switch',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.legacy_battery,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.battery_no_division,
         ],
         toZigbee: [],
     },
@@ -7101,7 +7101,7 @@ const devices = [
         description: '3 Zone remote and dimmer',
         supports: 'click',
         fromZigbee: [
-            fz.legacy_battery, fz.ZGRC013_brightness_onoff, fz.ZGRC013_brightness, fz.ZGRC013_brightness_stop,
+            fz.battery_no_division, fz.ZGRC013_brightness_onoff, fz.ZGRC013_brightness, fz.ZGRC013_brightness_stop,
             fz.ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
         ],
         toZigbee: [],
@@ -7235,7 +7235,7 @@ const devices = [
             fz.CCTSwitch_D0001_move_to_colortemp_recall,
             fz.CCTSwitch_D0001_colortemp_updown_hold_release,
             fz.CCTSwitch_D0001_brightness_updown_hold_release,
-            fz.legacy_battery,
+            fz.battery_no_division,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -7386,7 +7386,7 @@ const devices = [
         description: 'PIR sensor',
         supports: 'occupancy',
         fromZigbee: [
-            fz.battery, fz.legacy_battery_voltage,
+            fz.battery, fz.battery_no_division_voltage,
             fz.ignore_basic_report,
             fz.ias_occupancy_alarm_1,
         ],
@@ -7678,7 +7678,7 @@ const devices = [
         description: 'Thermostat',
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
-            fz.legacy_battery_voltage,
+            fz.battery_no_division_voltage,
             fz.thermostat_att_report,
         ],
         toZigbee: [
@@ -8078,7 +8078,7 @@ const devices = [
         supports: 'temperature, occupancy, illuminance, click, double click, triple click',
         fromZigbee: [
             fz.terncy_temperature, fz.occupancy_with_timeout,
-            fz.illuminance, fz.terncy_raw, fz.legacy_battery,
+            fz.illuminance, fz.terncy_raw, fz.battery_no_division,
         ],
         toZigbee: [],
     },
@@ -8088,7 +8088,7 @@ const devices = [
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
         supports: 'single, double and triple click, rotate',
-        fromZigbee: [fz.terncy_raw, fz.terncy_knob, fz.legacy_battery],
+        fromZigbee: [fz.terncy_raw, fz.terncy_knob, fz.battery_no_division],
         toZigbee: [],
     },
 
