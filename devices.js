@@ -4988,7 +4988,7 @@ const devices = [
         model: '3460-L',
         vendor: 'Iris',
         description: 'Smart button',
-        supports: 'action, temperature, battery',
+        supports: 'action, temperature',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery_3V_2100, fz.temperature],
         toZigbee: [],
         meta: {configureKey: 1},
