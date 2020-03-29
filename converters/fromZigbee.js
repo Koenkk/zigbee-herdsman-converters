@@ -4356,7 +4356,7 @@ const converters = {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
                 },
-                action: 'color_wheel',
+                action: getProperty('color_wheel', msg, model),
                 transition_time: msg.data.transtime,
             };
         },
@@ -4415,14 +4415,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.movemode === 0)
-            {
-                return {action: getProperty('start', msg, model)};
-            }
-            else
-            {
-                return {action: getProperty('stop', msg, model)};
-            }
+            return {action: getProperty('play_pause', msg, model)};
         },
     },
     ZG2819S_command_recall: {

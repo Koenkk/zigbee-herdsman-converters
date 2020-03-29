@@ -7254,6 +7254,7 @@ const devices = [
             fz.ZG2819S_command_move_hue, fz.ZG2819S_command_recall,
         ],
         toZigbee: [ ],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'ep1': 1, 'ep2': 2, 'ep3': 3, 'ep4': 4};
         },
