@@ -4615,13 +4615,14 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Water leak sensor (2016 model)',
         supports: 'water leak',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery_3V],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery_3V, fz.temperature],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.temperature(endpoint);
         },
     },
     {
