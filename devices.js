@@ -2350,7 +2350,7 @@ const devices = [
         description: 'Smart heating thermostat',
         supports: 'temperature, occupancy, un-/occupied heating, schedule',
         fromZigbee: [
-            fz.battery_not_divided_voltage,
+            fz.legacy_battery_voltage,
             fz.thermostat_att_report,
         ],
         toZigbee: [
@@ -7402,7 +7402,7 @@ const devices = [
         description: 'PIR sensor',
         supports: 'occupancy',
         fromZigbee: [
-            fz.battery, fz.battery_not_divided_voltage,
+            fz.battery, fz.legacy_battery_voltage,
             fz.ignore_basic_report,
             fz.ias_occupancy_alarm_1,
         ],
@@ -7694,7 +7694,7 @@ const devices = [
         description: 'Thermostat',
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
-            fz.battery_not_divided_voltage,
+            fz.legacy_battery_voltage,
             fz.thermostat_att_report,
         ],
         toZigbee: [
