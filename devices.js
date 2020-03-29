@@ -5010,6 +5010,21 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_2],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['HT8-ZB'],
+        model: '27087-03',
+        vendor: 'Iris',
+        description: 'Hose faucet water timer',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.battery_3V, fz.ignore_time_read],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
 
     // ksentry
     {
