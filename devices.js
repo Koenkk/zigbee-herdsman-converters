@@ -6930,7 +6930,8 @@ const devices = [
         description: 'ZigBee double key wall switch',
         supports: 'on/off, brightness',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff, fz.battery_not_divided,
+            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
+            fz.battery_not_divided,
         ],
         toZigbee: [],
     },
