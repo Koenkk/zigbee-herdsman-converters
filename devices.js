@@ -3947,6 +3947,14 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
+        zigbeeModel: ['GL-S-004ZS'],
+        model: 'GL-S-004ZS',
+        vendor: 'Gledopto',
+        description: 'Zigbee smart RGB+CCT 4W MR16',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-C-007S'],
         model: 'GL-C-007S',
         vendor: 'Gledopto',
