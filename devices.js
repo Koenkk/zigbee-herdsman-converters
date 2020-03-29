@@ -2673,6 +2673,37 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['Switch 4x EU-LIGHTIFY'],
+        model: 'AB371860355',
+        vendor: 'OSRAM',
+        description: 'Smart+ switch',
+        supports: '4 buttons with click/hold/release',
+        fromZigbee: [
+            fz.osram_lightify_switch_AB371860355_cmdOn,
+            fz.osram_lightify_switch_AB371860355_cmdOff,
+            fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
+            fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
+            fz.osram_lightify_switch_AB371860355_cmdMove,
+            fz.osram_lightify_switch_AB371860355_cmdStop,
+            fz.osram_lightify_switch_AB371860355_cmdMoveHue,
+            fz.osram_lightify_switch_AB371860355_cmdMoveSat,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await bind(endpoint2, coordinatorEndpoint, ['genLevelCtrl', 'lightingColorCtrl']);
+            await bind(endpoint3, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await bind(endpoint4, coordinatorEndpoint, ['genLevelCtrl', 'lightingColorCtrl']);
+            await configureReporting.batteryVoltage(endpoint1);
+        },
+    },
+    {
         zigbeeModel: ['SubstiTube'],
         model: 'ST8AU-CON',
         vendor: 'OSRAM',

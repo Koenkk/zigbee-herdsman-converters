@@ -2877,6 +2877,67 @@ const converters = {
             return {action: `${direction}release`};
         },
     },
+    osram_lightify_switch_AB371860355_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'left_top_click'};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'left_bottom_click'};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdStepColorTemp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandStepColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            const pos = (msg.data.stepmode === 1) ? 'top' : 'bottom';
+            return {action: `right_${pos}_click`};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdMoveWithOnOff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'left_top_hold'};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdMove: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'left_bottom_hold'};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdStop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            const pos = (msg.endpoint.ID === 1) ? 'top' : 'bottom';
+            return {action: `left_${pos}_release`};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdMoveHue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            const pos = (msg.endpoint.ID === 2) ? 'top' : 'bottom';
+            const action = (msg.data.movemode === 0) ? 'release' : 'hold';
+            return {action: `right_${pos}_${action}`};
+        },
+    },
+    osram_lightify_switch_AB371860355_cmdMoveSat: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToSaturation',
+        convert: (model, msg, publish, options, meta) => {
+            const pos = (msg.endpoint.ID === 2) ? 'top' : 'bottom';
+            return {action: `right_${pos}_hold`};
+        },
+    },
     OJBCR701YZ_statuschange: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
