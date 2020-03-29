@@ -5099,7 +5099,7 @@ const devices = [
 
     // Centralite
     {
-        zigbeeModel: ['4256251-RZHAC', '4257050-RZHAC'],
+        zigbeeModel: ['4256251-RZHAC'],
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
@@ -5128,6 +5128,25 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
+            await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
+        },
+    },
+    {
+        zigbeeModel: ['4257050-RZHAC'],
+        model: '4257050-RZHAC',
+        vendor: 'Centralite',
+        description: '3-Series smart outlet',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
