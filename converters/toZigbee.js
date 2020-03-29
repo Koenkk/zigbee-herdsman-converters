@@ -362,6 +362,12 @@ const converters = {
                             readAfterWriteTime: transition * 100,
                         };
                     } else {
+                        // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
+                        // with transition.
+                        if (meta.state.hasOwnProperty('brightness')) {
+                            store[entity.deviceIeeeAddress] = meta.state.brightness;
+                        }
+
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                         if (state === 'on') {
                             result.readAfterWriteTime = 0;
