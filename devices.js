@@ -5157,6 +5157,36 @@ const devices = [
         description: '3-Series night light repeater',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['3157100'],
+        model: '3157100',
+        vendor: 'Centralite',
+        description: '3-Series pearl touch thermostat,',
+        supports: 'temperature, heating/cooling system control, fan',
+        fromZigbee: [
+            fz.battery_3V_2100,
+            fz.thermostat_att_report,
+            fz.generic_fan_mode,
+            fz.ignore_time_read,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacFanCtrl']);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.thermostatRunningState(endpoint);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.fanMode(endpoint);
+        },
+    },
 
     // Blaupunkt
     {

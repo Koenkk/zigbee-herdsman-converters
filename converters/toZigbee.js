@@ -767,6 +767,16 @@ const converters = {
             await entity.read('hvacThermostat', ['occupiedCoolingSetpoint']);
         },
     },
+    thermostat_unoccupied_cooling_setpoint: {
+        key: ['unoccupied_cooling_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const unoccupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['unoccupiedCoolingSetpoint']);
+        },
+    },
     thermostat_remote_sensing: {
         key: ['remote_sensing'],
         convertSet: async (entity, key, value, meta) => {
