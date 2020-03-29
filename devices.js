@@ -8875,6 +8875,30 @@ const devices = [
             });
         },
     },
+    
+    // Develco 
+    {
+        zigbeeModel: ['SMSZB-120'],
+        model: 'SMSZB-120',
+        vendor: 'Develco Products A/S',
+        description: 'Smoke detector with siren',
+        supports: 'smoke, warning, temperature',
+        fromZigbee: [fz.temperature, fz.bitron_battery_att_report, fz.develco_smoke, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(35);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
+            await configureReporting.batteryVoltage(endpoint);
+            const endpoint2 = device.getEndpoint(38);
+            await bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint2);
+            },
+        endpoint: (device) => {
+            return {'default': 35};
+            },
+     },
+    
 ];
 
 module.exports = devices.map((device) =>
