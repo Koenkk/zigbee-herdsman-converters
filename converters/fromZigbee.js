@@ -4414,6 +4414,30 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
+	develco_smoke: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse', 'commandStatusChangeNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneState = msg.data.zoneState;
+            const zoneType = msg.data.zoneType;
+            const zoneStatus = msg.data.zonestatus;
+            const iasCieAddr = msg.data.iasCieAddr;
+            const zoneId = msg.data.zoneId;
+        
+        return {
+            sensor_type: zoneType,
+            enrolled: zoneState,
+            smoke: (zoneStatus & 1) > 0, // Bit 0 = Alarm: Smoke
+            IASCIEAddress: iasCieAddr,
+            zoneID: zoneId,
+            battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Battery LOW indicator
+	        supervision_reports: (zoneStatus & 1 << 4) > 0,
+	        restore_reports: (zoneStatus & 1 << 5) > 0,
+            test: (zoneStatus & 1 << 8) > 0,
+
+            };    
+        },
+    },    
 };
 
 module.exports = converters;
