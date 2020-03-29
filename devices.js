@@ -4293,6 +4293,22 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['4512706'],
+        model: '4512706',
+        vendor: 'Namron',
+        description: 'Remote control',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_step_with_on_off, fz.command_step_color_temperature,
+            fz.command_recall, fz.command_move_to_color_temp, fz.battery,
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+    },
 
     // SmartThings
     {
