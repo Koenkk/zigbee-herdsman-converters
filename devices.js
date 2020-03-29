@@ -5015,7 +5015,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Hose faucet water timer',
         supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.battery_3V],
+        fromZigbee: [fz.on_off, fz.battery_3V, fz.ignore_time_read],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
