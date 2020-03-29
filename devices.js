@@ -5145,7 +5145,7 @@ const devices = [
         zigbeeModel: ['3157100'],
         model: '3157100',
         vendor: 'Centralite',
-        description: 'Thermostat',
+        description: '3-Series pearl touch thermostat,',
         supports: 'temperature, heating/cooling system control, fan',
         fromZigbee: [
             fz.battery_3V_2100,
