@@ -2344,6 +2344,10 @@ const converters = {
                 result.occupied_cooling_setpoint =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
+            if (typeof msg.data['unoccupiedCoolingSetpoint'] == 'number') {
+                result.unoccupied_cooling_setpoint =
+                    precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
+            }
             if (typeof msg.data['weeklySchedule'] == 'number') {
                 result.weekly_schedule = msg.data['weeklySchedule'];
             }
