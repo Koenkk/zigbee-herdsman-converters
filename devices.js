@@ -7248,7 +7248,7 @@ const devices = [
         model: '511.344',
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW/4Ch',
-        supports: 'click, on/off, brightness, color',
+        supports: 'click, color, color_temp',
         fromZigbee: [ fz.battery, fz.ZG2819S_command_on, fz.ZG2819S_command_off,
             fz.ZG2819S_change_color, fz.ZG2819S_change_brightness, fz.ZG2819S_move_to_color_temp,
             fz.ZG2819S_command_move_hue, fz.ZG2819S_command_recall,

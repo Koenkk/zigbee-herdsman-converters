@@ -4352,12 +4352,12 @@ const converters = {
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
             return {
-                action_color: {
+                [getProperty('color', msg, model)]: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
                 },
-                action: getProperty('color_wheel', msg, model),
-                transition_time: msg.data.transtime,
+                [getProperty('click', msg, model)]: 'color_wheel',
+                [getProperty('transition_time', msg, model)]: msg.data.transtime,
             };
         },
     },
@@ -4365,12 +4365,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            var endpointGroup = msg.endpoint.ID;
             return {
-                action: (msg.data.stepmode == 0) ? getProperty('up', msg, model) : getProperty('down', msg, model),
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
+                [getProperty('click', msg, model)]: (msg.data.stepmode == 0) ? 'brightness_up' : 'brightness_down',
+                [getProperty('step_mode', msg, model)]: msg.data.stepmode,
+                [getProperty('step_size', msg, model)]: msg.data.stepsize,
+                [getProperty('transition_time', msg, model)]: msg.data.transtime,
             };
         },
     },
@@ -4384,7 +4383,7 @@ const converters = {
             {
                 return null;
             }
-            return {action: getProperty('on', msg, model)};
+            return {[getProperty('click', msg, model)]: 'on'};
         },
     },
     ZG2819S_command_off: {
@@ -4397,7 +4396,7 @@ const converters = {
             {
                 return null;
             }
-            return {action: getProperty('off', msg, model)};
+            return {[getProperty('click', msg, model)]: 'off'};
         },
     },
     ZG2819S_move_to_color_temp: {
@@ -4405,9 +4404,9 @@ const converters = {
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
             return {
-                action: getProperty('color_temp', msg, model),
-                action_color_temperature: msg.data.colortemp,
-                transition_time: msg.data.transtime,
+                [getProperty('click', msg, model)]: 'color_temp',
+                [getProperty('color_temp', msg, model)]: msg.data.colortemp,
+                [getProperty('transition_time', msg, model)]: msg.data.transtime,
             };
         },
     },
@@ -4415,7 +4414,9 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('play_pause', msg, model)};
+            return {
+                [getProperty('click', msg, model)]: 'play_pause',
+            };
         },
     },
     ZG2819S_command_recall: {
@@ -4428,7 +4429,9 @@ const converters = {
             {
                 return null;
             }
-            return {action: getProperty(`scene_${msg.data.sceneid}`, msg, model)};
+            return {
+                [getProperty('click', msg, model)]: `scene_${msg.data.sceneid}`,
+            };
         },
     },
 
