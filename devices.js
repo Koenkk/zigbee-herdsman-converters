@@ -2148,6 +2148,14 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LLM001'],
+        model: '7121131PU',
+        vendor: 'Philips',
+        description: 'Hue Beyond white and color ambiance suspension light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
 
     // Belkin
     {
