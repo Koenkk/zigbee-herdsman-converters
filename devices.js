@@ -4450,7 +4450,7 @@ const devices = [
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.activePower(endpoint);
             await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
+            await configureReporting.rmsVoltage(endpoint, {reportableChange: 10});
         },
     },
     {
