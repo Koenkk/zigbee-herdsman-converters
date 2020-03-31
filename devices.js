@@ -7687,6 +7687,38 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
+    
+    {
+        zigbeeModel: ['TH1300ZB'],
+        model: 'TH1300ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee smart floor heating thermostat',
+        supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
+        fromZigbee: [
+            fz.thermostat_att_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+        },
+    },
+
     {
         zigbeeModel: ['TH1400ZB'],
         model: 'TH1400ZB',
