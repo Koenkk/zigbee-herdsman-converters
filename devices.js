@@ -5980,14 +5980,20 @@ const devices = [
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             let firstEndpoint = 0x0a;
 
-            const switchEndpoint = device.getEndpoint(0x12);
-            if (switchEndpoint != null) {
+            const switchEndpoint10 = device.getEndpoint(10);
+            if (switchEndpoint10 != null && switchEndpoint10.supportsOutputCluster('genOnOff')) {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/3027#issuecomment-606169628
+                await bind(switchEndpoint10, coordinatorEndpoint, ['genOnOff']);
+            }
+
+            const switchEndpoint12 = device.getEndpoint(0x12);
+            if (switchEndpoint12 != null) {
                 firstEndpoint++;
-                await bind(switchEndpoint, coordinatorEndpoint, ['genOnOff']);
+                await bind(switchEndpoint12, coordinatorEndpoint, ['genOnOff']);
             }
 
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
