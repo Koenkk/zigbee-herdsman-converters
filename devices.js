@@ -7687,7 +7687,6 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
-
     {
         zigbeeModel: ['TH1300ZB'],
         model: 'TH1300ZB',
@@ -7718,7 +7717,6 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
-
     {
         zigbeeModel: ['TH1400ZB'],
         model: 'TH1400ZB',
