@@ -4548,7 +4548,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['3305-S'],
+        zigbeeModel: ['3305-S', '3305'],
         model: '3305-S',
         vendor: 'SmartThings',
         description: 'Motion sensor (2014 model)',
