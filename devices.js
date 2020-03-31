@@ -8251,7 +8251,7 @@ const devices = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
