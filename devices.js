@@ -3293,7 +3293,7 @@ const devices = [
     },
     {
         zigbeeModel: ['65A01-1'],
-        model: 'OMNISTAT2',
+        model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
         supports: 'temperature, heating/cooling system control, fan',
