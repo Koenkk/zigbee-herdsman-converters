@@ -239,6 +239,24 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
+    thermostatOccupiedCoolingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
+        const payload = [{
+            attribute: 'occupiedCoolingSetpoint',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
+    thermostatUnoccupiedCoolingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
+        const payload = [{
+            attribute: 'unoccupiedCoolingSetpoint',
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
+        }];
+        await endpoint.configureReporting('hvacThermostat', payload);
+    },
     thermostatPIHeatingDemand: async (endpoint, min=0, max=repInterval.MINUTES_5, change=10) => {
         const payload = [{
             attribute: 'pIHeatingDemand',
@@ -3271,6 +3289,35 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['65A01-1'],
+        model: 'RC-2000WH',
+        vendor: 'Leviton',
+        description: 'Omnistat2 wireless thermostat',
+        supports: 'temperature, heating/cooling system control, fan',
+        fromZigbee: [fz.thermostat_att_report, fz.generic_fan_mode],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
+            tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatSystemMode(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await configureReporting.thermostatUnoccupiedCoolingSetpoint(endpoint);
+            await configureReporting.fanMode(endpoint);
         },
     },
 
