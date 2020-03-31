@@ -85,7 +85,7 @@ const numberWithinRange = (number, min, max) => {
 // get object property name (key) by it's value
 const getKey = (object, value) => {
     for (const key in object) {
-        if (object[key] == value) return key;
+        if (object[key]==value) return key;
     }
 };
 
@@ -509,8 +509,8 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -521,8 +521,8 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 gas: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -532,9 +532,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
-                gas: (zoneStatus & 1 << 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                gas: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -545,12 +545,12 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 smoke: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
-                supervision_reports: (zoneStatus & 1 << 4) > 0,
-                restore_reports: (zoneStatus & 1 << 5) > 0,
-                trouble: (zoneStatus & 1 << 6) > 0,
-                ac_status: (zoneStatus & 1 << 7) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                trouble: (zoneStatus & 1<<6) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
             };
         },
     },
@@ -561,8 +561,8 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -573,8 +573,8 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -584,9 +584,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
-                occupancy: (zoneStatus & 1 << 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                occupancy: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -613,8 +613,8 @@ const converters = {
 
             return {
                 occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1 << 2) > 0,
-                battery_low: (zoneStatus & 1 << 3) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -1045,11 +1045,11 @@ const converters = {
             if (value === 0) action = {'action': 'shake'};
             else if (value === 2) action = {'action': 'wakeup'};
             else if (value === 3) action = {'action': 'fall'};
-            else if (value >= 512) action = {'action': 'tap', 'side': value - 512};
-            else if (value >= 256) action = {'action': 'slide', 'side': value - 256};
-            else if (value >= 128) action = {'action': 'flip180', 'side': value - 128};
+            else if (value >= 512) action = {'action': 'tap', 'side': value-512};
+            else if (value >= 256) action = {'action': 'slide', 'side': value-256};
+            else if (value >= 128) action = {'action': 'flip180', 'side': value-128};
             else if (value >= 64) {
-                action = {action: 'flip90', from_side: Math.floor((value - 64) / 8), to_side: value % 8, side: value % 8};
+                action = {action: 'flip90', from_side: Math.floor((value-64) / 8), to_side: value % 8, side: value % 8};
             }
 
             return action ? action : null;
@@ -1553,8 +1553,8 @@ const converters = {
                 const d1025 = msg.data['1025'];
                 return {
                     options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: d1025[2] == '\u0001',
-                        hand_open: d1025[5] == '\u0000',
+                        reverse_direction: d1025[2]=='\u0001',
+                        hand_open: d1025[5]=='\u0000',
                     },
                 };
             }
@@ -1588,7 +1588,7 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
-                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -1638,7 +1638,7 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 carbon_monoxide: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
-                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 4 = Battery LOW indicator
+                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
             };
         },
     },
@@ -1739,9 +1739,9 @@ const converters = {
                 const z = ((data['0'] << 16) >> 16);
 
                 // calculate angle
-                result.angle_x = Math.round(Math.atan(x / Math.sqrt(y * y + z * z)) * 180 / Math.PI);
-                result.angle_y = Math.round(Math.atan(y / Math.sqrt(x * x + z * z)) * 180 / Math.PI);
-                result.angle_z = Math.round(Math.atan(z / Math.sqrt(x * x + y * y)) * 180 / Math.PI);
+                result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
+                result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
+                result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
                 // calculate absolulte angle
                 const R = Math.sqrt(x * x + y * y + z * z);
@@ -2024,11 +2024,9 @@ const converters = {
 
             // Initialize store
             if (!store[deviceID]) {
-                store[deviceID] = {
-                    pressStart: null, pressType: null,
+                store[deviceID] = {pressStart: null, pressType: null,
                     delayedButton: null, delayedBrightnessSend: null, delayedType: null,
-                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null,
-                };
+                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
                 if (brightnessEnabled) {
                     store[deviceID].brightnessValue = 255;
                     store[deviceID].brightnessSince = null;
@@ -2467,7 +2465,7 @@ const converters = {
                     // system_mode => 'heat', boost mode
                     result.system_mode = common.thermostatSystemModes[4];
                     resultHostFlags.boost = true;
-                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0) {
+                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
                     // system_mode => 'off', window open detected
                     result.system_mode = common.thermostatSystemModes[0];
                     resultHostFlags.window_open = true;
@@ -2475,11 +2473,11 @@ const converters = {
                     // system_mode => 'auto', default
                     result.system_mode = common.thermostatSystemModes[1];
                 }
-                if ((result.eurotronic_host_flags & (1 << 1)) != 0) {
+                if ((result.eurotronic_host_flags & (1 << 1)) != 0 ) {
                     // mirror_display
                     resultHostFlags.mirror_display = true;
                 }
-                if ((result.eurotronic_host_flags & (1 << 7)) != 0) {
+                if ((result.eurotronic_host_flags & (1 << 7)) != 0 ) {
                     // child protection
                     resultHostFlags.child_protection = true;
                 }
@@ -3254,7 +3252,7 @@ const converters = {
                 const userId = data.substr(5, 2);
                 const userType = data.substr(1, 1); // 1 admin, 2 user
                 result.data = data;
-                result.action = (lockStatusLookup[14 + parseInt(command, 16)] +
+                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
                     (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
                 result.user = parseInt(userId, 16);
             } else if (msg.data['65297']) { // finger, password failed or bell
@@ -3277,7 +3275,7 @@ const converters = {
                 const command = data.substr(0, 1); // 1 add, 2 delete
                 const userId = data.substr(5, 2);
                 result.data = data;
-                result.action = lockStatusLookup[6 + parseInt(command, 16)];
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
                 result.user = parseInt(userId, 16);
                 result.repeat = null;
             }
@@ -3316,45 +3314,45 @@ const converters = {
                 const command = data.substr(6, 4);
                 if (
                     command === '0301' || // ZNMS12LM
-                    command === '0341' // ZNMS13LM
+                        command === '0341' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
                     command === '0311' || // ZNMS12LM
-                    command === '0351' // ZNMS13LM
+                        command === '0351' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[4];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
                     command === '0205' || // ZNMS12LM
-                    command === '0245' // ZNMS13LM
+                        command === '0245' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'UNLOCK';
                     result.reverse = 'LOCK';
                 } else if (
                     command === '0215' || // ZNMS12LM
-                    command === '0255' || // ZNMS13LM
-                    command === '1355' // ZNMS13LM
+                        command === '0255' || // ZNMS13LM
+                        command === '1355' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[3];
                     result.state = 'LOCK';
                     result.reverse = 'LOCK';
                 } else if (
                     command === '0111' || // ZNMS12LM
-                    command === '1351' || // ZNMS13LM locked from inside
-                    command === '1451' // ZNMS13LM locked from outside
+                        command === '1351' || // ZNMS13LM locked from inside
+                        command === '1451' // ZNMS13LM locked from outside
                 ) {
                     result.action = lockStatusLookup[5];
                     result.state = 'LOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
                     command === '0b00' || // ZNMS12LM
-                    command === '0640' || // ZNMS13LM
-                    command === '0600' // ZNMS13LM
+                        command === '0640' || // ZNMS13LM
+                        command === '0600' // ZNMS13LM
 
                 ) {
                     result.action = lockStatusLookup[12];
@@ -3362,16 +3360,16 @@ const converters = {
                     result.reverse = 'UNLOCK';
                 } else if (
                     command === '0c00' || // ZNMS12LM
-                    command === '2300' || // ZNMS13LM
-                    command === '0540' || // ZNMS13LM
-                    command === '0440' // ZNMS13LM
+                        command === '2300' || // ZNMS13LM
+                        command === '0540' || // ZNMS13LM
+                        command === '0440' // ZNMS13LM
                 ) {
                     result.action = lockStatusLookup[11];
                     result.state = 'UNLOCK';
                     result.reverse = 'UNLOCK';
                 } else if (
                     command === '2400' || // ZNMS13LM door closed from insed
-                    command === '2401' // ZNMS13LM door closed from outside
+                        command === '2401' // ZNMS13LM door closed from outside
                 ) {
                     result.action = lockStatusLookup[17];
                     result.state = 'UNLOCK';
@@ -3382,7 +3380,7 @@ const converters = {
                 const command = data.substr(6, 2); // 1 finger open, 2 password open
                 const userId = data.substr(12, 2);
                 const userType = data.substr(8, 1); // 1 admin, 2 user
-                result.action = (lockStatusLookup[14 + parseInt(command, 16)] +
+                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
                     (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
                 result.user = parseInt(userId, 16);
             } else if (msg.data['65297']) { // finger, password failed or bell
@@ -3403,13 +3401,13 @@ const converters = {
                 const data = Buffer.from(msg.data['65281'], 'ascii').toString('hex');
                 const command = data.substr(18, 2); // 1 add, 2 delete
                 const userId = data.substr(12, 2);
-                result.action = lockStatusLookup[6 + parseInt(command, 16)];
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
                 result.user = parseInt(userId, 16);
                 result.repeat = null;
             } else if (msg.data['65522']) { // set languge
                 const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
                 const langId = data.substr(6, 2); // 1 chinese, 2: english
-                result.action = (lockStatusLookup[14]) + (langId === '2' ? '_english' : '_chinese');
+                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
                 result.user = null;
                 result.repeat = null;
             }
@@ -3514,7 +3512,7 @@ const converters = {
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const battery = {max: 3000, min: 2100};
-            const voltage = msg.data['mainsVoltage'] / 10;
+            const voltage = msg.data['mainsVoltage'] /10;
             return {
                 battery: toPercentage(voltage, battery.min, battery.max),
                 voltage: voltage, // @deprecated
@@ -3671,7 +3669,7 @@ const converters = {
                 state: msg.data['onOff'] === 1 ? 'ON' : 'OFF',
                 cpu_temperature: precisionRound(msg.data['41361'], 2),
                 power: power,
-                current: precisionRound(power / 230, 2),
+                current: precisionRound(power/230, 2),
                 action: msg.data['41367'] === 1 ? 'hold' : 'release',
             };
         },
@@ -3687,7 +3685,7 @@ const converters = {
             let voltage = null;
 
             if (msg.data['247']) {
-                voltage = msg.data['247'][2] + msg.data['247'][3] * 256;
+                voltage = msg.data['247'][2] + msg.data['247'][3]*256;
             }
 
             if (voltage) {
@@ -3837,30 +3835,28 @@ const converters = {
 
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {
-                    lastClk: null, lastSeq: -10, lastBrightness: null,
-                    lastMoveLevel: null, lastColorTemp: null,
-                };
+                store[deviceID] = {lastClk: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
 
             let clk = 'brightness';
             let cmd = null;
-            const payload = {brightness: msg.data.level, transition: parseFloat(msg.data.transtime / 10.0)};
-            if (msg.type == 'commandMoveToLevel') {
+            const payload = {brightness: msg.data.level, transition: parseFloat(msg.data.transtime/10.0)};
+            if ( msg.type == 'commandMoveToLevel' ) {
                 // pressing the brightness button increments/decrements from 13-254.
                 // when it reaches the end (254) it will start decrementing by a step,
                 // and vice versa.
                 const direction = msg.data.level > store[deviceID].lastBrightness ? 'up' : 'down';
                 cmd = `${clk}_${direction}`;
                 store[deviceID].lastBrightness = msg.data.level;
-            } else if (msg.type == 'commandMoveToLevelWithOnOff') {
+            } else if ( msg.type == 'commandMoveToLevelWithOnOff' ) {
                 // This is the 'start' of the 4th button sequence.
                 clk = 'memory';
                 store[deviceID].lastMoveLevel = msg.data.level;
                 store[deviceID].lastClk = clk;
             }
 
-            if (clk != 'memory') {
+            if ( clk != 'memory' ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
                 store[deviceID].lastClk = clk;
                 payload.click = clk;
@@ -3880,29 +3876,27 @@ const converters = {
             // and we can ignore it entirely
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
-                store[deviceID] = {
-                    lastClk: null, lastSeq: -10, lastBrightness: null,
-                    lastMoveLevel: null, lastColorTemp: null,
-                };
+                store[deviceID] = {lastClk: null, lastSeq: -10, lastBrightness: null,
+                    lastMoveLevel: null, lastColorTemp: null};
             }
             const lastClk = store[deviceID].lastClk;
             const lastSeq = store[deviceID].lastSeq;
 
             const seq = msg.meta.zclTransactionSequenceNumber;
             let clk = 'colortemp';
-            const payload = {color_temp: msg.data.colortemp, transition: parseFloat(msg.data.transtime / 10.0)};
+            const payload = {color_temp: msg.data.colortemp, transition: parseFloat(msg.data.transtime/10.0)};
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
             // because it's not really button3, it's actually button4
-            if (lastClk == 'memory') {
+            if ( lastClk == 'memory' ) {
                 payload.click = lastClk;
                 payload.action = 'recall';
                 payload.brightness = store[deviceID].lastMoveLevel;
 
                 // ensure the "last" message was really the message prior to this one
                 // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
-                if ((seq == 0 && lastSeq == 127) || (seq - lastSeq) == 1) {
+                if ( (seq == 0 && lastSeq == 127 ) || ( seq - lastSeq ) == 1 ) {
                     clk = null;
                 }
             } else {
@@ -3916,7 +3910,7 @@ const converters = {
                 store[deviceID].lastColorTemp = msg.data.colortemp;
             }
 
-            if (clk != null) {
+            if ( clk != null ) {
                 store[deviceID].lastSeq = msg.meta.zclTransactionSequenceNumber;
                 store[deviceID].lastClk = clk;
                 return payload;
@@ -4107,9 +4101,9 @@ const converters = {
             const key = msg.data.dp;
             const val = msg.data.data;
             if (key === 257) {
-                return {state: (val[0]) ? 'ON' : 'OFF'};
+                return {state: (val[0]) ? 'ON': 'OFF'};
             } else {
-                const level = val[2] * 256 + val[3];
+                const level = val[2]*256 + val[3];
                 const normalised = (level - 10) / (1000 - 10);
                 return {brightness: (normalised * 254).toFixed(2), level: level};
             }
@@ -4137,7 +4131,7 @@ const converters = {
                 3: 'state_l3',
                 4: 'state_l4',
             };
-            return {[lookup[key]]: (val) ? 'ON' : 'OFF'};
+            return {[lookup[key]]: (val) ? 'ON': 'OFF'};
         },
     },
     almond_click: {
@@ -4163,7 +4157,7 @@ const converters = {
             const now = Date.now();
             const since = store[deviceID].since;
 
-            if ((now - since) > 100) {
+            if ((now-since)>100) {
                 store[deviceID].since = now;
                 return lookup[action] ? lookup[action] : null;
             } else {
