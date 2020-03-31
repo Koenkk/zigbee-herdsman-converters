@@ -8323,6 +8323,27 @@ const devices = [
         description: 'Zigbee LED controller RGB + CCT or RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593'],
+        model: 'RL804QZB',
+        vendor: 'ORVIBO',
+        description: 'Multi-functional 3 gang relay',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // SONOFF
     {
