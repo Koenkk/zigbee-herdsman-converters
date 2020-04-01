@@ -2240,10 +2240,16 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
         supports: 'hold, single, double and triple click, on/off',
-        fromZigbee: [fz.ptvo_switch_state, fz.ptvo_switch_buttons],
-        toZigbee: [tz.on_off, tz.ptvo_switch_trigger],
+        fromZigbee: [
+            fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
+            fz.ptvo_switch_analog_input,
+        ],
+        toZigbee: [tz.on_off, tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input],
         endpoint: (device) => {
-            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
+            return {
+                'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5, 'uart': 1,
+                'value1': 1, 'value2': 2, 'value3': 3, 'value4': 4, 'value5': 5, 'value6': 6, 'value7': 7, 'value8': 8,
+            };
         },
     },
     {
