@@ -1606,6 +1606,31 @@ const converters = {
             }
         },
     },
+    ptvo_switch_uart: {
+        key: ['ep1'],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                return;
+            }
+            for (const endpoint of meta.device.endpoints) {
+                if (endpoint.hasOwnProperty('clusters') && endpoint.clusters.hasOwnProperty('genMultistateValue')) {
+                    const payload = {14: {value, type: 0x42}};
+                    await endpoint.write('genMultistateValue', payload);
+                    break;
+                }
+            }
+        },
+    },
+    ptvo_switch_analog_input: {
+        key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'],
+        convertGet: async (entity, key, meta) => {
+            const epId = parseInt(key.substr(1, 1));
+            if ( utils.hasEndpoints(meta.device, [epId]) ) {
+                const endpoint = meta.device.getEndpoint(epId);
+                await endpoint.read('genAnalogInput', ['presentValue', 'description']);
+            }
+        },
+    },
 
     // ubisys configuration / calibration converters
     ubisys_configure_j1: {
