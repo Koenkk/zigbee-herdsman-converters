@@ -1719,20 +1719,6 @@ const converters = {
             return results;
         },
     },
-<<<<<<< HEAD
-=======
-    heiman_carbon_monoxide: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
-    },
->>>>>>> Added support for radiator valve Siterwell GS361
     JTQJBF01LMBW_gas: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
