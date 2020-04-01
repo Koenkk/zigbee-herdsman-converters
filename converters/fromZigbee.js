@@ -4305,7 +4305,8 @@ const converters = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
             // When controlling manually the device always first send the correct position but after that always 50.
             // Therefore ignore 50.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                msg.data['currentPositionLiftPercentage'] !== 50) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
             }
