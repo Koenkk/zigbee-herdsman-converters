@@ -4297,6 +4297,21 @@ const converters = {
             };
         },
     },
+    ZMCSW032D_cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
+            // When controlling manually the device always first send the correct position but after that always 50.
+            // Therefore ignore 50.
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
+            }
+            return result;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

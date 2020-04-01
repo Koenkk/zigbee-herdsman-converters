@@ -7649,7 +7649,7 @@ const devices = [
         vendor: 'Zemismart',
         description: 'Curtain/roller blind switch',
         supports: 'open, close, stop',
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt],
+        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position_tilt],
         toZigbee: [tz.cover_position_tilt],
     },
     {
