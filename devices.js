@@ -9026,7 +9026,6 @@ const devices = [
         },
     },
 
-<<<<<<< HEAD
     // Wally
     {
         zigbeeModel: ['MultiSensor'],
