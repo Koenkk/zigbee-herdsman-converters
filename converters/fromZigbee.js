@@ -3516,17 +3516,17 @@ const converters = {
     ptvo_switch_uart: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
-            return {uart: msg.data['stateText']};
+        convert: (model, msg, publish, options, meta) => {
+            return {'ep1': msg.data['stateText']};
         },
     },
     ptvo_switch_analog_input: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options) => {
+        convert: (model, msg, publish, options, meta) => {
             const payload = {};
             const channel = msg.endpoint.ID;
-            const name = `value_${channel}`;
+            const name = `l${channel}`;
             payload[name] = precisionRound(msg.data['presentValue'], 3);
             if (msg.data.hasOwnProperty('description') && (msg.data['description'] === 'C')) {
                 payload['temperature'] = precisionRound(msg.data['presentValue'], 1);

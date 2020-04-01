@@ -1607,12 +1607,11 @@ const converters = {
         },
     },
     ptvo_switch_uart: {
-        key: 'uart',
+        key: 'ep1',
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
                 return;
             }
-            console.log('ptvo_switch_uart:', entity);
             for (const endpoint of meta.device.endpoints) {
                 if (endpoint.hasOwnProperty('clusters') && endpoint.clusters.hasOwnProperty('genMultistateValue')) {
                     const payload = {14: {value, type: 0x42}};
@@ -1623,9 +1622,9 @@ const converters = {
         },
     },
     ptvo_switch_analog_input: {
-        key: ['value_1', 'value_2', 'value_3', 'value_4', 'value_5', 'value_6', 'value_7', 'value_8'],
+        key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'],
         convertGet: async (entity, key, meta) => {
-            const epId = parseInt(key.substr(5, 1));
+            const epId = parseInt(key.substr(1, 1));
             if ( utils.hasEndpoints(meta.device, [epId]) ) {
                 const endpoint = meta.device.getEndpoint(epId);
                 await endpoint.read('genAnalogInput', ['presentValue', 'description']);
