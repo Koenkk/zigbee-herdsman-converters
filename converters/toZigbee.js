@@ -1607,7 +1607,7 @@ const converters = {
         },
     },
     ptvo_switch_uart: {
-        key: 'ep1',
+        key: ['ep1'],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
                 return;
