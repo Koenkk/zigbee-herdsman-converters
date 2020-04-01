@@ -1984,7 +1984,7 @@ const converters = {
                     transid: utils.getRandomInt(0, 255),
                     dp: 263,
                     fn: 0,
-                    data: [1, value==='1' ? 1 : 0],
+                    data: [1, value==='LOCK' ? 1 : 0],
                 },
                 {disableDefaultResponse: true},
             );
@@ -2002,7 +2002,7 @@ const converters = {
                     transid: utils.getRandomInt(0, 255),
                     dp: 274,
                     fn: 0,
-                    data: [1, value==='1' ? 1 : 0],
+                    data: [1, value==='ON' ? 1 : 0],
                 },
                 {disableDefaultResponse: true},
             );
@@ -2020,7 +2020,7 @@ const converters = {
                     transid: utils.getRandomInt(0, 255),
                     dp: 276,
                     fn: 0,
-                    data: [1, value==='1' ? 1 : 0],
+                    data: [1, value==='ON' ? 1 : 0],
                 },
                 {disableDefaultResponse: true},
             );

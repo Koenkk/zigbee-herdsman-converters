@@ -227,11 +227,11 @@ const siterwellGs361 = (model, msg, publish, options, meta) => {
 
     switch (dp) {
     case 263: // 0x0701 Changed child lock status
-        return {child_lock: data[0]};
+        return {child_lock: dataAsDecNumber ? "LOCKED" : "UNLOCKED"};
     case 274: // 0x1201 Enabled/disabled window detection feature
-        return {window_detection: data[0]};
+        return {window_detection: dataAsDecNumber ? "ON" : "OFF"};
     case 276: // 0x1401 Enabled/disabled Valve detection feature
-        return {valve_detection: data[0]};
+        return {valve_detection: dataAsDecNumber ? "ON" : "OFF"};
     case 514: // 0x0202 Changed target temperature
         temperature = (dataAsDecNumber / 10).toFixed(1);
         return {current_heating_setpoint: parseFloat(temperature)};
