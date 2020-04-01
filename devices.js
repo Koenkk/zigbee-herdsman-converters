@@ -6808,14 +6808,15 @@ const devices = [
         model: 'NCZ-3011-HA',
         vendor: 'Nyce',
         description: 'Door/window sensor',
-        supports: 'motion, humidity and temperature',
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genIdentify, fz.ignore_poll_ctrl,
-            fz.battery_not_divided, fz.ignore_iaszone_report,
-            fz.ias_occupancy_alarm_2, fz.ias_contact_alarm_1,
-        ],
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['3043'],
