@@ -4382,7 +4382,7 @@ const converters = {
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
                 msg.data['currentPositionLiftPercentage'] !== 50) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
+                result.position = liftPercentage;
             }
             return result;
         },
