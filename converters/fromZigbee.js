@@ -227,11 +227,11 @@ const siterwellGs361 = (model, msg, publish, options, meta) => {
 
     switch (dp) {
     case 263: // 0x0701 Changed child lock status
-        return {child_lock: dataAsDecNumber ? "LOCKED" : "UNLOCKED"};
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
     case 274: // 0x1201 Enabled/disabled window detection feature
-        return {window_detection: dataAsDecNumber ? "ON" : "OFF"};
+        return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
     case 276: // 0x1401 Enabled/disabled Valve detection feature
-        return {valve_detection: dataAsDecNumber ? "ON" : "OFF"};
+        return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
     case 514: // 0x0202 Changed target temperature
         temperature = (dataAsDecNumber / 10).toFixed(1);
         return {current_heating_setpoint: parseFloat(temperature)};
@@ -2497,7 +2497,7 @@ const converters = {
                 result.stelpro_mode = mode;
                 switch (mode) {
                 case 5:
-                    // "Eco" mode is translated into "auto" here
+                    // 'Eco' mode is translated into 'auto' here
                     result.system_mode = common.thermostatSystemModes[1];
                     break;
                 }
@@ -2908,7 +2908,7 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
             const pressure = parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
@@ -3028,7 +3028,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
             // ubisys J1 will report 255 if lift or tilt positions are not known.
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
@@ -3047,9 +3047,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports "open" to be 100 and "closed" to be 0
+            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? liftPercentage : null;
