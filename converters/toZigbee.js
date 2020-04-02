@@ -2079,7 +2079,7 @@ const converters = {
     siterwell_gs361_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if(siterwellGs361SystemModes.hasOwnProperty(value)) {
+            if (siterwellGs361SystemModes.hasOwnProperty(value)) {
                 const modeId = siterwellGs361SystemModes[value];
                 await entity.command(
                     'manuSpecificTuyaDimmer',
