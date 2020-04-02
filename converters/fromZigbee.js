@@ -1,6 +1,7 @@
 'use strict';
 
 const common = require('./common');
+const utils = require('./utils');
 
 const clickLookup = {
     1: 'single',
@@ -186,6 +187,69 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
         const delta = (duration / 10) * (store[deviceID].brightnessDirection === 'up' ? 1 : -1);
         const newValue = store[deviceID].brightnessValue + delta;
         store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
+    }
+};
+
+const siterwellGs361SystemModes = {
+    0: 'off',
+    1: 'auto',
+    2: 'heat',
+};
+
+const siterwellGs361 = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+
+    /*
+     * Structure of the ZCL payload used by Tuya:
+     *
+     * - status: unit8 - 1 byte
+     * - transid: unit8 - 1 byte
+     * - dp: uint16 - 2 bytes* (Big Endian format)
+     * - fn: uint8 - 1 byte
+     * - data: octStr - variable**
+     *
+     * Examples:
+     * | status | transid | dp                | fn | data              |
+     * | 0      | 4       | 0x02 0x02 -> 514  | 0  | [4, 0, 0, 0, 180] |
+     * | 0      | 16      | 0x04 0x04 -> 1028 | 0  | [1, 2]            |
+     *
+     * * The 2 bytes field "dp" uses Big Endian which means that the most meaninful
+     * byte goes right. In plain English: a value like 0x07 0x01 has to be read
+     * from the left so, it becomes 0x0107 witch in base 10 is 263 (the code for
+     * child lock status).
+     *
+     * ** The type octStr prefixes the first byte of the value with the lenght of the
+     * data payload.
+     */
+
+    switch (dp) {
+    case 263: // 0x0701 Changed child lock status
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 274: // 0x1201 Enabled/disabled window detection feature
+        return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 276: // 0x1401 Enabled/disabled Valve detection feature
+        return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 514: // 0x0202 Changed target temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: parseFloat(temperature)};
+    case 515: // 0x0302 MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: parseFloat(temperature)};
+    case 533: // 0x1502 MCU reporting battery status
+        return {battery: parseInt(dataAsDecNumber)};
+    case 1028: // 0x0404 Mode changed
+        if (siterwellGs361SystemModes.hasOwnProperty(dataAsDecNumber)) {
+            return {system_mode: siterwellGs361SystemModes[dataAsDecNumber]};
+        } else {
+            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            return;
+        }
+    default: // The purpose of the codes 1041 & 1043 are still unknown
+        console.log(`zigbee-herdsman-converters:siterwell_gs361: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
     }
 };
 
@@ -2433,7 +2497,7 @@ const converters = {
                 result.stelpro_mode = mode;
                 switch (mode) {
                 case 5:
-                    // "Eco" mode is translated into "auto" here
+                    // 'Eco' mode is translated into 'auto' here
                     result.system_mode = common.thermostatSystemModes[1];
                     break;
                 }
@@ -2844,7 +2908,7 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
             const pressure = parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
@@ -2964,7 +3028,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
             // ubisys J1 will report 255 if lift or tilt positions are not known.
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
@@ -2983,9 +3047,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports "open" to be 100 and "closed" to be 0
+            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? liftPercentage : null;
@@ -4146,6 +4210,16 @@ const converters = {
                 return {brightness: (normalised * 254).toFixed(2), level: level};
             }
         },
+    },
+    siterwell_gs361_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: siterwellGs361,
+    },
+    siterwell_gs361: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: siterwellGs361,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
