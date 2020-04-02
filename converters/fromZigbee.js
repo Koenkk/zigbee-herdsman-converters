@@ -2248,18 +2248,6 @@ const converters = {
             return {contact: msg.data.zonestatus === 36};
         },
     },
-    nue_power_state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            if (button) {
-                const payload = {};
-                payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-                return payload;
-            }
-        },
-    },
     RZHAC_4256251_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -2831,40 +2819,12 @@ const converters = {
             return null;
         },
     },
-    eria_81825_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    eria_81825_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
     eria_81825_updown: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 0 ? 'up' : 'down';
             return {action: `${direction}`};
-        },
-    },
-    ZYCT202_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on', action_group: msg.groupID};
-        },
-    },
-    ZYCT202_off: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off', action_group: msg.groupID};
         },
     },
     ZYCT202_stop: {

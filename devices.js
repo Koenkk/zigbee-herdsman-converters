@@ -3736,10 +3736,11 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart Double GPO',
         supports: 'on/off',
-        fromZigbee: [fz.nue_power_state],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'left': 12, 'right': 11};
+            return {left: 12, right: 11};
         },
     },
     {
@@ -4792,7 +4793,7 @@ const devices = [
         description: 'Remote control',
         supports: 'on, off, stop, up-press, down-press',
         fromZigbee: [
-            fz.ZYCT202_on, fz.ZYCT202_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
+            fz.command_on, fz.command_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
         ],
         toZigbee: [],
         meta: {configureKey: 2},
@@ -6191,7 +6192,7 @@ const devices = [
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
         supports: 'on, off, up, down',
-        fromZigbee: [fz.eria_81825_on, fz.eria_81825_off, fz.eria_81825_updown],
+        fromZigbee: [fz.command_on, fz.command_off, fz.eria_81825_updown],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
