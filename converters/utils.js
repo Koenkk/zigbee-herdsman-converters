@@ -100,17 +100,17 @@ function hasEndpoints(device, endpoints) {
     return true;
 }
 
-const getRandomInt = (min, max) => 
+const getRandomInt = (min, max) =>
     Math.floor(Math.random() * (max - min)) + min;
 
 const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks) => {
     // Destructuring "chunks" is needed because it's a Buffer
     // and we need a simple array.
     const hexValue = [...chunks]
-        .map(decValue => Number(decValue).toString(16))
-        .join("");
+        .map((decValue) => Number(decValue).toString(16))
+        .join('');
     return parseInt(hexValue, 16);
-}
+};
 
 const convertDecimalValueTo2ByteHexArray = (value) => {
     const hexValue = Number(value).toString(16).padStart(4, '0');
