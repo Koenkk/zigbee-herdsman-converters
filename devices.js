@@ -7230,6 +7230,19 @@ const devices = [
         fromZigbee: [fz.command_off, fz.command_on, fz.command_move_to_color_temp, fz.command_move_to_color],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['RGBW-CCT'],
+        model: '511.040',
+        vendor: 'Iluminize',
+        description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Anchor
     {
