@@ -3103,6 +3103,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SP 220'],
+        model: 'SP 220',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SP 222'],
         model: 'SP 222',
         vendor: 'Innr',
