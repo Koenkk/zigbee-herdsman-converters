@@ -7680,6 +7680,12 @@ const devices = [
         supports: 'open, close, stop',
         fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await configureReporting.currentPositionLiftPercentage(endpoint);
+        },
     },
     {
         zigbeeModel: ['TS0003'],
