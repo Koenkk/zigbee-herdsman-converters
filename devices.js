@@ -7679,7 +7679,7 @@ const devices = [
         description: 'Curtain/roller blind switch',
         supports: 'open, close, stop',
         fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
     },
     {
         zigbeeModel: ['TS0003'],
