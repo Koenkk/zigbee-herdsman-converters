@@ -464,6 +464,20 @@ const converters = {
             let cmd;
             const newState = {};
 
+            // Set correct meta.mapped for groups
+            // * all device models are the same -> copy meta.mapped[0]
+            // * mixed device models -> meta.mapped = null (old behavior)
+            if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+                for (const memberMeta of Object.values(meta.mapped)) {
+                    // check all members are the same device
+                    if (meta.mapped[0] != memberMeta) {
+                        meta.mapped = [null];
+                        break;
+                    }
+                }
+                meta.mapped = meta.mapped[0];
+            }
+
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
                 value.x = xy.x;
