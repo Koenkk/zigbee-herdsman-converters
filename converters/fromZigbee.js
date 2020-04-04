@@ -797,6 +797,15 @@ const converters = {
             return payload;
         },
     },
+    command_move_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('move_hue', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -4382,7 +4391,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {[getProperty('click', msg, model)]: 'on'};
+            return {action: getProperty('on', msg, model)};
         },
     },
     ZG2819S_command_off: {
@@ -4394,41 +4403,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {[getProperty('click', msg, model)]: 'off'};
-        },
-    },
-    ZG2819S_move_to_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                [getProperty('click', msg, model)]: 'color_temp',
-                [getProperty('color_temp', msg, model)]: msg.data.colortemp,
-                [getProperty('transition_time', msg, model)]: msg.data.transtime,
-            };
-        },
-    },
-    ZG2819S_command_move_hue: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                [getProperty('click', msg, model)]: 'play_pause',
-            };
-        },
-    },
-    ZG2819S_command_recall: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            // The device sends this command for all four group IDs.
-            // Only forward for the first group.
-            if (msg.groupID !== 46337) {
-                return null;
-            }
-            return {
-                [getProperty('click', msg, model)]: `scene_${msg.data.sceneid}`,
-            };
+            return {action: getProperty('off', msg, model)};
         },
     },
 
