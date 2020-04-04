@@ -4379,8 +4379,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // The device sends this command for all four group IDs.
             // Only forward for the first group.
-            if (msg.groupID !== 46337)
-            {
+            if (msg.groupID !== 46337) {
                 return null;
             }
             return {[getProperty('click', msg, model)]: 'on'};
@@ -4392,8 +4391,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // The device sends this command for all four group IDs.
             // Only forward for the first group.
-            if (msg.groupID !== 46337)
-            {
+            if (msg.groupID !== 46337) {
                 return null;
             }
             return {[getProperty('click', msg, model)]: 'off'};
@@ -4425,8 +4423,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // The device sends this command for all four group IDs.
             // Only forward for the first group.
-            if (msg.groupID !== 46337)
-            {
+            if (msg.groupID !== 46337) {
                 return null;
             }
             return {
