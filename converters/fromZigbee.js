@@ -309,7 +309,7 @@ const converters = {
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full.
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'], 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
