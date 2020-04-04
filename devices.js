@@ -7684,7 +7684,8 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await configureReporting.currentPositionLiftPercentage(endpoint);
+            // Configure reporing of currentPositionLiftPercentage always fails.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3216
         },
     },
     {
