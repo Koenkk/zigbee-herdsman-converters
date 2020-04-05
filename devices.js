@@ -6165,6 +6165,12 @@ const devices = [
         vendor: 'Müller Licht',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
 
     // Salus
