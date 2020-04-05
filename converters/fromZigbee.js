@@ -797,6 +797,15 @@ const converters = {
             return payload;
         },
     },
+    command_move_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('hue_move', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -4345,6 +4354,30 @@ const converters = {
                 result.position = liftPercentage;
             }
             return result;
+        },
+    },
+    ZG2819S_command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('on', msg, model)};
+        },
+    },
+    ZG2819S_command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('off', msg, model)};
         },
     },
 

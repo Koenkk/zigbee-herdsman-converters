@@ -7243,6 +7243,23 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZG2819S-RGBW'],
+        model: '511.344',
+        vendor: 'Iluminize',
+        description: 'Zigbee handheld remote RGBW 4 channels',
+        supports: 'action',
+        fromZigbee: [
+            fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
+            fz.command_step_with_on_off, fz.command_recall,
+            fz.ZG2819S_command_on, fz.ZG2819S_command_off,
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
+    },
 
     // Anchor
     {
