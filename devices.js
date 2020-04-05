@@ -7257,7 +7257,7 @@ const devices = [
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'ep1': 1, 'ep2': 2, 'ep3': 3, 'ep4': 4};
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
     },
 

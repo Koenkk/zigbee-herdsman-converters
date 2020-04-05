@@ -801,7 +801,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('move_hue', msg, model)};
+            const payload = {action: getProperty('hue_move', msg, model)};
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
@@ -4354,32 +4354,6 @@ const converters = {
                 result.position = liftPercentage;
             }
             return result;
-        },
-    },
-    ZG2819S_change_color: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColor',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                [getProperty('color', msg, model)]: {
-                    x: precisionRound(msg.data.colorx / 65535, 3),
-                    y: precisionRound(msg.data.colory / 65535, 3),
-                },
-                [getProperty('click', msg, model)]: 'color_wheel',
-                [getProperty('transition_time', msg, model)]: msg.data.transtime,
-            };
-        },
-    },
-    ZG2819S_change_brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                [getProperty('click', msg, model)]: (msg.data.stepmode == 0) ? 'brightness_up' : 'brightness_down',
-                [getProperty('step_mode', msg, model)]: msg.data.stepmode,
-                [getProperty('step_size', msg, model)]: msg.data.stepsize,
-                [getProperty('transition_time', msg, model)]: msg.data.transtime,
-            };
         },
     },
     ZG2819S_command_on: {
