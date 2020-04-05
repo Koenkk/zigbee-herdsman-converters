@@ -8807,6 +8807,28 @@ const devices = [
             await configureReporting.humidity(endpoint);
         },
     },
+
+    {
+        zigbeeModel: ['qlwz.FB-cover'],
+        model: 'FB-cover',
+        vendor: 'qlwz',
+        description: 'FB-cover',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+    },
+    
+    {
+        zigbeeModel: ['qlwz.letv8key.10'],
+        model: 'LeTV.8KEY',
+        vendor: 'LeTV',
+        description: 'LeTV 8key',
+        supports: 'hold, single, double and triple click',
+        fromZigbee: [fz.qlwz_letv8key_switch],
+        endpoint: (device) => {
+            return {'up': 4, 'down': 2, 'left': 5, 'right': 3, 'center': 8, 'back': 1, 'play': 7, 'voice': 6};
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
