@@ -7247,7 +7247,7 @@ const devices = [
         zigbeeModel: ['ZG2819S-RGBW'],
         model: '511.344',
         vendor: 'Iluminize',
-        description: 'Zigbee handheld remote RGBW/4Ch',
+        description: 'Zigbee handheld remote RGBW 4 channels',
         supports: 'action',
         fromZigbee: [
             fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
