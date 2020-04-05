@@ -8108,7 +8108,7 @@ const devices = [
         vendor: 'ORVIBO',
         description: 'Door or window contact switch',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_genIdentify],
         toZigbee: [],
     },
     {
