@@ -8373,7 +8373,7 @@ const devices = [
         vendor: 'ORVIBO',
         description: 'Door or window contact switch',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_genIdentify],
         toZigbee: [],
     },
     {
@@ -9157,6 +9157,28 @@ const devices = [
             tz.siterwell_gs361_current_heating_setpoint,
             tz.siterwell_gs361_system_mode,
         ],
+    },
+
+    {
+        zigbeeModel: ['qlwz.FB-cover'],
+        model: 'FB-cover',
+        vendor: 'qlwz',
+        description: 'FB-cover',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+    },
+    
+    {
+        zigbeeModel: ['qlwz.letv8key.10'],
+        model: 'LeTV.8KEY',
+        vendor: 'LeTV',
+        description: 'LeTV 8key',
+        supports: 'hold, single, double and triple click',
+        fromZigbee: [fz.qlwz_letv8key_switch],
+        endpoint: (device) => {
+            return {'up': 4, 'down': 2, 'left': 5, 'right': 3, 'center': 8, 'back': 1, 'play': 7, 'voice': 6};
+        },
     },
 ];
 
