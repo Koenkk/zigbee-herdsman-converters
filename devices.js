@@ -8899,6 +8899,27 @@ const devices = [
             },
      },
     
+        // Siterwell
+    {
+        zigbeeModel: ['ivfvd7h'],
+        model: 'GS361A-H04',
+        vendor: 'Siterwell',
+        description: 'Radiator valve with thermostat',
+        supports: 'thermostat, temperature',
+        fromZigbee: [
+            fz.siterwell_gs361,
+            fz.siterwell_gs361_on_set_data,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [
+            tz.siterwell_gs361_child_lock,
+            tz.siterwell_gs361_window_detection,
+            tz.siterwell_gs361_valve_detection,
+            tz.siterwell_gs361_current_heating_setpoint,
+            tz.siterwell_gs361_system_mode,
+        ],
+    },
+    
 ];
 
 module.exports = devices.map((device) =>
