@@ -871,14 +871,14 @@ const converters = {
             return {click: 'off'};
         },
     },
-    E1743_brightness_up: {
+    E1743_brightness_down: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
             return {click: 'brightness_down'};
         },
     },
-    E1743_brightness_down: {
+    E1743_brightness_up: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
