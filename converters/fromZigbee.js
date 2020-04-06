@@ -500,10 +500,10 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-	    const zoneState = msg.data.zoneState;
+            const zoneState = msg.data.zoneState;
             return {
-                enrolled: zoneState,
-		smoke: (zoneStatus & 1) > 0,
+                enrolled: zoneState === 1,
+                smoke: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
                 supervision_reports: (zoneStatus & 1<<4) > 0,
@@ -4415,7 +4415,7 @@ const converters = {
         cluster: 'genTime',
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
-    },    
+    },
 };
 
 module.exports = converters;
