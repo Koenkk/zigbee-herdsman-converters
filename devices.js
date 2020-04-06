@@ -8823,6 +8823,27 @@ const devices = [
             await configureReporting.currentSummReceived(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SMSZB-120'],
+        model: 'SMSZB-120',
+        vendor: 'Develco',
+        description: 'Smoke detector with siren',
+        supports: 'smoke, warning, temperature',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(35);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            const endpoint2 = device.getEndpoint(38);
+            await bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint2);
+        },
+        endpoint: (device) => {
+            return {default: 35};
+        },
+    },
 
     // Wally
     {
@@ -8875,51 +8896,6 @@ const devices = [
             });
         },
     },
-    
-    // Develco 
-    {
-        zigbeeModel: ['SMSZB-120'],
-        model: 'SMSZB-120',
-        vendor: 'Develco Products A/S',
-        description: 'Smoke detector with siren',
-        supports: 'smoke, warning, temperature',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.warning],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(35);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
-            await configureReporting.batteryPercentageRemaining(endpoint)
-            const endpoint2 = device.getEndpoint(38);
-            await bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await configureReporting.temperature(endpoint2);
-            },
-        endpoint: (device) => {
-            return {'default': 35};
-            },
-     },
-    
-        // Siterwell
-    {
-        zigbeeModel: ['ivfvd7h'],
-        model: 'GS361A-H04',
-        vendor: 'Siterwell',
-        description: 'Radiator valve with thermostat',
-        supports: 'thermostat, temperature',
-        fromZigbee: [
-            fz.siterwell_gs361,
-            fz.siterwell_gs361_on_set_data,
-            fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.siterwell_gs361_child_lock,
-            tz.siterwell_gs361_window_detection,
-            tz.siterwell_gs361_valve_detection,
-            tz.siterwell_gs361_current_heating_setpoint,
-            tz.siterwell_gs361_system_mode,
-        ],
-    },
-    
 ];
 
 module.exports = devices.map((device) =>
