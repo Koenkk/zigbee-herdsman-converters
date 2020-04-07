@@ -9185,6 +9185,26 @@ const devices = [
             tz.siterwell_gs361_system_mode,
         ],
     },
+
+    // Green Power
+    {
+        zigbeeModel: ['GreenPower_2'],
+        model: 'GreenPower_On_Off_Switch',
+        vendor: 'GreenPower',
+        description: 'On/off switch',
+        supports: 'action',
+        fromZigbee: [fz.greenpower_on_off_switch],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['GreenPower_7'],
+        model: 'GreenPower_7',
+        vendor: 'GreenPower',
+        description: 'device 7',
+        supports: 'action',
+        fromZigbee: [fz.greenpower_7],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>

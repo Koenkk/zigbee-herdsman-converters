@@ -4382,6 +4382,55 @@ const converters = {
             return {action: getProperty('off', msg, model)};
         },
     },
+    greenpower_on_off_switch: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            const lookup = {
+                0x00: 'identify',
+                0x10: 'recall_scene_0',
+                0x11: 'recall_scene_1',
+                0x12: 'recall_scene_2',
+                0x13: 'recall_scene_3',
+                0x14: 'recall_scene_4',
+                0x15: 'recall_scene_5',
+                0x16: 'recall_scene_6',
+                0x17: 'recall_scene_7',
+                0x18: 'store_scene_0',
+                0x19: 'store_scene_1',
+                0x1A: 'store_scene_2',
+                0x1B: 'store_scene_3',
+                0x1C: 'store_scene_4',
+                0x1D: 'store_scene_5',
+                0x1E: 'store_scene_6',
+                0x1F: 'store_scene_7',
+                0x20: 'off',
+                0x21: 'on',
+                0x22: 'toggle',
+                0x23: 'release',
+                0x60: 'press_1_of_1',
+                0x61: 'release_1_of_1',
+                0x62: 'press_1_of_2',
+                0x63: 'release_1_of_2',
+                0x64: 'press_2_of_2',
+                0x65: 'release_2_of_2',
+                0x66: 'short_press_1_of_1',
+                0x67: 'short_press_1_of_2',
+                0x68: 'short_press_2_of_1',
+            };
+
+            return {action: lookup[commandID] || commandID.toString()};
+        },
+    },
+    greenpower_7: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            return {action: commandID.toString()};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
