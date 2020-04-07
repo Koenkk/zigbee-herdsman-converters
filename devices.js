@@ -9185,6 +9185,17 @@ const devices = [
             tz.siterwell_gs361_system_mode,
         ],
     },
+    
+    // Schwaiger
+    {               
+        zigbeeModel: ['SPW35Z-D0'],
+        model: 'ZHS-15',
+        vendor: 'Schwaiger',
+        description: 'Power socket on/off with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+    },
 ];
 
 module.exports = devices.map((device) =>
