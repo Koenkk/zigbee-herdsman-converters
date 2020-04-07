@@ -9187,7 +9187,7 @@ const devices = [
     },
     
     // Schwaiger
-    {               
+    {
         zigbeeModel: ['SPW35Z-D0'],
         model: 'ZHS-15',
         vendor: 'Schwaiger',
