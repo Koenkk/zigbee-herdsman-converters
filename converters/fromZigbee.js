@@ -36,11 +36,13 @@ const calibrateAndPrecisionRoundOptions = (number, options, type) => {
 };
 
 const precisionRound = (number, precision) => {
-    if (typeof precision === "number") {
+    if (typeof precision === 'number') {
         const factor = Math.pow(10, precision);
         return Math.round(number * factor) / factor;
-    } else if (typeof precision === "object") {
-        const thresholds = Object.keys(precision).map(Number).sort((a,b) => { return b-a; });
+    } else if (typeof precision === 'object') {
+        const thresholds = Object.keys(precision).map(Number).sort((a, b) => {
+            return b - a;
+        });
         for (const t of thresholds) {
             if (! isNaN(t) && number >= t) {
                 return precisionRound(number, precision[t]);
