@@ -8955,6 +8955,12 @@ const devices = [
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
         extend: generic.light_onoff_brightness_colortemp,
     },
+        zigbeeModel: ['ZBT-DIMLight-D0120'],
+        model: 'ZL1000701-27-EU-V1A02',
+        vendor: 'Linkind',
+        description: 'Zigbee A60 Filament Bulb 6.3W',
+        extend: generic.light_onoff_brightness,
+    },
 
     // BlitzWolf
     {
