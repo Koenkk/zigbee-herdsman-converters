@@ -40,9 +40,7 @@ const precisionRound = (number, precision) => {
         const factor = Math.pow(10, precision);
         return Math.round(number * factor) / factor;
     } else if (typeof precision === 'object') {
-        const thresholds = Object.keys(precision).map(Number).sort((a, b) => {
-            return b - a;
-        });
+        const thresholds = Object.keys(precision).map(Number).sort((a, b) => b - a);
         for (const t of thresholds) {
             if (! isNaN(t) && number >= t) {
                 return precisionRound(number, precision[t]);
