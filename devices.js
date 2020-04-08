@@ -984,6 +984,19 @@ const devices = [
 
     // TuYa
     {
+        zigbeeModel: ['TS0001'],
+        model: 'TS0001',
+        vendor: 'TuYa',
+        description: 'Valve control',
+        supports: 'on/off',
+        whiteLabel: [
+            {vendor: 'CR Smart Home', model: 'TS0001'},
+            {vendor: 'Lonsonho', model: 'TS0001'},
+        ],
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
         vendor: 'TuYa',
@@ -8517,15 +8530,6 @@ const devices = [
     },
 
     // CR Smart Home
-    {
-        zigbeeModel: ['TS0001'],
-        model: 'TS0001',
-        vendor: 'CR Smart Home',
-        description: 'Valve control',
-        supports: 'control',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-    },
     {
         zigbeeModel: ['TS0202'],
         model: 'TS0202',
