@@ -1187,10 +1187,10 @@ const devices = [
         ota: ota.tradfri,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm', 'TRADFRI bulb E26 WS clear 806lm'],
         model: 'LED1736G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, white spectrum, clear',
+        description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, white spectrum, clear',
         extend: generic.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
     },
