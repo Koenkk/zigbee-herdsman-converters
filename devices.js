@@ -9185,7 +9185,7 @@ const devices = [
             tz.siterwell_gs361_system_mode,
         ],
     },
-    
+
     // Schwaiger
     {
         zigbeeModel: ['SPW35Z-D0'],
