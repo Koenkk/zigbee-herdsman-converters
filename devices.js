@@ -1,4 +1,4 @@
-'use strict';
+'use strict ';
 
 /**
  * Documentation of 'meta'
