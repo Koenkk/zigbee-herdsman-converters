@@ -9212,6 +9212,26 @@ const devices = [
         ],
     },
 
+    // Green Power
+    {
+        zigbeeModel: ['GreenPower_2'],
+        model: 'GreenPower_On_Off_Switch',
+        vendor: 'GreenPower',
+        description: 'On/off switch',
+        supports: 'action',
+        fromZigbee: [fz.greenpower_on_off_switch],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['GreenPower_7'],
+        model: 'GreenPower_7',
+        vendor: 'GreenPower',
+        description: 'device 7',
+        supports: 'action',
+        fromZigbee: [fz.greenpower_7],
+        toZigbee: [],
+    },
+
     // Schwaiger
     {
         zigbeeModel: ['SPW35Z-D0'],
