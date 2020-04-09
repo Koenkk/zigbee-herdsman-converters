@@ -37,9 +37,20 @@ const calibrateAndPrecisionRoundOptions = (number, options, type) => {
 };
 
 const precisionRound = (number, precision) => {
-    const factor = Math.pow(10, precision);
-    return Math.round(number * factor) / factor;
+    if (typeof precision === 'number') {
+        const factor = Math.pow(10, precision);
+        return Math.round(number * factor) / factor;
+    } else if (typeof precision === 'object') {
+        const thresholds = Object.keys(precision).map(Number).sort((a, b) => b - a);
+        for (const t of thresholds) {
+            if (! isNaN(t) && number >= t) {
+                return precisionRound(number, precision[t]);
+            }
+        }
+    }
+    return number;
 };
+
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
@@ -353,7 +364,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
+            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),

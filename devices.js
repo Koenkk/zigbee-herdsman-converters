@@ -984,6 +984,19 @@ const devices = [
 
     // TuYa
     {
+        zigbeeModel: ['TS0001'],
+        model: 'TS0001',
+        vendor: 'TuYa',
+        description: 'Valve control',
+        supports: 'on/off',
+        whiteLabel: [
+            {vendor: 'CR Smart Home', model: 'TS0001'},
+            {vendor: 'Lonsonho', model: 'TS0001'},
+        ],
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
         vendor: 'TuYa',
@@ -1174,10 +1187,10 @@ const devices = [
         ota: ota.tradfri,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm', 'TRADFRI bulb E26 WS clear 806lm'],
         model: 'LED1736G9',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, white spectrum, clear',
+        description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, white spectrum, clear',
         extend: generic.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
     },
@@ -1462,6 +1475,14 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Struana',
         extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['1746130P7'],
+        model: '1746130P7',
+        vendor: 'Philips',
+        description: 'Hue Attract',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
     {
@@ -7155,6 +7176,20 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['3RSL011Z'],
+        model: '3RSL011Z',
+        vendor: 'Third Reality',
+        description: 'Smart light A19',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['3RSL012Z'],
+        model: '3RSL012Z',
+        vendor: 'Third Reality',
+        description: 'Smart light BR30',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Hampton Bay
     {
@@ -8518,15 +8553,6 @@ const devices = [
 
     // CR Smart Home
     {
-        zigbeeModel: ['TS0001'],
-        model: 'TS0001',
-        vendor: 'CR Smart Home',
-        description: 'Valve control',
-        supports: 'control',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-    },
-    {
         zigbeeModel: ['TS0202'],
         model: 'TS0202',
         vendor: 'CR Smart Home',
@@ -9204,6 +9230,17 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.greenpower_7],
         toZigbee: [],
+    },
+
+    // Schwaiger
+    {
+        zigbeeModel: ['SPW35Z-D0'],
+        model: 'ZHS-15',
+        vendor: 'Schwaiger',
+        description: 'Power socket on/off with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
     },
 ];
 
