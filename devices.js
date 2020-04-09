@@ -7159,27 +7159,17 @@ const devices = [
         zigbeeModel: ['3RSL011Z'],
         model: '3RSL011Z',
         vendor: 'Third Reality',
-        description: 'Smart Light A19',
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
-        toZigbee: [
-            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
-            tz.light_brightness_move, tz.light_colortemp_move,
-        ],
+        description: 'Smart light A19',
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
-        description: 'Smart Light BR30',
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
-        toZigbee: [
-            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
-            tz.light_brightness_move, tz.light_colortemp_move,
-        ],
+        description: 'Smart light BR30',
+        extend: generic.light_onoff_brightness_colortemp,
     },
-    
+
     // Hampton Bay
     {
         zigbeeModel: ['HDC52EastwindFan', 'HBUniversalCFRemote'],
