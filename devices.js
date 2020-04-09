@@ -4829,7 +4829,7 @@ const devices = [
         description: 'Remote control',
         supports: 'on, off, stop, up-press, down-press',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.ZYCT202_stop, fz.ZYCT202_up_down,
+            fz.command_on, fz.command_off_with_effect, fz.ZYCT202_stop, fz.ZYCT202_up_down,
         ],
         toZigbee: [],
         meta: {configureKey: 2},
