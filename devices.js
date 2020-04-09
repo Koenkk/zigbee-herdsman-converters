@@ -1478,6 +1478,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1746130P7'],
+        model: '1746130P7',
+        vendor: 'Philips',
+        description: 'Hue Attract',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LDT001'],
         model: '5900131C5',
         vendor: 'Philips',
