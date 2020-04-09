@@ -7168,6 +7168,20 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['3RSL011Z'],
+        model: '3RSL011Z',
+        vendor: 'Third Reality',
+        description: 'Smart light A19',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['3RSL012Z'],
+        model: '3RSL012Z',
+        vendor: 'Third Reality',
+        description: 'Smart light BR30',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Hampton Bay
     {
