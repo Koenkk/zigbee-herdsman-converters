@@ -2007,7 +2007,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue smart button',
         supports: 'action',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.SmartButton_skip, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_off_with_effect, fz.SmartButton_skip, fz.battery],
         toZigbee: [],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
