@@ -9221,6 +9221,10 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.greenpower_on_off_switch],
         toZigbee: [],
+        whiteLabel: [
+            {vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
+            {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'},
+        ],
     },
     {
         zigbeeModel: ['GreenPower_7'],
@@ -9230,6 +9234,9 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.greenpower_7],
         toZigbee: [],
+        whiteLabel: [
+            {vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'},
+        ],
     },
 
     // Schwaiger
