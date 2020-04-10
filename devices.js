@@ -7490,6 +7490,13 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['TWGU10Bulb02UK'],
+        model: '6xy-M350ST-W1Z',
+        vendor: 'Leedarson',
+        description: 'PAR16 tunable white',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // GMY
     {
@@ -9138,6 +9145,37 @@ const devices = [
             return {default: 35};
         },
     },
+
+    // Aurora Lighting
+    {
+        zigbeeModel: ['TWGU10Bulb50AU'],
+        model: 'AU-A1GUZBCX5',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 5.4W smart tuneable GU10 lamp',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        zigbeeModel: ['FWGU10Bulb50AU', 'FWGU10Bulb01UK'],
+        model: 'AU-A1GUZB5/30',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 4.8W smart dimmable GU10 lamp 3000K',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['RGBGU10Bulb50AU'],
+        model: 'AU-A1GUZBRGBW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 5.6w smart RGBW tuneable GU10 lamp',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK'],
+        model: 'AU-A1GSZ9RGBW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 9.5W smart RGBW GLS E27/B22',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+
 
     // Wally
     {

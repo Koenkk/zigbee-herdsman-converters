@@ -120,7 +120,7 @@ describe('index.js', () => {
 
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
-                    expect(['vendor', 'model']).toStrictEqual(Object.keys(definition));
+                    containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
                 }
             }
 
