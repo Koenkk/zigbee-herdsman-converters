@@ -631,7 +631,7 @@ const devices = [
         model: 'WXKG07LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 double key wireless wall switch',
-        supports: 'left, right, both click',
+        supports: 'action',
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
