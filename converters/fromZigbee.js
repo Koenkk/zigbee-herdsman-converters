@@ -201,7 +201,7 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
-const tuya_thermostat = (model, msg, publish, options, meta) => {
+const tuyaThermostat = (model, msg, publish, options, meta) => {
     const dp = msg.data.dp;
     const data = msg.data.data;
     const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
@@ -231,13 +231,13 @@ const tuya_thermostat = (model, msg, publish, options, meta) => {
      */
 
     switch (dp) {
-    case 104: // 0x6800 window params 
+    case 104: // 0x6800 window params
         return {
             window_detection_params: {
-                valve: data[0] ? 'ON' : 'OFF', 
+                valve: data[0] ? 'ON' : 'OFF',
                 temp: data[1],
                 minutes: data[2],
-            }
+            },
         };
     case 112: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
         // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
@@ -266,7 +266,7 @@ const tuya_thermostat = (model, msg, publish, options, meta) => {
     case 276: // 0x1401 Enabled/disabled Valve detection feature
         return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
     case 372: // 0x7401 auto lock mode
-        return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'}
+        return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'};
     case 514: // 0x0202 Changed target temperature
         temperature = (dataAsDecNumber / 10).toFixed(1);
         return {current_heating_setpoint: temperature};
@@ -290,7 +290,7 @@ const tuya_thermostat = (model, msg, publish, options, meta) => {
         return {eco_temp: dataAsDecNumber};
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
-    case 626: // 0x7202 preset temp ? 
+    case 626: // 0x7202 preset temp ?
         return {preset_temp: dataAsDecNumber};
     case 629: // 0x7502 preset ?
         return {preset: dataAsDecNumber};
@@ -4264,12 +4264,12 @@ const converters = {
     tuya_thermostat_on_set_data: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandSetDataResponse',
-        convert: tuya_thermostat,
+        convert: tuyaThermostat,
     },
     tuya_thermostat: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
-        convert: tuya_thermostat,
+        convert: tuyaThermostat,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
