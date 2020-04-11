@@ -2106,14 +2106,14 @@ const converters = {
         },
     },
     tuya_thermostat_min_temp: {
-        key: ['min_temp'],
+        key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
             sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_max_temp: {
-        key: ['max_temp'],
+        key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
             sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
@@ -2127,14 +2127,14 @@ const converters = {
         },
     },
     tuya_thermostat_comfort_temp: {
-        key: ['comfort_temp'],
+        key: ['comfort_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
             sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_eco_temp: {
-        key: ['eco_temp'],
+        key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
             sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);

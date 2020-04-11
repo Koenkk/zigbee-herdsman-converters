@@ -235,29 +235,29 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {
             window_detection_params: {
                 valve: data[0] ? 'ON' : 'OFF',
-                temp: data[1],
+                temperature: data[1],
                 minutes: data[2],
             },
         };
     case 112: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
         // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
         return {workdays: [
-            {hour: data[0], min: data[1], temp: data[2]},
-            {hour: data[3], min: data[4], temp: data[5]},
-            {hour: data[6], min: data[7], temp: data[8]},
-            {hour: data[9], min: data[10], temp: data[11]},
-            {hour: data[12], min: data[13], temp: data[14]},
-            {hour: data[15], min: data[16], temp: data[17]},
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
         ]};
     case 113: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
         // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
         return {holidays: [
-            {hour: data[0], min: data[1], temp: data[2]},
-            {hour: data[3], min: data[4], temp: data[5]},
-            {hour: data[6], min: data[7], temp: data[8]},
-            {hour: data[9], min: data[10], temp: data[11]},
-            {hour: data[12], min: data[13], temp: data[14]},
-            {hour: data[15], min: data[16], temp: data[17]},
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
         ]};
     case 263: // 0x0701 Changed child lock status
         return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
@@ -279,19 +279,19 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case 533: // 0x1502 MCU reporting battery status
         return {battery: dataAsDecNumber};
     case 614: // 0x6602 min temperature limit
-        return {min_temp: dataAsDecNumber};
+        return {min_temperature: dataAsDecNumber};
     case 615: // 0x6702 max temperature limit
-        return {max_temp: dataAsDecNumber};
+        return {max_temperature: dataAsDecNumber};
     case 617: // 0x6902 boost time
         return {boost_time: dataAsDecNumber};
     case 619: // 0x6b02 comfort temperature
-        return {comfort_temp: dataAsDecNumber};
+        return {comfort_temperature: dataAsDecNumber};
     case 620: // 0x6c02 ECO temperature
-        return {eco_temp: dataAsDecNumber};
+        return {eco_temperature: dataAsDecNumber};
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
     case 626: // 0x7202 preset temp ?
-        return {preset_temp: dataAsDecNumber};
+        return {preset_temperature: dataAsDecNumber};
     case 629: // 0x7502 preset ?
         return {preset: dataAsDecNumber};
     case 1028: // 0x0404 Mode changed
