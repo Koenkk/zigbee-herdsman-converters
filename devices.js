@@ -9075,7 +9075,7 @@ const devices = [
     // LifeControl
     {
         zigbeeModel: ['Leak_Sensor'],
-        model: 'LifeControl_Leak_Sensor',
+        model: 'MCLH-07',
         vendor: 'LifeControl',
         description: 'Water leak switch',
         supports: 'water leak',
@@ -9084,7 +9084,7 @@ const devices = [
     },
     {
         zigbeeModel: ['Door_Sensor'],
-        model: 'LifeControl_Door_Sensor',
+        model: 'MCLH-04',
         vendor: 'LifeControl',
         description: 'Door sensor',
         supports: 'contact',
@@ -9093,10 +9093,30 @@ const devices = [
     },
     {
         zigbeeModel: ['vivi ZLight'],
-        model: 'LifeControl_RGB_Led',
+        model: 'MCLH-02',
         vendor: 'LifeControl',
         description: 'RGB LED lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['RICI01'],
+        model: 'MCLH-03',
+        vendor: 'LifeControl',
+        description: 'Power plug',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            const configureOptions = {'minimumReportInterval': 300, 'maximumReportInterval': 600};
+            await configureReporting.rmsVoltage(endpoint, {...configureOptions, 'reportableChange': 1});
+            await configureReporting.rmsCurrent(endpoint, {...configureOptions, 'reportableChange': 100});
+            await configureReporting.activePower(endpoint, {...configureOptions, 'reportableChange': 1});
+        },
     },
 
     // Develco
