@@ -543,7 +543,7 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01', 'lumi.remote.b286acn02'],
+        zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
@@ -623,6 +623,19 @@ const devices = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
+    {
+        zigbeeModel: ['lumi.remote.b286acn02'],
+        model: 'WXKG07LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara D1 double key wireless wall switch',
+        supports: 'left, right, both click',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {left: 1, right: 2, both: 3};
         },
         onEvent: xiaomi.prevent_reset,
     },
