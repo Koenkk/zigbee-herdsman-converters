@@ -106,10 +106,12 @@ const getRandomInt = (min, max) =>
 const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks) => {
     // Destructuring "chunks" is needed because it's a Buffer
     // and we need a simple array.
-    const hexValue = [...chunks]
-        .map((decValue) => Number(decValue).toString(16))
-        .join('');
-    return parseInt(hexValue, 16);
+    let value = 0;
+    for (let i = 0; i < chunks.length; i++) {
+        value = value << 8;
+        value += chunks[i];
+    }
+    return value;
 };
 
 const convertDecimalValueTo2ByteHexArray = (value) => {
