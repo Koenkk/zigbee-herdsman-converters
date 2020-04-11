@@ -9112,12 +9112,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {'minimumReportInterval': 300, 'maximumReportInterval': 600,
-                'reportableChange': 1});
-            await configureReporting.rmsCurrent(endpoint, {'minimumReportInterval': 300, 'maximumReportInterval': 600,
-                'reportableChange': 100});
-            await configureReporting.activePower(endpoint, {'minimumReportInterval': 300, 'maximumReportInterval': 600,
-                'reportableChange': 1});
+            const configureOptions = {'minimumReportInterval': 300, 'maximumReportInterval': 600};
+            await configureReporting.rmsVoltage(endpoint, {...configureOptions, 'reportableChange': 1});
+            await configureReporting.rmsCurrent(endpoint, {...configureOptions, 'reportableChange': 100});
+            await configureReporting.activePower(endpoint, {...configureOptions, 'reportableChange': 1});
         },
     },
 
