@@ -1357,6 +1357,27 @@ const converters = {
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
+    xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+        },
+    },
+    xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+            const actionLookup = {0: 'long', 1: null, 2: 'double'};
+            const action = actionLookup[value];
+
+            if (button) {
+                return {action: `${button}${(action ? `_${action}` : '')}`};
+            }
+        },
+    },
     WXKG02LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
