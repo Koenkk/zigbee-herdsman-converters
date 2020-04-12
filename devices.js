@@ -8695,11 +8695,11 @@ const devices = [
         extend: generic.light_onoff_brightness_colorxy,
     },
 
-    // MOES
+    // Moes
     {
         zigbeeModel: ['TS0112'],
         model: 'ZK-EU-2U',
-        vendor: 'MOES',
+        vendor: 'Moes',
         description: 'ZigBee3.0 dual USB wireless socket plug',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
