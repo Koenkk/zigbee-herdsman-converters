@@ -35,11 +35,21 @@ const options = {
     },
 };
 
-const siterwellGs361SystemModes = {
-    'off': 0,
-    'auto': 1,
-    'heat': 2,
-};
+async function sendTuyaCommand(entity, dp, fn, data) {
+    await entity.command(
+        'manuSpecificTuyaDimmer',
+        'setData',
+        {
+            status: 0,
+            transid: utils.getRandomInt(0, 255),
+            dp: dp,
+            fn: fn,
+            data: data,
+        },
+        {disableDefaultResponse: true},
+    );
+}
+
 
 function getTransition(entity, key, meta) {
     const {options, message} = meta;
@@ -2043,99 +2053,101 @@ const converters = {
         },
     },
 
-    siterwell_gs361_child_lock: {
+    // Tuya Thermostat
+    tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'manuSpecificTuyaDimmer',
-                'setData',
-                {
-                    status: 0,
-                    transid: utils.getRandomInt(0, 255),
-                    dp: 263,
-                    fn: 0,
-                    data: [1, value==='LOCK' ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
+            sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
         },
     },
-
-    siterwell_gs361_window_detection: {
+    tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'manuSpecificTuyaDimmer',
-                'setData',
-                {
-                    status: 0,
-                    transid: utils.getRandomInt(0, 255),
-                    dp: 274,
-                    fn: 0,
-                    data: [1, value==='ON' ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
+            sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
-
-    siterwell_gs361_valve_detection: {
+    tuya_thermostat_valve_detection: {
         key: ['valve_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'manuSpecificTuyaDimmer',
-                'setData',
-                {
-                    status: 0,
-                    transid: utils.getRandomInt(0, 255),
-                    dp: 276,
-                    fn: 0,
-                    data: [1, value==='ON' ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
+            sendTuyaCommand(entity, 276, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
-
-    siterwell_gs361_current_heating_setpoint: {
+    tuya_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            await entity.command(
-                'manuSpecificTuyaDimmer',
-                'setData',
-                {
-                    status: 0,
-                    transid: utils.getRandomInt(0, 255),
-                    dp: 514,
-                    fn: 0,
-                    data: [4, 0, 0, ...payloadValue],
-                },
-                {disableDefaultResponse: true},
-            );
+            sendTuyaCommand(entity, 514, 0, [4, 0, 0, ...payloadValue]);
         },
     },
-
-    siterwell_gs361_system_mode: {
+    tuya_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if (siterwellGs361SystemModes.hasOwnProperty(value)) {
-                const modeId = siterwellGs361SystemModes[value];
-                await entity.command(
-                    'manuSpecificTuyaDimmer',
-                    'setData',
-                    {
-                        status: 0,
-                        transid: utils.getRandomInt(0, 255),
-                        dp: 1028,
-                        fn: 0,
-                        data: [1, modeId],
-                    },
-                    {disableDefaultResponse: true},
-                );
+            const modeId = utils.getKeyByValue(common.TuyaThermostatSystemModes, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_auto_lock: {
+        key: ['auto_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 372, 0, [1, value==='AUTO' ? 1 : 0]);
+        },
+    },
+    tuya_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 556, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_min_temp: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_max_temp: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_boost_time: {
+        key: ['boost_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_comfort_temp: {
+        key: ['comfort_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_eco_temp: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_force: {
+        key: ['force'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaThermostatForceMode, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1130, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV force mode ${value} is not recognized.`);
             }
         },
     },
