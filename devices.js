@@ -6420,7 +6420,7 @@ const devices = [
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,  
-			tz.thermostat_running_state,
+	    tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
         meta: {configureKey: 1},
@@ -6444,7 +6444,7 @@ const devices = [
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
-			    attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+	    attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
             }]);
@@ -6469,7 +6469,7 @@ const devices = [
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
-		    tz.thermostat_running_state,
+	    tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
         meta: {configureKey: 1},
@@ -6493,7 +6493,7 @@ const devices = [
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
-			            attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+	    attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
             }]);
@@ -6518,7 +6518,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-			tz.thermostat_system_mode,
+	    tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
@@ -6544,7 +6544,7 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 			
-			await endpoint.configureReporting('hvacThermostat', [{
+	    await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
@@ -6570,7 +6570,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-			tz.thermostat_system_mode,
+	    tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
@@ -6596,7 +6596,7 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 			
-			await endpoint.configureReporting('hvacThermostat', [{
+	    await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
