@@ -6452,7 +6452,12 @@ const devices = [
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
         supports: 'temperature',
-        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.stelpro_thermostat,
+            fz.hvac_user_interface,
+            fz.humidity,
+        ],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -6496,7 +6501,12 @@ const devices = [
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
         supports: 'temperature, humidity, outdoor temp display',
-        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.stelpro_thermostat,
+            fz.hvac_user_interface,
+            fz.humidity,
+        ],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
