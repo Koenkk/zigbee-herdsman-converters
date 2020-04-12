@@ -4219,13 +4219,29 @@ const converters = {
             };
         },
     },
-    legrand_master_switch_scenes: {
+    legrand_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             let action = 'default';
-            if (msg.data.groupid === 0xfff7) action = 'enter';
-            if (msg.data.groupid === 0xfff6) action = 'leave';
+            switch (msg.data.groupid) {
+                case 0xfff7:
+                   action = 'enter';
+                   break;
+
+                case 0xfff6:
+                   action = 'leave';
+                   break;
+
+                case 0xfff4:
+                   action = 'sleep';
+                   break;
+
+                case 0xfff5:
+                   action = 'wakeup';
+                   break;
+
+            };
             return {
                 action: action,
             };
