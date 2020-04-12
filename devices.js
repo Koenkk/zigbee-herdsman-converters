@@ -6491,7 +6491,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SMT402'],
+        zigbeeModel: ['MaestroStat'],
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
