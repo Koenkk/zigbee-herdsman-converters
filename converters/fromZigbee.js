@@ -4225,23 +4225,23 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             let action = 'default';
             switch (msg.data.groupid) {
-                case 0xfff7:
-                   action = 'enter';
-                   break;
+            case 0xfff7:
+                action = 'enter';
+                break;
 
-                case 0xfff6:
-                   action = 'leave';
-                   break;
+            case 0xfff6:
+                action = 'leave';
+                break;
 
-                case 0xfff4:
-                   action = 'sleep';
-                   break;
+            case 0xfff4:
+                action = 'sleep';
+                break;
 
-                case 0xfff5:
-                   action = 'wakeup';
-                   break;
+            case 0xfff5:
+                action = 'wakeup';
+                break;
+            }
 
-            };
             return {
                 action: action,
             };
