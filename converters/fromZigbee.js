@@ -3631,7 +3631,7 @@ const converters = {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {'ep1': msg.data['stateText']};
+            return {'action': msg.data['stateText']};
         },
     },
     ptvo_switch_analog_input: {
