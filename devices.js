@@ -3048,8 +3048,22 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['RF 261'],
+        model: 'RF 261',
+        vendor: 'Innr',
+        description: 'E27 filament bulb dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['RF 263'],
         model: 'RF 263',
+        vendor: 'Innr',
+        description: 'E27 filament bulb dimmable',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['RF 264'],
+        model: 'RF 264',
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
