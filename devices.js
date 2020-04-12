@@ -6755,21 +6755,44 @@ const devices = [
         zigbeeModel: ['ST218'],
         model: 'ST218',
         vendor: 'Stelpro',
-        description: 'Built-in electronic thermostat',
-        supports: 'temperature ',
-        fromZigbee: [fz.thermostat_att_report],
+        description: 'Ki convector, line-voltage thermostat',
+        supports: 'temperature',
+        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint);
+
+            // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
+            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
+            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
+            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                minimumReportInterval: 1,
+                maximumReportInterval: 0,
+            }]);
         },
     },
     {
@@ -6782,6 +6805,7 @@ const devices = [
             fz.thermostat_att_report,
             fz.stelpro_thermostat,
             fz.hvac_user_interface,
+            fz.humidity,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -6823,6 +6847,57 @@ const devices = [
     {
         zigbeeModel: ['MaestroStat'],
         model: 'SMT402',
+        vendor: 'Stelpro',
+        description: 'Maestro, line-voltage thermostat',
+        supports: 'temperature, humidity, outdoor temp display',
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.stelpro_thermostat,
+            fz.hvac_user_interface,
+            fz.humidity,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(25);
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
+                'msTemperatureMeasurement',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+
+            // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
+            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.humidity(endpoint, 10, 300, 1);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
+            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
+            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                minimumReportInterval: 1,
+                maximumReportInterval: 0,
+            }]);
+        },
+    },
+    {
+        zigbeeModel: ['SMT402AD'],
+        model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
         supports: 'temperature, humidity, outdoor temp display',
