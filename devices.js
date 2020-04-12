@@ -3054,14 +3054,14 @@ const devices = [
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
     },
-	{
+    {
         zigbeeModel: ['RF 263'],
         model: 'RF 263',
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
     },
-	{
+    {
         zigbeeModel: ['RF 264'],
         model: 'RF 264',
         vendor: 'Innr',
