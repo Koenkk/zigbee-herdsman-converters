@@ -6407,23 +6407,19 @@ const devices = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        supports: 'temperature ',
-        fromZigbee:[
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-        ],
+        supports: 'temperature',
+        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode,  
-	    tz.thermostat_running_state,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = [
@@ -6444,7 +6440,7 @@ const devices = [
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
-	    attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
             }]);
@@ -6456,12 +6452,7 @@ const devices = [
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
         supports: 'temperature',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-
-        ],
+        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -6469,7 +6460,7 @@ const devices = [
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
-	    tz.thermostat_running_state,
+            tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
         meta: {configureKey: 1},
@@ -6493,7 +6484,7 @@ const devices = [
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
 
             await endpoint.configureReporting('hvacThermostat', [{
-	    attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
+                attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
             }]);
@@ -6505,20 +6496,14 @@ const devices = [
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
         supports: 'temperature, humidity, outdoor temp display',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-            fz.humidity,
-
-        ],
+        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-	    tz.thermostat_system_mode,
+            tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
@@ -6543,8 +6528,8 @@ const devices = [
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
-			
-	    await endpoint.configureReporting('hvacThermostat', [{
+
+            await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
@@ -6562,7 +6547,6 @@ const devices = [
             fz.stelpro_thermostat,
             fz.hvac_user_interface,
             fz.humidity,
-
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -6570,7 +6554,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
-	    tz.thermostat_system_mode,
+            tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
@@ -6595,14 +6579,16 @@ const devices = [
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
             await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
-			
-	    await endpoint.configureReporting('hvacThermostat', [{
+
+            await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
                 minimumReportInterval: 1,
                 maximumReportInterval: 0,
             }]);
         },
     },
+
+    // Nyce
     {
         zigbeeModel: ['3011'],
         model: 'NCZ-3011-HA',
