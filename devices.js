@@ -9088,7 +9088,7 @@ const devices = [
         vendor: 'Legrand',
         description: 'Night/Day Wireless switch',
         supports: 'action',
-        fromZigbee: [fz.legrand_scenes, fz.battery_3V, fz.ignore_poll_ctrl, fz.legrand_master_switch_cente],
+        fromZigbee: [fz.legrand_scenes, fz.battery_3V, fz.ignore_poll_ctrl, fz.legrand_master_switch_center],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
