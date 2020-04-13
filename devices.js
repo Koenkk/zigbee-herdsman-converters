@@ -9055,7 +9055,7 @@ const devices = [
         description: 'Home & away switch / master switch',
         supports: 'action',
         fromZigbee: [
-            fz.legrand_master_switch_scenes, fz.legrand_master_switch_center,
+            fz.legrand_scenes, fz.legrand_master_switch_center,
             fz.ignore_poll_ctrl, fz.battery_3V,
         ],
         toZigbee: [],
@@ -9080,6 +9080,20 @@ const devices = [
                 }); */
                 await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
             }
+        },
+    },
+    {
+        zigbeeModel: ['Remote switch Wake up / Sleep'],
+        model: '752189',
+        vendor: 'Legrand',
+        description: 'Night/day wireless switch',
+        supports: 'action',
+        fromZigbee: [fz.legrand_scenes, fz.battery_3V, fz.ignore_poll_ctrl, fz.legrand_master_switch_center],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
     },
 
