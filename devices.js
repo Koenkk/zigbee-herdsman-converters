@@ -8465,7 +8465,7 @@ const devices = [
         zigbeeModel: ['VOLARE ZB3\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'VOLARE ZB3',
         vendor: 'TCI',
-        description: 'Volare ZB3 Spot',
+        description: 'DASH L DC VOLARE ZB3',
         extend: generic.light_onoff_brightness,
     },
 
