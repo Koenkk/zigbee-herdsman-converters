@@ -8463,9 +8463,9 @@ const devices = [
     // TCI
     {
         zigbeeModel: ['VOLARE ZB3\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: 'VOLARE ZB3',
+        model: '676-00301024955Z',
         vendor: 'TCI',
-        description: 'DASH L DC VOLARE ZB3',
+        description: 'Zigbee Dash L DC Volare',
         extend: generic.light_onoff_brightness,
     },
 
