@@ -8466,6 +8466,15 @@ const devices = [
         toZigbee: [],
     },
 
+    // TCI
+    {
+        zigbeeModel: ['VOLARE ZB3\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '676-00301024955Z',
+        vendor: 'TCI',
+        description: 'Dash L DC Volare',
+        extend: generic.light_onoff_brightness,
+    },
+
     // TERNCY
     {
         zigbeeModel: ['TERNCY-PP01'],
