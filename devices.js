@@ -2763,6 +2763,13 @@ const devices = [
         description: 'Active smart bulb white LED (E27)',
         extend: generic.light_onoff_brightness,
     },
+    {                                                                                                                                                                            
+        zigbeeModel: ['FWCLBulb01UK'],                                                                                                                                           
+        model: 'HALIGHTDIMWWE14',                                                                                                                                                
+        vendor: 'Hive',                                                                                                                                                          
+        description: 'Active smart bulb white LED (E14)',                                                                                                                        
+        extend: generic.light_onoff_brightness,                                                                                                                                  
+    },
     {
         zigbeeModel: ['FWBulb02UK'],
         model: 'HALIGHTDIMWWB22',
