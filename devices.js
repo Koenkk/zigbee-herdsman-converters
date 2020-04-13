@@ -1956,7 +1956,7 @@ const devices = [
     },
     {
         zigbeeModel: ['1743030P7'],
-        model: '1742930P7',
+        model: '1743030P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
