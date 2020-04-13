@@ -3966,6 +3966,29 @@ const converters = {
             };
         },
     },
+    SmartButton_event: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            // Philips HUE Smart Button "ROM001": these events are always from "button 1"
+            let type = null;
+            switch (msg.data['type']) {
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
+            }
+            return {
+                action: `${type}`,
+            };
+        },
+    },
     CCTSwitch_D0001_on_off: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
