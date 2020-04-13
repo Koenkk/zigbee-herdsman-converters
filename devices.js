@@ -5365,6 +5365,12 @@ const devices = [
         supports: 'open/close',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await configureReporting.brightness(endpoint);
+        },
     },
 
     // Lupus
