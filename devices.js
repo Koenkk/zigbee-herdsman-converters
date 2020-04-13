@@ -9086,7 +9086,7 @@ const devices = [
         zigbeeModel: ['Remote switch Wake up / Sleep'],
         model: '752189',
         vendor: 'Legrand',
-        description: 'Night/Day Wireless switch',
+        description: 'Night/day wireless switch',
         supports: 'action',
         fromZigbee: [fz.legrand_scenes, fz.battery_3V, fz.ignore_poll_ctrl, fz.legrand_master_switch_center],
         toZigbee: [],
@@ -9095,8 +9095,8 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
-
     },
+
     // BTicino (Legrand brand)
     {
         zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
