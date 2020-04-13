@@ -8459,6 +8459,15 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
+    
+    // TCI
+    {
+        zigbeeModel: ['VOLARE ZB3\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: 'VOLARE ZB3',
+        vendor: 'TCI',
+        description: 'Volare ZB3 Spot',
+        extend: generic.light_onoff_brightness,
+    },
 
     // TERNCY
     {
