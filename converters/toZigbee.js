@@ -35,6 +35,22 @@ const options = {
     },
 };
 
+async function sendTuyaCommand(entity, dp, fn, data) {
+    await entity.command(
+        'manuSpecificTuyaDimmer',
+        'setData',
+        {
+            status: 0,
+            transid: utils.getRandomInt(0, 255),
+            dp: dp,
+            fn: fn,
+            data: data,
+        },
+        {disableDefaultResponse: true},
+    );
+}
+
+
 function getTransition(entity, key, meta) {
     const {options, message} = meta;
 
@@ -234,6 +250,8 @@ const converters = {
                 isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
                 getOptions(meta.mapped),
             );
+
+            return {state: {[isPosition ? 'position' : 'tilt']: value}};
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
@@ -457,6 +475,20 @@ const converters = {
             // Check if we need to convert from RGB to XY and which cmd to use
             let cmd;
             const newState = {};
+
+            // Set correct meta.mapped for groups
+            // * all device models are the same -> copy meta.mapped[0]
+            // * mixed device models -> meta.mapped = null (old behavior)
+            if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+                for (const memberMeta of Object.values(meta.mapped)) {
+                    // check all members are the same device
+                    if (meta.mapped[0] != memberMeta) {
+                        meta.mapped = [null];
+                        break;
+                    }
+                }
+                meta.mapped = meta.mapped[0];
+            }
 
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
@@ -1606,6 +1638,31 @@ const converters = {
             }
         },
     },
+    ptvo_switch_uart: {
+        key: ['action'],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                return;
+            }
+            for (const endpoint of meta.device.endpoints) {
+                if (endpoint.hasOwnProperty('clusters') && endpoint.clusters.hasOwnProperty('genMultistateValue')) {
+                    const payload = {14: {value, type: 0x42}};
+                    await endpoint.write('genMultistateValue', payload);
+                    break;
+                }
+            }
+        },
+    },
+    ptvo_switch_analog_input: {
+        key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'],
+        convertGet: async (entity, key, meta) => {
+            const epId = parseInt(key.substr(1, 1));
+            if ( utils.hasEndpoints(meta.device, [epId]) ) {
+                const endpoint = meta.device.getEndpoint(epId);
+                await endpoint.read('genAnalogInput', ['presentValue', 'description']);
+            }
+        },
+    },
 
     // ubisys configuration / calibration converters
     ubisys_configure_j1: {
@@ -1993,6 +2050,105 @@ const converters = {
         key: ['rate'],
         attr: [],
         convertSet: async (entity, key, value, meta) => {
+        },
+    },
+
+    // Tuya Thermostat
+    tuya_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
+        },
+    },
+    tuya_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
+        },
+    },
+    tuya_thermostat_valve_detection: {
+        key: ['valve_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 276, 0, [1, value==='ON' ? 1 : 0]);
+        },
+    },
+    tuya_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 514, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaThermostatSystemModes, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_auto_lock: {
+        key: ['auto_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 372, 0, [1, value==='AUTO' ? 1 : 0]);
+        },
+    },
+    tuya_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 556, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_min_temp: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_max_temp: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_boost_time: {
+        key: ['boost_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_comfort_temp: {
+        key: ['comfort_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_eco_temp: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    tuya_thermostat_force: {
+        key: ['force'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaThermostatForceMode, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1130, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV force mode ${value} is not recognized.`);
+            }
         },
     },
 };

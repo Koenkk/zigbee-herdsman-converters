@@ -1,6 +1,7 @@
 'use strict';
 
 const common = require('./common');
+const utils = require('./utils');
 
 const clickLookup = {
     1: 'single',
@@ -36,9 +37,20 @@ const calibrateAndPrecisionRoundOptions = (number, options, type) => {
 };
 
 const precisionRound = (number, precision) => {
-    const factor = Math.pow(10, precision);
-    return Math.round(number * factor) / factor;
+    if (typeof precision === 'number') {
+        const factor = Math.pow(10, precision);
+        return Math.round(number * factor) / factor;
+    } else if (typeof precision === 'object') {
+        const thresholds = Object.keys(precision).map(Number).sort((a, b) => b - a);
+        for (const t of thresholds) {
+            if (! isNaN(t) && number >= t) {
+                return precisionRound(number, precision[t]);
+            }
+        }
+    }
+    return number;
 };
+
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
@@ -189,6 +201,116 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
+const tuyaThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+
+    /*
+     * Structure of the ZCL payload used by Tuya:
+     *
+     * - status: unit8 - 1 byte
+     * - transid: unit8 - 1 byte
+     * - dp: uint16 - 2 bytes* (Big Endian format)
+     * - fn: uint8 - 1 byte
+     * - data: octStr - variable**
+     *
+     * Examples:
+     * | status | transid | dp                | fn | data              |
+     * | 0      | 4       | 0x02 0x02 -> 514  | 0  | [4, 0, 0, 0, 180] |
+     * | 0      | 16      | 0x04 0x04 -> 1028 | 0  | [1, 2]            |
+     *
+     * * The 2 bytes field "dp" uses Big Endian which means that the most meaninful
+     * byte goes right. In plain English: a value like 0x07 0x01 has to be read
+     * from the left so, it becomes 0x0107 witch in base 10 is 263 (the code for
+     * child lock status).
+     *
+     * ** The type octStr prefixes the first byte of the value with the lenght of the
+     * data payload.
+     */
+
+    switch (dp) {
+    case 104: // 0x6800 window params
+        return {
+            window_detection_params: {
+                valve: data[0] ? 'ON' : 'OFF',
+                temperature: data[1],
+                minutes: data[2],
+            },
+        };
+    case 112: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {workdays: [
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
+        ]};
+    case 113: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {holidays: [
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
+        ]};
+    case 263: // 0x0701 Changed child lock status
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 274: // 0x1201 Enabled/disabled window detection feature
+        return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 276: // 0x1401 Enabled/disabled Valve detection feature
+        return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 372: // 0x7401 auto lock mode
+        return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'};
+    case 514: // 0x0202 Changed target temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: temperature};
+    case 515: // 0x0302 MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 556: // 0x2c02 Temperature calibration
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature_calibration: temperature};
+    case 533: // 0x1502 MCU reporting battery status
+        return {battery: dataAsDecNumber};
+    case 614: // 0x6602 min temperature limit
+        return {min_temperature: dataAsDecNumber};
+    case 615: // 0x6702 max temperature limit
+        return {max_temperature: dataAsDecNumber};
+    case 617: // 0x6902 boost time
+        return {boost_time: dataAsDecNumber};
+    case 619: // 0x6b02 comfort temperature
+        return {comfort_temperature: dataAsDecNumber};
+    case 620: // 0x6c02 ECO temperature
+        return {eco_temperature: dataAsDecNumber};
+    case 621: // 0x6d02 valve position
+        return {position: dataAsDecNumber};
+    case 626: // 0x7202 preset temp ?
+        return {preset_temperature: dataAsDecNumber};
+    case 629: // 0x7502 preset ?
+        return {preset: dataAsDecNumber};
+    case 1028: // 0x0404 Mode changed
+        if (common.TuyaThermostatSystemModes.hasOwnProperty(dataAsDecNumber)) {
+            return {system_mode: common.TuyaThermostatSystemModes[dataAsDecNumber]};
+        } else {
+            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            return;
+        }
+    case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
+        return {force: common.TuyaThermostatForceMode[dataAsDecNumber]};
+    case 1135: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+        return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
+    default: // The purpose of the codes 1041 & 1043 are still unknown
+        console.log(`zigbee-herdsman-converters:siterwell_gs361: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
 const converters = {
     /**
      * Generic/recommended converters, the converters below comply with the ZCL
@@ -245,7 +367,7 @@ const converters = {
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full.
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'], 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
@@ -289,7 +411,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
+            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
@@ -500,7 +622,9 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            const zoneState = msg.data.zoneState;
             return {
+                enrolled: zoneState === 1,
                 smoke: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
@@ -733,6 +857,15 @@ const converters = {
             return payload;
         },
     },
+    command_move_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('hue_move', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -796,14 +929,14 @@ const converters = {
             return {click: 'off'};
         },
     },
-    E1743_brightness_up: {
+    E1743_brightness_down: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
             return {click: 'brightness_down'};
         },
     },
-    E1743_brightness_down: {
+    E1743_brightness_up: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -1269,6 +1402,27 @@ const converters = {
             const pressure = msg.data.hasOwnProperty('16') ?
                 parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+        },
+    },
+    xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+            const actionLookup = {0: 'long', 1: null, 2: 'double'};
+            const action = actionLookup[value];
+
+            if (button) {
+                return {action: `${button}${(action ? `_${action}` : '')}`};
+            }
         },
     },
     WXKG02LM_click: {
@@ -2184,18 +2338,6 @@ const converters = {
             return {contact: msg.data.zonestatus === 36};
         },
     },
-    nue_power_state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            if (button) {
-                const payload = {};
-                payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-                return payload;
-            }
-        },
-    },
     RZHAC_4256251_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -2433,7 +2575,7 @@ const converters = {
                 result.stelpro_mode = mode;
                 switch (mode) {
                 case 5:
-                    // "Eco" mode is translated into "auto" here
+                    // 'Eco' mode is translated into 'auto' here
                     result.system_mode = common.thermostatSystemModes[1];
                     break;
                 }
@@ -2767,40 +2909,12 @@ const converters = {
             return null;
         },
     },
-    eria_81825_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    eria_81825_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
     eria_81825_updown: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 0 ? 'up' : 'down';
             return {action: `${direction}`};
-        },
-    },
-    ZYCT202_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on', action_group: msg.groupID};
-        },
-    },
-    ZYCT202_off: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off', action_group: msg.groupID};
         },
     },
     ZYCT202_stop: {
@@ -2844,7 +2958,7 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
             const pressure = parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
@@ -2964,7 +3078,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
             // ubisys J1 will report 255 if lift or tilt positions are not known.
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
@@ -2983,9 +3097,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports "open" to be 100 and "closed" to be 0
+            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? liftPercentage : null;
@@ -3513,6 +3627,27 @@ const converters = {
             }
         },
     },
+    ptvo_switch_uart: {
+        cluster: 'genMultistateValue',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {'action': msg.data['stateText']};
+        },
+    },
+    ptvo_switch_analog_input: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            payload[name] = precisionRound(msg.data['presentValue'], 3);
+            if (msg.data.hasOwnProperty('description') && (msg.data['description'] === 'C')) {
+                payload['temperature'] = precisionRound(msg.data['presentValue'], 1);
+            }
+            return payload;
+        },
+    },
     keypad20states: {
         cluster: 'genOnOff',
         type: ['readResponse', 'attributeReport'],
@@ -3831,6 +3966,29 @@ const converters = {
             };
         },
     },
+    SmartButton_event: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            // Philips HUE Smart Button "ROM001": these events are always from "button 1"
+            let type = null;
+            switch (msg.data['type']) {
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
+            }
+            return {
+                action: `${type}`,
+            };
+        },
+    },
     CCTSwitch_D0001_on_off: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
@@ -4084,13 +4242,29 @@ const converters = {
             };
         },
     },
-    legrand_master_switch_scenes: {
+    legrand_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             let action = 'default';
-            if (msg.data.groupid === 0xfff7) action = 'enter';
-            if (msg.data.groupid === 0xfff6) action = 'leave';
+            switch (msg.data.groupid) {
+            case 0xfff7:
+                action = 'enter';
+                break;
+
+            case 0xfff6:
+                action = 'leave';
+                break;
+
+            case 0xfff4:
+                action = 'sleep';
+                break;
+
+            case 0xfff5:
+                action = 'wakeup';
+                break;
+            }
+
             return {
                 action: action,
             };
@@ -4125,6 +4299,16 @@ const converters = {
                 return {brightness: (normalised * 254).toFixed(2), level: level};
             }
         },
+    },
+    tuya_thermostat_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: tuyaThermostat,
+    },
+    tuya_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: tuyaThermostat,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
@@ -4274,6 +4458,95 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0,
             };
+        },
+    },
+    ZMCSW032D_cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
+            // When controlling manually the device always first send the correct position but after that always 50.
+            // Therefore ignore 50.
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                msg.data['currentPositionLiftPercentage'] !== 50) {
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                result.position = liftPercentage;
+            }
+            return result;
+        },
+    },
+    ZG2819S_command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('on', msg, model)};
+        },
+    },
+    ZG2819S_command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('off', msg, model)};
+        },
+    },
+    greenpower_on_off_switch: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            const lookup = {
+                0x00: 'identify',
+                0x10: 'recall_scene_0',
+                0x11: 'recall_scene_1',
+                0x12: 'recall_scene_2',
+                0x13: 'recall_scene_3',
+                0x14: 'recall_scene_4',
+                0x15: 'recall_scene_5',
+                0x16: 'recall_scene_6',
+                0x17: 'recall_scene_7',
+                0x18: 'store_scene_0',
+                0x19: 'store_scene_1',
+                0x1A: 'store_scene_2',
+                0x1B: 'store_scene_3',
+                0x1C: 'store_scene_4',
+                0x1D: 'store_scene_5',
+                0x1E: 'store_scene_6',
+                0x1F: 'store_scene_7',
+                0x20: 'off',
+                0x21: 'on',
+                0x22: 'toggle',
+                0x23: 'release',
+                0x60: 'press_1_of_1',
+                0x61: 'release_1_of_1',
+                0x62: 'press_1_of_2',
+                0x63: 'release_1_of_2',
+                0x64: 'press_2_of_2',
+                0x65: 'release_2_of_2',
+                0x66: 'short_press_1_of_1',
+                0x67: 'short_press_1_of_2',
+                0x68: 'short_press_2_of_1',
+            };
+
+            return {action: lookup[commandID] || commandID.toString()};
+        },
+    },
+    greenpower_7: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            return {action: commandID.toString()};
         },
     },
 

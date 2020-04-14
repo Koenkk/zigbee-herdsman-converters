@@ -42,6 +42,22 @@ describe('index.js', () => {
         expect(device).toBe(null)
     });
 
+    it('Find device by fingerprint', () => {
+        const endpoints = [
+            {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+            {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: 'Router',
+            manufacturerID: 4126,
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe('XBee');
+    });
+
     it('Verify devices.js definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
@@ -57,10 +73,14 @@ describe('index.js', () => {
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'zigbeeModel'],
+                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
                 Object.keys(device),
                 device.model,
             );
+
+            if (!device.hasOwnProperty('zigbeeModel') && !device.hasOwnProperty('fingerprint')) {
+                throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
+            }
 
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
@@ -102,11 +122,13 @@ describe('index.js', () => {
             });
 
             // Check for duplicate zigbee model ids
-            device.zigbeeModel.forEach((m) => {
-                if (foundZigbeeModels.includes(m.toLowerCase())) {
-                    throw new Error(`Duplicate zigbee model ${m}`)
-                }
-            });
+            if (device.hasOwnProperty('zigbeeModel')) {
+                device.zigbeeModel.forEach((m) => {
+                    if (foundZigbeeModels.includes(m.toLowerCase())) {
+                        throw new Error(`Duplicate zigbee model ${m}`)
+                    }
+                });
+            }
 
             // Check for duplicate model ids
             if (foundModels.includes(device.model)) {
@@ -120,7 +142,7 @@ describe('index.js', () => {
 
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
-                    expect(['vendor', 'model']).toStrictEqual(Object.keys(definition));
+                    containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
                 }
             }
 
@@ -128,7 +150,10 @@ describe('index.js', () => {
                 containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
             }
 
-            foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            if (device.zigbeeModel) {
+                foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            }
+
             foundModels.push(device.model);
         });
     });

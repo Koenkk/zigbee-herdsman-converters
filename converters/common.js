@@ -57,6 +57,28 @@ const keypadLockoutMode = {
     5: 'lock5',
 };
 
+const TuyaThermostatSystemModes = {
+    0: 'off',
+    1: 'auto',
+    2: 'manual',
+    3: 'comfort',
+    4: 'eco',
+    5: 'boost',
+    6: 'complex',
+};
+
+const TuyaThermostatWeekFormat = {
+    0: '5+2',
+    1: '6+1',
+    2: '7',
+};
+
+const TuyaThermostatForceMode = {
+    0: 'normal',
+    1: 'open',
+    2: 'close',
+};
+
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
@@ -64,4 +86,7 @@ module.exports = {
     fanMode,
     temperatureDisplayMode,
     keypadLockoutMode,
+    TuyaThermostatSystemModes,
+    TuyaThermostatWeekFormat,
+    TuyaThermostatForceMode,
 };
