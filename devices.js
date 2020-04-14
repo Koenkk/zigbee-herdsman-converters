@@ -160,13 +160,14 @@ const configureReporting = {
         Object.assign(payload[0], overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
-    currentSummDelivered: async (endpoint) => {
+    currentSummDelivered: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'currentSummDelivered',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: 1,
+            reportableChange: [0, 1],
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
     currentSummReceived: async (endpoint) => {
@@ -6267,13 +6268,15 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.SP600_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.instantaneousDemand(endpoint);
-            await configureReporting.currentSummDelivered(endpoint);
+            await configureReporting.instantaneousDemand(endpoint, {minimumReportInterval: 5, reportableChange: 10});
+            await configureReporting.currentSummDelivered(
+                endpoint, {minimumReportInterval: 5, reportableChange: [0, 10]},
+            );
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
         ota: ota.salus,
