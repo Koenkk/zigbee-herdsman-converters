@@ -2170,7 +2170,7 @@ const devices = [
         extend: hue.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['1743530P7'],
+        zigbeeModel: ['1743530P7', '1743530V7'],
         model: '17435/30/P7',
         vendor: 'Philips',
         description: 'Hue Discover white and color ambiance flood light',
