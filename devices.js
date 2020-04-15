@@ -8959,7 +8959,7 @@ const devices = [
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
-        description: 'Zigbee A60 Filament Bulb 6.3W',
+        description: 'Zigbee A60 filament bulb 6.3W',
         extend: generic.light_onoff_brightness,
     },
 
