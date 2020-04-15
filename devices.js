@@ -6131,11 +6131,11 @@ const devices = [
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
         description: 'Zigbee Light Link power supply/relay/dimmer',
-        supports: 'on/off',
+        supports: 'on/off and level control for 6715',
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             let firstEndpoint = 0x0a;
 
@@ -6148,7 +6148,7 @@ const devices = [
             const switchEndpoint12 = device.getEndpoint(0x12);
             if (switchEndpoint12 != null) {
                 firstEndpoint++;
-                await bind(switchEndpoint12, coordinatorEndpoint, ['genOnOff']);
+                await bind(switchEndpoint12, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
 
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
@@ -6166,10 +6166,10 @@ const devices = [
             }
         },
         fromZigbee: [
-            fz.ignore_basic_report, fz.on_off, fz.RM01_on_click, fz.RM01_off_click,
+            fz.ignore_basic_report, fz.on_off, fz.brightness, fz.RM01_on_click, fz.RM01_off_click,
             fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
         ],
-        toZigbee: [tz.RM01_on_off],
+        toZigbee: [tz.RM01_on_off, tz.RM01_light_brightness],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
@@ -6185,6 +6185,7 @@ const devices = [
                 store[device.ieeeAddr] = setInterval(async () => {
                     try {
                         await switchEndpoint.read('genOnOff', ['onOff']);
+                        await switchEndpoint.read('genLevelCtrl', ['currentLevel']);
                     } catch (error) {
                         // Do nothing
                     }
