@@ -4546,7 +4546,13 @@ const converters = {
         type: 'commandNotification',
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            return {action: commandID.toString()};
+            let postfix = '';
+
+            if (msg.data.commandFrame && msg.data.commandFrame.raw) {
+                postfix = `_${[...msg.data.commandFrame.raw].join('_')}`;
+            }
+
+            return {action: `${commandID.toString()}${postfix}`};
         },
     },
 
