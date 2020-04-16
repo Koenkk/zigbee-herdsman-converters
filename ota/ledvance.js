@@ -1,5 +1,6 @@
 const axios = require('axios');
-const url = 'https://fw.ota.homesmart.ikea.net/feed/version_info.json';
+const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newer';
+const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
 const assert = require('assert');
 const common = require('./common');
 
@@ -7,34 +8,44 @@ const common = require('./common');
  * Helper functions
  */
 
-async function getImageMeta(imageType) {
-    const images = (await axios.get(url)).data;
-    const image = images.find((i) => i.fw_image_type === imageType);
-    assert(image !== undefined, `No image available for imageType '${imageType}'`);
+async function getImageMeta(manufacturerCode, imageType) {
+    const {data} = await axios.get(updateCheckUrl +
+        `?company=${manufacturerCode}&product=${imageType}&version=0.0.0`);
+
+    assert(data && data.firmwares && data.firmwares.length > 0,
+        `No image available for manufacturerCode '${manufacturerCode}' imageType '${imageType}'`);
+
+    const {identity, fullName, length} = data.firmwares[0];
+
+    const fileVersionMatch = /\/(\d+)\//.exec(fullName);
+    const fileVersion = parseInt(`0x${fileVersionMatch[1]}`, 16);
+
+    const versionString = `${identity.version.major}.${identity.version.minor}.${identity.version.build}`;
+
     return {
-        fileVersion: (image.fw_file_version_MSB << 16) | image.fw_file_version_LSB,
-        fileSize: image.fw_filesize,
-        url: image.fw_binary_url.replace(/^http:\/\//, 'https://'),
+        fileVersion,
+        fileSize: length,
+        url: updateDownloadUrl +
+            `?company=${identity.company}&product=${identity.product}&version=${versionString}`,
     };
 }
 
 async function getNewImage(current, logger, device) {
-    const meta = await getImageMeta(current.imageType);
+    const meta = await getImageMeta(current.manufacturerCode, current.imageType);
     assert(meta.fileVersion > current.fileVersion, 'No new image available');
 
     const download = await axios.get(meta.url, {responseType: 'arraybuffer'});
-    const start = download.data.indexOf(common.upgradeFileIdentifier);
 
-    const image = common.parseImage(download.data.slice(start));
+    const image = common.parseImage(download.data);
     assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
     assert(image.header.totalImageSize === meta.fileSize, 'Image size mismatch');
-    assert(image.header.manufacturerCode === 4476, 'Manufacturer code mismatch');
+    assert(image.header.manufacturerCode === current.manufacturerCode, 'Manufacturer code mismatch');
     assert(image.header.imageType === current.imageType, 'Image type mismatch');
     return image;
 }
 
 async function isNewImageAvailable(current, logger, device) {
-    const meta = await getImageMeta(current.imageType);
+    const meta = await getImageMeta(current.manufacturerCode, current.imageType);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
     return Math.sign(current.fileVersion - meta.fileVersion);
