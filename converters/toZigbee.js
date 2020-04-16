@@ -2151,6 +2151,52 @@ const converters = {
             }
         },
     },
+    tuya_curtain_control: {
+        key: ['state', 'position'],
+        convertSet: async (entity, key, value, meta) => {
+            // Protocol description
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            if (key === 'position') {
+                if (value >= 0 && value <= 100) {
+                    sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
+                } else {
+                    meta.logger.debug('owvfni3: Curtain motor position is out of range');
+                }
+            } else if (key === 'state') {
+                value = value.toLowerCase();
+
+                switch (value) {
+                case 'open':
+                    sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
+                    break;
+                case 'close':
+                    sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
+                    break;
+                case 'stop':
+                    sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
+                    break;
+                default:
+                    meta.logger.debug('owvfni3: Invalid command received');
+                    break;
+                }
+            }
+        },
+    },
+    tuya_curtain_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.reverse_direction != undefined) {
+                if (value.reverse_direction) {
+                    meta.logger.info('Motor direction reverse');
+                    sendTuyaCommand(entity, 1029, 0, [1, 1]); // 0x04 0x05: Set motor direction to reverse
+                } else {
+                    meta.logger.info('Motor direction forward');
+                    sendTuyaCommand(entity, 1029, 0, [1, 0]); // 0x04 0x05: Set motor direction to forward (default)
+                }
+            }
+        },
+    },
 };
 
 module.exports = converters;
