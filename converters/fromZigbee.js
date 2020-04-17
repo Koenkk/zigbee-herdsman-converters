@@ -3642,8 +3642,27 @@ const converters = {
             const channel = msg.endpoint.ID;
             const name = `l${channel}`;
             payload[name] = precisionRound(msg.data['presentValue'], 3);
-            if (msg.data.hasOwnProperty('description') && (msg.data['description'] === 'C')) {
-                payload['temperature'] = precisionRound(msg.data['presentValue'], 1);
+            if (msg.data.hasOwnProperty('description')) {
+                const data1 = msg.data['description'];
+                if (data1) {
+                    const data2 = data1.split(',');
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload['device'] = devid;
+                    }
+                    if (unit === 'C') {
+                        payload['temperature'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === '%') {
+                        payload['humidity'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'Pa') {
+                        payload['pressure'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'm') {
+                        payload['altitude'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'ppm') {
+                        payload['quality'] = precisionRound(msg.data['presentValue'], 1);
+                    }
+                }
             }
             return payload;
         },

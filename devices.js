@@ -2297,7 +2297,7 @@ const devices = [
         supports: 'hold, single, double and triple click, on/off, type, rssi',
         fromZigbee: [
             fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input,
+            fz.ptvo_switch_analog_input, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off, tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input],
         endpoint: (device) => {
