@@ -1053,19 +1053,13 @@ const devices = [
         zigbeeModel: ['owvfni3\u0000'],
         model: 'owvfni3',
         vendor: 'TuYa',
-        description: 'Zemismart curtain motor ZM79E-DT',
+        description: 'Curtain motor',
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
         ],
         supports: 'open, close, stop, position',
-        fromZigbee: [
-            fz.tuya_curtain,
-            fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.tuya_curtain_control,
-            tz.tuya_curtain_options,
-        ],
+        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
 
     // Norklmes
