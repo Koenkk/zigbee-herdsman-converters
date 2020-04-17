@@ -4325,6 +4325,38 @@ const converters = {
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
         },
     },
+    tuya_curtain: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+
+            // Protocol description
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            switch (dp) {
+            case 1025: // 0x04 0x01: Confirm opening/closing/stopping (triggered from Zigbee)
+            case 514: // 0x02 0x02: Started moving to position (triggered from Zigbee)
+            case 1031: // 0x04 0x07: Started moving (triggered by transmitter oder pulling on curtain)
+                return {'running': true};
+            case 515: { // 0x02 0x03: Arrived at position
+                const position = msg.data.data[3];
+
+                if (position > 0 && position <= 100) {
+                    return {running: false, position: position};
+                } else if (position == 0) { // Report fully closed
+                    return {running: false, position: position};
+                } else {
+                    return {running: false}; // Not calibrated yet, no position is available
+                }
+            }
+            case 261: // 0x01 0x05: Returned by configuration set; ignore
+                break;
+            default: // Unknown code
+                console.log(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     almond_click: {
         cluster: 'ssIasAce',
         type: ['commandArm'],
