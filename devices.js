@@ -9527,6 +9527,20 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
     },
+ 
+    // Zipato
+    {
+        zigbeeModel: ['ZHA-ColorLight'],
+        model: 'rgbw2.zbee27',
+        vendor: 'Zipato',
+        description: 'RGBW LED bulb with dimmer',
+        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+    },
+
+
+    
 ];
 
 module.exports = devices.map((device) =>
