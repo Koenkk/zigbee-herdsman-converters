@@ -9534,9 +9534,7 @@ const devices = [
         model: 'rgbw2.zbee27',
         vendor: 'Zipato',
         description: 'RGBW LED bulb with dimmer',
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
-        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 ];
 
