@@ -9537,10 +9537,7 @@ const devices = [
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
         fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee,
-    },
-
-
-    
+    },  
 ];
 
 module.exports = devices.map((device) =>
