@@ -9489,7 +9489,7 @@ const devices = [
             tz.tuya_thermostat_force,
         ],
         whiteLabel: [
-            {vendor: '_TYST11_jeaxp72v', description: 'Essentials Heizkoerperthermostat Prem', model: 'eaxp72v\u0000'},
+            {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
         ],
     },
 
