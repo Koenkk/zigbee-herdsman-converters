@@ -9463,7 +9463,7 @@ const devices = [
 
     // Siterwell
     {
-        zigbeeModel: ['ivfvd7h'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000',],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -9487,6 +9487,9 @@ const devices = [
             tz.tuya_thermostat_comfort_temp,
             tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force,
+        ],
+        whiteLabel: [
+            {vendor: '_TYST11_jeaxp72v', description: 'Essentials Smart Home Heizkoerperthermostat Premium', model: 'eaxp72v\u0000'},
         ],
     },
 
