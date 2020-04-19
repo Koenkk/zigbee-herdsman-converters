@@ -1,5 +1,14 @@
 'use strict';
 
+/**
+ * Documentation of convert() parameters
+ * - model: zigbee-herdsman-converters definition (form devices.js)
+ * - msg: message data property
+ * - publish: publish method
+ * - options: converter options object, e.g. {occupancy_timeout: 120}
+ * - meta: object containing {device: (zigbee-herdsman device object)}
+ */
+
 const common = require('./common');
 const utils = require('./utils');
 
