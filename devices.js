@@ -4318,7 +4318,7 @@ const devices = [
         extend: gledopto.light,
         supports: 'on/off, brightness, color temperature, color',
     },
-	{
+    {
         zigbeeModel: ['GL-FL-006TZ'],
         model: 'GL-FL-006TZ',
         vendor: 'Gledopto',
