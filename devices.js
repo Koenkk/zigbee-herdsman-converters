@@ -9336,7 +9336,7 @@ const devices = [
         vendor: 'LifeControl',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.legacy_battery],
         toZigbee: [],
     },
 
