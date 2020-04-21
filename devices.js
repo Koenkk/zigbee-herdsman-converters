@@ -9480,6 +9480,12 @@ const devices = [
         supports: 'action',
         fromZigbee: [], // Not complete yet.
         toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['MotionSensor51AU'],
