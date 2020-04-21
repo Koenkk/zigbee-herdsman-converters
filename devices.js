@@ -9330,6 +9330,15 @@ const devices = [
             await configureReporting.activePower(endpoint, {...configureOptions, 'reportableChange': 1});
         },
     },
+    {
+        zigbeeModel: ['Motion_Sensor'],
+        model: 'MCLH-05',
+        vendor: 'LifeControl',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+    },
 
     // Develco
     {
