@@ -4407,6 +4407,22 @@ const devices = [
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
+    {
+        zigbeeModel: ['ZG2833K4_EU06'],
+        model: 'ROB_200-008-0',
+        vendor: 'ROBB',
+        description: 'Zigbee 4 button wall switch',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.battery,
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        whiteLabel: [
+            {vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'},
+        ],
+    },
 
     // Namron
     {
@@ -7196,18 +7212,6 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
         extend: generic.light_onoff_brightness,
-    },
-    {
-        zigbeeModel: ['ZG2833K4_EU06'],
-        model: 'SR-ZG9001K4-DIM2',
-        vendor: 'Sunricher',
-        description: 'ZigBee double key wall switch',
-        supports: 'on/off, brightness',
-        fromZigbee: [
-            fz.genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
-            fz.battery_not_divided,
-        ],
-        toZigbee: [],
     },
 
     // Shenzhen Homa
