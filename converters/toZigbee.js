@@ -94,7 +94,7 @@ function getTransition(entity, key, meta) {
 
 const getOptions = (definition) => {
     const result = {};
-    const allowed = ['disableDefaultResponse', 'manufacturerCode'];
+    const allowed = ['disableDefaultResponse', 'manufacturerCode', 'timeout'];
     if (definition && definition.meta) {
         for (const key of Object.keys(definition.meta)) {
             if (allowed.includes(key)) {

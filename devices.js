@@ -15,6 +15,7 @@
  *                         don't provide one.
  * applyRedFix: see toZigbee.light_color
  * enhancedHue: see toZigbee.light_color
+ * timeout: timeout for commands to this device used in toZigbee.
  */
 
 const fz = require('./converters/fromZigbee');
@@ -6580,6 +6581,23 @@ const devices = [
         fromZigbee: [fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['c700050000'],
+        model: 'YDM4109+',
+        vendor: 'Yale',
+        description: 'Intelligent biometric digital lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock_operation_event, fz.battery, fz.lock],
+        toZigbee: [tz.generic_lock],
+        // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290
+        meta: {configureKey: 2, timeout: 20000},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
