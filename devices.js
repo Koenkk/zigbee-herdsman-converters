@@ -3547,7 +3547,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-G13'],
@@ -3555,7 +3554,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (A19)',
         extend: generic.light_onoff_brightness,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
@@ -3563,7 +3561,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (A60)',
         extend: generic.light_onoff_brightness,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['Z01-CIA19NAE26'],
@@ -3571,7 +3568,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Touch (A19)',
         extend: generic.light_onoff_brightness,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['Z01-A19NAE26'],
@@ -3579,7 +3575,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Plus (A19)',
         extend: generic.light_onoff_brightness_colortemp,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['Z01-A60EAE27'],
@@ -3587,7 +3582,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Plus (A60)',
         extend: generic.light_onoff_brightness_colortemp,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-N1EA'],
@@ -3595,7 +3589,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Plus Color (A19)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-U2E'],
@@ -3603,7 +3596,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element color plus E27',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E12-N14'],
@@ -3611,7 +3603,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element Classic (BR30)',
         extend: generic.light_onoff_brightness,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1A-AC2'],
@@ -3619,7 +3610,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Element downlight smart LED bulb',
         extend: generic.light_onoff_brightness,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1D-G73'],
@@ -3629,7 +3619,6 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1C-NB6'],
@@ -3645,7 +3634,6 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
-        ota: ota.zigbeeOTA,
     },
 
     // Swann
@@ -6720,7 +6708,7 @@ const devices = [
     {
         zigbeeModel: [
             'SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
-            'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
+            'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-612-MP-1.0',
         ],
         model: 'SV01',
         vendor: 'Keen Home',
