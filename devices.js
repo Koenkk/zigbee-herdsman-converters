@@ -7690,6 +7690,15 @@ const devices = [
         description: 'PAR16 tunable white',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['ZHA-PIRSensor'],
+        model: '5AA-SS-ZA-H0',
+        vendor: 'Leedarson',
+        description: 'Motion sensor',
+        supports: 'occupancy, illuminance',
+        fromZigbee: [fz.occupancy, fz.illuminance, fz.ignore_occupancy_report],
+        toZigbee: [],
+    },
 
     // GMY
     {
@@ -9424,6 +9433,15 @@ const devices = [
             return {default: 35};
         },
     },
+    {
+        zigbeeModel: ['MOSZB-130'],
+        model: 'MOSZB-130',
+        vendor: 'Develco',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+    },
 
     // Aurora Lighting
     {
@@ -9454,7 +9472,29 @@ const devices = [
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
-
+    {
+        zigbeeModel: ['Remote50AU'],
+        model: 'AU-A1ZBRC',
+        vendor: 'Aurora Lighting',
+        description: 'AOne smart remote',
+        supports: 'action',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step],
+        toZigbee: [],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+        },
+    },
+    {
+        zigbeeModel: ['MotionSensor51AU'],
+        model: 'AU-A1ZBPIRS',
+        vendor: 'Aurora Lighting',
+        description: 'AOne PIR sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+    },
 
     // Wally
     {
