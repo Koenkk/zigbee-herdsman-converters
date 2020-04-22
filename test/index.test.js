@@ -147,7 +147,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
+                containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
