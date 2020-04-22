@@ -1644,13 +1644,14 @@ const converters = {
             if (!value) {
                 return;
             }
+            const payload = {14: {value, type: 0x42}};
             for (const endpoint of meta.device.endpoints) {
                 if (endpoint.hasOwnProperty('clusters') && endpoint.clusters.hasOwnProperty('genMultistateValue')) {
-                    const payload = {14: {value, type: 0x42}};
                     await endpoint.write('genMultistateValue', payload);
-                    break;
+                    return;
                 }
             }
+            await entity.write('genMultistateValue', payload);
         },
     },
     ptvo_switch_analog_input: {
