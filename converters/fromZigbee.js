@@ -824,6 +824,19 @@ const converters = {
             return payload;
         },
     },
+    command_step: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            const payload = {
+                action: getProperty(`brightness_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',

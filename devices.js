@@ -9478,13 +9478,12 @@ const devices = [
         vendor: 'Aurora Lighting',
         description: 'AOne smart remote',
         supports: 'action',
-        fromZigbee: [], // Not complete yet.
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step],
         toZigbee: [],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
-            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
