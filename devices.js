@@ -9628,6 +9628,28 @@ const devices = [
         description: 'RGBW LED bulb with dimmer',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // Viessmann
+    {
+        zigbeeModel: ['7637434'],
+        model: 'ZK03840',
+        vendor: 'Viessmann',
+        description: 'ViCare radiator thermostat valve',
+        supports: 'thermostat',
+        fromZigbee: [fz.thermostat_att_report, fz.battery],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat',
+                'hvacUserInterfaceCfg',
+            ]);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
