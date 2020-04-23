@@ -9586,7 +9586,7 @@ const devices = [
         description: 'RGBW LED bulb with dimmer',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
-    //Viessmann
+    // Viessmann
     {
         zigbeeModel: ['7637434'],
         model: 'ZK03840',
@@ -9595,7 +9595,7 @@ const devices = [
         supports: 'Temperature, Battery',
         fromZigbee: [fz.thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
-        meta:{configureKey: 1},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
@@ -9605,8 +9605,7 @@ const devices = [
             await configureReporting.thermostatTemperature(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await configureReporting.thermostatPIHeatingDemand(endpoint);
-           },
-
+        },
     },
 ];
 
