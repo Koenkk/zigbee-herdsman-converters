@@ -9592,7 +9592,7 @@ const devices = [
         zigbeeModel: ['7637434'],
         model: 'ZK03840',
         vendor: 'Viessmann',
-        description: 'Vicare radiator thermostat valve',
+        description: 'ViCare radiator thermostat valve',
         supports: 'thermostat',
         fromZigbee: [fz.thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
