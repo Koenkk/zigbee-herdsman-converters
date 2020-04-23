@@ -1059,6 +1059,15 @@ const devices = [
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
+    {
+        zigbeeModel: ['TS0121'],
+        model: 'TS0121',
+        description: '10A UK smart plug',
+        supports: 'on/off',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
 
     // Norklmes
     {
