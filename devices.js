@@ -9594,7 +9594,7 @@ const devices = [
         description: 'Vicare Radiator Thermostat Valve',
         supports: 'Temperature, Battery',
         fromZigbee: [fz.thermostat_att_report, fz.battery],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_tmperature_calibration],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
         meta:{configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
