@@ -6592,29 +6592,13 @@ const devices = [
     },
     {
         zigbeeModel: ['iZBModule01'],
-        model: 'YMF40',
+        model: 'YMF40/YDM4109+',
         vendor: 'Yale',
-        description: 'Real living lock',
+        description: 'Real living lock / Intelligent biometric digital lock',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
-            await configureReporting.lockState(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['c700050000'],
-        model: 'YDM4109+',
-        vendor: 'Yale',
-        description: 'Intelligent biometric digital lock',
-        supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock_operation_event, fz.battery, fz.lock],
-        toZigbee: [tz.generic_lock],
-        // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290
+        // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
         meta: {configureKey: 2, timeout: 20000},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
