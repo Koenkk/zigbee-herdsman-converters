@@ -4628,6 +4628,22 @@ const converters = {
             return {action: `${commandID.toString()}${postfix}`};
         },
     },
+    lifecontrolVoc: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
+            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
+            const voc = parseFloat(msg.data['tolerance']);
+            return {
+                temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
+                humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity'),
+                eco2: eco2,
+                voc: voc,
+            };
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
