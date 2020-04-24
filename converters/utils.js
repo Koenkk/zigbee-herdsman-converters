@@ -52,7 +52,7 @@ function gammaCorrectRGB(r, g, b) {
 }
 
 function hsvToRGB(h, s, v) {
-    h = h % 360;
+    h = h % 360 / 360;
     s = s / 100;
     v = v / 100;
     
@@ -98,14 +98,16 @@ function rgbToHSV(r, g, b) {
     }
 
     return {
-        h: h * 360,
-        s: s * 100,
-        v: v * 100
+        h: (h * 360).toFixed(3),
+        s: (s * 100).toFixed(3),
+        v: (v * 100).toFixed(3)
     };
 }
 
 function gammaCorrectHSV(h, s, v) {
-    return rgbToHSV(gammaCorrectRGB(hsvToRGB(h, s, v)));
+    return rgbToHSV(
+	    ...Object.values(gammaCorrectRGB(
+	    ...Object.values(hsvToRGB(h, s, v)))));
 }
 
 
@@ -133,14 +135,14 @@ function xyToMireds(x, y) {
     return Math.round(kelvinToMireds(Math.abs(kelvin)));
 }
 
-function hslToHsb(h, s, l) {
+function hslToHSV(h, s, l) {
     h = h % 360;
     s = s / 100;
     l = l / 100;
     const retH = h;
-    const retB = s * Math.min(l, 1-l) + l;
+    const retV = s * Math.min(l, 1-l) + l;
     const retS = retB ? 2-2*l/retB : 0;
-    return {h: retH, s: retS, b: retB};
+    return {h: retH, s: retS, v: retV};
 }
 
 function hexToRgb(hex) {
@@ -193,14 +195,14 @@ module.exports = {
     rgbToXY,
     hexToXY,
     hexToRgb,
-    hslToHsb,
+    hslToHSV,
     getKeyByValue,
     hasEndpoints,
     miredsToXY,
     xyToMireds,
+    gammaCorrectHSV,
+    gammaCorrectRGB,
     getRandomInt,
     convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
 };
-
-console.log(gammaCorrectRGB(255,125,0))
