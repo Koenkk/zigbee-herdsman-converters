@@ -9253,7 +9253,7 @@ const devices = [
         zigbeeModel: ['ZB-MotionSensor-D0003'],
         model: 'ZS1100400-IN-V1A02',
         vendor: 'Linkind',
-        description: 'PIR Motion Sensor, Wireless Motion Detector',
+        description: 'PIR motion sensor, wireless motion detector',
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
