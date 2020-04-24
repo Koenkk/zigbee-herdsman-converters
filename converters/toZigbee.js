@@ -512,7 +512,7 @@ const converters = {
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-			    utils.hslToHSV(value.h, value.s, value.l)));
+                    utils.hslToHSV(value.h, value.s, value.l)));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -528,7 +528,7 @@ const converters = {
                 newState.color = {hsl: value.hsl};
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-			    utils.hslToHSV(hsl[0], hsl[1], hsl[2])));
+                    utils.hslToHSV(hsl[0], hsl[1], hsl[2])));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
