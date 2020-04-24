@@ -9388,6 +9388,15 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.legacy_battery],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['VOC_Sensor'],
+        model: 'MCLH-08',
+        vendor: 'LifeControl',
+        description: 'Air sensor',
+        supports: 'voc, eco2, temperature, humidity',
+        fromZigbee: [fz.lifecontrolVoc],
+        toZigbee: [],
+    },
 
     // Develco
     {
