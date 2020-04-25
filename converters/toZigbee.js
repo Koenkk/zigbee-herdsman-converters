@@ -540,7 +540,7 @@ const converters = {
                     cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
-                newState.color = {h: value.h, s: value.s, b: value.b};
+                newState.color = {h: value.h, s: value.s, v: value.b};
                 const hsv = utils.gammaCorrectHSV(value.h, value.s, value.b);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
@@ -554,7 +554,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('hsb')) {
                 let hsv = value.hsb.split(',').map((i) => parseInt(i));
-                newState.color = {h: hsv[0], s: hsv[1], b: hsv[2]};
+                newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
                 hsv = utils.gammaCorrectHSV(hsv[0], hsv[1], hsv[2]);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
@@ -567,7 +567,7 @@ const converters = {
                     cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
-                newState.color = {h: value.h, s: value.s, b: value.v};
+                newState.color = {h: value.h, s: value.s, v: value.v};
                 const hsv = utils.gammaCorrectHSV(value.h, value.s, value.v);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
