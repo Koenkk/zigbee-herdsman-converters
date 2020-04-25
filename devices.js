@@ -2799,7 +2799,7 @@ const devices = [
         description: 'Motion sensor',
         supports: 'occupancy, temperature, battery, illuminance',
         fromZigbee: [
-            fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.battery, fz.ignore_basic_report,
+            fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.hive_battery, fz.ignore_basic_report,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
