@@ -2609,6 +2609,18 @@ const converters = {
             return result;
         },
     },
+    sinope_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+            // Sinope seems to report pIHeatingDemand between 0 and 100 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            return result;
+        }
+    },
     sinope_thermostat_state: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
