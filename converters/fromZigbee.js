@@ -368,27 +368,6 @@ const converters = {
             }
         },
     },
-    hive_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                payload['voltage'] = msg.data['batteryVoltage'] * 100;
-                // CR123 battery has nominal 100% value of 3000 and lower value of 2500
-                const cr123Max = 3000;
-                const cr123Min = 2500;
-
-                const numer = payload['voltage'] - cr123Min;
-                const denom = cr123Max - cr123Min;
-                payload['battery'] = precisionRound(numer/denom, 2) * 100;
-            }
-
-            if (Object.keys(payload).length !== 0) {
-                return payload;
-            }
-        },
-    },
     battery_not_divided: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],

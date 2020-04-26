@@ -2800,7 +2800,8 @@ const devices = [
         supports: 'occupancy, temperature, battery, illuminance',
         fromZigbee: [
             fz.temperature, fz.ias_occupancy_alarm_1_with_timeout,
-            fz.illuminance, fz.hive_battery, fz.ignore_basic_report,
+            fz.illuminance, fz.battery, fz.ignore_basic_report,
+            fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -2809,9 +2810,21 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, [
                 'msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement',
             ]);
-            await configureReporting.temperature(endpoint);
-            await configureReporting.batteryVoltage(endpoint);
             await configureReporting.illuminance(endpoint);
+            await configureReporting.temperature(endpoint);
+            // read power clusters
+	    const readPowerConfigClusers =
+                  ["batteryVoltage",
+                  "batteryPercentageRemaining",
+                  "batteryManufacturer",
+                  "batterySize",
+                  "batteryAHrRating",
+                  "batteryQuantity",
+                  "batteryRatedVoltage",
+                  "batteryVoltMinThres"];
+            await endpoint.read('genPowerCfg', readPowerConfigClusers);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
