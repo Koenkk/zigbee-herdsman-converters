@@ -2813,15 +2813,16 @@ const devices = [
             await configureReporting.illuminance(endpoint);
             await configureReporting.temperature(endpoint);
             // read power clusters
-	    const readPowerConfigClusers =
-                  ["batteryVoltage",
-                  "batteryPercentageRemaining",
-                  "batteryManufacturer",
-                  "batterySize",
-                  "batteryAHrRating",
-                  "batteryQuantity",
-                  "batteryRatedVoltage",
-                  "batteryVoltMinThres"];
+            const readPowerConfigClusers = [
+                'batteryVoltage',
+                'batteryPercentageRemaining',
+                'batteryManufacturer',
+                'batterySize',
+                'batteryAHrRating',
+                'batteryQuantity',
+                'batteryRatedVoltage',
+                'batteryVoltMinThres',
+            ];
             await endpoint.read('genPowerCfg', readPowerConfigClusers);
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.batteryVoltage(endpoint);
