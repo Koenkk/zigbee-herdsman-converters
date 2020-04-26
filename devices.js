@@ -3573,9 +3573,9 @@ const devices = [
     },
     {
         zigbeeModel: ['E11-N13', 'E11-N13A', 'E11-N14', 'E11-N14A'],
-        model: 'E11-N13/N13A/N14/N14A',
+        model: 'E11-N13/E11-N13A/E11-N14/E11-N14A',
         vendor: 'Sengled',
-        description: 'Element Extra Bright (A19)',
+        description: 'Element extra bright (A19)',
         extend: generic.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
