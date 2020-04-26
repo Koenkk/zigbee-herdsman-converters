@@ -2619,7 +2619,7 @@ const converters = {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
             }
             return result;
-        }
+        },
     },
     sinope_thermostat_state: {
         cluster: 'hvacThermostat',
