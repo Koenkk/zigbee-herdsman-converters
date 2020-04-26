@@ -1059,7 +1059,7 @@ const converters = {
             await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped));
         },
     },
-    ZNCLDJ11LM_ZNCLDJ12LM_options: {
+    ZNCLDJ11LM_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
             const opts = {
@@ -1094,6 +1094,20 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x0401], options.xiaomi);
+        },
+    },
+    ZNCLDJ12LM_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = {
+                'reverse_direction': false,
+                'auto_close': true,
+                ...value,
+            };
+
+            await entity.write('genBasic', {0xff28: {value: options.reverse_direction, type: 0x01}}, options.xiaomi);
+            await entity.write('genBasic', {0xff29: {value: !options.auto_close, type: 0x01}}, options.xiaomi);
+            return {state: {options}};
         },
     },
     ZNCLDJ11LM_ZNCLDJ12LM_control: {
