@@ -2398,7 +2398,7 @@ const devices = [
         zigbeeModel: ['DTB-ED2004-012'],
         model: 'DTB-ED2004-012',
         vendor: 'databyte.ch',
-        description: 'Panda 1 - wall switch (https://databyte.ch/?portfolio=ed2004-012)',
+        description: 'Panda 1 - wall switch (https://databyte.ch/?post_type=portfolio&p=1818)',
         extend: generic.light_onoff_brightness,
     },
     // DIYRuZ
