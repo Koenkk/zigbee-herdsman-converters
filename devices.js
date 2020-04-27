@@ -2394,7 +2394,13 @@ const devices = [
         fromZigbee: [fz.DTB190502A1_parse],
         toZigbee: [tz.DTB190502A1_LED],
     },
-
+	{
+        zigbeeModel: ['DTB-ED2004-012'],
+        model: 'DTB-ED2004-012',
+        vendor: 'databyte.ch',
+        description: 'Panda 1',
+        extend: generic.light_onoff_brightness,
+    },
     // DIYRuZ
     {
         zigbeeModel: ['DIYRuZ_R4_5'],
