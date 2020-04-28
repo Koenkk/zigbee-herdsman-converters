@@ -347,10 +347,14 @@ const converters = {
                         // it once we turn it on again.
                         // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
                         // it brightness while decreasing the brightness.
-                        store[entity.deviceIeeeAddress] = meta.state.brightness;
+                        store[entity.deviceIeeeAddress] =
+                            {brightness: meta.state.brightness, turnedOffWithTransition: true};
                     }
 
-                    const level = state === 'off' ? 0 : store[entity.deviceIeeeAddress] || 255;
+                    const level = state === 'off' ? 0 :
+                        (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 255);
+                    if (state === 'on') delete store[entity.deviceIeeeAddress];
+
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped));
 
@@ -361,13 +365,14 @@ const converters = {
 
                     return {state: newState};
                 } else {
-                    if (hasState && state === 'on' && store.hasOwnProperty(entity.deviceIeeeAddress)) {
+                    if (hasState && state === 'on' && store.hasOwnProperty(entity.deviceIeeeAddress) &&
+                        store[entity.deviceIeeeAddress].turnedOffWithTransition) {
                         /**
                          * In case the bulb it turned OFF with a transition and turned ON WITHOUT
                          * a transition, the brightness is not recovered as it turns on with brightness 1.
                          * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
                          */
-                        const brightness = store[entity.deviceIeeeAddress];
+                        const brightness = store[entity.deviceIeeeAddress].brightness;
                         delete store[entity.deviceIeeeAddress];
                         await entity.command(
                             'genLevelCtrl',
@@ -382,8 +387,9 @@ const converters = {
                     } else {
                         // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                         // with transition.
-                        if (meta.state.hasOwnProperty('brightness')) {
-                            store[entity.deviceIeeeAddress] = meta.state.brightness;
+                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                            store[entity.deviceIeeeAddress] =
+                                {brightness: meta.state.brightness, turnedOffWithTransition: false};
                         }
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
