@@ -2327,7 +2327,6 @@ const devices = [
         model: 'DNCKATSD001',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall dimmable light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        supports: 'on/off, brightness, hold/release',
         extend: generic.light_onoff_brightness,
     },
     {
