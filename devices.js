@@ -2399,7 +2399,9 @@ const devices = [
         model: 'DTB-ED2004-012',
         vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch (https://databyte.ch/?post_type=portfolio&p=1818)',
-        extend: generic.light_onoff_brightness,
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
     },
     // DIYRuZ
     {
