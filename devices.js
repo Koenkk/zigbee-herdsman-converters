@@ -7218,7 +7218,7 @@ const devices = [
         zigbeeModel: ['CCT Lighting'],
         model: 'ZG192910-4',
         vendor: 'Sunricher',
-        description: 'ZigBee LED-controller',
+        description: 'Zigbee LED-controller',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
