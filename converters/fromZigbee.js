@@ -4337,7 +4337,7 @@ const converters = {
             } else {
                 const level = val[2]*256 + val[3];
                 const normalised = (level - 10) / (1000 - 10);
-                return {brightness: (normalised * 254).toFixed(2), level: level};
+                return {brightness: Math.round(normalised * 254), level: level};
             }
         },
     },
