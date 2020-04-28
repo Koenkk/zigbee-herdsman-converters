@@ -9482,8 +9482,17 @@ const devices = [
         vendor: 'Develco',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint38 = device.getEndpoint(38);
+            await bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint38);
+            const endpoint39 = device.getEndpoint(39);
+            await bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await configureReporting.illuminance(endpoint39);
+        },
     },
 
     // Aurora Lighting
@@ -9535,8 +9544,14 @@ const devices = [
         vendor: 'Aurora Lighting',
         description: 'AOne PIR sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(39);
+            await bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await configureReporting.illuminance(endpoint);
+        },
     },
 
     // Wally
