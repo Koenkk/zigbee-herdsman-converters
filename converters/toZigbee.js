@@ -1111,8 +1111,8 @@ const converters = {
                 ...value,
             };
 
-            await entity.write('genBasic', {0xff28: {value: options.reverse_direction, type: 0x01}}, options.xiaomi);
-            await entity.write('genBasic', {0xff29: {value: !options.auto_close, type: 0x01}}, options.xiaomi);
+            await entity.write('genBasic', {0xff28: {value: options.reverse_direction, type: 0x10}}, options.xiaomi);
+            await entity.write('genBasic', {0xff29: {value: !options.auto_close, type: 0x10}}, options.xiaomi);
             return {state: {options}};
         },
     },
