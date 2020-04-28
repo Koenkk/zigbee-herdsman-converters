@@ -2394,7 +2394,7 @@ const devices = [
         fromZigbee: [fz.DTB190502A1_parse],
         toZigbee: [tz.DTB190502A1_LED],
     },
-	{
+    {
         zigbeeModel: ['DTB-ED2004-012'],
         model: 'DTB-ED2004-012',
         vendor: 'databyte.ch',
