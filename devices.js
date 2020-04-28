@@ -2396,13 +2396,14 @@ const devices = [
     },
     {
         zigbeeModel: ['DTB-ED2004-012'],
-        model: 'DTB-ED2004-012',
-        vendor: 'databyte.ch',
+        model: 'ED2004-012',
+        vendor: 'Custom devices (DiY)',
         description: 'Panda 1 - wall switch (https://databyte.ch/?post_type=portfolio&p=1818)',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+
     // DIYRuZ
     {
         zigbeeModel: ['DIYRuZ_R4_5'],
