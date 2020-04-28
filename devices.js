@@ -7220,12 +7220,6 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee LED-controller',
         extend: generic.light_onoff_brightness_colortemp,
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await configureReporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],
