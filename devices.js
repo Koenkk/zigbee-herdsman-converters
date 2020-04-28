@@ -5363,7 +5363,26 @@ const devices = [
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {configureKey: 3, multiEndpoint: true},
+        supports: 'on/off, brightness, color temperature, color xy',
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness],
+        toZigbee: [tz.light_onoff_brightness, tz.light_color_colortemp,
+            tz.ignore_transition, tz.ignore_rate, tz.light_alert,
+            tz.light_brightness_move, tz.light_colortemp_move],
+        endpoint: (device) => {
+            return {rgb: 10, white: 11};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint10 = device.getEndpoint(10);
+            const endpoint11 = device.getEndpoint(11);
+
+            await bind(device.getEndpoint(10), coordinatorEndpoint,
+                ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await configureReporting.onOff(endpoint10);
+            await bind(device.getEndpoint(11), coordinatorEndpoint,
+                ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint11);
+        },
     },
     {
         zigbeeModel: ['FLS-CT'],
