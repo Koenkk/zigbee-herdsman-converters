@@ -2323,6 +2323,14 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DNCKAT_D001'],
+        model: 'DNCKATSD001',
+        vendor: 'Custom devices (DiY)',
+        description: '[DNCKAT single key wired wall dimmable light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        supports: 'on/off, brightness, hold/release',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['DNCKAT_S001'],
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
