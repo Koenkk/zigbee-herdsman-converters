@@ -2927,6 +2927,15 @@ const devices = [
         fromZigbee: [],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['SLT2'],
+        model: 'SLT2',
+        vendor: 'Hive',
+        description: 'Heating thermostat remote control',
+        supports: 'nothing, communicate via thermostat',
+        fromZigbee: [],
+        toZigbee: [],
+    },
 
     // Innr
     {
