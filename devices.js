@@ -2392,10 +2392,12 @@ const devices = [
         fromZigbee: [fz.cmdToggle],
         toZigbee: [],
     },
+
+    // databyte.ch
     {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
-        vendor: 'Custom devices (DiY)',
+        vendor: 'databyte.ch',
         description: '[CC2530 based IO Board](https://databyte.ch/?portfolio=zigbee-erstes-board-dtb190502a)',
         supports: 'switch, buttons',
         fromZigbee: [fz.DTB190502A1_parse],
@@ -2404,7 +2406,7 @@ const devices = [
     {
         zigbeeModel: ['DTB-ED2004-012'],
         model: 'ED2004-012',
-        vendor: 'Custom devices (DiY)',
+        vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch (https://databyte.ch/?post_type=portfolio&p=1818)',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
