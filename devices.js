@@ -2793,42 +2793,6 @@ const devices = [
 
     // Hive
     {
-        zigbeeModel: ['MOT003'],
-        model: 'MOT003',
-        vendor: 'HiveHome.com',
-        description: 'Motion sensor',
-        supports: 'occupancy, temperature, battery, illuminance',
-        fromZigbee: [
-            fz.temperature, fz.ias_occupancy_alarm_1_with_timeout,
-            fz.illuminance, fz.battery, fz.ignore_basic_report,
-            fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport,
-        ],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(6);
-            await bind(endpoint, coordinatorEndpoint, [
-                'msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement',
-            ]);
-            await configureReporting.illuminance(endpoint);
-            await configureReporting.temperature(endpoint);
-            // read power clusters
-            const readPowerConfigClusers = [
-                'batteryVoltage',
-                'batteryPercentageRemaining',
-                'batteryManufacturer',
-                'batterySize',
-                'batteryAHrRating',
-                'batteryQuantity',
-                'batteryRatedVoltage',
-                'batteryVoltMinThres',
-            ];
-            await endpoint.read('genPowerCfg', readPowerConfigClusers);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-            await configureReporting.batteryVoltage(endpoint);
-        },
-    },
-    {
         zigbeeModel: ['FWBulb01'],
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
