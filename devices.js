@@ -4595,10 +4595,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            const readPowerConfigClusers = [
-                'batteryVoltage',
-            ];
-            await endpoint.read('genPowerCfg', readPowerConfigClusers);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
