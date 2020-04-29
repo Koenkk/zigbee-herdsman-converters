@@ -1941,11 +1941,11 @@ const converters = {
             return result;
         },
     },
-    CC2530ROUTER_state: {
+    CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {state: true, led_state: msg.data['onOff'] === 1};
+            return {led: msg.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
