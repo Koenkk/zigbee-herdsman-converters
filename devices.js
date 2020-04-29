@@ -9289,6 +9289,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['ZBT-DIMLight-A4700003'],
+        model: 'ZL1000700-22-EU-V1A02',
+        vendor: 'Linkind',
+        description: 'Zigbee A60 Led Filament, Dimmable warm light (2200K), E27. 4.2W, 420lm',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['ZB-MotionSensor-D0003'],
         model: 'ZS1100400-IN-V1A02',
         vendor: 'Linkind',
