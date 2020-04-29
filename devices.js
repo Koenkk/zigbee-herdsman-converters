@@ -2392,7 +2392,7 @@ const devices = [
         fromZigbee: [fz.cmdToggle],
         toZigbee: [],
     },
-    
+
     // databyte.ch
     {
         zigbeeModel: ['DTB190502A1'],
