@@ -2923,7 +2923,7 @@ const devices = [
         model: 'SLT2',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
-        supports: 'none, communicate via thermostat',
+        supports: 'nothing, communicate via thermostat',
         fromZigbee: [],
         toZigbee: [],
     },
