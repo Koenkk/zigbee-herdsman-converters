@@ -2149,6 +2149,19 @@ const converters = {
             };
         },
     },
+    battery_cr2450: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            const cr2450Max = 3000;
+            const cr2450Min = 2000;
+            return {
+                battery: (voltage - cr2450Min) / (cr2450Max - cr2450Min) * 100,
+                voltage: voltage / 1000.0,
+            };
+        },
+    },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],

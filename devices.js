@@ -4654,13 +4654,15 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multi Sensor (2015 model)',
         supports: 'contact and temperature',
-        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1],
+        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1, fz.battery_cr2450],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
     {
