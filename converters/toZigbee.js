@@ -1105,15 +1105,15 @@ const converters = {
     ZNCLDJ12LM_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
-            const options = {
+            const opts = {
                 'reverse_direction': false,
                 'auto_close': true,
                 ...value,
             };
 
-            await entity.write('genBasic', {0xff28: {value: options.reverse_direction, type: 0x10}}, options.xiaomi);
-            await entity.write('genBasic', {0xff29: {value: !options.auto_close, type: 0x10}}, options.xiaomi);
-            return {state: {options}};
+            await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
+            await entity.write('genBasic', {0xff29: {value: !opts.auto_close, type: 0x10}}, options.xiaomi);
+            return {state: {options: opts}};
         },
     },
     ZNCLDJ11LM_ZNCLDJ12LM_control: {
