@@ -1407,7 +1407,7 @@ const devices = [
         description: 'TRADFRI signal repeater',
         supports: 'linkquality',
         vendor: 'IKEA',
-        fromZigbee: [fz.E1746_linkquality],
+        fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 2},
@@ -2957,6 +2957,28 @@ const devices = [
         supports: 'nothing, communicate via thermostat',
         fromZigbee: [],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['SLB2'],
+        model: 'SLB2',
+        vendor: 'Hive',
+        description: 'Signal booster',
+        toZigbee: [],
+        supports: 'linkquality',
+        fromZigbee: [fz.linkquality_from_basic],
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await device.endpoints[0].read('genBasic', ['zclVersion']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 1000 * 60 * 30); // Every 30 minutes
+            }
+        },
     },
 
     // Innr

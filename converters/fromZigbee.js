@@ -3627,7 +3627,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    E1746_linkquality: {
+    linkquality_from_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
