@@ -2795,28 +2795,22 @@ const devices = [
     {
         zigbeeModel: ['MOT003'],
         model: 'MOT003',
-        vendor: 'HiveHome.com',
+        vendor: 'Hive',
         description: 'Motion sensor',
-        supports: 'occupancy, temperature, battery, illuminance',
+        supports: 'occupancy, temperature, illuminance, battery',
         fromZigbee: [
-            fz.temperature, fz.ias_occupancy_alarm_1_with_timeout,
-            fz.illuminance, fz.battery, fz.ignore_basic_report,
+            fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.battery, fz.ignore_basic_report,
             fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
-            await bind(endpoint, coordinatorEndpoint, [
-                'msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement',
-            ]);
+            const binds = ['msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement'];
+            await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.illuminance(endpoint);
             await configureReporting.temperature(endpoint);
-            // read power clusters
-            const readPowerConfigClusters = [
-                'batteryPercentageRemaining',
-            ];
-            await endpoint.read('genPowerCfg', readPowerConfigClusters);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
