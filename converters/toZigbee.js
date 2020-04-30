@@ -411,7 +411,6 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
