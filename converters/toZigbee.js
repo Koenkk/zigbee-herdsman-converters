@@ -351,7 +351,7 @@ const converters = {
                             {brightness: meta.state.brightness, turnedOffWithTransition: true};
                     }
 
-                    const level = state === 'off' ? 0 :
+                    let level = state === 'off' ? 0 :
                         (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 255);
                     if (level === 255) {
                         // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
@@ -376,7 +376,7 @@ const converters = {
                          * a transition, the brightness is not recovered as it turns on with brightness 1.
                          * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
                          */
-                        const brightness = store[entity.deviceIeeeAddress].brightness;
+                        let brightness = store[entity.deviceIeeeAddress].brightness;
                         if (brightness === 255) {
                             // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
                             brightness = 254;
