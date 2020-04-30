@@ -352,7 +352,7 @@ const converters = {
                     }
 
                     const level = state === 'off' ? 0 :
-                        (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 255);
+                        (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 254);
                     if (state === 'on') delete store[entity.deviceIeeeAddress];
 
                     const payload = {level, transtime: transition.time};
@@ -410,7 +410,8 @@ const converters = {
                 } else if (message.hasOwnProperty('brightness_percent')) {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
-
+                brightness = Math.min(254, brightness);
+                
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
