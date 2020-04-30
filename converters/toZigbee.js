@@ -353,6 +353,10 @@ const converters = {
 
                     const level = state === 'off' ? 0 :
                         (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 255);
+                    if (level === 255) {
+                        // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
+                        level = 254;
+                    }
                     if (state === 'on') delete store[entity.deviceIeeeAddress];
 
                     const payload = {level, transtime: transition.time};
@@ -373,6 +377,10 @@ const converters = {
                          * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
                          */
                         const brightness = store[entity.deviceIeeeAddress].brightness;
+                        if (brightness === 255) {
+                            // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
+                            brightness = 254;
+                        }
                         delete store[entity.deviceIeeeAddress];
                         await entity.command(
                             'genLevelCtrl',
@@ -410,7 +418,10 @@ const converters = {
                 } else if (message.hasOwnProperty('brightness_percent')) {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
-
+                if (brightness === 255) {
+                    // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
+                    brightness = 254;
+                }
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
