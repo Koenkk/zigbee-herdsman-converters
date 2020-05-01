@@ -9778,6 +9778,7 @@ const devices = [
         description: 'leakSMART water sensor v2',
         supports: 'water leak, temperature',
         fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
+        toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
