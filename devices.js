@@ -3244,6 +3244,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['AE 260'],
+        model: 'AE 260',
+        vendor: 'Innr',
+        description: 'E26/24 bulb',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['SP 120'],
         model: 'SP 120',
         vendor: 'Innr',
