@@ -9532,10 +9532,16 @@ const devices = [
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
-            await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.activePower(endpoint);
+            try {
+                // Some don't support these attributes
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-621465038
+                await readEletricalMeasurementPowerConverterAttributes(endpoint);
+                await configureReporting.rmsVoltage(endpoint);
+                await configureReporting.rmsCurrent(endpoint);
+                await configureReporting.activePower(endpoint);
+            } catch (e) {
+                e;
+            }
 
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
