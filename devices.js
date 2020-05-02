@@ -9774,7 +9774,7 @@ const devices = [
     {
         zigbeeModel: ['leakSMART Water Sensor V2'],
         model: '8840100H',
-        vendor: 'WAXMAN',
+        vendor: 'Waxman',
         description: 'leakSMART water sensor v2',
         supports: 'water leak, temperature',
         fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
@@ -9789,7 +9789,6 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
-
 ];
 
 module.exports = devices.map((device) =>
