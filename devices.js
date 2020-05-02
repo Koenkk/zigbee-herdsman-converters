@@ -9772,6 +9772,26 @@ const devices = [
             await configureReporting.thermostatPIHeatingDemand(endpoint);
         },
     },
+
+    // Waxman
+    {
+        zigbeeModel: ['leakSMART Water Sensor V2'],
+        model: '8840100H',
+        vendor: 'Waxman',
+        description: 'leakSMART water sensor v2',
+        supports: 'water leak, temperature',
+        fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'haApplianceEventsAlerts', 'msTemperatureMeasurement',
+            ]);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.temperature(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
