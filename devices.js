@@ -9770,7 +9770,7 @@ const devices = [
         },
     },
 
-    // WAXMAN
+    // Waxman
     {
         zigbeeModel: ['leakSMART Water Sensor V2'],
         model: '8840100H',
