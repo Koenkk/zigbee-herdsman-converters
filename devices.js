@@ -4422,6 +4422,14 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
+        zigbeeModel: ['GL-FL-004TZS'],
+        model: 'GL-FL-004TZS',
+        vendor: 'Gledopto',
+        description: 'Zigbee 10W floodlight RGB CCT',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-FL-005TZ'],
         model: 'GL-FL-005TZ',
         vendor: 'Gledopto',
