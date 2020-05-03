@@ -4026,6 +4026,15 @@ const devices = [
         description: 'RGB LED downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['FB56-WTS04HM1.1'],
+        model: 'HGZB-14A',
+        vendor: 'Nue / 3A',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+    },
 
     // Smart Home Pty
     {
