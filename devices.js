@@ -7344,14 +7344,14 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
         extend: generic.light_onoff_brightness,
-		meta: {configureKey: 1},
-		whiteLabel: [
-			{vendor: 'YPHIX', model: '50208695'},
-		],
-		configure: async (device, coordinatorEndpoint) => {
-			const endpoint = device.getEndpoint(1);
-			await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-		},
+        meta: {configureKey: 1},
+        whiteLabel: [
+            {vendor: 'YPHIX', model: '50208695'},
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
     },
 
     // Shenzhen Homa
