@@ -2513,6 +2513,7 @@ const devices = [
         vendor: 'M-ELEC',
         description: 'Stitchy Dim switchable wall module',
         extend: generic.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
     },
 
     // OSRAM
