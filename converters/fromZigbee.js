@@ -3678,7 +3678,25 @@ const converters = {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {'action': msg.data['stateText']};
+            let data = msg.data['stateText'];
+            if (typeof data === 'object') {
+                let bHex = false;
+                let code;
+                let index;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index];
+                    if ((code < 32) || (code > 127)) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString('latin1');
+                } else {
+                    data = [...data];
+                }
+            }
+            return {'action': data};
         },
     },
     ptvo_switch_analog_input: {
