@@ -3748,7 +3748,7 @@ const converters = {
     terncy_contact: {
         cluster: 'genBinaryInput',
         type: 'attributeReport',
-        convert: (model, msg, publish, options) => {
+        convert: (model, msg, publish, options, meta) => {
             return {contact: (msg.data['presentValue']==0)};
         },
     },
