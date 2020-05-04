@@ -3752,14 +3752,6 @@ const converters = {
             return {contact: (msg.data['presentValue']==0)};
         },
     },
-    terncy_temperature_simple: {
-        cluster: 'msTemperatureMeasurement',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
-            return {temperature: temperature};
-        },
-    },
     terncy_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],

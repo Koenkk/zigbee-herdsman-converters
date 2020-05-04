@@ -8682,7 +8682,7 @@ const devices = [
         vendor: 'TERNCY',
         description: 'Terncy temperature & contact sensor ',
         supports: 'temperature and contact',
-        fromZigbee: [fz.terncy_temperature_simple, fz.terncy_contact],
+        fromZigbee: [fz.terncy_temperature, fz.terncy_contact],
         toZigbee: [],
     },
     {
