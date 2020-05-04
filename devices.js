@@ -2165,6 +2165,22 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LOM005'],
+        model: '9290022408',
+        vendor: 'Philips',
+        description: 'Hue smart plug - AU',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LLC014'],
         model: '7099860PH',
         vendor: 'Philips',
@@ -4015,6 +4031,15 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'RGB LED downlight',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['FB56-WTS04HM1.1'],
+        model: 'HGZB-14A',
+        vendor: 'Nue / 3A',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
     },
 
     // Smart Home Pty
