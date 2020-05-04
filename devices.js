@@ -8727,6 +8727,15 @@ const devices = [
 
     // TERNCY
     {
+        zigbeeModel: ['TERNCY-DC01'],
+        model: 'TERNCY-DC01',
+        vendor: 'TERNCY',
+        description: 'Temperature & contact sensor ',
+        supports: 'temperature, contact',
+        fromZigbee: [fz.terncy_temperature, fz.terncy_contact],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['TERNCY-PP01'],
         model: 'TERNCY-PP01',
         vendor: 'TERNCY',
