@@ -272,21 +272,20 @@ const converters = {
         },
     },
     light_brightness_move: {
-        key: ['brightness_move'],
+        key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
             if (value === 'stop') {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped));
 
                 // As we cannot determine the new brightness state, we read it from the device
-                await wait(1000);
-                if (entity.constructor.name === 'Endpoint') {
-                    await entity.read('genLevelCtrl', ['currentLevel']);
-                } else if (entity.constructor.name === 'Group' && entity.members.length > 0) {
-                    await entity.members[0].read('genLevelCtrl', ['currentLevel']);
-                }
+                await wait(500);
+                const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
+                await target.read('genOnOff', ['onOff']);
+                await target.read('genLevelCtrl', ['currentLevel']);
             } else {
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
-                await entity.command('genLevelCtrl', 'move', payload, getOptions(meta.mapped));
+                const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
+                await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped));
             }
         },
     },
