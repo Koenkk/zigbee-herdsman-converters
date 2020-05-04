@@ -2022,27 +2022,6 @@ const converters = {
             };
         },
     },
-    SP120_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data.hasOwnProperty('activePower')) {
-                result.power = msg.data['activePower'];
-            }
-
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                result.current = msg.data['rmsCurrent'] / 1000;
-            }
-
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = msg.data['rmsVoltage'];
-            }
-
-            return result;
-        },
-    },
     peanut_electrical: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
