@@ -1,6 +1,16 @@
 'use strict';
 
+/**
+ * Documentation of convert() parameters
+ * - model: zigbee-herdsman-converters definition (form devices.js)
+ * - msg: message data property
+ * - publish: publish method
+ * - options: converter options object, e.g. {occupancy_timeout: 120}
+ * - meta: object containing {device: (zigbee-herdsman device object)}
+ */
+
 const common = require('./common');
+const utils = require('./utils');
 
 const clickLookup = {
     1: 'single',
@@ -36,9 +46,20 @@ const calibrateAndPrecisionRoundOptions = (number, options, type) => {
 };
 
 const precisionRound = (number, precision) => {
-    const factor = Math.pow(10, precision);
-    return Math.round(number * factor) / factor;
+    if (typeof precision === 'number') {
+        const factor = Math.pow(10, precision);
+        return Math.round(number * factor) / factor;
+    } else if (typeof precision === 'object') {
+        const thresholds = Object.keys(precision).map(Number).sort((a, b) => b - a);
+        for (const t of thresholds) {
+            if (! isNaN(t) && number >= t) {
+                return precisionRound(number, precision[t]);
+            }
+        }
+    }
+    return number;
 };
+
 
 const toPercentage = (value, min, max) => {
     if (value > max) {
@@ -189,6 +210,116 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
+const tuyaThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+
+    /*
+     * Structure of the ZCL payload used by Tuya:
+     *
+     * - status: unit8 - 1 byte
+     * - transid: unit8 - 1 byte
+     * - dp: uint16 - 2 bytes* (Big Endian format)
+     * - fn: uint8 - 1 byte
+     * - data: octStr - variable**
+     *
+     * Examples:
+     * | status | transid | dp                | fn | data              |
+     * | 0      | 4       | 0x02 0x02 -> 514  | 0  | [4, 0, 0, 0, 180] |
+     * | 0      | 16      | 0x04 0x04 -> 1028 | 0  | [1, 2]            |
+     *
+     * * The 2 bytes field "dp" uses Big Endian which means that the most meaninful
+     * byte goes right. In plain English: a value like 0x07 0x01 has to be read
+     * from the left so, it becomes 0x0107 witch in base 10 is 263 (the code for
+     * child lock status).
+     *
+     * ** The type octStr prefixes the first byte of the value with the lenght of the
+     * data payload.
+     */
+
+    switch (dp) {
+    case 104: // 0x6800 window params
+        return {
+            window_detection_params: {
+                valve: data[0] ? 'ON' : 'OFF',
+                temperature: data[1],
+                minutes: data[2],
+            },
+        };
+    case 112: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {workdays: [
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
+        ]};
+    case 113: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {holidays: [
+            {hour: data[0], minute: data[1], temperature: data[2]},
+            {hour: data[3], minute: data[4], temperature: data[5]},
+            {hour: data[6], minute: data[7], temperature: data[8]},
+            {hour: data[9], minute: data[10], temperature: data[11]},
+            {hour: data[12], minute: data[13], temperature: data[14]},
+            {hour: data[15], minute: data[16], temperature: data[17]},
+        ]};
+    case 263: // 0x0701 Changed child lock status
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 274: // 0x1201 Enabled/disabled window detection feature
+        return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 276: // 0x1401 Enabled/disabled Valve detection feature
+        return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 372: // 0x7401 auto lock mode
+        return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'};
+    case 514: // 0x0202 Changed target temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: temperature};
+    case 515: // 0x0302 MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 556: // 0x2c02 Temperature calibration
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature_calibration: temperature};
+    case 533: // 0x1502 MCU reporting battery status
+        return {battery: dataAsDecNumber};
+    case 614: // 0x6602 min temperature limit
+        return {min_temperature: dataAsDecNumber};
+    case 615: // 0x6702 max temperature limit
+        return {max_temperature: dataAsDecNumber};
+    case 617: // 0x6902 boost time
+        return {boost_time: dataAsDecNumber};
+    case 619: // 0x6b02 comfort temperature
+        return {comfort_temperature: dataAsDecNumber};
+    case 620: // 0x6c02 ECO temperature
+        return {eco_temperature: dataAsDecNumber};
+    case 621: // 0x6d02 valve position
+        return {position: dataAsDecNumber};
+    case 626: // 0x7202 preset temp ?
+        return {preset_temperature: dataAsDecNumber};
+    case 629: // 0x7502 preset ?
+        return {preset: dataAsDecNumber};
+    case 1028: // 0x0404 Mode changed
+        if (common.TuyaThermostatSystemModes.hasOwnProperty(dataAsDecNumber)) {
+            return {system_mode: common.TuyaThermostatSystemModes[dataAsDecNumber]};
+        } else {
+            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            return;
+        }
+    case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
+        return {force: common.TuyaThermostatForceMode[dataAsDecNumber]};
+    case 1135: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+        return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
+    default: // The purpose of the codes 1041 & 1043 are still unknown
+        console.log(`zigbee-herdsman-converters:siterwell_gs361: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
 const converters = {
     /**
      * Generic/recommended converters, the converters below comply with the ZCL
@@ -237,6 +368,30 @@ const converters = {
             }
         },
     },
+    battery_not_divided: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full.
+                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                payload['battery_low'] = msg.data.batteryAlarmState;
+            }
+
+            if (Object.keys(payload).length !== 0) {
+                return payload;
+            }
+        },
+    },
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -265,7 +420,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.round(Math.pow(10, illuminance / 10000) - 1);
+            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
@@ -282,13 +437,62 @@ const converters = {
     },
     occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
-        // Note: options.occupancy_timeout not available yet, to implement it will be
-        // needed to update device report intervall as well, see devices.js
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
                 return {occupancy: msg.data.occupancy === 1};
+            }
+        },
+    },
+    occupancy_with_timeout: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : occupancyTimeout;
+            const deviceID = msg.device.ieeeAddr;
+
+            // Stop existing timers because motion is detected and set a new one.
+            if (store[deviceID]) {
+                store[deviceID].forEach((t) => clearTimeout(t));
+            }
+
+            store[deviceID] = [];
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                }, timeout * 1000);
+
+                store[deviceID].push(timer);
+            }
+
+            // No occupancy since
+            if (options && options.no_occupancy_since) {
+                options.no_occupancy_since.forEach((since) => {
+                    const timer = setTimeout(() => {
+                        publish({no_occupancy_since: since});
+                    }, since * 1000);
+                    store[deviceID].push(timer);
+                });
+            }
+
+            if (options && options.no_occupancy_since) {
+                return {occupancy: true, no_occupancy_since: 0};
+            } else {
+                return {occupancy: true};
             }
         },
     },
@@ -346,35 +550,32 @@ const converters = {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const getFactor = (key) => {
+                const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
+                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
+                const factor = multiplier && divisor ? multiplier / divisor : 1;
+                return factor;
+            };
+
+            const lookup = [
+                {key: 'activePower', name: 'power', factor: 'acPower'},
+                {key: 'activePowerPhB', name: 'power_phase_b', factor: 'acPower'},
+                {key: 'activePowerPhC', name: 'power_phase_c', factor: 'acPower'},
+                {key: 'rmsCurrent', name: 'current', factor: 'acCurrent'},
+                {key: 'rmsCurrentPhB', name: 'current_phase_b', factor: 'acCurrent'},
+                {key: 'rmsCurrentPhC', name: 'current_phase_c', factor: 'acCurrent'},
+                {key: 'rmsVoltage', name: 'voltage', factor: 'acVoltage'},
+                {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
+                {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
+            ];
+
             const payload = {};
-            if (msg.data.hasOwnProperty('activePower')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acPowerDivisor',
-                );
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('power', msg, model);
-                payload[property] = precisionRound(msg.data['activePower'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acCurrentMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acCurrentDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('current', msg, model);
-                payload[property] = precisionRound(msg.data['rmsCurrent'] * factor, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                const multiplier = msg.endpoint.getClusterAttributeValue(
-                    'haElectricalMeasurement', 'acVoltageMultiplier',
-                );
-                const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', 'acVoltageDivisor');
-                const factor = multiplier && divisor ? multiplier / divisor : 1;
-                const property = getProperty('voltage', msg, model);
-                payload[property] = precisionRound(msg.data['rmsVoltage'] * factor, 2);
+            for (const entry of lookup) {
+                if (msg.data.hasOwnProperty(entry.key)) {
+                    const factor = getFactor(entry.factor);
+                    const property = getProperty(entry.name, msg, model);
+                    payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
+                }
             }
             return payload;
         },
@@ -430,7 +631,9 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            const zoneState = msg.data.zoneState;
             return {
+                enrolled: zoneState === 1,
                 smoke: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
@@ -453,32 +656,139 @@ const converters = {
             };
         },
     },
+    ias_carbon_monoxide_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                carbon_monoxide: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_sos_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                sos: (zoneStatus & 1<<1) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_alarm_1_with_timeout: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            const deviceID = msg.device.ieeeAddr;
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : occupancyTimeout;
+
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            if (timeout !== 0) {
+                store[deviceID] = setTimeout(() => {
+                    publish({occupancy: false});
+                    store[deviceID] = null;
+                }, timeout * 1000);
+            }
+
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    command_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'panic'};
+            const payload = {action: getProperty(`panic`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_arm: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                0: 'disarm',
+                1: 'arm_day_zones',
+                2: 'arm_night_zones',
+                3: 'arm_all_zones',
+            };
+            const payload = {action: getProperty(lookup[msg.data['armmode']], msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('on', msg, model)};
+            const payload = {action: getProperty('on', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('off', msg, model)};
+            const payload = {action: getProperty('off', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            const payload = {action: getProperty(`off`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_move_with_on_off: {
@@ -487,14 +797,18 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = getProperty(`brightness_move_${direction}`, msg, model);
-            return {action, action_rate: msg.data.rate};
+            const payload = {action, action_rate: msg.data.rate};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_stop_with_on_off: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`brightness_stop`, msg, model)};
+            const payload = {action: getProperty(`brightness_stop`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     command_step_with_on_off: {
@@ -502,24 +816,92 @@ const converters = {
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            return {
-                action: `brightness_step_${direction}`,
+            const payload = {
+                action: getProperty(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_step: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            const payload = {
+                action: getProperty(`brightness_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_step_color_temperature: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandStepColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: getProperty(`color_temperature_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: getProperty(`color_temperature_move`, msg, model),
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_move_to_color: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColor',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: getProperty(`color_move`, msg, model),
+                action_color: {
+                    x: precisionRound(msg.data.colorx / 65535, 3),
+                    y: precisionRound(msg.data.colory / 65535, 3),
+                },
+                action_transition_time: msg.data.transtime,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_move_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('hue_move', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_emergency: {
+        cluster: 'ssIasAce',
+        type: 'commandEmergency',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty(`emergency`, msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
         },
     },
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'identify'};
-        },
-    },
-    scenes_recall_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data.sceneid}`};
+            return {action: getProperty(`identify`, msg, model)};
         },
     },
 
@@ -527,6 +909,13 @@ const converters = {
      * Device specific converters, not recommended for re-use.
      * TODO: This has not been fully sorted out yet.
      */
+    scenes_recall_scene_65029: {
+        cluster: 65029,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 1]}`};
+        },
+    },
     HS2SK_SKHMP30I1_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -562,14 +951,14 @@ const converters = {
             return {click: 'off'};
         },
     },
-    E1743_brightness_up: {
+    E1743_brightness_down: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
             return {click: 'brightness_down'};
         },
     },
-    E1743_brightness_down: {
+    E1743_brightness_up: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -950,57 +1339,6 @@ const converters = {
             }
         },
     },
-    occupancy_with_timeout: {
-        // This is for occupancy sensor that only send a message when motion detected,
-        // but do not send a motion stop.
-        // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'msOccupancySensing',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.occupancy !== 1) {
-                // In case of 0 no occupancy is reported.
-                // https://github.com/Koenkk/zigbee2mqtt/issues/467
-                return;
-            }
-
-            // The occupancy sensor only sends a message when motion detected.
-            // Therefore we need to publish the no_motion detected by ourselves.
-            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
-            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.device.ieeeAddr;
-
-            // Stop existing timers because motion is detected and set a new one.
-            if (store[deviceID]) {
-                store[deviceID].forEach((t) => clearTimeout(t));
-            }
-
-            store[deviceID] = [];
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                }, timeout * 1000);
-
-                store[deviceID].push(timer);
-            }
-
-            // No occupancy since
-            if (options && options.no_occupancy_since) {
-                options.no_occupancy_since.forEach((since) => {
-                    const timer = setTimeout(() => {
-                        publish({no_occupancy_since: since});
-                    }, since * 1000);
-                    store[deviceID].push(timer);
-                });
-            }
-
-            if (options && options.no_occupancy_since) {
-                return {occupancy: true, no_occupancy_since: 0};
-            } else {
-                return {occupancy: true};
-            }
-        },
-    },
     xiaomi_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1086,6 +1424,27 @@ const converters = {
             const pressure = msg.data.hasOwnProperty('16') ?
                 parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+        },
+    },
+    xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+            const actionLookup = {0: 'long', 1: null, 2: 'double'};
+            const action = actionLookup[value];
+
+            if (button) {
+                return {action: `${button}${(action ? `_${action}` : '')}`};
+            }
         },
     },
     WXKG02LM_click: {
@@ -1449,13 +1808,6 @@ const converters = {
             }
         },
     },
-    heiman_smart_controller_emergency: {
-        cluster: 'ssIasAce',
-        type: 'commandEmergency',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'emergency'};
-        },
-    },
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -1477,17 +1829,6 @@ const converters = {
             }
             results['zone_id'] = zoneId;
             return results;
-        },
-    },
-    heiman_carbon_monoxide: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Carbon monoxide
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
         },
     },
     JTQJBF01LMBW_gas: {
@@ -1600,11 +1941,11 @@ const converters = {
             return result;
         },
     },
-    CC2530ROUTER_state: {
+    CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {state: true, led_state: msg.data['onOff'] === 1};
+            return {led: msg.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
@@ -1679,27 +2020,6 @@ const converters = {
                 voltage: msg.data['rmsVoltage'],
                 power_factor: msg.data['powerFactor'],
             };
-        },
-    },
-    SP120_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data.hasOwnProperty('activePower')) {
-                result.power = msg.data['activePower'];
-            }
-
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                result.current = msg.data['rmsCurrent'] / 1000;
-            }
-
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = msg.data['rmsVoltage'];
-            }
-
-            return result;
         },
     },
     peanut_electrical: {
@@ -1804,6 +2124,19 @@ const converters = {
             const voltage = msg.data['batteryVoltage'] * 100;
             return {
                 battery: toPercentageCR2032(voltage),
+                voltage: voltage / 1000.0,
+            };
+        },
+    },
+    battery_cr2450: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            const cr2450Max = 3000;
+            const cr2450Min = 2000;
+            return {
+                battery: (voltage - cr2450Min) / (cr2450Max - cr2450Min) * 100,
                 voltage: voltage / 1000.0,
             };
         },
@@ -2019,18 +2352,6 @@ const converters = {
             return {contact: msg.data.zonestatus === 36};
         },
     },
-    nue_power_state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            if (button) {
-                const payload = {};
-                payload[`state_${button}`] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-                return payload;
-            }
-        },
-    },
     RZHAC_4256251_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -2039,58 +2360,6 @@ const converters = {
                 power: msg.data['activePower'],
                 current: msg.data['rmsCurrent'],
                 voltage: msg.data['rmsVoltage'],
-            };
-        },
-    },
-    iaszone_occupancy_2: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1<<1) > 0, // Bit 1 = Alarm 2: Presence Indication
-                tamper: (zoneStatus & 1<<2) > 0, // Bit 2 = Tamper status
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 3 = Battery LOW indicator (trips around 2.4V)
-            };
-        },
-    },
-    iaszone_occupancy_1: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
-    iaszone_occupancy_1_with_timeout: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            const useOptionsTimeout = options && options.hasOwnProperty('occupancy_timeout');
-            const timeout = useOptionsTimeout ? options.occupancy_timeout : occupancyTimeout;
-            const deviceID = msg.device.ieeeAddr;
-
-            if (store[deviceID]) {
-                clearTimeout(store[deviceID]);
-                store[deviceID] = null;
-            }
-
-            if (timeout !== 0) {
-                store[deviceID] = setTimeout(() => {
-                    publish({occupancy: false});
-                    store[deviceID] = null;
-                }, timeout * 1000);
-            }
-
-            return {
-                occupancy: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -2231,6 +2500,10 @@ const converters = {
                 result.occupied_cooling_setpoint =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
+            if (typeof msg.data['unoccupiedCoolingSetpoint'] == 'number') {
+                result.unoccupied_cooling_setpoint =
+                    precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
+            }
             if (typeof msg.data['weeklySchedule'] == 'number') {
                 result.weekly_schedule = msg.data['weeklySchedule'];
             }
@@ -2316,7 +2589,7 @@ const converters = {
                 result.stelpro_mode = mode;
                 switch (mode) {
                 case 5:
-                    // "Eco" mode is translated into "auto" here
+                    // 'Eco' mode is translated into 'auto' here
                     result.system_mode = common.thermostatSystemModes[1];
                     break;
                 }
@@ -2324,6 +2597,18 @@ const converters = {
             const piHeatingDemand = msg.data['pIHeatingDemand'];
             if (typeof piHeatingDemand == 'number') {
                 result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
+            }
+            return result;
+        },
+    },
+    sinope_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+            // Sinope seems to report pIHeatingDemand between 0 and 100 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
             }
             return result;
         },
@@ -2650,40 +2935,12 @@ const converters = {
             return null;
         },
     },
-    eria_81825_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    eria_81825_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
     eria_81825_updown: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 0 ? 'up' : 'down';
             return {action: `${direction}`};
-        },
-    },
-    ZYCT202_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on', action_group: msg.groupID};
-        },
-    },
-    ZYCT202_off: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off', action_group: msg.groupID};
         },
     },
     ZYCT202_stop: {
@@ -2727,7 +2984,7 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{"cid":"msPressureMeasurement","data":{"32":990494}}'
+            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
             const pressure = parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
@@ -2847,7 +3104,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
             // ubisys J1 will report 255 if lift or tilt positions are not known.
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
@@ -2866,9 +3123,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports "open" to be 100 and "closed" to be 0
+            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
                 const liftPercentage = msg.data['currentPositionLiftPercentage'];
                 result.position = liftPercentage <= 100 ? liftPercentage : null;
@@ -2938,7 +3195,7 @@ const converters = {
             return {action: `${button}_stop`};
         },
     },
-    GIRA2430_scene_click: {
+    insta_scene_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
@@ -2947,21 +3204,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_on_click: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
-    GIRA2430_off_click: {
-        cluster: 'genOnOff',
-        type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
-    GIRA2430_down_hold: {
+    insta_down_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
@@ -2973,7 +3216,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_up_hold: {
+    insta_up_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -2985,7 +3228,7 @@ const converters = {
             };
         },
     },
-    GIRA2430_stop: {
+    insta_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
@@ -3363,7 +3606,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    E1746_linkquality: {
+    linkquality_from_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3410,6 +3653,64 @@ const converters = {
             }
         },
     },
+    ptvo_switch_uart: {
+        cluster: 'genMultistateValue',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let data = msg.data['stateText'];
+            if (typeof data === 'object') {
+                let bHex = false;
+                let code;
+                let index;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index];
+                    if ((code < 32) || (code > 127)) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString('latin1');
+                } else {
+                    data = [...data];
+                }
+            }
+            return {'action': data};
+        },
+    },
+    ptvo_switch_analog_input: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            payload[name] = precisionRound(msg.data['presentValue'], 3);
+            if (msg.data.hasOwnProperty('description')) {
+                const data1 = msg.data['description'];
+                if (data1) {
+                    const data2 = data1.split(',');
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload['device'] = devid;
+                    }
+                    if (unit === 'C') {
+                        payload['temperature'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === '%') {
+                        payload['humidity'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'Pa') {
+                        payload['pressure'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'm') {
+                        payload['altitude'] = precisionRound(msg.data['presentValue'], 1);
+                    } else if (unit === 'ppm') {
+                        payload['quality'] = precisionRound(msg.data['presentValue'], 1);
+                    }
+                }
+            }
+            return payload;
+        },
+    },
     keypad20states: {
         cluster: 'genOnOff',
         type: ['readResponse', 'attributeReport'],
@@ -3439,6 +3740,13 @@ const converters = {
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             ratelimitedDimmer(model, msg, publish, options, meta);
+        },
+    },
+    terncy_contact: {
+        cluster: 'genBinaryInput',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: (msg.data['presentValue']==0)};
         },
     },
     terncy_temperature: {
@@ -3728,6 +4036,29 @@ const converters = {
             };
         },
     },
+    SmartButton_event: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            // Philips HUE Smart Button "ROM001": these events are always from "button 1"
+            let type = null;
+            switch (msg.data['type']) {
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
+            }
+            return {
+                action: `${type}`,
+            };
+        },
+    },
     CCTSwitch_D0001_on_off: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
@@ -3981,13 +4312,29 @@ const converters = {
             };
         },
     },
-    legrand_master_switch_scenes: {
+    legrand_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             let action = 'default';
-            if (msg.data.groupid === 0xfff7) action = 'enter';
-            if (msg.data.groupid === 0xfff6) action = 'leave';
+            switch (msg.data.groupid) {
+            case 0xfff7:
+                action = 'enter';
+                break;
+
+            case 0xfff6:
+                action = 'leave';
+                break;
+
+            case 0xfff4:
+                action = 'sleep';
+                break;
+
+            case 0xfff5:
+                action = 'wakeup';
+                break;
+            }
+
             return {
                 action: action,
             };
@@ -4019,9 +4366,19 @@ const converters = {
             } else {
                 const level = val[2]*256 + val[3];
                 const normalised = (level - 10) / (1000 - 10);
-                return {brightness: (normalised * 254).toFixed(2), level: level};
+                return {brightness: Math.round(normalised * 254), level: level};
             }
         },
+    },
+    tuya_thermostat_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: tuyaThermostat,
+    },
+    tuya_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: tuyaThermostat,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
@@ -4036,6 +4393,38 @@ const converters = {
                 4: 'state_l4',
             };
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
+        },
+    },
+    tuya_curtain: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+
+            // Protocol description
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            switch (dp) {
+            case 1025: // 0x04 0x01: Confirm opening/closing/stopping (triggered from Zigbee)
+            case 514: // 0x02 0x02: Started moving to position (triggered from Zigbee)
+            case 1031: // 0x04 0x07: Started moving (triggered by transmitter oder pulling on curtain)
+                return {'running': true};
+            case 515: { // 0x02 0x03: Arrived at position
+                const position = msg.data.data[3];
+
+                if (position > 0 && position <= 100) {
+                    return {running: false, position: position};
+                } else if (position == 0) { // Report fully closed
+                    return {running: false, position: position};
+                } else {
+                    return {running: false}; // Not calibrated yet, no position is available
+                }
+            }
+            case 261: // 0x01 0x05: Returned by configuration set; ignore
+                break;
+            default: // Unknown code
+                console.log(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
         },
     },
     almond_click: {
@@ -4125,6 +4514,173 @@ const converters = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
+        },
+    },
+    EMIZB_132_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Cannot use electrical_measurement_power here as the reported divisor is not correct
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-600834722
+            const payload = {};
+            if (msg.data.hasOwnProperty('rmsCurrent')) {
+                payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
+            }
+            if (msg.data.hasOwnProperty('rmsVoltage')) {
+                payload.voltage = precisionRound(msg.data['rmsVoltage'] / 10, 2);
+            }
+            return payload;
+        },
+    },
+    _3310_humidity: {
+        cluster: 'manuSpecificCentraliteHumidity',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+        },
+    },
+    MultiSensor_ias_contact_alarm: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 1) return;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+            };
+        },
+    },
+    MultiSensor_ias_water_leak_alarm: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 2) return;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+            };
+        },
+    },
+    ZMCSW032D_cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
+            // When controlling manually the device always first send the correct position but after that always 50.
+            // Therefore ignore 50.
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                msg.data['currentPositionLiftPercentage'] !== 50) {
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                result.position = liftPercentage;
+            }
+            return result;
+        },
+    },
+    ZG2819S_command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('on', msg, model)};
+        },
+    },
+    ZG2819S_command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            // The device sends this command for all four group IDs.
+            // Only forward for the first group.
+            if (msg.groupID !== 46337) {
+                return null;
+            }
+            return {action: getProperty('off', msg, model)};
+        },
+    },
+    greenpower_on_off_switch: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            const lookup = {
+                0x00: 'identify',
+                0x10: 'recall_scene_0',
+                0x11: 'recall_scene_1',
+                0x12: 'recall_scene_2',
+                0x13: 'recall_scene_3',
+                0x14: 'recall_scene_4',
+                0x15: 'recall_scene_5',
+                0x16: 'recall_scene_6',
+                0x17: 'recall_scene_7',
+                0x18: 'store_scene_0',
+                0x19: 'store_scene_1',
+                0x1A: 'store_scene_2',
+                0x1B: 'store_scene_3',
+                0x1C: 'store_scene_4',
+                0x1D: 'store_scene_5',
+                0x1E: 'store_scene_6',
+                0x1F: 'store_scene_7',
+                0x20: 'off',
+                0x21: 'on',
+                0x22: 'toggle',
+                0x23: 'release',
+                0x60: 'press_1_of_1',
+                0x61: 'release_1_of_1',
+                0x62: 'press_1_of_2',
+                0x63: 'release_1_of_2',
+                0x64: 'press_2_of_2',
+                0x65: 'release_2_of_2',
+                0x66: 'short_press_1_of_1',
+                0x67: 'short_press_1_of_2',
+                0x68: 'short_press_2_of_1',
+            };
+
+            return {action: lookup[commandID] || commandID.toString()};
+        },
+    },
+    greenpower_7: {
+        cluster: 'greenPower',
+        type: 'commandNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            let postfix = '';
+
+            if (msg.data.commandFrame && msg.data.commandFrame.raw) {
+                postfix = `_${[...msg.data.commandFrame.raw].join('_')}`;
+            }
+
+            return {action: `${commandID.toString()}${postfix}`};
+        },
+    },
+    lifecontrolVoc: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
+            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
+            const voc = parseFloat(msg.data['tolerance']);
+            return {
+                temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
+                humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity'),
+                eco2: eco2,
+                voc: voc,
+            };
+        },
+    },
+    _8840100H_water_leak_alarm: {
+        cluster: 'haApplianceEventsAlerts',
+        type: 'commandAlertsNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const alertStatus = msg.data.aalert;
+            return {
+                water_leak: (alertStatus & 1<<12) > 0,
+            };
         },
     },
 
