@@ -6737,7 +6737,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock_operation_event, fz.battery],
+        fromZigbee: [fz.lock_operation_event, fz.battery, fz.lock],
         toZigbee: [tz.generic_lock],
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
         meta: {configureKey: 2, timeout: 20000},
