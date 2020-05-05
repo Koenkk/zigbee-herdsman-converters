@@ -1063,7 +1063,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Curtain motor',
         whiteLabel: [
-            {vendor: 'TuYa', model: 'YS-MT750'},
+            {vendor: 'Yushun', model: 'YS-MT750'},
         ],
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
