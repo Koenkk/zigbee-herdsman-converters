@@ -9448,8 +9448,8 @@ const devices = [
         vendor: 'Linkind', 
         description: 'Door/Window Sensor', 
         supports: 'contact', 
-        fromZigbee: [fz.ias_contact_alarm_1], // We will add this later
-        toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
+        fromZigbee: [fz.ias_contact_alarm_1], 
+        toZigbee: [], 
     },
 
     // BlitzWolf
