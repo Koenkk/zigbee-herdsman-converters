@@ -1097,8 +1097,10 @@ const converters = {
             if (msg.data['65281']) {
                 // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
                 let illuminance = msg.data['65281']['11'];
-                illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-                return {illuminance, illuminance_lux: illuminance};
+                return {
+                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+                };
             }
         },
     },
@@ -1108,8 +1110,10 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             let illuminance = msg.data['measuredValue'];
-            illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-            return {illuminance, illuminance_lux: illuminance};
+            return {
+                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+            };
         },
     },
     WSDCGQ01LM_WSDCGQ11LM_interval: {
