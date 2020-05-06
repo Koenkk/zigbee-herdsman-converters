@@ -9442,6 +9442,15 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['ZB-DoorSensor-D0003'],
+        model: 'ZS110050078',
+        vendor: 'Linkind',
+        description: 'Door/window Sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
 
     // BlitzWolf
     {
