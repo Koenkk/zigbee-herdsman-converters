@@ -6534,10 +6534,7 @@ const devices = [
         vendor: 'Eurotronic',
         description: 'Spirit Zigbee wireless heater thermostat',
         supports: 'temperature, heating system control',
-        fromZigbee: [
-            fz.eurotronic_thermostat,
-            fz.battery,
-        ],
+        fromZigbee: [fz.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration, tz.eurotronic_thermostat_system_mode,
