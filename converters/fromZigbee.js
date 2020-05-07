@@ -1099,7 +1099,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-                let illuminance = msg.data['65281']['11'];
+                const illuminance = msg.data['65281']['11'];
                 return {
                     illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                     illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
@@ -1112,7 +1112,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-            let illuminance = msg.data['measuredValue'];
+            const illuminance = msg.data['measuredValue'];
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
