@@ -1358,7 +1358,9 @@ const converters = {
                 meta.message.transition = 0.4;
             }
 
-            const state = {};
+            // Gledopto devices turn ON when they are OFF and color is set.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
+            const state = {state: 'ON'};
 
             // GL-C-007/GL-C-008 RGBW
             if (meta.mapped.model === 'GL-C-007/GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
