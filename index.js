@@ -60,28 +60,30 @@ function findByDevice(device) {
 
 function fingerprintMatch(fingerprint, device) {
     let match =
-        device.applicationVersion === fingerprint.applicationVersion &&
-        device.manufacturerID === fingerprint.manufacturerID &&
-        device.type === fingerprint.type &&
-        device.dateCode === fingerprint.dateCode &&
-        device.hardwareVersion === fingerprint.hardwareVersion &&
-        device.manufacturerName === fingerprint.manufacturerName &&
-        device.modelID === fingerprint.modelID &&
-        device.powerSource === fingerprint.powerSource &&
-        device.softwareBuildID === fingerprint.softwareBuildID &&
-        device.stackVersion === fingerprint.stackVersion &&
-        device.stackVersion === fingerprint.stackVersion &&
-        device.zclVersion === fingerprint.zclVersion &&
-        arrayEquals(device.endpoints.map((e) => e.ID), fingerprint.endpoints.map((e) => e.ID));
+        (!fingerprint.applicationVersion || device.applicationVersion === fingerprint.applicationVersion) &&
+        (!fingerprint.manufacturerID || device.manufacturerID === fingerprint.manufacturerID) &&
+        (!fingerprint.type || device.type === fingerprint.type) &&
+        (!fingerprint.dateCode || device.dateCode === fingerprint.dateCode) &&
+        (!fingerprint.hardwareVersion || device.hardwareVersion === fingerprint.hardwareVersion) &&
+        (!fingerprint.manufacturerName || device.manufacturerName === fingerprint.manufacturerName) &&
+        (!fingerprint.modelID || device.modelID === fingerprint.modelID) &&
+        (!fingerprint.powerSource || device.powerSource === fingerprint.powerSource) &&
+        (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
+        (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
+        (!fingerprint.zclVersion || device.zclVersion === fingerprint.zclVersion) &&
+        (!fingerprint.endpoints ||
+            arrayEquals(device.endpoints.map((e) => e.ID), fingerprint.endpoints.map((e) => e.ID)));
 
-    if (match) {
+    if (match && fingerprint.endpoints) {
         for (const fingerprintEndpoint of fingerprint.endpoints) {
             const deviceEndpoint = device.getEndpoint(fingerprintEndpoint.ID);
             match = match &&
-                deviceEndpoint.deviceID === fingerprintEndpoint.deviceID &&
-                deviceEndpoint.profileID === fingerprintEndpoint.profileID &&
-                arrayEquals(deviceEndpoint.inputClusters, fingerprintEndpoint.inputClusters) &&
-                arrayEquals(deviceEndpoint.outputClusters, fingerprintEndpoint.outputClusters);
+                (!fingerprintEndpoint.deviceID || deviceEndpoint.deviceID === fingerprintEndpoint.deviceID) &&
+                (!fingerprintEndpoint.profileID || deviceEndpoint.profileID === fingerprintEndpoint.profileID) &&
+                (!fingerprintEndpoint.inputClusters ||
+                        arrayEquals(deviceEndpoint.inputClusters, fingerprintEndpoint.inputClusters)) &&
+                (!fingerprintEndpoint.outputClusters ||
+                        arrayEquals(deviceEndpoint.outputClusters, fingerprintEndpoint.outputClusters));
         }
     }
 
