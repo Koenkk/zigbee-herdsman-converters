@@ -5066,7 +5066,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Z-SRN12N'],
+        zigbeeModel: ['Z-SRN12N', 'SZ-SRN12N'],
         model: 'SZ-SRN12N',
         vendor: 'SmartThings',
         description: 'Smart siren',
