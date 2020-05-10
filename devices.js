@@ -9527,6 +9527,26 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
     },
+	
+    // ZBHT-1
+    {
+        zigbeeModel: ['ZBHT-1'],
+        model: 'ZBHT-1',
+        vendor: 'Smartenit',
+        description: 'Temperature & humidity sensor ',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await bind(endpoint, coordinatorEndpoint, bindClusters);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
