@@ -1,5 +1,14 @@
 'use strict';
 
+/**
+ * Documentation of convert() parameters
+ * - model: zigbee-herdsman-converters definition (form devices.js)
+ * - msg: message data property
+ * - publish: publish method
+ * - options: converter options object, e.g. {occupancy_timeout: 120}
+ * - meta: object containing {device: (zigbee-herdsman device object)}
+ */
+
 const common = require('./common');
 const utils = require('./utils');
 
@@ -351,7 +360,10 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                payload['battery_low'] = msg.data.batteryAlarmState;
+                const battery1Low = (msg.data.batteryAlarmState & 1<<0) > 0;
+                const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
+                const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
+                payload['battery_low'] = battery1Low || battery2Low || battery3Low;
             }
 
             if (Object.keys(payload).length !== 0) {
@@ -815,6 +827,19 @@ const converters = {
             return payload;
         },
     },
+    command_step: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            const payload = {
+                action: getProperty(`brightness_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
@@ -1074,9 +1099,11 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-                let illuminance = msg.data['65281']['11'];
-                illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-                return {illuminance, illuminance_lux: illuminance};
+                const illuminance = msg.data['65281']['11'];
+                return {
+                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+                };
             }
         },
     },
@@ -1085,9 +1112,11 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-            let illuminance = msg.data['measuredValue'];
-            illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-            return {illuminance, illuminance_lux: illuminance};
+            const illuminance = msg.data['measuredValue'];
+            return {
+                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+            };
         },
     },
     WSDCGQ01LM_WSDCGQ11LM_interval: {
@@ -1919,11 +1948,11 @@ const converters = {
             return result;
         },
     },
-    CC2530ROUTER_state: {
+    CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {state: true, led_state: msg.data['onOff'] === 1};
+            return {led: msg.data['onOff'] === 1};
         },
     },
     CC2530ROUTER_meta: {
@@ -1998,27 +2027,6 @@ const converters = {
                 voltage: msg.data['rmsVoltage'],
                 power_factor: msg.data['powerFactor'],
             };
-        },
-    },
-    SP120_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data.hasOwnProperty('activePower')) {
-                result.power = msg.data['activePower'];
-            }
-
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                result.current = msg.data['rmsCurrent'] / 1000;
-            }
-
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = msg.data['rmsVoltage'];
-            }
-
-            return result;
         },
     },
     peanut_electrical: {
@@ -2123,6 +2131,19 @@ const converters = {
             const voltage = msg.data['batteryVoltage'] * 100;
             return {
                 battery: toPercentageCR2032(voltage),
+                voltage: voltage / 1000.0,
+            };
+        },
+    },
+    battery_cr2450: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            const cr2450Max = 3000;
+            const cr2450Min = 2000;
+            return {
+                battery: (voltage - cr2450Min) / (cr2450Max - cr2450Min) * 100,
                 voltage: voltage / 1000.0,
             };
         },
@@ -2583,6 +2604,18 @@ const converters = {
             const piHeatingDemand = msg.data['pIHeatingDemand'];
             if (typeof piHeatingDemand == 'number') {
                 result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
+            }
+            return result;
+        },
+    },
+    sinope_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+            // Sinope seems to report pIHeatingDemand between 0 and 100 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
             }
             return result;
         },
@@ -3580,7 +3613,7 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
-    E1746_linkquality: {
+    linkquality_from_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3631,7 +3664,25 @@ const converters = {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {'action': msg.data['stateText']};
+            let data = msg.data['stateText'];
+            if (typeof data === 'object') {
+                let bHex = false;
+                let code;
+                let index;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index];
+                    if ((code < 32) || (code > 127)) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString('latin1');
+                } else {
+                    data = [...data];
+                }
+            }
+            return {'action': data};
         },
     },
     ptvo_switch_analog_input: {
@@ -3696,6 +3747,13 @@ const converters = {
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             ratelimitedDimmer(model, msg, publish, options, meta);
+        },
+    },
+    terncy_contact: {
+        cluster: 'genBinaryInput',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: (msg.data['presentValue']==0)};
         },
     },
     terncy_temperature: {
@@ -4315,7 +4373,7 @@ const converters = {
             } else {
                 const level = val[2]*256 + val[3];
                 const normalised = (level - 10) / (1000 - 10);
-                return {brightness: (normalised * 254).toFixed(2), level: level};
+                return {brightness: Math.round(normalised * 254), level: level};
             }
         },
     },
@@ -4604,6 +4662,32 @@ const converters = {
             }
 
             return {action: `${commandID.toString()}${postfix}`};
+        },
+    },
+    lifecontrolVoc: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
+            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
+            const voc = parseFloat(msg.data['tolerance']);
+            return {
+                temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
+                humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity'),
+                eco2: eco2,
+                voc: voc,
+            };
+        },
+    },
+    _8840100H_water_leak_alarm: {
+        cluster: 'haApplianceEventsAlerts',
+        type: 'commandAlertsNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const alertStatus = msg.data.aalert;
+            return {
+                water_leak: (alertStatus & 1<<12) > 0,
+            };
         },
     },
 
