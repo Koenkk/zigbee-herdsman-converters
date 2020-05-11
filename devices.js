@@ -9786,6 +9786,15 @@ const devices = [
             });
         },
     },
+    {
+        zigbeeModel: ['ZBHT-1'],
+        model: 'ZBHT-1',
+        vendor: 'Smartenit',
+        description: 'Temperature & humidity sensor ',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+    },
 
     // Siterwell
     {
