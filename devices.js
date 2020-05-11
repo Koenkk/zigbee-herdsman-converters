@@ -5734,9 +5734,18 @@ const devices = [
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        meta: {configureKey: 4},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint,
+                {'minimumReportInterval': 10, 'reportableChange': 2});
+        },
     },
 
     // HEIMAN
