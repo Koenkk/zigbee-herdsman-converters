@@ -1072,7 +1072,7 @@ const devices = [
     {
         zigbeeModel: ['TS0121'],
         model: 'TS0121',
-        description: '10A UK smart plug',
+        description: '10A UK or 16A EU smart plug',
         supports: 'on/off',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off],
