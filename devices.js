@@ -9793,6 +9793,7 @@ const devices = [
         description: 'Temperature & humidity sensor ',
         supports: 'temperature and humidity',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
     },
 
     // Siterwell
