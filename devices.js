@@ -1645,7 +1645,7 @@ const devices = [
         model: '433714',
         vendor: 'Philips',
         description: 'Hue Lux A19 bulb E27',
-        extend: hue.light_onoff_brightness,
+        extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
     {
