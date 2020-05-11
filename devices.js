@@ -9908,11 +9908,6 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint);
-            await configureReporting.humidity(endpoint);
-            await configureReporting.batteryVoltage(endpoint);
             await bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'haApplianceEventsAlerts', 'msTemperatureMeasurement',
             ]);
