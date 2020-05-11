@@ -1,6 +1,16 @@
 const index = require('../index');
 const devices = require('../devices');
 
+function containsOnly(array1, array2){
+    for (const elem of array2) {
+        if (!array1.includes(elem)) {
+            throw new Error(`Contains '${elem}' while it should only contains: '${array1}'`)
+        }
+    }
+
+    return true;
+}
+
 describe('index.js', () => {
     it('Find device by model ID', () => {
         const device = index.findByZigbeeModel('WaterSensor-N');
@@ -32,6 +42,22 @@ describe('index.js', () => {
         expect(device).toBe(null)
     });
 
+    it('Find device by fingerprint', () => {
+        const endpoints = [
+            {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+            {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: 'Router',
+            manufacturerID: 4126,
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe('XBee');
+    });
+
     it('Verify devices.js definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
@@ -47,13 +73,13 @@ describe('index.js', () => {
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'zigbeeModel'],
+                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
                 Object.keys(device),
                 device.model,
             );
 
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
+            if (!device.hasOwnProperty('zigbeeModel') && !device.hasOwnProperty('fingerprint')) {
+                throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
             }
 
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
@@ -96,18 +122,38 @@ describe('index.js', () => {
             });
 
             // Check for duplicate zigbee model ids
-            device.zigbeeModel.forEach((m) => {
-                if (foundZigbeeModels.includes(m.toLowerCase())) {
-                    throw new Error(`Duplicate zigbee model ${m}`)
-                }
-            });
+            if (device.hasOwnProperty('zigbeeModel')) {
+                device.zigbeeModel.forEach((m) => {
+                    if (foundZigbeeModels.includes(m.toLowerCase())) {
+                        throw new Error(`Duplicate zigbee model ${m}`)
+                    }
+                });
+            }
 
             // Check for duplicate model ids
             if (foundModels.includes(device.model)) {
                 throw new Error(`Duplicate model ${device.model}`)
             }
 
-            foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            // Verify meta
+            if (device.configure && (!device.meta || !device.meta.configureKey)) {
+                throw new Error(`${device.model} requires configureKey because it has configure`)
+            }
+
+            if (device.whiteLabel) {
+                for (const definition of device.whiteLabel) {
+                    containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
+                }
+            }
+
+            if (device.meta) {
+                containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout'], Object.keys(device.meta));
+            }
+
+            if (device.zigbeeModel) {
+                foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            }
+
             foundModels.push(device.model);
         });
     });
