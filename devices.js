@@ -8130,6 +8130,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['LXT56-LS27LX1.6'],
+        model: 'HGZB-DLC4-N15B',
+        vendor: 'Zemismart',
+        description: 'RGB LED downlight',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['TS0302'],
         model: 'ZM-CSW032-D',
         vendor: 'Zemismart',
