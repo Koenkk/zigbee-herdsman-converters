@@ -9907,6 +9907,26 @@ const devices = [
             await configureReporting.temperature(endpoint);
         },
     },
+
+    // eZEX
+    {
+        zigbeeModel: ['E220-KR3N0Z0-HA'],
+        model: 'ECW-100-A03',
+        vendor: 'eZEX',
+        description: 'eZEX Zigbee switch 3 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {top: 1, center: 2, bottom: 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff'])
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff'])
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff'])
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
