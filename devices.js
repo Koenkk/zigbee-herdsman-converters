@@ -4304,6 +4304,25 @@ const devices = [
         supports: 'on/off, brightness, color, white',
     },
     {
+        fingerprint: [
+            // Although the device announces modelID GL-C-007, this is clearly a GL-C-008
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3525
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                {ID: 15, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+            ]},
+        ],
+        model: 'GL-C-008-2ID', // 2 ID controls color temperature and color separate
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT (2 ID)',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+        endpoint: (device) => {
+            return {rgb: 11, cct: 15};
+        },
+    },
+    {
         zigbeeModel: ['GL-C-008'],
         model: 'GL-C-008',
         vendor: 'Gledopto',
