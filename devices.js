@@ -9964,7 +9964,7 @@ const devices = [
         zigbeeModel: ['E220-KR3N0Z0-HA'],
         model: 'ECW-100-A03',
         vendor: 'eZEX',
-        description: 'eZEX Zigbee switch 3 gang',
+        description: 'Zigbee switch 3 gang',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -9973,9 +9973,9 @@ const devices = [
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff'])
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff'])
-            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff'])
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
 ];
