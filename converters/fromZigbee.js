@@ -4416,9 +4416,11 @@ const converters = {
             case 514: // 0x02 0x02: Started moving to position (triggered from Zigbee)
             case 1031: // 0x04 0x07: Started moving (triggered by transmitter oder pulling on curtain)
                 return {'running': true};
+            case 1127:
+                const position = msg.data.data[0]; // position 0
+                return {running: false, position: position};
             case 515: { // 0x02 0x03: Arrived at position
-                const position = msg.data.data[3];
-
+                const position = Math.floor((msg.data.data[3]*100)/99); // position 0~99 => 0~100
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
                 } else if (position == 0) { // Report fully closed
