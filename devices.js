@@ -5480,7 +5480,7 @@ const devices = [
 
     // Ninja Blocks
     {
-        zigbeeModel: ['Ninja Smart plug'],
+        zigbeeModel: ['Ninja Smart Plug'],
         model: 'Z809AF',
         vendor: 'Ninja Blocks',
         description: 'Zigbee smart plug with power meter',
