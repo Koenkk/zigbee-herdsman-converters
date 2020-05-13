@@ -1897,6 +1897,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTP008'],
+        model: '4098430P7',
+        vendor: 'Philips',
+        description: 'Hue Being Pendant',
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC003'],
         model: '3261331P7',
         vendor: 'Philips',
