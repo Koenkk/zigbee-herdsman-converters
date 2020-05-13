@@ -9011,7 +9011,7 @@ const devices = [
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
         supports: 'on/off',
-        fromZigbee: [fz.generic_state_multi_ep],
+        fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'first': 1,  'second': 2};
