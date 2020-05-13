@@ -9057,7 +9057,7 @@ const devices = [
         fromZigbee: [fz.st_button_state],
         toZigbee: [],
     },
-    
+
     // SONOFF
     {
         zigbeeModel: ['BASICZBR3'],
