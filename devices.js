@@ -8992,15 +8992,6 @@ const devices = [
         toZigbee: [tz.on_off],
     },
     {
-        zigbeeModel: ['98293058552c49f38ad0748541ee96ba'],
-        model: 'SF21',
-        vendor: 'ORVIBO',
-		description: 'Smoke Sensor',
-        supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke, fz.battery],
-        toZigbee: [],
-    },
-    {
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
         model: 'W40CZ',
         vendor: 'Orvibo',
