@@ -1002,6 +1002,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0001'},
             {vendor: 'Lonsonho', model: 'TS0001'},
+            {vendor: 'Bandi', description: '1 Gang Switch', model: 'BDS03G1'},
         ],
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
