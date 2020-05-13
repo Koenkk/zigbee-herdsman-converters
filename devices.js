@@ -8997,7 +8997,7 @@ const devices = [
         vendor: 'ORVIBO',
 		description: 'Smoke Sensor',
         supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke, fz.battery_200],
+        fromZigbee: [fz.heiman_smoke, fz.battery],
         toZigbee: [],
     },
     {
