@@ -8990,6 +8990,12 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
@@ -9048,8 +9054,8 @@ const devices = [
         model: 'SE21',
         vendor: 'ORVIBO',
         description: 'Smart emergency button',
-        supports: 'click',
-        fromZigbee: [fz.st_button_state],
+        supports: 'action',
+        fromZigbee: [fz.SE21_action],
         toZigbee: [],
     },
 
