@@ -8976,7 +8976,7 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -8999,11 +8999,6 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
-                await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
-            }
-        },
     },
     {
         zigbeeModel: ['e0fc98cc88df4857847dc4ae73d80b9e'],
@@ -9016,7 +9011,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -9026,7 +9021,7 @@ const devices = [
         zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b'],
         model: 'R20W2Z',
         vendor: 'ORVIBO',
-        description: 'In wall switch single Live',
+        description: 'In wall switch - 2 gang',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -9053,8 +9048,8 @@ const devices = [
         model: 'SE21',
         vendor: 'ORVIBO',
         description: 'Smart emergency button',
-        supports: 'action',
-        fromZigbee: [fz.SE21_action],
+        supports: 'click',
+        fromZigbee: [fz.st_button_state],
         toZigbee: [],
     },
 
