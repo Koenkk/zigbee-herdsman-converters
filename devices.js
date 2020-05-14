@@ -8928,7 +8928,7 @@ const devices = [
         zigbeeModel: ['888a434f3cfc47f29ec4a3a03e9fc442'],
         model: 'ST21',
         vendor: 'ORVIBO',
-        description: 'temperature & humidity Sensor',
+        description: 'Temperature & humidity Sensor',
         supports: 'temperature and humidity',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
@@ -8995,7 +8995,7 @@ const devices = [
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
         model: 'W40CZ',
         vendor: 'Orvibo',
-        description: 'Orvibo Smart curtain motor ',
+        description: 'Orvibo smart curtain motor ',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
@@ -9014,7 +9014,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'first': 1, 'second': 2};
+            return {'l1': 1, 'l2': 2};
         },
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -9026,7 +9026,7 @@ const devices = [
         zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b'],
         model: 'R20W2Z',
         vendor: 'ORVIBO',
-        description: 'In wall switch Single Live',
+        description: 'In wall switch single Live',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -9053,8 +9053,8 @@ const devices = [
         model: 'SE21',
         vendor: 'ORVIBO',
         description: 'Smart emergency button',
-        supports: 'click',
-        fromZigbee: [fz.st_button_state],
+        supports: 'action',
+        fromZigbee: [fz.SE21_action],
         toZigbee: [],
     },
 
