@@ -510,6 +510,10 @@ const converters = {
         },
     },
     metering_power: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * await readMeteringPowerConverterAttributes(endpoint);
+         */
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
