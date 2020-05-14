@@ -9000,7 +9000,7 @@ const devices = [
     {
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
         model: 'W40CZ',
-        vendor: 'Orvibo',
+        vendor: 'ORVIBO',
         description: 'Orvibo smart curtain motor ',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
