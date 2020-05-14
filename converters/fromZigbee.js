@@ -2400,6 +2400,20 @@ const converters = {
             };
         },
     },
+    SE21_action: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonStates = {
+                0: 'off',
+                1: 'single',
+                2: 'double',
+                3: 'hold',
+            };
+
+            return {action: buttonStates[msg.data.zonestatus]};
+        },
+    },
     st_button_state: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
