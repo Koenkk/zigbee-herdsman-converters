@@ -3587,6 +3587,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['Daylight'],
+        model: 'PQC19-DY01',
+        vendor: 'GE',
+        description: 'Link smart LED light bulb, A19/BR30 cold white (5000K)',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['45852'],
         model: '45852GE',
         vendor: 'GE',
