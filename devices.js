@@ -9001,9 +9001,9 @@ const devices = [
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
         model: 'W40CZ',
         vendor: 'ORVIBO',
-        description: 'Orvibo smart curtain motor ',
+        description: 'Smart curtain motor ',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
     },
     {
@@ -9037,7 +9037,7 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {'l1': 1, 'l2': 2};
         },
     },
     {
