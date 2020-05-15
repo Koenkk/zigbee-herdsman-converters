@@ -1773,6 +1773,13 @@ const converters = {
             }
         },
     },
+    curtain_position_analog_output: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {position: precisionRound(msg.data['presentValue'], 2)};
+        },
+    },
     ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
