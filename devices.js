@@ -8958,6 +8958,160 @@ const devices = [
             await bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['b467083cfc864f5e826459e5d8ea6079'],
+        model: 'ST20',
+        vendor: 'ORVIBO',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint1);
+            await configureReporting.humidity(endpoint2);
+            await configureReporting.batteryVoltage(endpoint2);
+            await configureReporting.batteryPercentageRemaining(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['888a434f3cfc47f29ec4a3a03e9fc442'],
+        model: 'ST21',
+        vendor: 'ORVIBO',
+        description: 'Temperature & humidity Sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint1);
+            await configureReporting.humidity(endpoint2);
+            await configureReporting.batteryVoltage(endpoint2);
+            await configureReporting.batteryPercentageRemaining(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494'],
+        model: 'T30W3Z',
+        vendor: 'ORVIBO',
+        description: 'Smart light switch - 3 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            return {'top': 1, 'center': 2, 'bottom': 3};
+        },
+    },
+    {
+        zigbeeModel: ['074b3ffba5a045b7afd94c47079dd553'],
+        model: 'T21W2Z',
+        vendor: 'ORVIBO',
+        description: 'Smart light switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['095db3379e414477ba6c2f7e0c6aa026'],
+        model: 'T21W1Z',
+        vendor: 'ORVIBO',
+        description: 'Smart light switch - 1 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
+        model: 'W40CZ',
+        vendor: 'ORVIBO',
+        description: 'Smart curtain motor ',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+    },
+    {
+        zigbeeModel: ['e0fc98cc88df4857847dc4ae73d80b9e'],
+        model: 'R11W2Z',
+        vendor: 'ORVIBO',
+        description: 'In wall switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b'],
+        model: 'R20W2Z',
+        vendor: 'ORVIBO',
+        description: 'In wall switch - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+    },
+    {
+        zigbeeModel: ['da2edf1ded0d44e1815d06f45ce02029'],
+        model: 'SW21',
+        vendor: 'ORVIBO',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],
+        model: 'SE21',
+        vendor: 'ORVIBO',
+        description: 'Smart emergency button',
+        supports: 'action',
+        fromZigbee: [fz.SE21_action],
+        toZigbee: [],
+    },
 
     // SONOFF
     {

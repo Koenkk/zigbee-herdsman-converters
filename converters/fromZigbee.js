@@ -1777,6 +1777,13 @@ const converters = {
             }
         },
     },
+    curtain_position_analog_output: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {position: precisionRound(msg.data['presentValue'], 2)};
+        },
+    },
     ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
@@ -2402,6 +2409,20 @@ const converters = {
                 contact: !(zoneStatus & 1), // Bit 1 = Contact
                 // Bit 5 = Currently always set?
             };
+        },
+    },
+    SE21_action: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonStates = {
+                0: 'off',
+                1: 'single',
+                2: 'double',
+                3: 'hold',
+            };
+
+            return {action: buttonStates[msg.data.zonestatus]};
         },
     },
     st_button_state: {
