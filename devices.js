@@ -2494,6 +2494,33 @@ const devices = [
         fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['DIYRuZ_FreePad'],
+        model: 'DIYRuZ_FreePad',
+        vendor: 'DIYRuZ',
+        description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
+        supports: 'single, double, triple, quadruple, many, hold/release',
+        fromZigbee: [fz.diyruz_freepad_clicks, fz.battery],
+        toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+            device.endpoints.forEach(async (ep) => {
+                await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
+            });
+        },
+        endpoint: (device) => {
+            return {
+                button_1: 1, button_2: 2, button_3: 3, button_4: 4, button_5: 5,
+                button_6: 6, button_7: 7, button_8: 8, button_9: 9, button_10: 10,
+                button_11: 11, button_12: 12, button_13: 13, button_14: 14, button_15: 15,
+                button_16: 16, button_17: 17, button_18: 18, button_19: 19, button_20: 20,
+            };
+        },
+    },
 
     // eCozy
     {

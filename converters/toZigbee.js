@@ -2188,6 +2188,28 @@ const converters = {
             }
         },
     },
+    diyruz_freepad_on_off_config: {
+        key: ['switch_type', 'switch_actions'],
+        convertSet: async (entity, key, value, meta) => {
+            const switchTypesLookup = {
+                toggle: 0x00,
+                momentary: 0x01,
+                multifunction: 0x02,
+            };
+            const switchActionsLookup = {
+                on: 0x00,
+                off: 0x01,
+                toggle: 0x02,
+            };
+
+            const payloads = {
+                switch_type: {'switchType': switchTypesLookup[value] || value},
+                switch_actions: {'switchActions': switchActionsLookup[value] || value},
+            };
+
+            await entity.write('genOnOffSwitchCfg', payloads[key]);
+        },
+    },
 };
 
 module.exports = converters;
