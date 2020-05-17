@@ -166,7 +166,7 @@ const configureReporting = {
             attribute: 'currentSummDelivered',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: [0, 1],
+            reportableChange: [1, 1],
         }];
         Object.assign(payload[0], overrides);
         await endpoint.configureReporting('seMetering', payload);
@@ -176,7 +176,7 @@ const configureReporting = {
             attribute: 'currentSummReceived',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: 1,
+            reportableChange: [1, 1],
         }];
         await endpoint.configureReporting('seMetering', payload);
     },
