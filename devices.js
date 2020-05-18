@@ -2785,6 +2785,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Gardenspot W'],
+        model: '4052899926127',
+        vendor: 'OSRAM',
+        description: 'Lightify mini gardenspot WT',
+        extend: osram.light_onoff_brightness,
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['PAR 16 50 RGBW - LIGHTIFY'],
         model: 'AB35996',
         vendor: 'OSRAM',
