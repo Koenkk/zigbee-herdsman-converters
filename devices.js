@@ -4466,6 +4466,14 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
     },
     {
+        zigbeeModel: ['GL-B-001ZS'],
+        model: 'GL-B-001ZS',
+        vendor: 'Gledopto',
+        description: 'Smart 4W E14 RGB / CCT LED bulb',
+        extend: gledopto.light,
+        supports: 'on/off, brightness, color temperature, color',
+    },
+    {
         zigbeeModel: ['GL-G-001Z'],
         model: 'GL-G-001Z',
         vendor: 'Gledopto',
@@ -6044,7 +6052,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['HT-EM'],
+        zigbeeModel: ['HT-EM', 'TH-T_V14'],
         model: 'HS1HT',
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
@@ -6052,6 +6060,9 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 2},
+        whiteLabel: [
+            {vendor: 'Ferguson', model: 'TH-T_V14'},
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
