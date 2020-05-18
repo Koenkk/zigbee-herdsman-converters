@@ -8864,6 +8864,24 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['TI0001 '],
+        model: 'LH-990ZB',
+        vendor: 'iHORN',
+        description: 'PIR motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['HORN-MECI-A3.9-E'],
+        model: 'HO-09ZB',
+        vendor: 'iHORN',
+        description: 'Door or window contact switch',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+    },
 
     // TCI
     {
