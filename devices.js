@@ -1348,7 +1348,7 @@ const devices = [
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.cmdToggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
+            fz.command_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
             fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
             fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
             fz.battery_not_divided, fz.E1524_hold,
@@ -2431,7 +2431,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[Matts Wall Switch Remote](https://github.com/mattlokes/ZWallRemote)',
         supports: 'on/off',
-        fromZigbee: [fz.cmdToggle],
+        fromZigbee: [fz.command_toggle],
         toZigbee: [],
     },
 
@@ -5338,6 +5338,20 @@ const devices = [
         description: 'Plug Shine Zigbee controller',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['RemoteControl '],
+        model: '500.67',
+        vendor: 'Paulmann',
+        description: 'RGB remote control',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_toggle, fz.command_step,
+            fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_stop,
+            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
+            fz.tint404011_scene,
+        ],
+        toZigbee: [],
+    },
 
     // Bitron
     {
@@ -6576,7 +6590,7 @@ const devices = [
         supports: 'toggle, brightness, other buttons are not supported yet!',
         vendor: 'Müller Licht',
         fromZigbee: [
-            fz.tint404011_on, fz.tint404011_off, fz.cmdToggle, fz.tint404011_brightness_updown_click,
+            fz.command_on, fz.command_off, fz.command_toggle, fz.tint404011_brightness_updown_click,
             fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
             fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
         ],

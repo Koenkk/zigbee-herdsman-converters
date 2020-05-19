@@ -798,6 +798,26 @@ const converters = {
             return payload;
         },
     },
+    command_toggle: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('toggle', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_move: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            const payload = {action, action_rate: msg.data.rate};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_move_with_on_off: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
@@ -805,6 +825,15 @@ const converters = {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = getProperty(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty(`brightness_stop`, msg, model)};
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
@@ -839,6 +868,7 @@ const converters = {
             const payload = {
                 action: getProperty(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime,
             };
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
@@ -853,6 +883,51 @@ const converters = {
                 action: getProperty(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_ehanced_move_to_hue_and_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandEnhancedMoveToHueAndSaturation',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: getProperty(`enhanced_move_to_hue_and_saturation`, msg, model),
+                action_enhanced_hue: msg.data.enhancehue,
+                action_hue: msg.data.enhancehue * 360 / 65536 % 360,
+                action_saturation: msg.data.saturation * 200 / 256 % 100,
+                action_transition_time: msg.data.transtime,
+            };
+
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_color_loop_set: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandColorLoopSet',
+        convert: (model, msg, publish, options, meta) => {
+            const updateFlags = msg.data.updateflags;
+            const actionLookup = {
+                0x00: 'deactivate',
+                0x01: 'activate_from_color_loop_start_enhanced_hue',
+                0x02: 'activate_from_enhanced_current_hue',
+            };
+
+            const payload = {
+                action: getProperty(`color_loop_set`, msg, model),
+                action_update_flags: {
+                    action: (updateFlags & 1 << 0) > 0,
+                    direction: (updateFlags & 1 << 1) > 0,
+                    time: (updateFlags & 1 << 2) > 0,
+                    start_hue: (updateFlags & 1 << 3) > 0,
+                },
+                action_action: actionLookup[msg.data.action],
+                action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
+                action_time: msg.data.time,
+                action_start_hue: msg.data.starthue,
+            };
+
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
@@ -2720,13 +2795,6 @@ const converters = {
             return result;
         },
     },
-    tint404011_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
     ts0043_click: {
         cluster: 'genOnOff',
         type: 'raw',
@@ -2751,13 +2819,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             return {action: `${clickMapping[msg.data[3]]}`};
-        },
-    },
-    tint404011_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
         },
     },
     tint404011_brightness_updown_click: {
@@ -2853,13 +2914,6 @@ const converters = {
                 action: 'color_wheel',
                 transition_time: msg.data.transtime,
             };
-        },
-    },
-    cmdToggle: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'toggle'};
         },
     },
     E1524_hold: {
