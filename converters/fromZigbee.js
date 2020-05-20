@@ -1767,8 +1767,7 @@ const converters = {
             }
         },
     },
-	//hyj add
-	QBKG25LM_click: {
+    QBKG25LM_click: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1776,7 +1775,7 @@ const converters = {
                 const mapping = {41: 'left', 42: 'center', 43: 'right'};
                 const times = {1: 'single', 2: 'double', 3: 'triple', 0: 'hold', 255: 'release'};
                 const button = mapping[msg.endpoint.ID];
-                return {click: `${button}_${times[msg.data.presentValue]}`};
+                return {action: `${button}_${times[msg.data.presentValue]}`};
             }
         },
     }, 
