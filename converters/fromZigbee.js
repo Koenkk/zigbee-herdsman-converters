@@ -895,7 +895,7 @@ const converters = {
                 action: getProperty(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
                 action_hue: msg.data.enhancehue * 360 / 65536 % 360,
-                action_saturation: msg.data.saturation * 200 / 256 % 100,
+                action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
 
