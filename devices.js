@@ -628,6 +628,20 @@ const devices = [
         },
         onEvent: xiaomi.prevent_reset,
     },
+	//hyj add
+	{
+        zigbeeModel:['lumi.switch.l3acn3'],   
+        model:'QBKG25LM',
+        vendor:'Xiaomi',     
+        description:'Aqara D1 3 gang smart wall switch',
+        supports:'on/off',
+        fromZigbee:[fz.on_off,fz.QBKG25LM_click],
+        toZigbee:[tz.on_off],
+        meta:{multiEndpoint:true},
+        endpoint:(device) =>{
+            return{'left':1, 'center':2, 'right':3};
+        },          
+    }, 
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
         model: 'WXKG07LM',
