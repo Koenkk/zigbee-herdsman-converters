@@ -650,7 +650,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.QBKG25LM_click],
         toZigbee: [tz.on_off],
         meta: {multiEndpoint: true},
-        endpoint: (device) =>{
+        endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
     },
