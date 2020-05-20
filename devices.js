@@ -646,7 +646,7 @@ const devices = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch',
-        supports: 'on/off',
+        supports: 'on/off, action',
         fromZigbee: [fz.on_off, fz.QBKG25LM_click],
         toZigbee: [tz.on_off],
         meta: {multiEndpoint: true},
