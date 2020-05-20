@@ -761,7 +761,7 @@ const devices = [
         fromZigbee: [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.ZNCZ04LM_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
