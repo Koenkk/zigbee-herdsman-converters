@@ -8940,6 +8940,15 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['HORN-PIR--A3.9-E'],
+        model: 'LH-990F',
+        vendor: 'iHORN',
+        description: 'PIR motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+    },
 
     // TCI
     {
