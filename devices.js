@@ -5949,7 +5949,6 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
-            await configureReporting.batteryAlarmState(endpoint);
         },
     },
     {
