@@ -1772,7 +1772,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
+            if ([1, 2, 3, 0, 255].includes(msg.data.presentValue)) {
                 const mapping = {41: 'left', 42: 'center', 43: 'right'};
                 const times = {1: 'single', 2: 'double', 3: 'triple', 0: 'hold', 255: 'release'};
                 const button = mapping[msg.endpoint.ID];
