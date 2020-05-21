@@ -9792,7 +9792,7 @@ const devices = [
         vendor: 'BTicino',
         description: 'Light switch with neutral',
         supports: 'on/off, led color',
-        fromZigbee: [fz.identify, fz.on_off],
+        fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input],
         toZigbee: [
             tz.on_off, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_identify,

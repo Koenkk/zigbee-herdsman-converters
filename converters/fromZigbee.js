@@ -4724,6 +4724,13 @@ const converters = {
             return {action: getProperty('off', msg, model)};
         },
     },
+    K4003C_binary_input: {
+        cluster: 'genOnOff',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.presentValue === 1 ? 'off' : 'on'};
+        },
+    },
     greenpower_on_off_switch: {
         cluster: 'greenPower',
         type: 'commandNotification',
