@@ -1013,6 +1013,14 @@ const converters = {
 
             await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
             await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
+            return {state: {power_outage_memory: value}};
+        },
+    },
+    ZNCZ04LM_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            return {state: {power_outage_memory: value}};
         },
     },
     xiaomi_switch_operation_mode: {
