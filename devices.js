@@ -9938,6 +9938,24 @@ const devices = [
         },
     },
 
+    // SCHLAGE
+    {
+        zigbeeModel: ['BE468'],
+        model: 'BE468',
+        vendor: 'Schlage',
+        description: 'Schlage Connect Smart Deadbolt',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        toZigbee: [tz.generic_lock],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+
     // HORNBACH
     {
         zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
