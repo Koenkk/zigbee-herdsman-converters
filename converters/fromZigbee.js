@@ -1351,6 +1351,21 @@ const converters = {
             return lookup[value] ? lookup[value] : null;
         },
     },
+    xiaomi_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            const lookup = {
+                1: {action: 'single'}, // single click
+                2: {action: 'double'}, // double click
+                0: {action: 'hold'}, // hold for more than 400ms
+                255: {action: 'release'}, // release after hold for more than 400ms
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
     xiaomi_action_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -1573,11 +1588,11 @@ const converters = {
             return {click: 'single'};
         },
     },
-    WXKG06LM_click: {
+    WXKG06LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'single'};
+            return {action: 'single'};
         },
     },
     immax_07046L_arm: {
