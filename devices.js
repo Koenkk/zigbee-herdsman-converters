@@ -558,6 +558,24 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.remote.b186acn02'],
+        model: 'WXKG06LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara single key wireless wall switch',
+        supports: 'single (and double, hold, release and long click depending on model)',
+        fromZigbee: [
+            fz.xiaomi_battery_3v, fz.WXKG03LM_click,
+            fz.xiaomi_action_click_multistate,
+        ],
+        toZigbee: [],
+        onEvent: xiaomi.prevent_reset,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.endpoints[1];
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+        },
+    },
+    {
         zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01'],
         model: 'WXKG02LM',
         vendor: 'Xiaomi',

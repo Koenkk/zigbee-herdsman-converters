@@ -1573,6 +1573,13 @@ const converters = {
             return {click: 'single'};
         },
     },
+    WXKG06LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {click: 'single'};
+        },
+    },
     immax_07046L_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',
