@@ -7692,7 +7692,7 @@ const devices = [
 
     // NET2GRID
     {
-        zigbeeModel: ['SP31           ','SP31'],
+        zigbeeModel: ['SP31           ', 'SP31'],
         model: 'N2G-SP',
         vendor: 'NET2GRID',
         description: 'White Net2Grid power outlet switch with power meter',
