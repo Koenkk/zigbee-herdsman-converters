@@ -614,8 +614,8 @@ const devices = [
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.QBKG04LM_buttons,
-            fz.QBKG04LM_QBKG11LM_operation_mode, fz.ignore_basic_report,
+            fz.on_off, fz.QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.QBKG04LM_QBKG11LM_operation_mode,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -630,9 +630,8 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG04LM_QBKG11LM_state, fz.QBKG11LM_power, fz.QBKG04LM_QBKG11LM_operation_mode,
-            fz.QBKG11LM_click,
-            fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.on_off, fz.QBKG04LM_QBKG11LM_click, fz.QBKG11LM_power, fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -648,11 +647,11 @@ const devices = [
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off, temperature',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.ignore_basic_report,
-            fz.generic_device_temperature,
+            fz.on_off, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG03LM_buttons,
+            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
@@ -665,9 +664,10 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.QBKG03LM_QBKG12LM_operation_mode,
-            fz.QBKG12LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.on_off, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG12LM_LLKZMK11LM_power,
+            fz.QBKG03LM_QBKG12LM_operation_mode, fz.QBKG12LM_click, fz.xiaomi_power,
         ],
+        meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
@@ -948,9 +948,10 @@ const devices = [
         description: 'Aqara wireless relay controller',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_state, fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power,
-            fz.ignore_multistate_report,
+            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power,
+            fz.ignore_multistate_report, fz.on_off,
         ],
+        meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};

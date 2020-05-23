@@ -1529,7 +1529,7 @@ const converters = {
     },
     xiaomi_on_off_action: {
         cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
         },
@@ -1716,13 +1716,11 @@ const converters = {
             }
         },
     },
-    QBKG04LM_QBKG11LM_state: {
+    QBKG04LM_QBKG11LM_click: {
         cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['61440']) {
-                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            } else {
+            if (!msg.data['61440']) {
                 return {click: 'single'};
             }
         },
@@ -1751,16 +1749,11 @@ const converters = {
             }
         },
     },
-    QBKG03LM_QBKG12LM_LLKZMK11LM_state: {
+    QBKG03LM_QBKG12LM_LLKZMK11LM_click: {
         cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['61440']) {
-                const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-                const payload = {};
-                payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-                return payload;
-            } else {
+            if (!msg.data['61440']) {
                 const mapping = {4: 'left', 5: 'right', 6: 'both'};
                 const button = mapping[msg.endpoint.ID];
                 return {click: button};
@@ -1803,7 +1796,7 @@ const converters = {
     },
     QBKG03LM_buttons: {
         cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const mapping = {4: 'left', 5: 'right'};
             const button = mapping[msg.endpoint.ID];
