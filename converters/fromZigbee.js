@@ -4747,7 +4747,7 @@ const converters = {
         },
     },
     K4003C_binary_input: {
-        cluster: 'genOnOff',
+        cluster: 'genBinaryInput',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             return {action: msg.data.presentValue === 1 ? 'off' : 'on'};
