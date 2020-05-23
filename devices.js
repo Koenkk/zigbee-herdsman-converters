@@ -661,6 +661,7 @@ const devices = [
         zigbeeModel: ['lumi.switch.b2lacn02'],
         model: 'QBKG22LM',
         vendor: 'Xiaomi',
+		// eslint-disable-next-line
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off, temperature',
         fromZigbee: [
