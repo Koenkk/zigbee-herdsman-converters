@@ -9938,12 +9938,12 @@ const devices = [
         },
     },
 
-    // SCHLAGE
+    // Schlage
     {
         zigbeeModel: ['BE468'],
         model: 'BE468',
         vendor: 'Schlage',
-        description: 'Schlage Connect Smart Deadbolt',
+        description: 'Connect smart deadbolt',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
