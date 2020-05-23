@@ -1,9 +1,9 @@
-const axios = require('axios');
 const firmwareHtmlPageUrl = 'https://www.ubisys.de/en/support/firmware/';
 const imageRegex = /[^"\s]*\/10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})\S*ota\.zigbee/gi;
 const assert = require('assert');
 const url = require('url');
 const common = require('./common');
+const axios = common.getAxios();
 
 /**
  * Helper functions

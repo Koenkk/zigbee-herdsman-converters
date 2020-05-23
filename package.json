@@ -33,6 +33,7 @@
   "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
   "dependencies": {
     "axios": "*",
+    "https-proxy-agent": "*",
     "tar-stream": "*"
   },
   "devDependencies": {

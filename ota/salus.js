@@ -1,8 +1,8 @@
-const axios = require('axios');
 const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
 const assert = require('assert');
 const common = require('./common');
 const tar = require('tar-stream');
+const axios = common.getAxios();
 
 /**
  * Helper functions

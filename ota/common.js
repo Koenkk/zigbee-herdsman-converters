@@ -1,4 +1,5 @@
 const upgradeFileIdentifier = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
+const HttpsProxyAgent = require('https-proxy-agent');
 const assert = require('assert');
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
@@ -312,9 +313,24 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
     });
 }
 
+function getAxios() {
+    let config = {};
+    const proxy = process.env.HTTPS_PROXY;
+    if (proxy) {
+        config = {
+            proxy: false,
+            httpsAgent: new HttpsProxyAgent(proxy),
+        };
+    }
+
+    const axios = require('axios').create(config);
+    return axios;
+}
+
 module.exports = {
     upgradeFileIdentifier,
     isUpdateAvailable,
     parseImage,
     updateToLatest,
+    getAxios,
 };
