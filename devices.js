@@ -679,6 +679,24 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.switch.b2lacn02'],
+        model: 'QBKG22LM',
+        vendor: 'Xiaomi',
+        // eslint-disable-next-line
+        description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
+        supports: 'release/hold, on/off, temperature',
+        fromZigbee: [
+            fz.on_off, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG03LM_buttons,
+            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
+        ],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'system': 1, 'left': 2, 'right': 3};
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
+    {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
