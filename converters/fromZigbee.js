@@ -171,7 +171,7 @@ const getProperty = (name, msg, definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
         const endpointName = definition.hasOwnProperty('endpoint') ?
             getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
-        return `${name}_${endpointName}`;
+        return endpointName ? `${name}_${endpointName}` : null;
     } else {
         return name;
     }
@@ -505,6 +505,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 const property = getProperty('brightness', msg, model);
+                if (!property) return;
                 return {[property]: msg.data['currentLevel']};
             }
         },
@@ -581,6 +582,7 @@ const converters = {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
                     const property = getProperty(entry.name, msg, model);
+                    if (!property) continue;
                     payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
                 }
             }
@@ -593,6 +595,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 const property = getProperty('state', msg, model);
+                if (!property) return;
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
