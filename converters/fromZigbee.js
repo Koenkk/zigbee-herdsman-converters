@@ -342,8 +342,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('lockState')) {
-                state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
-                lockState: msg.data['lockState'],
+                return {
+                    state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
+                    lockState: msg.data['lockState'],
+                };
             }
         },
     },
