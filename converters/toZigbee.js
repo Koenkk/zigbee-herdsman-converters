@@ -1317,7 +1317,7 @@ const converters = {
                 getOptions(meta.mapped),
             );
 
-            return {readAfterWriteTime: 200, state: {state: value.toUpperCase()}};
+            return {readAfterWriteTime: 200};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresDoorLock', ['lockState']);
