@@ -331,7 +331,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const unlockCodes = [2, 9, 14];
             return {
-                state: unlockCodes.includes(msg.data['opereventcode']) ? 'UNLOCK' : 'LOCK',
+                command: unlockCodes.includes(msg.data['opereventcode']) ? 'UNLOCK' : 'LOCK',
                 user: msg.data['userid'],
                 source: msg.data['opereventsrc'],
             };
@@ -342,7 +342,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('lockState')) {
-                return {state: msg.data.lockState == 2 ? 'UNLOCK' : 'LOCK'};
+                state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
+                lockState: msg.data['lockState'],
             }
         },
     },
