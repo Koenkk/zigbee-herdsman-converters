@@ -336,6 +336,7 @@ const converters = {
                 message.brightness : message.brightness_percent;
             const hasState = message.hasOwnProperty('state');
             const state = hasState ? message.state.toLowerCase() : null;
+            const entityID = entity.constructor.name === 'Group' ? entity.groupID : entity.deviceIeeeAddress;
 
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
@@ -346,32 +347,23 @@ const converters = {
                         // it once we turn it on again.
                         // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
                         // it brightness while decreasing the brightness.
-                        store[entity.deviceIeeeAddress] =
-                            {brightness: meta.state.brightness, turnedOffWithTransition: true};
+                        store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: true};
                     }
 
-                    const level = state === 'off' ? 0 :
-                        (store[entity.deviceIeeeAddress] ? store[entity.deviceIeeeAddress].brightness : 254);
-
+                    const level = state === 'off' ? 0 : (store[entityID] ? store[entityID].brightness : 254);
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped));
-
-                    const newState = {state: state.toUpperCase()};
-                    if (state === 'on') {
-                        newState['brightness'] = level;
-                    }
-
-                    return {state: newState};
+                    return {state: {state: state.toUpperCase(), brightness: state === 'on' ? level : 0}};
                 } else {
-                    if (hasState && state === 'on' && store.hasOwnProperty(entity.deviceIeeeAddress) &&
-                        store[entity.deviceIeeeAddress].turnedOffWithTransition) {
+                    if (hasState && state === 'on' && store.hasOwnProperty(entityID) &&
+                        store[entityID].turnedOffWithTransition) {
                         /**
                          * In case the bulb it turned OFF with a transition and turned ON WITHOUT
                          * a transition, the brightness is not recovered as it turns on with brightness 1.
                          * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
                          */
-                        const brightness = store[entity.deviceIeeeAddress].brightness;
-                        store[entity.deviceIeeeAddress].turnedOffWithTransition = false;
+                        const brightness = store[entityID].brightness;
+                        store[entityID].turnedOffWithTransition = false;
                         await entity.command(
                             'genLevelCtrl',
                             'moveToLevelWithOnOff',
@@ -386,19 +378,29 @@ const converters = {
                         // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                         // with transition.
                         if (meta.state.hasOwnProperty('brightness') && state === 'off') {
-                            store[entity.deviceIeeeAddress] =
-                                {brightness: meta.state.brightness, turnedOffWithTransition: false};
+                            store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: false};
                         }
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
-                        if (state === 'on') {
-                            result.readAfterWriteTime = 0;
+                        if (result.state) {
+                            if (state === 'on') {
+                                result.readAfterWriteTime = 0;
+                                if (store.hasOwnProperty(entityID)) {
+                                    result.state.brightness = store[entityID].brightness;
+                                }
+                            } else {
+                                // off = brightness 0
+                                result.state.brightness = 0;
+                            }
                         }
+
                         return result;
                     }
                 }
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                return await converters.on_off.convertSet(entity, 'state', 'off', meta);
+                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
+                result.state.brightness = 0;
+                return result;
             } else {
                 const transition = getTransition(entity, 'brightness', meta).time;
                 let brightness = 0;
@@ -409,7 +411,7 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                store[entity.deviceIeeeAddress] = {...store[entity.deviceIeeeAddress], brightness};
+                store[entityID] = {...store[entityID], brightness};
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
