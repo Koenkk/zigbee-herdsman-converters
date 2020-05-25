@@ -1237,7 +1237,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
-        model: 'LED1537R6',
+        model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
@@ -1261,7 +1261,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
-        model: 'LED1903C5',
+        model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
         extend: generic.light_onoff_brightness_colortemp,
