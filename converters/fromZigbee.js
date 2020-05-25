@@ -360,7 +360,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('lockState')) {
-                const lookup = {0: 'not_fully_locked', 1: 'locked', 2: 'unlocked'}
+                const lookup = {0: 'not_fully_locked', 1: 'locked', 2: 'unlocked'};
                 return {
                     state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
                     lock_state: lookup[msg.data['lockState']],
