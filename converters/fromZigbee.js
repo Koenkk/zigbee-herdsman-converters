@@ -329,11 +329,29 @@ const converters = {
         cluster: 'closuresDoorLock',
         type: 'commandOperationEventNotification',
         convert: (model, msg, publish, options, meta) => {
-            const unlockCodes = [2, 9, 14];
+            const lookup = {
+                0: 'unknown',
+                1: 'lock',
+                2: 'unlock',
+                3: 'lock_failure_invalid_pin_or_id',
+                4: 'lock_failure_invalid_schedule',
+                5: 'unlock_failure_invalid_pin_or_id',
+                6: 'unlock_failure_invalid_schedule',
+                7: 'one_touch_lock',
+                8: 'key_lock',
+                9: 'key_unlock',
+                10: 'auto_lock',
+                11: 'schedule_lock',
+                12: 'schedule_unlock',
+                13: 'manual_lock',
+                14: 'manual_unlock',
+                15: 'non_access_user_operational_event',
+            };
+
             return {
-                command: unlockCodes.includes(msg.data['opereventcode']) ? 'UNLOCK' : 'LOCK',
-                user: msg.data['userid'],
-                source: msg.data['opereventsrc'],
+                action: lookup[msg.data['opereventcode']],
+                action_user: msg.data['userid'],
+                action_source: msg.data['opereventsrc'],
             };
         },
     },
@@ -342,9 +360,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('lockState')) {
+                const lookup = {0: 'not_fully_locked', 1: 'locked', 2: 'unlocked'}
                 return {
                     state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
-                    lockState: msg.data['lockState'],
+                    lock_state: lookup[msg.data['lockState']],
                 };
             }
         },
