@@ -1155,24 +1155,13 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000'],
-        model: 'owvfni3',
-        vendor: 'TuYa',
-        description: 'Curtain motor',
-        whiteLabel: [
-            {vendor: 'Zemismart', model: 'ZM79E-DT'},
-        ],
-        supports: 'open, close, stop, position',
-        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
-    },
-    {
-        zigbeeModel: ['TS0601'],
+        zigbeeModel: ['TS0601', 'owvfni3\u0000'],
         model: 'TS0601',
         vendor: 'TuYa',
         description: 'Curtain motor',
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
+            {vendor: 'Zemismart', model: 'ZM79E-DT'},
         ],
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
