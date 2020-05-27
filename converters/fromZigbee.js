@@ -2761,7 +2761,9 @@ const converters = {
             }
             const piHeatingDemand = msg.data['pIHeatingDemand'];
             if (typeof piHeatingDemand == 'number') {
+                // DEPRECATED: only return running_state here (change operation -> running_state)
                 result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
+                result.running_state = piHeatingDemand >= 10 ? 'heat' : 'idle';
             }
             return result;
         },

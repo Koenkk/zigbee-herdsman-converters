@@ -8607,7 +8607,12 @@ const devices = [
                 'genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
+
+            await configureReporting.thermostatSystemMode(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
             await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatRunningState(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
         },
     },
 
