@@ -9305,6 +9305,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c'],
+        model: 'SN10ZW',
+        vendor: 'ORVIBO',
+        description: 'Occupancy sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['da2edf1ded0d44e1815d06f45ce02029'],
         model: 'SW21',
         vendor: 'ORVIBO',
