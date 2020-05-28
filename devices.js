@@ -5961,7 +5961,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['SmartPlug','SmartPlug-N'],
+        zigbeeModel: ['SmartPlug', 'SmartPlug-N'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         supports: 'on/off, power measurement',
