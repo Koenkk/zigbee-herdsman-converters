@@ -10218,7 +10218,37 @@ const devices = [
         vendor: 'Aurora Lighting',
         description: 'AOne PIR sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(39);
+            await bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await configureReporting.illuminance(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SingleSocket50AU'],
+        model: 'AU-A1ZBPIAB',
+        vendor: 'Aurora Lighting',
+        description: 'Power plug Zigbee EU',
+        supports: 'on/off, power measurements',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['WindowSensor51AU'],
+        model: 'AU-A1ZBDWS',
+        vendor: 'Aurora Lighting',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
     },
 
