@@ -5961,7 +5961,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['SmartPlug'],
+        zigbeeModel: ['SmartPlug','SmartPlug-N'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         supports: 'on/off, power measurement',
@@ -5978,7 +5978,7 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
-    },
+    },    
     {
         zigbeeModel: [
             'SMOK_V16',
