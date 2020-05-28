@@ -5978,7 +5978,7 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
-    },    
+    },
     {
         zigbeeModel: [
             'SMOK_V16',
