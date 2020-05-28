@@ -2935,6 +2935,17 @@ const converters = {
             }
         },
     },
+    on_off_xiaomi_ignore_endpoint_4: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Xiaomi wall switches use endpoint 4 to indicate an action on the button so we have to skip that.
+            if (msg.data.hasOwnProperty('onOff') && msg.endpoint.ID !== 4) {
+                const property = getProperty('state', msg, model);
+                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
     tint404011_scene: {
         cluster: 'genBasic',
         type: 'write',
