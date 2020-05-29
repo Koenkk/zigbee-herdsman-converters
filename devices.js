@@ -3922,6 +3922,15 @@ const devices = [
         },
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['E1E-G7F'],
+        model: 'E1E-G7F',
+        vendor: 'Sengled',
+        description: 'Smart switch ',
+        supports: 'action',
+        fromZigbee: [fz.E1E_G7F_action],
+        toZigbee: [],
+    },
 
     // Swann
     {
