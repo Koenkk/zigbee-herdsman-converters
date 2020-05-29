@@ -4873,7 +4873,8 @@ const converters = {
             };
 
             if (msg.data[7] === 2) { // If the 8th digit is 2 (implying long press)
-                // Append '_long' to the end of the action so the user knows it was a long press. This only applies to the up and down action
+                // Append '_long' to the end of the action so the user knows it was a long press.
+                // This only applies to the up and down action
                 return {action: `${lookup[msg.data[5]]}_long`};
             } else {
                 return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
