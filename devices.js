@@ -2674,10 +2674,10 @@ const devices = [
     },
     {
         zigbeeModel: ['Switch 4x EU-LIGHTIFY'],
-        model: 'AB371860355',
+        model: '4058075816459',
         vendor: 'OSRAM',
         description: 'Smart+ switch',
-        supports: '4 buttons with click/hold/release',
+        supports: 'action',
         fromZigbee: [
             fz.osram_lightify_switch_AB371860355_cmdOn,
             fz.osram_lightify_switch_AB371860355_cmdOff,
