@@ -1155,6 +1155,28 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TS0003'],
+        model: 'TS0003',
+        vendor: 'TuYa',
+        description: '3 gang switch',
+        whiteLabel: [
+            {vendor: 'Tuya', model: 'TS0003'},
+            {vendor: 'Zemismart', model: 'ZM-L03E-Z'},
+        ],
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        meta: {configureKey: 3, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0004'],
         model: 'TS0004',
         vendor: 'TuYa',
@@ -8434,24 +8456,6 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             // Configure reporing of currentPositionLiftPercentage always fails.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3216
-        },
-    },
-    {
-        zigbeeModel: ['TS0003'],
-        model: 'ZM-L03E-Z',
-        vendor: 'Zemismart',
-        description: 'Smart light switch - 3 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
 
