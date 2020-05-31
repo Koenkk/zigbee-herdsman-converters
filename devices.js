@@ -1155,6 +1155,28 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TS0004'],
+        model: 'TS0004',
+        vendor: 'TuYa',
+        description: '4 gang switch',
+        whiteLabel: [
+            {vendor: 'Tuya', model: 'TS0004'}
+        ],
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {configureKey: 3, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0601', 'owvfni3\u0000'],
         model: 'TS0601',
         vendor: 'TuYa',
