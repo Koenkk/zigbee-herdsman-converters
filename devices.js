@@ -10121,10 +10121,21 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
-            const configureOptions = {'minimumReportInterval': 300, 'maximumReportInterval': 600};
-            await configureReporting.rmsVoltage(endpoint, {...configureOptions, 'reportableChange': 1});
-            await configureReporting.rmsCurrent(endpoint, {...configureOptions, 'reportableChange': 100});
-            await configureReporting.activePower(endpoint, {...configureOptions, 'reportableChange': 1});
+        },
+        onEvent: async (type, data, device) => {
+            // This device doesn't support reporting correctly.
+            const endpoint = device.getEndpoint(1);
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 10*1000);  // Every 10 seconds
+            }
         },
     },
     {
