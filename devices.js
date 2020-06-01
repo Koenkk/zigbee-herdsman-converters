@@ -10124,6 +10124,7 @@ const devices = [
         },
         onEvent: async (type, data, device) => {
             // This device doesn't support reporting correctly.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
                 clearInterval(store[device.ieeeAddr]);
