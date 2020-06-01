@@ -5806,12 +5806,23 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            try {
+                await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            } catch (exception) {
+                // For some this fails so set manually
+                // https://github.com/Koenkk/zigbee2mqtt/issues/3575
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                    acCurrentDivisor: 10,
+                    acCurrentMultiplier: 1,
+                    powerMultiplier: 1,
+                    powerDivisor: 10,
+                });
+            }
             await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
             await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
