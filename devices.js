@@ -10134,7 +10134,7 @@ const devices = [
                     } catch (error) {
                         // Do nothing
                     }
-                }, 10*1000);  // Every 10 seconds
+                }, 10*1000); // Every 10 seconds
             }
         },
     },
