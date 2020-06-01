@@ -7301,6 +7301,22 @@ const devices = [
         toZigbee: [],
     },
 
+    // Vimar
+    {
+        zigbeeModel: ['2_Way_Switch_v1.0'],
+        model: '14592.0',
+        vendor: 'Vimar',
+        description: '2-way switch IoT connected mechanism',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
     // Stelpro
     {
         zigbeeModel: ['ST218'],
