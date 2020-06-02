@@ -1685,6 +1685,29 @@ const converters = {
                 await endpoint.read('genAnalogInput', ['presentValue', 'description']);
             }
         },
+        convertSet: async (entity, key, value, meta) => {
+            if (entity.clusters.hasOwnProperty('genLevelCtrl')) {
+                const value2 = parseInt(value);
+                if (isNaN(value2)) {
+                    return;
+                }
+                const payload = {'currentLevel': value2};
+                await entity.write('genLevelCtrl', payload);
+                return;
+            }
+
+            if (entity.clusters.hasOwnProperty('genAnalogInput')) {
+                const value2 = parseFloat(value);
+                if (isNaN(value2)) {
+                    return;
+                }
+                const payload = {'presentValue': value2};
+                await entity.write('genAnalogInput', payload);
+                return;
+            }
+
+            return;
+        },
     },
 
     // ubisys configuration / calibration converters
