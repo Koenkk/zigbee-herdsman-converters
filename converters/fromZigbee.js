@@ -1656,7 +1656,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            return { water_leak: msg.data.zonestatus === 33 };
+            return {water_leak: msg.data.zonestatus === 33};
         },
     },
     cover_stop: {

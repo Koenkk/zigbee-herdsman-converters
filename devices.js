@@ -767,9 +767,9 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
-        fz.WSDCGQ01LM_WSDCGQ11LM_interval,],
+            fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
-        meta: { configureKey: 3 },
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
