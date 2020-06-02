@@ -761,6 +761,22 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['lumi.sensor_ht.agl02'],
+        model: 'WSDCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara temperature, humidity and pressure sensor',
+        supports: 'temperature, humidity and pressure',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
+        fz.WSDCGQ01LM_WSDCGQ11LM_interval,],
+        toZigbee: [],
+        meta: { configureKey: 3 },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+        },
+    },
+    {
         zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
@@ -812,6 +828,15 @@ const devices = [
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
         fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.flood.agl02'],
+        model: 'SJCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara water leak sensor',
+        supports: 'water leak true/false',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ12LM_water_leak_iaszone],
         toZigbee: [],
     },
     {
@@ -940,6 +965,15 @@ const devices = [
         description: 'Aqara vibration sensor',
         supports: 'drop, tilt and touch',
         fromZigbee: [fz.xiaomi_battery_3v, fz.DJT11LM_vibration],
+        toZigbee: [tz.DJT11LM_vibration_sensitivity],
+    },
+    {
+        zigbeeModel: ['lumi.vibration.agl01'],
+        model: 'DJT12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara vibration sensor',
+        supports: 'drop, tilt and touch',
+        fromZigbee: [fz.genOnOff_cmdOn],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
     {
