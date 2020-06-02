@@ -2657,6 +2657,14 @@ const devices = [
 
     // OSRAM
     {
+        zigbeeModel: ['Gardenspot RGB'],
+        model: '73699',
+        vendor: 'OSRAM',
+        description: ' Gardenspot LED mini RGB',
+        extend: generic.light_onoff_brightness_colorxy,
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Outdoor Lantern W RGBW OSRAM'],
         model: '4058075816718',
         vendor: 'OSRAM',
