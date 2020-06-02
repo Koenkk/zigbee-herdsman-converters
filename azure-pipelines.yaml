@@ -15,11 +15,11 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
-- bash: npm install
+- bash: npm ci
   displayName: 'Install dependencies'
 - bash: npm test
   displayName: 'Test'
-- bash: npm run eslint
+- bash: npm run lint
   displayName: 'Lint'
 - task: Npm@1
   inputs:
