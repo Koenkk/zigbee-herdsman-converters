@@ -668,7 +668,7 @@ const devices = [
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off, temperature',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG03LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -686,7 +686,7 @@ const devices = [
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off, temperature',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG03LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -703,7 +703,7 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG12LM_LLKZMK11LM_power,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.QBKG12LM_LLKZMK11LM_power,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.QBKG12LM_click, fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
@@ -986,10 +986,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless relay controller',
         supports: 'on/off, power measurement',
-        fromZigbee: [
-            fz.QBKG03LM_QBKG12LM_LLKZMK11LM_click, fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power,
-            fz.ignore_multistate_report, fz.on_off,
-        ],
+        fromZigbee: [fz.QBKG12LM_LLKZMK11LM_power, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock],
         endpoint: (device) => {
