@@ -1757,7 +1757,7 @@ const converters = {
             }
         },
     },
-    QBKG03LM_QBKG12LM_LLKZMK11LM_click: {
+    QBKG03LM_QBKG12LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
