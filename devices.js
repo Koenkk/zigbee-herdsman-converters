@@ -8643,6 +8643,21 @@ const devices = [
         fromZigbee: [fz.insta_down_hold, fz.insta_up_hold, fz.LZL4B_onoff, fz.insta_stop],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['Z3-1BRL'],
+        model: 'Z3-1BRL',
+        vendor: 'Lutron',
+        description: 'Aurora smart bulb dimmer',
+        supports: 'brightness',
+        fromZigbee: [fz.dimmer_passthru_brightness],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+        },
+        ota: ota.zigbeeOTA,
+    },
 
     // Zen
     {
@@ -9018,22 +9033,6 @@ const devices = [
             }
         },
         ota: ota.ubisys,
-    },
-
-    // Lutron
-    {
-        zigbeeModel: ['Z3-1BRL'],
-        model: 'Z3-1BRL',
-        vendor: 'Lutron',
-        description: 'Aurora smart bulb dimmer',
-        supports: 'brightness',
-        fromZigbee: [fz.dimmer_passthru_brightness],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-        },
     },
 
     // PEQ
