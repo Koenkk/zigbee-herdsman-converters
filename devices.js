@@ -5940,8 +5940,8 @@ const devices = [
         model: '12127',
         vendor: 'Lupus',
         description: '2 chanel relay',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        supports: 'on/off, linkquality',
+        fromZigbee: [fz.on_off, fz.linkquality_from_basic],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
