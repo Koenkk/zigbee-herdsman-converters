@@ -1686,7 +1686,6 @@ const converters = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            console.log('Endpoint:', entity);
             if (entity.clusters.hasOwnProperty('genLevelCtrl')) {
                 const value2 = parseInt(value);
                 if (isNaN(value2)) {
