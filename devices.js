@@ -6612,6 +6612,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3400-D'],
+        model: '3400-D',
+        vendor: 'CentraLite',
+        description: 'CentraLite 3400-D Keypad',
+        supports: 'keypad',
+        meta: {configureKey: 1, disableDefaultResponse: true},
+        fromZigbee: [ fz.command_arm, fz.temperature ],
+        toZigbee: [ tz.arm_mode ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    }
+    {
         zigbeeModel: ['3420'],
         model: '3420-G',
         vendor: 'Centralite',
