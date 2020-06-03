@@ -2298,6 +2298,25 @@ const converters = {
             await entity.write('genOnOffSwitchCfg', payloads[key]);
         },
     },
+    diyruz_geiger_config: {
+        key: ['sensitivity', 'led_feedback', 'buzzer_feedback', 'sensors_count', 'sensors_type', 'alert_threshold'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {
+                'OFF': 0x00,
+                'ON': 0x01,
+            };
+            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const payloads = {
+                sensitivity: {0xF000: {value, type: 0x21}},
+                led_feedback: {0xF001: {value, type: 0x10}},
+                buzzer_feedback: {0xF002: {value, type: 0x10}},
+                sensors_count: {0xF003: {value, type: 0x20}},
+                sensors_type: {0xF004: {value, type: 0x30}},
+                alert_threshold: {0xF005: {value, type: 0x23}},
+            };
+            await entity.write('msIlluminanceLevelSensing', payloads[key]);
+        },
+    },
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
