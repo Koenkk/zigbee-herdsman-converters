@@ -6928,7 +6928,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TI0001-switch'],
-        model: 'TI0001',
+        model: 'TI0001 switch',
         description: 'New Livolo Zigbee Switch '+
             '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
@@ -6955,7 +6955,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TI0001-socket'],
-        model: 'TI0001',
+        model: 'TI0001 socket',
         description: 'New Livolo Zigbee Socket'+
             '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
