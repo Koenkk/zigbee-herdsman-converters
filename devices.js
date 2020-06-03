@@ -6898,9 +6898,8 @@ const devices = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
-        description:
-            'Zigbee switch (1 and 2 gang) ' +
-            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        // eslint-disable-next-line
+        description: 'Zigbee switch (1 and 2 gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
         vendor: 'Livolo',
         supports: 'on/off',
         fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
@@ -6928,9 +6927,9 @@ const devices = [
     },
     {
         zigbeeModel: ['TI0001-switch'],
-        model: 'TI0001 switch',
-        description: 'New Livolo Zigbee Switch '+
-            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        model: 'TI0001-switch',
+        // eslint-disable-next-line
+        description: 'New Zigbee Switch [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
         supports: 'on/off',
         fromZigbee: [fz.livolo_new_switch_state],
@@ -6955,9 +6954,9 @@ const devices = [
     },
     {
         zigbeeModel: ['TI0001-socket'],
-        model: 'TI0001 socket',
-        description: 'New Livolo Zigbee Socket'+
-            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        model: 'TI0001-socket',
+        // eslint-disable-next-line
+        description: 'New Zigbee Socket [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
         supports: 'on/off',
         fromZigbee: [fz.livolo_socket_state],
