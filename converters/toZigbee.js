@@ -2295,10 +2295,13 @@ const converters = {
                 off: 0x01,
                 toggle: 0x02,
             };
+            const intVal = parseInt(value, 10);
+            const switchType = switchTypesLookup.hasOwnProperty(value) ? switchTypesLookup[value] : intVal;
+            const switchActions = switchActionsLookup.hasOwnProperty(value) ? switchActionsLookup[value] : intVal;
 
             const payloads = {
-                switch_type: {'switchType': switchTypesLookup[value] || value},
-                switch_actions: {'switchActions': switchActionsLookup[value] || value},
+                switch_type: {switchType},
+                switch_actions: {switchActions},
             };
 
             await entity.write('genOnOffSwitchCfg', payloads[key]);
