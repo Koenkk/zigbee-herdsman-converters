@@ -754,7 +754,7 @@ const devices = [
         zigbeeModel: ['lumi.switch.b2nacn02'],
         model: 'QBKG24LM',
         vendor: 'Xiaomi',
-        description: 'Aqara D1 2 gang smart wall switch',
+        description: 'Aqara D1 2 gang smart wall switch (with neutral wire)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.xiaomi_power],
         toZigbee: [tz.on_off],
