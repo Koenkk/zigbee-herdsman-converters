@@ -6618,7 +6618,7 @@ const devices = [
         description: 'CentraLite 3400-D Keypad',
         supports: 'keypad',
         meta: {configureKey: 1, disableDefaultResponse: true},
-        fromZigbee: [ fz.command_arm, fz.temperature ],
+        fromZigbee: [ fz.3400_command_arm, fz.temperature ],
         toZigbee: [ tz.arm_mode ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
