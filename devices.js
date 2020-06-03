@@ -6921,7 +6921,7 @@ const devices = [
                 if (!store[device.ieeeAddr]) {
                     store[device.ieeeAddr] = setInterval(async () => {
                         await livolo.poll(device);
-                    }, 300*1000);  // Every 300 seconds
+                    }, 300*1000); // Every 300 seconds
                 }
             }
         },
@@ -6933,7 +6933,7 @@ const devices = [
             '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
         supports: 'on/off',
-        fromZigbee: [fz.livolo_switch_state],
+        fromZigbee: [fz.livolo_new_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6948,7 +6948,7 @@ const devices = [
                 if (!store[device.ieeeAddr]) {
                     store[device.ieeeAddr] = setInterval(async () => {
                         await livolo.poll(device);
-                    }, 300*1000);  // Every 300 seconds
+                    }, 300*1000); // Every 300 seconds
                 }
             }
         },
@@ -6975,7 +6975,7 @@ const devices = [
                 if (!store[device.ieeeAddr]) {
                     store[device.ieeeAddr] = setInterval(async () => {
                         await livolo.poll(device);
-                    }, 300*1000);  // Every 300 seconds
+                    }, 300*1000); // Every 300 seconds
                 }
             }
         },

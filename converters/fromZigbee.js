@@ -3068,13 +3068,12 @@ const converters = {
                 const state = {};
                 state['state'] = status & 1 ? 'ON' : 'OFF';
                 state['linkquality'] = msg.linkquality;
-                
                 return state;
             }
             return;
         },
     },
-    livolo_switch_state: {
+    livolo_new_switch_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
@@ -3084,7 +3083,6 @@ const converters = {
                 const state = {};
                 state['state'] = status & 1 ? 'ON' : 'OFF';
                 state['linkquality'] = msg.linkquality;
-                
                 return state;
             }
             return;
@@ -3100,12 +3098,10 @@ const converters = {
             [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
             [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
             [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
-            
             new switch
             [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
             [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
             [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
-
             old switch
             [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
             [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
@@ -3123,7 +3119,6 @@ const converters = {
                 state['state_left'] = status & 1 ? 'ON' : 'OFF';
                 state['state_right'] = status & 2 ? 'ON' : 'OFF';
                 state['linkquality'] = msg.linkquality;
-                
                 return state;
             }
             // info about device
@@ -3146,7 +3141,6 @@ const converters = {
                 //     meta.device.modelID = 'TI0001-old-switch';
                 //     meta.device.save();
                 // }
-                
                 return null;
             }
             return null;
