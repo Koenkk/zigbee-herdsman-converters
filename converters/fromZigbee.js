@@ -1652,13 +1652,6 @@ const converters = {
             return {water_leak: msg.data.zonestatus === 1};
         },
     },
-    SJCGQ12LM_water_leak_iaszone: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {water_leak: msg.data.zonestatus === 33};
-        },
-    },
     cover_stop: {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',

@@ -769,7 +769,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
             fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
-        meta: {configureKey: 3},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
@@ -836,7 +836,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ12LM_water_leak_iaszone],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
