@@ -484,6 +484,17 @@ const xiaomi = {
     },
 };
 
+const livolo = {
+    poll: async (device) => {
+        try {
+            const endpoint = device.getEndpoint(6);
+            await endpoint.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        } catch (error) {
+            // device is lost, need to permit join
+        }
+    },
+};
+
 const devices = [
     // Xiaomi
     {
@@ -6887,9 +6898,8 @@ const devices = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
-        description:
-            'Zigbee switch (1 and 2 gang) ' +
-            '[work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        // eslint-disable-next-line
+        description: 'Zigbee switch (1 and 2 gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
         vendor: 'Livolo',
         supports: 'on/off',
         fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
@@ -6899,13 +6909,73 @@ const devices = [
         },
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(6);
-            await endpoint.command('genOnOff', 'toggle', {}, {});
+            await livolo.poll(device);
         },
         onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            }
             if (['start', 'deviceAnnounce'].includes(type)) {
-                const endpoint = device.getEndpoint(6);
-                await endpoint.command('genOnOff', 'toggle', {}, {});
+                await livolo.poll(device);
+                if (!store[device.ieeeAddr]) {
+                    store[device.ieeeAddr] = setInterval(async () => {
+                        await livolo.poll(device);
+                    }, 300*1000); // Every 300 seconds
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ['TI0001-switch'],
+        model: 'TI0001-switch',
+        // eslint-disable-next-line
+        description: 'New Zigbee Switch [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        vendor: 'Livolo',
+        supports: 'on/off',
+        fromZigbee: [fz.livolo_new_switch_state],
+        toZigbee: [tz.livolo_socket_switch_on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await livolo.poll(device);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await livolo.poll(device);
+                if (!store[device.ieeeAddr]) {
+                    store[device.ieeeAddr] = setInterval(async () => {
+                        await livolo.poll(device);
+                    }, 300*1000); // Every 300 seconds
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ['TI0001-socket'],
+        model: 'TI0001-socket',
+        // eslint-disable-next-line
+        description: 'New Zigbee Socket [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        vendor: 'Livolo',
+        supports: 'on/off',
+        fromZigbee: [fz.livolo_socket_state],
+        toZigbee: [tz.livolo_socket_switch_on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await livolo.poll(device);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await livolo.poll(device);
+                if (!store[device.ieeeAddr]) {
+                    store[device.ieeeAddr] = setInterval(async () => {
+                        await livolo.poll(device);
+                    }, 300*1000); // Every 300 seconds
+                }
             }
         },
     },

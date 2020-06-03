@@ -1291,6 +1291,26 @@ const converters = {
             await entity.read('hvacThermostat', [0x4000], options.eurotronic);
         },
     },
+    livolo_socket_switch_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+
+            const state = value.toLowerCase();
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+            const payloadOn = {0x0001: {value: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+            const payloadOff = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+            await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
+                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+            return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        },
+    },
     livolo_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1322,7 +1342,7 @@ const converters = {
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.command('genOnOff', 'toggle', {}, {});
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
     generic_lock: {

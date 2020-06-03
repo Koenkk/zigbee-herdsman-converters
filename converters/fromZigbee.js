@@ -3058,19 +3058,90 @@ const converters = {
             return payload;
         },
     },
+    livolo_socket_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                const status = msg.data[14];
+                const state = {};
+                state['state'] = status & 1 ? 'ON' : 'OFF';
+                state['linkquality'] = msg.linkquality;
+                return state;
+            }
+            return;
+        },
+    },
+    livolo_new_switch_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                const status = msg.data[14];
+                const state = {};
+                state['state'] = status & 1 ? 'ON' : 'OFF';
+                state['linkquality'] = msg.linkquality;
+                return state;
+            }
+            return;
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
+            /*
+            header                ieee address            info data
+            new socket
+            [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
+            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
+            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
+            new switch
+            [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
+            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
+            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
+            old switch
+            [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,1] left: 1, right: 0
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,2] left: 0, right: 1
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,3] left: 1, right: 1
+            */
             const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
-            if (malformedHeader.compare(msg.data, 0, 4)) {
+            const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
+            // status of old devices
+            if (msg.data.indexOf(malformedHeader) === 0) {
                 const status = msg.data[15];
+                console.log(`status of old devices`);
                 const state = {};
                 state['state_left'] = status & 1 ? 'ON' : 'OFF';
                 state['state_right'] = status & 2 ? 'ON' : 'OFF';
                 state['linkquality'] = msg.linkquality;
-
                 return state;
+            }
+            // info about device
+            if (msg.data.indexOf(infoHeader) === 0) {
+                if (msg.data.includes(Buffer.from([19, 7, 0]), 13)) {
+                    // new socket
+                    // hack
+                    meta.device.modelID = 'TI0001-socket';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
+                    // new switch
+                    // hack
+                    meta.device.modelID = 'TI0001-switch';
+                    meta.device.save();
+                }
+                // if (msg.data.includes(Buffer.from([17, 0, 1]), 13)) {
+                //     // old switch
+                //     // hack
+                //     meta.device.modelID = 'TI0001-old-switch';
+                //     meta.device.save();
+                // }
+                return null;
             }
             return null;
         },
