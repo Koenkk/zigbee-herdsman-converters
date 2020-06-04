@@ -973,7 +973,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara vibration sensor',
         supports: 'drop, tilt and touch',
-        fromZigbee: [fz.genOnOff_cmdOn],
+        fromZigbee: [fz.DJT12LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
     {
