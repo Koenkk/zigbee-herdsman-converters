@@ -2093,7 +2093,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return { action: 'vibration' };
+            return {action: 'vibration'};
         },
     },
     CC2530ROUTER_led: {
