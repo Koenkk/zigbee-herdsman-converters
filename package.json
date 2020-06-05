@@ -1,16 +1,17 @@
 {
-  "name": "zigbee-shepherd-converters",
-  "version": "10.2.4",
-  "description": "Collection of device converters to be used with zigbee-shepherd",
+  "name": "zigbee-herdsman-converters",
+  "version": "12.0.104",
+  "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
     "/index.js",
     "/converters",
-    "/devices.js"
+    "/devices.js",
+    "/ota"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Koenkk/zigbee-shepherd-converters.git"
+    "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
   },
   "keywords": [
     "xiaomi",
@@ -21,25 +22,24 @@
     "zigbee-shepherd"
   ],
   "scripts": {
-    "verify": "node test/verify.js",
-    "eslint": "node_modules/.bin/eslint .",
-    "test": "mocha --recursive"
+    "lint": "eslint .",
+    "test": "jest test"
   },
   "author": "Koen Kanters",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Koenkk/zigbee-shepherd-converters/issues"
+    "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
   },
-  "homepage": "https://github.com/Koenkk/zigbee-shepherd-converters",
+  "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
   "dependencies": {
-    "zigbee-herdsman": "^0.4.0",
-    "debounce": "*",
-    "debug": "3.2.6",
-    "chai": "*"
+    "axios": "*",
+    "https-proxy-agent": "*",
+    "tar-stream": "*"
   },
   "devDependencies": {
     "eslint": "*",
     "eslint-config-google": "*",
-    "mocha": "*"
+    "eslint-plugin-jest": "*",
+    "jest": "*"
   }
 }
