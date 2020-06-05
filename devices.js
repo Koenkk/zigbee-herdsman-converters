@@ -8548,6 +8548,24 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['FB56+ZSW1IKJ2.7'],
+        model: 'HGZB-043',
+        vendor: 'Zemismart',
+        description: 'Smart light switch - 3 gang with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top': 16, 'center': 17, 'bottom': 18};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Sinope
     {
