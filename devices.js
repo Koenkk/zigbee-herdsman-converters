@@ -10675,6 +10675,25 @@ const devices = [
         fromZigbee: [fz.SAGE206612_state, fz.battery_3V],
         toZigbee: [],
     },
+
+    // Plugwise
+    {
+        zigbeeModel: ['160-01'],
+        model: '160-01',
+        vendor: 'Plugwise',
+        description: 'Plug power socket on/off with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
