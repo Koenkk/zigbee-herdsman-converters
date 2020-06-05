@@ -2350,18 +2350,6 @@ const devices = [
         ota: ota.zigbeeOTA,
         extend: hue.light_onoff_brightness,
     },
-<<<<<<< HEAD
-    {
-        zigbeeModel: ['LCS001'],
-        model: '1741830P7',
-        vendor: 'Philips',
-        description: 'Hue Lily outdoor spot light',
-        extend: hue.light_onoff_brightness_colortemp_colorxy,
-    },
-
-    // Belkin
-=======
->>>>>>> upstream/master
     {
         zigbeeModel: ['1743530P7', '1743530V7'],
         model: '17435/30/P7',
@@ -2375,6 +2363,14 @@ const devices = [
         model: '1741830P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCL003'],
+        model: '9290022891',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor led strip',
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
