@@ -10619,6 +10619,18 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+
+
+    // EchoStar
+    {
+        zigbeeModel: ['   Bell'],
+        model: 'SAGE206612',
+        vendor: 'EchoStar',
+        description: 'SAGE by Hughes Doorbell Sensor',
+        supports: 'Doorbell Sensor',
+        fromZigbee: [fz.SAGE206612_state, fz.battery_3V],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
