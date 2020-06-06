@@ -9935,7 +9935,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [
-            tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, 
+            tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
@@ -9943,7 +9943,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.brightness(endpoint);            
+            await configureReporting.brightness(endpoint);
         },
     },
     {
