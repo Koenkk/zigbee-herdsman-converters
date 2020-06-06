@@ -597,6 +597,21 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.switch.b1laus01'],
+        model: 'WS-USC01',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch (no neutral, single rocker)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.b2laus01'],
         model: 'WS-USC02',
         vendor: 'Xiaomi',
