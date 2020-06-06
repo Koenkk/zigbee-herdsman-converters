@@ -121,10 +121,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped));
             if (value.toLowerCase() === 'toggle') {
-                if (!meta.state.hasOwnProperty('state')) {
-                    return {};
-                } else {
-                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
+                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                if (currentState) {
+                    return {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}};
                 }
             } else {
                 return {state: {state: value.toUpperCase()}};
