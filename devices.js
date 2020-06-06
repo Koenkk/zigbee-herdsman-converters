@@ -2382,6 +2382,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCL003'],
+        model: '9290022891',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor led strip',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWV001'],
         model: '929002241201',
         vendor: 'Philips',
