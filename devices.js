@@ -10129,6 +10129,15 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['ZBT-DIMSwitch-D0001'],
+        model: 'ZS232000178',
+        vendor: 'Linkind',
+        description: '1-key remote control',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+    },
 
     // BlitzWolf
     {
