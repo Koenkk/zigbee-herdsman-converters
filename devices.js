@@ -3035,6 +3035,16 @@ const devices = [
         ota: ota.ledvance,
     },
 
+    // Ledvance
+    {
+        zigbeeModel: ['Panel TW Z3'],
+        model: '4058075181472',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ panel 60 x 60cm tunable white',
+        extend: osram.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
+
     // Hive
     {
         zigbeeModel: ['MOT003'],
