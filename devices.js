@@ -10131,7 +10131,7 @@ const devices = [
         zigbeeModel: ['ZBT-DIMSwitch-D0001'],
         model: 'ZS232000178',
         vendor: 'Linkind',
-        description: '1-key Remote Control',
+        description: '1-key remote control',
         supports: 'action',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
