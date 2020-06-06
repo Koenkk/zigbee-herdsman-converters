@@ -9965,16 +9965,18 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        supports: 'on/off',
-        fromZigbee: [fz.identify, fz.on_off],
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_settingEnableDimmer, tz.legrand_identify,
+            tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
+            tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
         },
     },
     {
