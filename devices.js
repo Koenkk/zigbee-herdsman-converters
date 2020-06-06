@@ -9987,7 +9987,7 @@ const devices = [
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power],
-        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed_1, tz.legrand_identify],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

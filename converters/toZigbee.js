@@ -1946,17 +1946,8 @@ const converters = {
             // await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped));
         },
     },
-    legrand_settingAlwaysEnableLed: {
-        key: ['permanent_led'],
-        convertSet: async (entity, key, value, meta) => {
-            // enable or disable the LED (blue) when permitJoin=false (LED off)
-            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
-            const payload = {1: {value: enableLedIfOn, type: 16}};
-            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
-        },
-    },
     // connected power outlet is on attribute 2 and not 1
-    legrand_settingAlwaysEnableLed_1: {
+    legrand_settingAlwaysEnableLed: {
         key: ['permanent_led'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
@@ -1981,7 +1972,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // enable the dimmer, requires a recent firmware on the device
             const enableDimmer = value === 'ON' || (value === 'OFF' ? false : !!value);
-            const payload = {0: {value: enableDimmer ? '0101' : '0100', type: 9}};
+            const payload = {0: {value: enableDimmer ? 0x0101 : 0x0100, type: 9}};
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
