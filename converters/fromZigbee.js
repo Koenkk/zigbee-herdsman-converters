@@ -5015,6 +5015,33 @@ const converters = {
             }
         },
     },
+    SAGE206612_state: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const deviceId = msg.endpoint.deviceIeeeAddress;
+            const timeout = 28;
+
+            if (!store[deviceId]) {
+                store[deviceId] = [];
+            }
+
+            const timer = setTimeout(() => {
+                store[deviceId].pop();
+            }, timeout * 1000);
+
+            if (store[deviceId].length === 0 || store[deviceId].length > 4) {
+                store[deviceId].push(timer);
+                return {action: 'on'};
+            } else {
+                if (timeout > 0) {
+                    store[deviceId].push(timer);
+                }
+
+                return null;
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
