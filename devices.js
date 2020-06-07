@@ -3137,6 +3137,26 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DWS003'],
+        model: 'DWS003',
+        vendor: 'Hive',
+        description: 'Contact sensor',
+        supports: 'contact, temperature, battery',
+        fromZigbee: [
+            fz.temperature, fz.ias_contact_alarm_1, fz.battery,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(6);
+            const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.temperature(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['FWBulb01'],
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
