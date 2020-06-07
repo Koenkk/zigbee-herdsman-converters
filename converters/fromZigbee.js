@@ -4194,6 +4194,16 @@ const converters = {
             return {action: `${button}_${action}`};
         },
     },
+    diyruz_geiger: {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                radioactive_events_per_minute: msg.data['61441'],
+                radiation_dose_per_hour: msg.data['61442'],
+            };
+        },
+    },
     aqara_opple_report: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],

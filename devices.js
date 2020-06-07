@@ -2675,6 +2675,40 @@ const devices = [
             };
         },
     },
+    {
+        zigbeeModel: ['DIYRuZ_Geiger'],
+        model: 'DIYRuZ_Geiger',
+        vendor: 'DIYRuZ',
+        description: '[DiY Geiger counter](https://modkam.ru/?p=1591)',
+        supports: 'radioactive pulses perminute',
+        fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off],
+        toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
+
+            const payload = [{
+                attribute: {
+                    ID: 0xF001,
+                    type: 0x21,
+                },
+                minimumReportInterval: 0,
+                maximumReportInterval: repInterval.MINUTE,
+                reportableChange: 0,
+            },
+            {
+                attribute: {
+                    ID: 0xF002,
+                    type: 0x23,
+                },
+                minimumReportInterval: 0,
+                maximumReportInterval: repInterval.MINUTE,
+                reportableChange: 0,
+            }];
+            await endpoint.configureReporting('msIlluminanceMeasurement', payload);
+        },
+    },
 
     // eCozy
     {
