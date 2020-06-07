@@ -10710,7 +10710,6 @@ const devices = [
     },
 ];
 
-
 module.exports = devices.map((device) =>
     device.extend ? Object.assign({}, device.extend, device) : device,
 );
