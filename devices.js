@@ -3098,7 +3098,7 @@ const devices = [
         description: 'Contact sensor',
         supports: 'contact, temperature, battery',
         fromZigbee: [
-            fz.temperature, fz.ias_contact_alarm_1, fz.battery
+            fz.temperature, fz.ias_contact_alarm_1, fz.battery,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
