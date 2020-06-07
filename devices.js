@@ -1213,6 +1213,18 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
+        model: 'mcdj3aq',
+        vendor: 'TuYa',
+        description: 'Tubular motor',
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZM25TQ'},
+        ],
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+    },
 
     // Norklmes
     {
@@ -10666,7 +10678,6 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
-
 
     // EchoStar
     {
