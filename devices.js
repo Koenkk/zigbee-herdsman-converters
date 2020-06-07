@@ -1225,6 +1225,103 @@ const devices = [
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
+    {
+        zigbeeModel: ['RH3040'],
+        model: 'RH3040',
+        vendor: 'TuYa',
+        description: 'PIR sensor',
+        supports: 'occupancy',
+        fromZigbee: [
+            fz.battery, fz.legacy_battery_voltage,
+            fz.ignore_basic_report,
+            fz.ias_occupancy_alarm_1,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['RH3052'],
+        model: 'TT001ZAV20',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [
+            fz.humidity, fz.temperature, fz.battery,
+        ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0011'],
+        model: 'GDKES-01TZXD',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 1 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['TS0012'],
+        model: 'GDKES-02TZXD',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 2 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['TS0013'],
+        model: 'GDKES-03TZXD',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 3 gang without neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['gq8b1uv'],
+        model: 'gq8b1uv',
+        vendor: 'TuYa',
+        description: 'Zigbee smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
+        zigbeeModel: ['HY0017'],
+        model: 'U86KCJ-ZP',
+        vendor: 'TuYa',
+        description: 'Smart 6 key scene wall switch',
+        supports: 'action',
+        fromZigbee: [fz.scenes_recall_scene_65029],
+        toZigbee: [],
+    },
 
     // Norklmes
     {
@@ -8498,105 +8595,6 @@ const devices = [
         description: 'Water detector',
         supports: 'water_leak',
         fromZigbee: [fz.ias_water_leak_alarm_1],
-        toZigbee: [],
-    },
-
-    // TUYATEC
-    {
-        zigbeeModel: ['RH3040'],
-        model: 'RH3040',
-        vendor: 'TUYATEC',
-        description: 'PIR sensor',
-        supports: 'occupancy',
-        fromZigbee: [
-            fz.battery, fz.legacy_battery_voltage,
-            fz.ignore_basic_report,
-            fz.ias_occupancy_alarm_1,
-        ],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genPowerCfg']);
-            await configureReporting.batteryVoltage(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['RH3052'],
-        model: 'TT001ZAV20',
-        vendor: 'TUYATEC',
-        description: 'Temperature & humidity sensor',
-        supports: 'temperature and humidity',
-        fromZigbee: [
-            fz.humidity, fz.temperature, fz.battery,
-        ],
-        toZigbee: [],
-    },
-    {
-        zigbeeModel: ['TS0011'],
-        model: 'GDKES-01TZXD',
-        vendor: 'TUYATEC',
-        description: 'Smart light switch - 1 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-    },
-    {
-        zigbeeModel: ['TS0012'],
-        model: 'GDKES-02TZXD',
-        vendor: 'TUYATEC',
-        description: 'Smart light switch - 2 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        zigbeeModel: ['TS0013'],
-        model: 'GDKES-03TZXD',
-        vendor: 'TUYATEC',
-        description: 'Smart light switch - 3 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        zigbeeModel: ['gq8b1uv'],
-        model: 'gq8b1uv',
-        vendor: 'TUYATEC',
-        description: 'Zigbee smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-    },
-    {
-        zigbeeModel: ['HY0017'],
-        model: 'U86KCJ-ZP',
-        vendor: 'TUYATEC',
-        description: 'Smart 6 key scene wall switch',
-        supports: 'action',
-        fromZigbee: [fz.scenes_recall_scene_65029],
         toZigbee: [],
     },
 
