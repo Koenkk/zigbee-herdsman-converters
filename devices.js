@@ -142,14 +142,13 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('msPressureMeasurement', payload);
     },
-    illuminance: async (endpoint, overrides) => {
+    illuminance: async (endpoint, min=0, max=repInterval.HOUR, change=0) => {
         const payload = [{
             attribute: 'measuredValue',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
         }];
-        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('msIlluminanceMeasurement', payload);
     },
     instantaneousDemand: async (endpoint, overrides) => {
@@ -1135,7 +1134,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.illuminance(endpoint, {'minimumReportInterval': 60});
+            await configureReporting.illuminance(endpoint, 60);
         },
     },
 
