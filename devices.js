@@ -1129,7 +1129,7 @@ const devices = [
         supports: 'illuminance',
         fromZigbee: [fz.battery_3V, fz.illuminance],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
