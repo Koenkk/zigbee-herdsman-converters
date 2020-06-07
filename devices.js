@@ -1473,10 +1473,10 @@ const devices = [
             'toggle, arrow left/right click/hold/release, brightness up/down click/hold/release',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.command_toggle, fz.E1524_arrow_click, fz.E1524_arrow_hold, fz.E1524_arrow_release,
-            fz.E1524_brightness_up_click, fz.E1524_brightness_down_click, fz.E1524_brightness_up_hold,
-            fz.E1524_brightness_up_release, fz.E1524_brightness_down_hold, fz.E1524_brightness_down_release,
-            fz.battery_not_divided, fz.E1524_hold,
+            fz.E1524_E1810_toggle, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold, fz.E1524_E1810_arrow_release,
+            fz.E1524_E1810_brightness_up_click, fz.E1524_E1810_brightness_down_click, fz.E1524_E1810_brightness_up_hold,
+            fz.E1524_E1810_brightness_up_release, fz.E1524_E1810_brightness_down_hold,
+            fz.E1524_E1810_brightness_down_release, fz.battery_not_divided, fz.E1524_E1810_hold,
         ],
         toZigbee: [],
         ota: ota.tradfri,
@@ -8342,7 +8342,10 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242'],
+        zigbeeModel: [
+            '102.106.000235', '102.106.001111', '102.106.000348', '102.106.000256', '102.106.001242',
+            '102.106.000540',
+        ],
         model: 'MEAZON_DINRAIL',
         vendor: 'Meazon',
         description: 'DinRail 1-phase meter',
@@ -9965,16 +9968,18 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        supports: 'on/off',
-        fromZigbee: [fz.identify, fz.on_off],
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [
-            tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_settingEnableDimmer, tz.legrand_identify,
+            tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
+            tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
         },
     },
     {
@@ -9987,7 +9992,7 @@ const devices = [
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power],
-        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed_1, tz.legrand_identify],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10125,6 +10130,15 @@ const devices = [
         description: 'Door/window Sensor',
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['ZBT-DIMSwitch-D0001'],
+        model: 'ZS232000178',
+        vendor: 'Linkind',
+        description: '1-key remote control',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
     },
 
@@ -10666,7 +10680,36 @@ const devices = [
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
-    
+
+    // EchoStar
+    {
+        zigbeeModel: ['   Bell'],
+        model: 'SAGE206612',
+        vendor: 'EchoStar',
+        description: 'SAGE by Hughes doorbell sensor',
+        supports: 'action',
+        fromZigbee: [fz.SAGE206612_state, fz.battery_3V],
+        toZigbee: [],
+    },
+
+    // Plugwise
+    {
+        zigbeeModel: ['160-01'],
+        model: '160-01',
+        vendor: 'Plugwise',
+        description: 'Plug power socket on/off with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
+    },
 ];
 
 

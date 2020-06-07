@@ -2964,14 +2964,22 @@ const converters = {
             };
         },
     },
-    E1524_hold: {
+    E1524_E1810_toggle: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('toggle', msg, model)};
+            return payload;
+        },
+    },
+    E1524_E1810_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'toggle_hold'};
         },
     },
-    E1524_arrow_click: {
+    E1524_E1810_arrow_click: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options, meta) => {
@@ -2984,7 +2992,7 @@ const converters = {
             return {action: `arrow_${direction}_click`};
         },
     },
-    E1524_arrow_hold: {
+    E1524_E1810_arrow_hold: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options, meta) => {
@@ -2993,7 +3001,7 @@ const converters = {
             return {action: `arrow_${direction}_hold`};
         },
     },
-    E1524_arrow_release: {
+    E1524_E1810_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
         convert: (model, msg, publish, options, meta) => {
@@ -3004,42 +3012,42 @@ const converters = {
             }
         },
     },
-    E1524_brightness_up_click: {
+    E1524_E1810_brightness_up_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStepWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: `brightness_up_click`};
         },
     },
-    E1524_brightness_down_click: {
+    E1524_E1810_brightness_down_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             return {action: `brightness_down_click`};
         },
     },
-    E1524_brightness_up_hold: {
+    E1524_E1810_brightness_up_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: `brightness_up_hold`};
         },
     },
-    E1524_brightness_up_release: {
+    E1524_E1810_brightness_up_release: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             return {action: `brightness_up_release`};
         },
     },
-    E1524_brightness_down_hold: {
+    E1524_E1810_brightness_down_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
             return {action: `brightness_down_hold`};
         },
     },
-    E1524_brightness_down_release: {
+    E1524_E1810_brightness_down_release: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
@@ -5004,6 +5012,33 @@ const converters = {
                 return {action: `${lookup[msg.data[5]]}_long`};
             } else {
                 return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
+            }
+        },
+    },
+    SAGE206612_state: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const deviceId = msg.endpoint.deviceIeeeAddress;
+            const timeout = 28;
+
+            if (!store[deviceId]) {
+                store[deviceId] = [];
+            }
+
+            const timer = setTimeout(() => {
+                store[deviceId].pop();
+            }, timeout * 1000);
+
+            if (store[deviceId].length === 0 || store[deviceId].length > 4) {
+                store[deviceId].push(timer);
+                return {action: 'on'};
+            } else {
+                if (timeout > 0) {
+                    store[deviceId].push(timer);
+                }
+
+                return null;
             }
         },
     },
