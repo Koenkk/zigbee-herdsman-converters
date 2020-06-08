@@ -4215,15 +4215,15 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
     },
-	{
-		zigbeeModel: ['SWO-MOS1PA'], 
-		model: 'SWO-MOS1PA',
-		vendor: 'Swann', 
-		description: 'Motion and temperature sensor', 
-		supports: 'occupancy and temperature',
-		fromZigbee: [fz.ias_occupancy_alarm_1 ],
+    {
+        zigbeeModel: ['SWO-MOS1PA'],
+        model: 'SWO-MOS1PA',
+        vendor: 'Swann',
+        description: 'Motion and temperature sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-	},
+    },
 
     // JIAWEN
     {
