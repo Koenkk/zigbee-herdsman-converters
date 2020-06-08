@@ -5943,10 +5943,15 @@ const devices = [
         supports: 'on/off, linkquality',
         fromZigbee: [fz.on_off, fz.linkquality_from_basic],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {multiEndpoint: true, configureKey: 2},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
         },
     },
 
