@@ -5315,6 +5315,25 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['motionv5'],
+        model: 'STS-IRM-251',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2017 model)',
+        supports: 'occupancy and temperature',
+        fromZigbee: [
+            fz.temperature, fz.ias_occupancy_alarm_2,
+            fz.ias_occupancy_alarm_1, fz.battery_3V,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['motionv4'],
         model: 'STS-IRM-250',
         vendor: 'SmartThings',
