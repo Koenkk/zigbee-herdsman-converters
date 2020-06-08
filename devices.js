@@ -6179,6 +6179,25 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['PRS3CH2_00.00.05.10TC'],
+        model: '12127',
+        vendor: 'Lupus',
+        description: '2 chanel relay',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.linkquality_from_basic],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true, configureKey: 2},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Climax
     {
