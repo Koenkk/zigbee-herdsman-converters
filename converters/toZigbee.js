@@ -2371,7 +2371,7 @@ const converters = {
                 'exit_delay': 0x10
             };
             if (((value == 'entry_delay') || (value == 'exit_delay')) && message.hasOwnProperty('delay')) {
-                await entity.write('ssIasZone', (entry_exit_lookup[value.toLowercase()]<<16)+message['delay'].toString(16));
+                await entity.write('ssIasZone', (entry_exit_lookup[value.toLowercase()]<<16)+options.delay.toString(16));
                 return {state: {arm_mode: value}};
             }
             await entity.write('ssIasZone', lookup[value.toLowercase()]);
