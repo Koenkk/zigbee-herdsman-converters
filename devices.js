@@ -5374,8 +5374,7 @@ const devices = [
         description: 'Motion sensor (2017 model)',
         supports: 'occupancy and temperature',
         fromZigbee: [
-            fz.temperature, fz.ias_occupancy_alarm_2,
-            fz.ias_occupancy_alarm_1, fz.battery_3V,
+            fz.temperature, fz.ias_occupancy_alarm_1, fz.battery_3V,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
