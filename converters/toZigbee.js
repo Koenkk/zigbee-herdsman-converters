@@ -1164,16 +1164,17 @@ const converters = {
             await entity.read('genAnalogOutput', [0x0055]);
         },
     },
-    osram_cmds: {
-        key: ['osram_set_transition', 'osram_remember_state'],
+    ledvance_commands: {
+        /* deprectated osram_*/
+        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'osram_set_transition') {
+            if (key === 'osram_set_transition' || key === 'set_transition') {
                 if (value) {
                     const transition = (value > 1) ? (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 10 : 1;
                     const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
                     await entity.write('genLevelCtrl', payload);
                 }
-            } else if (key == 'osram_remember_state') {
+            } else if (key == 'osram_remember_state' || key == 'remember_state') {
                 if (value === true) {
                     await entity.command('manuSpecificOsram', 'saveStartupParams', {}, options.osram);
                 } else if (value === false) {
