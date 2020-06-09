@@ -2355,6 +2355,29 @@ const converters = {
             sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
         },
     },
+    
+    // Centralite 3400-D Keypad Alarm
+    3400_arm_mode: {
+        key: ['arm_mode’],
+        convertSet: async (entity, key, value, meta) => {
+        	const lookup = {
+            	'disarm': 0x0000,
+            	'arm_stay': 0x0100,
+            	'arm_arm_night': 0x0200,
+            	'armed_away': 0x0300
+        	};
+            const entry_exit_lookup = {
+                'entry_delay': 0x05,
+                'exit_delay': 0x10
+            };
+            if (((value == 'entry_delay') || (value == 'exit_delay')) && message.hasOwnProperty('delay')) {
+                await entity.write('ssIasZone', (entry_exit_lookup[value.toLowercase()]<<16)+message['delay'].toString(16));
+                return {state: {arm_mode: value}};
+            }
+            await entity.write('ssIasZone', lookup[value.toLowercase()]);
+            return {state: {arm_mode: value}};
+        },
+    },    
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
