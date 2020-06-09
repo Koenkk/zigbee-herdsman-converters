@@ -5324,7 +5324,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['motionv4'],
+        zigbeeModel: ['motionv4', 'motionv5'],
         model: 'STS-IRM-250',
         vendor: 'SmartThings',
         description: 'Motion sensor (2016 model)',
