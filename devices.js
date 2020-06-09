@@ -5762,6 +5762,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['AV2010/22A'],
+        model: 'AV2010/22A',
+        vendor: 'Bitron',
+        description: 'Wireless motion detector',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
+        toZigbee: [],
+    },    
+    {
         zigbeeModel: ['902010/25'],
         model: 'AV2010/25',
         vendor: 'Bitron',
