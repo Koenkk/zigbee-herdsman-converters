@@ -88,13 +88,14 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('genPowerCfg', payload);
     },
-    onOff: async (endpoint) => {
+    onOff: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'onOff',
             minimumReportInterval: 0,
             maximumReportInterval: repInterval.HOUR,
             reportableChange: 0,
         }];
+        Object.assign(payload[0], overrides);
         await endpoint.configureReporting('genOnOff', payload);
     },
     lockState: async (endpoint) => {
@@ -8598,7 +8599,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await configureReporting.onOff(endpoint);
+            await configureReporting.onOff(endpoint, {minimumReportInterval: 1});
             const options = {manufacturerCode: 4406, disableDefaultResponse: false};
             await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
             await configureReporting.onOff(endpoint);
