@@ -1134,7 +1134,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.illuminance(endpoint, 60);
+            await configureReporting.illuminance(endpoint, 15, repInterval.HOUR, 500);
         },
     },
 
