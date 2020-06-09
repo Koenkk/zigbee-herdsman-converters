@@ -5769,7 +5769,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
-    },    
+    },
     {
         zigbeeModel: ['902010/25'],
         model: 'AV2010/25',
