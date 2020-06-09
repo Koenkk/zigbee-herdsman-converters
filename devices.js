@@ -766,8 +766,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
-            fz.WSDCGQ01LM_WSDCGQ11LM_interval],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.temperature, fz.humidity, fz.pressure],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -974,7 +973,7 @@ const devices = [
         description: 'Aqara vibration sensor',
         supports: 'drop, tilt and touch',
         fromZigbee: [fz.DJT12LM_vibration],
-        toZigbee: [tz.DJT11LM_vibration_sensitivity],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.curtain', 'lumi.curtain.aq2'],
