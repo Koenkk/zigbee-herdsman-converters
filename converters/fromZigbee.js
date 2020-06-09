@@ -2075,6 +2075,13 @@ const converters = {
             return result;
         },
     },
+    DJT12LM_vibration: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'vibration'};
+        },
+    },
     CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

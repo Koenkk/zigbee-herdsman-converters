@@ -801,6 +801,21 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['lumi.sensor_ht.agl02'],
+        model: 'WSDCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara temperature, humidity and pressure sensor',
+        supports: 'temperature, humidity and pressure',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.temperature, fz.humidity, fz.pressure],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+        },
+    },
+    {
         zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
@@ -852,6 +867,15 @@ const devices = [
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
         fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['lumi.flood.agl02'],
+        model: 'SJCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara water leak sensor',
+        supports: 'water leak true/false',
+        fromZigbee: [fz.xiaomi_battery_3v, fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
@@ -981,6 +1005,15 @@ const devices = [
         supports: 'drop, tilt and touch',
         fromZigbee: [fz.xiaomi_battery_3v, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
+    },
+    {
+        zigbeeModel: ['lumi.vibration.agl01'],
+        model: 'DJT12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara vibration sensor',
+        supports: 'action',
+        fromZigbee: [fz.DJT12LM_vibration],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.curtain', 'lumi.curtain.aq2'],
