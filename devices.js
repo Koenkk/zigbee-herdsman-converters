@@ -8598,10 +8598,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await configureReporting.onOff(endpoint, {minimumReportInterval: 1});
+            await configureReporting.onOff(endpoint, {minimumReportInterval: 1, maximumReportInterval: 0xfffe});
             const options = {manufacturerCode: 4406, disableDefaultResponse: false};
             await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
-            await configureReporting.onOff(endpoint);
             await endpoint.configureReporting('seMetering', [{
                 attribute: {ID: 0x2000, type: 0x29},
                 minimumReportInterval: 1,
