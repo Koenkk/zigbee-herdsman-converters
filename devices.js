@@ -1326,7 +1326,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {configureKey: 2, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             for (const ID of [1, 2, 3]) {
                 const endpoint = device.getEndpoint(ID);
