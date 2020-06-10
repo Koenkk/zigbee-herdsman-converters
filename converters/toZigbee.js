@@ -310,18 +310,39 @@ const converters = {
     light_colortemp_move: {
         key: ['colortemp_move', 'color_temp_move'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {minimum: 153, maximum: 370, rate: 55};
-            const stop = (val) => ['stop', 'release', '0'].some((el) => val.includes(el));
-            const up = (val) => ['1', 'up'].some((el) => val.includes(el));
-            const arr = [value.toString()];
-            const moverate = meta.message.hasOwnProperty('rate') ? parseInt(meta.message.rate) : 55;
-            payload.rate = moverate;
-            if (arr.filter(stop).length) {
-                payload.movemode = 0;
+            if (key === 'color_temp_move' && (value === 'stop' || typeof value === 'number')) {
+                const payload = {minimum: 0, maximum: 0};
+                if (value === 'stop' || value === 0) {
+                    payload.rate = 1;
+                    payload.movemode = 0;
+                } else {
+                    payload.rate = Math.abs(value);
+                    payload.movemode = value > 0 ? 1 : 3;
+                }
+
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped));
+
+                // As we cannot determine the new brightness state, we read it from the device
+                if (value === 'stop' || value === 0) {
+                    await wait(500);
+                    const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
+                    await target.read('lightingColorCtrl', ['colorTemperature']);
+                }
             } else {
-                payload.movemode=arr.filter(up).length ? 1 : 3;
+                // Deprecated
+                const payload = {minimum: 153, maximum: 370, rate: 55};
+                const stop = (val) => ['stop', 'release', '0'].some((el) => val.includes(el));
+                const up = (val) => ['1', 'up'].some((el) => val.includes(el));
+                const arr = [value.toString()];
+                const moverate = meta.message.hasOwnProperty('rate') ? parseInt(meta.message.rate) : 55;
+                payload.rate = moverate;
+                if (arr.filter(stop).length) {
+                    payload.movemode = 0;
+                } else {
+                    payload.movemode=arr.filter(up).length ? 1 : 3;
+                }
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped));
             }
-            await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped));
         },
     },
     light_onoff_brightness: {
