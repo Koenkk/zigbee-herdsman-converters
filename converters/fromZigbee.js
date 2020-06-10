@@ -4425,6 +4425,22 @@ const converters = {
             }
         },
     },
+    BASICZBR3_on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Device sends multiple messages with the same transactionSequenceNumber,
+            // prevent that multiple messages get send.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3687
+            const last = store[msg.device.ieeeAddr];
+            const current = msg.meta.zclTransactionSequenceNumber;
+
+            if (last !== current && msg.data.hasOwnProperty('onOff')) {
+                store[msg.device.ieeeAddr] = current;
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
     CCTSwitch_D0001_move_to_colortemp_recall: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',

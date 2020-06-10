@@ -9698,7 +9698,7 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.BASICZBR3_on_off],
         toZigbee: [tz.on_off],
     },
     {
