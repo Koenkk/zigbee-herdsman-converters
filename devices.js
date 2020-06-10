@@ -6792,6 +6792,22 @@ const devices = [
         description: 'PAR20 bright white bulb',
         extend: generic.light_onoff_brightness,
     },
+    {
+        // eslint-disable-next-line
+        zigbeeModel: ['\u0000\u0002\u0000\u0004�V\u0000\n\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1523',
+        vendor: 'EcoSmart',
+        description: 'A19 soft white bulb',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        // eslint-disable-next-line
+        zigbeeModel: ['\u0000\u0002\u0000\u0004��\"�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e'],
+        model: 'D1523',
+        vendor: 'EcoSmart',
+        description: 'A19 soft white bulb',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Airam
     {
