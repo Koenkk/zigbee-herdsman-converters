@@ -10801,9 +10801,9 @@ const devices = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat',
                 'hvacUserInterfaceCfg',
             ]);
-            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_15, 25);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_5, 1);
         },
     },
 
