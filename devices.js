@@ -736,6 +736,22 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.switch.b1lacn02'],
+        model: 'QBKG21LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
+        supports: 'on/off, action',
+        fromZigbee: [
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.QBKG04LM_QBKG11LM_operation_mode,
+        ],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        endpoint: (device) => {
+            return {'system': 1, 'default': 2};
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
+    {
         zigbeeModel: ['lumi.switch.b2lacn02'],
         model: 'QBKG22LM',
         vendor: 'Xiaomi',
