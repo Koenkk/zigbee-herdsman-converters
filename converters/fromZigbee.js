@@ -2722,6 +2722,18 @@ const converters = {
             return result;
         },
     },
+    viessmann_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+            // ViessMann ViCare TRV seems to report pIHeatingDemand between 0 and 5 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            return result;
+        },
+    },
     hvac_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],

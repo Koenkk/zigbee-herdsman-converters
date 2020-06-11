@@ -10792,7 +10792,7 @@ const devices = [
         vendor: 'Viessmann',
         description: 'ViCare radiator thermostat valve',
         supports: 'thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.battery],
+        fromZigbee: [fz.viessmann_thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
