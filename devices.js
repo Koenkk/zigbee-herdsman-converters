@@ -6614,9 +6614,9 @@ const devices = [
     {
         zigbeeModel: ['3400-D'],
         model: '3400-D',
-        vendor: 'CentraLite',
-        description: 'CentraLite 3400-D Keypad',
-        supports: 'keypad',
+        vendor: 'Centralite',
+        description: '3400-D keypad',
+        supports: 'action, arm',
         meta: {configureKey: 1, disableDefaultResponse: true},
         fromZigbee: [ fz.3400_command_arm, fz.temperature ],
         toZigbee: [ tz.arm_mode ],
