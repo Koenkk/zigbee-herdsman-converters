@@ -310,8 +310,9 @@ const converters = {
     light_colortemp_move: {
         key: ['colortemp_move', 'color_temp_move'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp_move' && (value === 'stop' || typeof value === 'number')) {
-                const payload = {minimum: 0, maximum: 0};
+            if (key === 'color_temp_move' && (value === 'stop' || !isNaN(value))) {
+                value = value === 'stop' ? value : Number(value);
+                const payload = {minimum: 0, maximum: 600};
                 if (value === 'stop' || value === 0) {
                     payload.rate = 1;
                     payload.movemode = 0;
