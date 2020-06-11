@@ -143,12 +143,12 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('msPressureMeasurement', payload);
     },
-    illuminance: async (endpoint) => {
+    illuminance: async (endpoint, min=0, max=repInterval.HOUR, change=0) => {
         const payload = [{
             attribute: 'measuredValue',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
+            minimumReportInterval: min,
+            maximumReportInterval: max,
+            reportableChange: change,
         }];
         await endpoint.configureReporting('msIlluminanceMeasurement', payload);
     },
@@ -1163,11 +1163,12 @@ const devices = [
         supports: 'illuminance',
         fromZigbee: [fz.battery_3V, fz.illuminance],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.illuminance(endpoint, 15, repInterval.HOUR, 500);
         },
     },
 
