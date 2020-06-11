@@ -10794,7 +10794,7 @@ const devices = [
         supports: 'thermostat',
         fromZigbee: [fz.viessmann_thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
