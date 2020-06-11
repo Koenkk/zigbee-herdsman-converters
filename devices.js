@@ -2322,6 +2322,22 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5062231P7'],
+        model: '5062231P7',
+        vendor: 'Philips',
+        description: 'Hue white and color ambience Argenta spot (2 spots)',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5062431P7'],
+        model: '5062431P7',
+        vendor: 'Philips',
+        description: 'Hue white and color ambience Argenta spot (4 spots)',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5045148P7'],
         model: '5045148P7',
         vendor: 'Philips',
