@@ -116,6 +116,46 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped));
         },
     },
+    kmpcil_res005_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = {disableDefaultResponse: true};
+            if (value.toLowerCase() === 'toggle') {
+                if (!meta.state.hasOwnProperty('state')) {
+                    return {};
+                } else {
+                    await entity.write('genBinaryOutput', {0x0055: {value: (meta.state.state === 'OFF')?0x01:0x00, type: 0x10}}, options);
+                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
+                }
+            } else {
+                await entity.write('genBinaryOutput', {0x0055: {value: (value.toUpperCase() === 'OFF')?0x00:0x01, type: 0x10}}, options);
+                return {state: value.toUpperCase()};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBinaryOutput', ['presentValue']);
+        },
+    },
+    on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped));
+            if (value.toLowerCase() === 'toggle') {
+                if (!meta.state.hasOwnProperty('state')) {
+                    return {};
+                } else {
+                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
+                }
+            } else {
+                return {state: {state: value.toUpperCase()}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
+
+
     on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
