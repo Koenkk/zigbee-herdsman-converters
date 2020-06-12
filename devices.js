@@ -6375,6 +6375,22 @@ const devices = [
                 {'minimumReportInterval': 10, 'reportableChange': 2});
         },
     },
+    {
+        zigbeeModel: ['RS_00.00.02.06TC'],
+        model: 'RS-23ZBS',
+        vendor: 'Climax',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature, humidity',
+        fromZigbee: [fz.temperature, fz.humidity],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+        },
+    },
 
     // HEIMAN
     {
