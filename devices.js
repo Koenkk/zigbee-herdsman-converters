@@ -6364,14 +6364,15 @@ const devices = [
         model: 'RS-23ZBS',
         vendor: 'Climax',
         description: 'Temperature & humidity sensor',
-        supports: 'Temperature measurements',
-        fromZigbee: [fz.temperature],
+        supports: 'Temperature & relative humidity measurements',
+        fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
         },
     },
 
