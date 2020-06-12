@@ -829,69 +829,49 @@ const converters = {
             return payload;
         },
     },
+    command_move_to_level: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: getProperty(`brightness_move_to_level`, msg, model),
+                action_level: msg.data.level,
+                action_transition_time: msg.data.transtime / 100,
+            };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_move: {
         cluster: 'genLevelCtrl',
-        type: 'commandMove',
+        type: ['commandMove', 'commandMoveWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = getProperty(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
-            if (msg.groupID) payload.action_group = msg.groupID;
-            return payload;
-        },
-    },
-    command_move_with_on_off: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            const action = getProperty(`brightness_move_${direction}`, msg, model);
-            const payload = {action, action_rate: msg.data.rate};
-            if (msg.groupID) payload.action_group = msg.groupID;
-            return payload;
-        },
-    },
-    command_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`brightness_stop`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
-            return payload;
-        },
-    },
-    command_stop_with_on_off: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`brightness_stop`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
-            return payload;
-        },
-    },
-    command_step_with_on_off: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            const payload = {
-                action: getProperty(`brightness_step_${direction}`, msg, model),
-                action_step_size: msg.data.stepsize,
-            };
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
     },
     command_step: {
         cluster: 'genLevelCtrl',
-        type: 'commandStep',
+        type: ['commandStep', 'commandStepWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
                 action: getProperty(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
-                action_transition_time: msg.data.transtime,
+                action_transition_time: msg.data.transtime / 100,
             };
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_stop: {
+        cluster: 'genLevelCtrl',
+        type: ['commandStop', 'commandStopWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty(`brightness_stop`, msg, model)};
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },

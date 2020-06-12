@@ -1548,10 +1548,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
         supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
-        fromZigbee: [
-            fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
-            fz.cmd_move_to_level_with_onoff, fz.battery_not_divided,
-        ],
+        fromZigbee: [fz.battery_not_divided, fz.command_move, fz.command_stop, fz.command_move_to_level],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1682,7 +1679,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
         supports: 'volume up/down, play/pause, skip forward/backward',
-        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.battery_not_divided],
+        fromZigbee: [fz.command_move, fz.command_stop, fz.command_toggle, fz.command_step, fz.battery_not_divided],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1},
@@ -5141,7 +5138,7 @@ const devices = [
         description: 'Zigbee 8 button wall switch',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
         toZigbee: [],
@@ -5154,7 +5151,7 @@ const devices = [
         description: 'Zigbee 4 button wall switch',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
         toZigbee: [],
@@ -5214,7 +5211,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery,
-            fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_move, fz.command_stop,
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
@@ -5230,7 +5227,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery,
-            fz.command_move_with_on_off, fz.command_stop_with_on_off, fz.command_step_with_on_off,
+            fz.command_move, fz.command_stop, fz.command_step,
         ],
         toZigbee: [],
     },
@@ -5241,7 +5238,7 @@ const devices = [
         description: 'Remote control',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_step_with_on_off, fz.command_step_color_temperature,
+            fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature,
             fz.command_recall, fz.command_move_to_color_temp, fz.battery,
         ],
         toZigbee: [],
@@ -8406,7 +8403,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step_with_on_off, fz.command_recall,
+            fz.command_step, fz.command_recall,
             fz.ZG2819S_command_on, fz.ZG2819S_command_off,
         ],
         toZigbee: [],
