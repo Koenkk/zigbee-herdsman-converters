@@ -368,6 +368,20 @@ const converters = {
             }
         },
     },
+    kmpcil_res005_occupancy: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: (msg.data['presentValue']===1)};
+        },
+    },
+    kmpcil_res005_on_off: {
+        cluster: 'genBinaryOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
+        },
+    },
     battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
