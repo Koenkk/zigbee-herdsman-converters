@@ -2906,9 +2906,9 @@ const devices = [
         model: '1TST-EU',
         vendor: 'eCozy',
         description: 'Smart heating thermostat',
-        supports: 'temperature, occupancy, un-/occupied heating, schedule',
+        supports: 'temperature, battery, occupancy, un-/occupied heating, schedule',
         fromZigbee: [
-            fz.legacy_battery_voltage,
+            fz.wiser_itrv_battery,
             fz.thermostat_att_report,
         ],
         toZigbee: [
