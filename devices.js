@@ -6364,7 +6364,7 @@ const devices = [
         model: 'RS-23ZBS',
         vendor: 'Climax',
         description: 'Temperature & humidity sensor',
-        supports: 'Temperature & relative humidity measurements',
+        supports: 'temperature, humidity',
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -6375,7 +6375,6 @@ const devices = [
             await configureReporting.humidity(endpoint);
         },
     },
-
 
     // HEIMAN
     {
