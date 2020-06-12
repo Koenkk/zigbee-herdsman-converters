@@ -2727,10 +2727,15 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
-            // ViessMann ViCare TRV seems to report pIHeatingDemand between 0 and 5 already
+
+            // ViessMann TRVs report piHeatingDemand from 0-5
+            // NOTE: remove the result for now, but leave it configure for reporting
+            //       it will show up in the debug log still to help try and figure out
+            //       what this value potentially means.
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
+                delete result.pi_heating_demand;
             }
+
             return result;
         },
     },
