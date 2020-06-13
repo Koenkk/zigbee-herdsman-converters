@@ -7426,7 +7426,7 @@ const devices = [
         vendor: 'Immax',
         description: 'Neo SMART LED Strip RGB + CCT, color, dimmable, Zigbee 3.0',
         supports:'on/off, brightness, color temperature, color xy',
-        extend: generic.light_onoff_brightness_colortemp_colorxy
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['Keyfob-ZB3.0'],
