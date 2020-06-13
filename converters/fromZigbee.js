@@ -2722,6 +2722,23 @@ const converters = {
             return result;
         },
     },
+    viessmann_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+
+            // ViessMann TRVs report piHeatingDemand from 0-5
+            // NOTE: remove the result for now, but leave it configure for reporting
+            //       it will show up in the debug log still to help try and figure out
+            //       what this value potentially means.
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                delete result.pi_heating_demand;
+            }
+
+            return result;
+        },
+    },
     hvac_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],

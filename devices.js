@@ -10864,9 +10864,9 @@ const devices = [
         vendor: 'Viessmann',
         description: 'ViCare radiator thermostat valve',
         supports: 'thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.battery],
+        fromZigbee: [fz.viessmann_thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
@@ -10875,7 +10875,7 @@ const devices = [
             ]);
             await configureReporting.thermostatTemperature(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
+            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_5, 1);
         },
     },
 
