@@ -1996,6 +1996,27 @@ const converters = {
             await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
         },
     },
+    legrand_readActivePower: {
+        key: ['power', 'activePower'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePower']);
+        },
+    },
+    legrand_powerAlarm: {
+        key: ['power_alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const enableAlarm = (value === 'DISABLE' ? false : true);
+            const payloadBolean = {0xf001: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
+            const payloadValue = {0xf002: {value: value, type: 0x29}};
+            await entity.write('haElectricalMeasurement', payloadValue);
+            await entity.write('haElectricalMeasurement', payloadBolean);
+            // To have consistent information in the system.
+            await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
+        },
+    },
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
