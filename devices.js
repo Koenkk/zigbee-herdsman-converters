@@ -1548,7 +1548,10 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
         supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
-        fromZigbee: [fz.battery_not_divided, fz.command_move, fz.command_stop, fz.command_move_to_level],
+        fromZigbee: [
+            fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
+            fz.cmd_move_to_level_with_onoff, fz.battery_not_divided,
+        ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1679,7 +1682,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
         supports: 'volume up/down, play/pause, skip forward/backward',
-        fromZigbee: [fz.command_move, fz.command_stop, fz.command_toggle, fz.command_step, fz.battery_not_divided],
+        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.battery_not_divided],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1},
