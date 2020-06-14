@@ -50,6 +50,13 @@ async function sendTuyaCommand(entity, dp, fn, data) {
     );
 }
 
+function getEntityOrFirstGroupMember(entity) {
+    if (entity.constructor.name === 'Group') {
+        return entity.members.length > 0 ? entity.members[0] : null;
+    } else {
+        return entity;
+    }
+}
 
 function getTransition(entity, key, meta) {
     const {options, message} = meta;
@@ -413,8 +420,11 @@ const converters = {
                                      * it from the bulb.
                                      * https://github.com/Koenkk/zigbee2mqtt/issues/3736
                                      */
-                                    const readData = await entity.read('genLevelCtrl', ['currentLevel']);
-                                    result.state.brightness = readData.currentLevel;
+                                    const entityToRead = getEntityOrFirstGroupMember(entity);
+                                    if (entityToRead) {
+                                        const readData = await entityToRead.read('genLevelCtrl', ['currentLevel']);
+                                        result.state.brightness = readData.currentLevel;
+                                    }
                                 }
                             } else {
                                 // off = brightness 0
