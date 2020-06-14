@@ -5157,7 +5157,7 @@ const devices = [
         description: 'Zigbee 8 button wall switch',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
         toZigbee: [],
@@ -5170,7 +5170,7 @@ const devices = [
         description: 'Zigbee 4 button wall switch',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
         toZigbee: [],
@@ -5230,7 +5230,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery,
-            fz.command_move_with_on_off, fz.command_stop_with_on_off,
+            fz.command_move, fz.command_stop,
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
@@ -5246,7 +5246,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery,
-            fz.command_move_with_on_off, fz.command_stop_with_on_off, fz.command_step_with_on_off,
+            fz.command_move, fz.command_stop, fz.command_step,
         ],
         toZigbee: [],
     },
@@ -5257,7 +5257,7 @@ const devices = [
         description: 'Remote control',
         supports: 'action',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_step_with_on_off, fz.command_step_color_temperature,
+            fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature,
             fz.command_recall, fz.command_move_to_color_temp, fz.battery,
         ],
         toZigbee: [],
@@ -8445,7 +8445,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [
             fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step_with_on_off, fz.command_recall,
+            fz.command_step, fz.command_recall,
             fz.ZG2819S_command_on, fz.ZG2819S_command_off,
         ],
         toZigbee: [],
