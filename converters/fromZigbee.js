@@ -4700,6 +4700,29 @@ const converters = {
             }
         },
     },
+    legrand_power_alarm: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+
+            // 0xf000 = 61440
+            // This attribute returns usually 2 when power is over the defined threshold.
+            if (msg.data.hasOwnProperty('61440')) {
+                payload.power_alarm_active_value = msg.data['61440'];
+                payload.power_alarm_active = (payload.alarm_active_value > 0);
+            }
+            // 0xf001 = 61441
+            if (msg.data.hasOwnProperty('61441')) {
+                payload.power_alarm_enabled = msg.data['61441'];
+            }
+            // 0xf002 = 61442, wh = watt hour
+            if (msg.data.hasOwnProperty('61442')) {
+                payload.power_alarm_wh_threshold = msg.data['61442'];
+            }
+            return payload;
+        },
+    },
     tuya_dimmer: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',

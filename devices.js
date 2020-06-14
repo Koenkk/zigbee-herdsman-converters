@@ -10311,6 +10311,29 @@ const devices = [
         },
     },
     {
+        zigbeeModel: [' DIN power consumption module\u0000\u0000'],
+        model: '412015',
+        vendor: 'Legrand',
+        description: 'DIN power consumption module',
+        supports: 'power measurement, consumption alerts',
+        fromZigbee: [
+            fz.identify, fz.metering_power, fz.electrical_measurement_power, fz.ignore_basic_report,
+            fz.ignore_genOta, fz.legrand_power_alarm,
+        ],
+        toZigbee: [
+            tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
+        },
+    },
+    {
         zigbeeModel: ['Remote switch Wake up / Sleep'],
         model: '752189',
         vendor: 'Legrand',
