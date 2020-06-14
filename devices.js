@@ -10309,8 +10309,13 @@ const devices = [
         vendor: 'Legrand',
         description: 'DIN power consumption module',
         supports: 'power measurement, consumption alerts',
-        fromZigbee: [fz.identify, fz.metering_power, fz.electrical_measurement_power, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
-        toZigbee: [tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm],
+        fromZigbee: [
+            fz.identify, fz.metering_power, fz.electrical_measurement_power, fz.ignore_basic_report,
+            fz.ignore_genOta, fz.legrand_power_alarm,
+        ],
+        toZigbee: [
+            tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm,
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
