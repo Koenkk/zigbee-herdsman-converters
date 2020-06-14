@@ -4708,7 +4708,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            
+
             // 0xf000 = 61440
             // This attribute returns usually 2 when power is over the defined threshold.
             if (msg.data.hasOwnProperty('61440')) {
