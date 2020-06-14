@@ -407,7 +407,14 @@ const converters = {
                                 if (store.hasOwnProperty(entityID)) {
                                     result.state.brightness = store[entityID].brightness;
                                 } else if (meta.state.brightness === 0) {
-                                    result.state.brightness = 254;
+                                    /**
+                                     * In case bulb is turned off and the store is reset (because of application
+                                     * restart) we don't know the previous brightness when on. Therefore retrieve
+                                     * it from the bulb.
+                                     * https://github.com/Koenkk/zigbee2mqtt/issues/3736
+                                     */
+                                    const readData = await entity.read('genLevelCtrl', ['currentLevel']);
+                                    result.state.brightness = readData.currentLevel;
                                 }
                             } else {
                                 // off = brightness 0
