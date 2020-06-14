@@ -4703,21 +4703,6 @@ const converters = {
             }
         },
     },
-    legrand_master_switch_center: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            if (
-                msg.data && msg.data.length === 6 &&
-                msg.data[0] === 0x15 && msg.data[1] === 0x21 && msg.data[2] === 0x10 &&
-                msg.data[3] === 0x00 && msg.data[4] === 0x03 && msg.data[5] === 0xff
-            ) {
-                return {
-                    action: 'center',
-                };
-            }
-        },
-    },
     legrand_power_alarm: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -4727,16 +4712,16 @@ const converters = {
             // 0xf000 = 61440
             // This attribute returns usually 2 when power is over the defined threshold.
             if (msg.data.hasOwnProperty('61440')) {
-                payload.alarm_active_value = msg.data['61440'];
-                payload.alarm_active = (payload.alarm_active_value > 0);
+                payload.power_alarm_active_value = msg.data['61440'];
+                payload.power_alarm_active = (payload.alarm_active_value > 0);
             }
             // 0xf001 = 61441
             if (msg.data.hasOwnProperty('61441')) {
-                payload.alarm_enabled = msg.data['61441'];
+                payload.power_alarm_enabled = msg.data['61441'];
             }
             // 0xf002 = 61442
             if (msg.data.hasOwnProperty('61442')) {
-                payload.alarm_wh_threshold = msg.data['61442'];
+                payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
         },
