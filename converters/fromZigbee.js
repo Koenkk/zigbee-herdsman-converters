@@ -4719,7 +4719,7 @@ const converters = {
             if (msg.data.hasOwnProperty('61441')) {
                 payload.power_alarm_enabled = msg.data['61441'];
             }
-            // 0xf002 = 61442
+            // 0xf002 = 61442, wh = watt hour
             if (msg.data.hasOwnProperty('61442')) {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
