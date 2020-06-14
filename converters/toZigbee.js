@@ -404,9 +404,8 @@ const converters = {
                         if (result.state) {
                             if (state === 'on') {
                                 result.readAfterWriteTime = 0;
-                                if (store.hasOwnProperty(entityID)) {
-                                    result.state.brightness = store[entityID].brightness;
-                                }
+                                result.state.brightness = store.hasOwnProperty(entityID) ?
+                                    store[entityID].brightness : 254;
                             } else {
                                 // off = brightness 0
                                 result.state.brightness = 0;
