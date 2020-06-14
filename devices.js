@@ -7421,6 +7421,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['IM-Z3.0-RGBCCT'],
+        model: '07008L',
+        vendor: 'Immax',
+        description: 'Neo SMART LED strip RGB + CCT, color, dimmable, Zigbee 3.0',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['Keyfob-ZB3.0'],
         model: '07046L',
         vendor: 'Immax',
