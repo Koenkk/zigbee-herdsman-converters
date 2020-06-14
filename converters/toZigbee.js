@@ -1997,7 +1997,7 @@ const converters = {
         },
     },
     legrand_readActivePower: {
-        key: ['power', 'activePower'],
+        key: ['power'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['activePower']);
         },
