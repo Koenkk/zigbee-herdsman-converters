@@ -1439,7 +1439,8 @@ const converters = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-C-007-1ID' && key === 'color' && !meta.message.transition) {
+            if (['GL-C-007-1ID', 'GL-B-008Z', 'GL-B-001Z'].includes(meta.mapped.model) &&
+                key === 'color' && !meta.message.transition) {
                 // Always provide a transition when setting color, otherwise CCT to RGB
                 // doesn't work properly (CCT leds stay on).
                 meta.message.transition = 0.4;
