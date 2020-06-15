@@ -4012,6 +4012,18 @@ const converters = {
             return payload;
         },
     },
+    ptvo_switch_level_control: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            payload[name] = msg.data['currentLevel'];
+            payload['brightness_' + name] = msg.data['currentLevel'];
+            return payload;
+        },
+    },
     keypad20states: {
         cluster: 'genOnOff',
         type: ['readResponse', 'attributeReport'],

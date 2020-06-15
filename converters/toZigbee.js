@@ -1727,8 +1727,9 @@ const converters = {
             }
             const payload = {14: {value, type: 0x42}};
             for (const endpoint of meta.device.endpoints) {
-                if (endpoint.hasOwnProperty('clusters') && endpoint.clusters.hasOwnProperty('genMultistateValue')) {
-                    await endpoint.write('genMultistateValue', payload);
+                const cluster = 'genMultistateValue';
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    await endpoint.write(cluster, payload);
                     return;
                 }
             }
@@ -1745,27 +1746,51 @@ const converters = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            if (entity.clusters.hasOwnProperty('genLevelCtrl')) {
+            let cluster = 'genLevelCtrl';
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
                 const value2 = parseInt(value);
                 if (isNaN(value2)) {
                     return;
                 }
                 const payload = {'currentLevel': value2};
-                await entity.write('genLevelCtrl', payload);
+                await entity.write(cluster, payload);
                 return;
             }
 
-            if (entity.clusters.hasOwnProperty('genAnalogInput')) {
+            cluster = 'genAnalogInput';
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
                 const value2 = parseFloat(value);
                 if (isNaN(value2)) {
                     return;
                 }
                 const payload = {'presentValue': value2};
-                await entity.write('genAnalogInput', payload);
+                await entity.write(cluster, payload);
                 return;
             }
 
             return;
+        },
+    },
+    ptvo_switch_light_brightness: {
+        key: ['brightness', 'brightness_percent', 'transition'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'transition') {
+                return;
+            }
+            const cluster = 'genLevelCtrl';
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this endpoint.');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = 'genLevelCtrl';
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await converters.light_onoff_brightness.convertGet(entity, key, meta);
+            } else {
+                throw new Error('LevelControl not supported on this endpoint.');
+            }
         },
     },
 
