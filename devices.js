@@ -10656,7 +10656,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
-            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await configureReporting.temperature(endpoint2);
