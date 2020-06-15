@@ -6390,7 +6390,8 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await configureReporting.temperature(endpoint);
-            await configureReporting.humidity(endpoint);
+            // configureReporting.humidity(endpoint); not needed and fails
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1312
         },
     },
 
