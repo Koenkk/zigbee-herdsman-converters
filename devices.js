@@ -6840,6 +6840,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['Ecosmart-ZBT-BR30-CCT-Bulb'],
+        model: 'A9BR3065WESDZ02',
+        vendor: 'EcoSmart',
+        description: 'Tuneable white (BR30)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['zhaRGBW'],
         model: 'D1821',
         vendor: 'EcoSmart',
