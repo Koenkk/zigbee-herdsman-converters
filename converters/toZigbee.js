@@ -141,26 +141,6 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped));
             if (value.toLowerCase() === 'toggle') {
-                if (!meta.state.hasOwnProperty('state')) {
-                    return {};
-                } else {
-                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
-                }
-            } else {
-                return {state: {state: value.toUpperCase()}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
-        },
-    },
-
-
-    on_off: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped));
-            if (value.toLowerCase() === 'toggle') {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
                 return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
             } else {
