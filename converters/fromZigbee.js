@@ -1666,51 +1666,52 @@ const converters = {
                 const payload = {};
                 // Xiaomi struct parsing
                 const length = data.length;
-                if (meta.logger) meta.logger.debug(`lumi.plug.mmeu01: Xiaomi struct: length ${length}`);
+                // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
                 for (let i=0; i < length; i++) {
                     const index = data[i];
                     let value = null;
-                    if (meta.logger) meta.logger.debug(`lumi.plug.mmeu01: Xiaomi struct: in position ${i} the index is ${data[i]} and type of value is ${data[i+1]} with type of data is ${typeof(data[i+1])}`);
+                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
                     switch (data[i+1]) {
-                        case 16:
-                            //ZclBoolean
-                            value = data.readUInt8(i+2);
-                            i += 2;
-                            break;
-                        case 32:
-                            //Zcl8BitUint
-                            value = data.readUInt8(i+2);
-                            i += 2;
-                            break;
-                        case 33:
-                            //Zcl16BitUint
-                            value = data.readUInt16LE(i+2);
-                            i += 3;
-                            break;
-                        case 39:
-                            //Zcl64BitUint
-                            i += 9;
-                            break;
-                        case 40:
-                            //Zcl8BitInt
-                            value = data.readInt8(i+2);
-                            i += 2;
-                            break;
-                        case 57:
-                            //ZclSingleFloat
-                            value = data.readFloatLE(i+2);
-                            i += 5;
-                            break;
-                        default:
-                            if (meta.logger) meta.logger.debug(`lumi.plug.mmeu01: Xiaomi struct: unknown current type ${data[i+1]}, in position ${i+1}`);
+                    case 16:
+                        // 0x10 ZclBoolean
+                        value = data.readUInt8(i+2);
+                        i += 2;
+                        break;
+                    case 32:
+                        // 0x20 Zcl8BitUint
+                        value = data.readUInt8(i+2);
+                        i += 2;
+                        break;
+                    case 33:
+                        // 0x21 Zcl16BitUint
+                        value = data.readUInt16LE(i+2);
+                        i += 3;
+                        break;
+                    case 39:
+                        // 0x27 Zcl64BitUint
+                        i += 9;
+                        break;
+                    case 40:
+                        // 0x28 Zcl8BitInt
+                        value = data.readInt8(i+2);
+                        i += 2;
+                        break;
+                    case 57:
+                        // 0x39 ZclSingleFloat
+                        value = data.readFloatLE(i+2);
+                        i += 5;
+                        break;
+                    default:
+                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
                     payload[index] = value;
-                    if (meta.logger) meta.logger.debug(`lumi.plug.mmeu01: Xiaomi struct: recorded index ${index} with value ${value}`);
+                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
                 }
                 return {
                     state: payload['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(payload['152'], 2),
                     voltage: precisionRound(payload['150'] * 0.1, 1),
+                    current: precisionRound((payload['151'] * 0.001), 4),
                     consumption: precisionRound(payload['149'], 2),
                     temperature: calibrateAndPrecisionRoundOptions(payload['3'], options, 'temperature'),
                 };

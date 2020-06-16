@@ -938,9 +938,9 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_eu_state, 
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_eu_state,
             fz.ignore_occupancy_report,
-            fz.ignore_illuminance_report,
+            fz.ignore_illuminance_report, fz.ignore_time_read,
         ],
         toZigbee: [tz.on_off, tz.ZNCZ04LM_power_outage_memory],
     },
