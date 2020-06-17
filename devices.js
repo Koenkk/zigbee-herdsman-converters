@@ -1932,6 +1932,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA003'],
+        model: '9290022268',
+        vendor: 'Philips',
+        description: 'Hue White A19 bulb with Bluetooth',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA004'],
         model: '8718699688820',
         vendor: 'Philips',
