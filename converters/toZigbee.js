@@ -99,13 +99,14 @@ function getTransition(entity, key, meta) {
 //                  separated by transition time instead of separated endpoint
 // }
 
-const getOptions = (definition) => {
+const getOptions = (definition, entity) => {
     const result = {};
     const allowed = ['disableDefaultResponse', 'manufacturerCode', 'timeout'];
     if (definition && definition.meta) {
         for (const key of Object.keys(definition.meta)) {
             if (allowed.includes(key)) {
-                result[key] = definition.meta[key];
+                const value = definition.meta[key];
+                result[key] = typeof value === 'function' ? value(entity) : value;
             }
         }
     }
@@ -120,13 +121,13 @@ const converters = {
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped));
+            await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped, entity));
         },
     },
     on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped));
+            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped, entity));
             if (value.toLowerCase() === 'toggle') {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
                 return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
@@ -164,7 +165,7 @@ const converters = {
                 'genLevelCtrl',
                 'moveToLevel',
                 {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
-                getOptions(meta.mapped),
+                getOptions(meta.mapped, entity),
             );
 
             return {state: {position: value}, readAfterWriteTime: 0};
@@ -206,7 +207,7 @@ const converters = {
                 'ssIasWd',
                 'startWarning',
                 {startwarninginfo: info, warningduration: values.duration},
-                getOptions(meta.mapped),
+                getOptions(meta.mapped, entity),
             );
         },
     },
@@ -225,7 +226,7 @@ const converters = {
                 'closuresWindowCovering',
                 zclCmdLookup[value.toLowerCase()],
                 {},
-                getOptions(meta.mapped),
+                getOptions(meta.mapped, entity),
             );
         },
     },
@@ -252,7 +253,7 @@ const converters = {
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
                 isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
-                getOptions(meta.mapped),
+                getOptions(meta.mapped, entity),
             );
 
             return {state: {[isPosition ? 'position' : 'tilt']: value}};
@@ -279,7 +280,7 @@ const converters = {
         key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
             if (value === 'stop') {
-                await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped));
+                await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
                 await wait(500);
@@ -289,7 +290,7 @@ const converters = {
             } else {
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
-                await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped));
+                await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
             }
         },
     },
@@ -306,7 +307,7 @@ const converters = {
                 return result;
             } else {
                 const payload = {level: Number(value), transtime: getTransition(entity, key, meta).time};
-                await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta.mapped));
+                await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta.mapped, entity));
                 return {state: {brightness: Number(value)}, readAfterWriteTime: payload.transtime * 100};
             }
         },
@@ -328,7 +329,7 @@ const converters = {
                     payload.movemode = value > 0 ? 1 : 3;
                 }
 
-                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped));
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
                 if (value === 'stop' || value === 0) {
@@ -349,7 +350,7 @@ const converters = {
                 } else {
                     payload.movemode=arr.filter(up).length ? 1 : 3;
                 }
-                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped));
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped, entity));
             }
         },
     },
@@ -378,7 +379,7 @@ const converters = {
 
                     const level = state === 'off' ? 0 : (store[entityID] ? store[entityID].brightness : 254);
                     const payload = {level, transtime: transition.time};
-                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped));
+                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
                     return {state: {state: state.toUpperCase(), brightness: state === 'on' ? level : 0}};
                 } else {
                     if (hasState && state === 'on' && store.hasOwnProperty(entityID) &&
@@ -394,7 +395,7 @@ const converters = {
                             'genLevelCtrl',
                             'moveToLevelWithOnOff',
                             {level: Number(brightness), transtime: 0},
-                            getOptions(meta.mapped),
+                            getOptions(meta.mapped, entity),
                         );
                         return {
                             state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
@@ -454,7 +455,7 @@ const converters = {
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
                     {level: Number(brightness), transtime: transition},
-                    getOptions(meta.mapped),
+                    getOptions(meta.mapped, entity),
                 );
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
@@ -507,7 +508,7 @@ const converters = {
 
             value = Number(value);
             const payload = {colortemp: value, transtime: getTransition(entity, key, meta).time};
-            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta.mapped));
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta.mapped, entity));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
@@ -693,7 +694,7 @@ const converters = {
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
                     {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
-                    getOptions(meta.mapped),
+                    getOptions(meta.mapped, entity),
                 );
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
@@ -714,7 +715,7 @@ const converters = {
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
                     {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
-                    getOptions(meta.mapped),
+                    getOptions(meta.mapped, entity),
                 );
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
@@ -751,7 +752,7 @@ const converters = {
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
-            await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta.mapped));
+            await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta.mapped, entity));
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
@@ -807,7 +808,7 @@ const converters = {
             }
 
             const payload = {effectid: lookup[value.toLowerCase()], effectvariant: 0x01};
-            await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped));
+            await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
         },
     },
     thermostat_local_temperature: {
@@ -906,7 +907,7 @@ const converters = {
         key: ['setpoint_raise_lower'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
-            await entity.command('hvacThermostat', 'setpointRaiseLower', payload, getOptions(meta.mapped));
+            await entity.command('hvacThermostat', 'setpointRaiseLower', payload, getOptions(meta.mapped, entity));
         },
     },
     thermostat_weekly_schedule: {
@@ -926,26 +927,26 @@ const converters = {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
                 }
             }
-            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, getOptions(meta.mapped));
+            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             const payload = {
                 daystoreturn: 0xff, // Sun-Sat and vacation
                 modetoreturn: 3, // heat + cool
             };
-            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, getOptions(meta.mapped));
+            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, getOptions(meta.mapped, entity));
         },
     },
     thermostat_clear_weekly_schedule: {
         key: ['clear_weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, getOptions(meta.mapped));
+            await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, getOptions(meta.mapped, entity));
         },
     },
     thermostat_relay_status_log: {
         key: ['relay_status_log'],
         convertGet: async (entity, key, meta) => {
-            await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta.mapped));
+            await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta.mapped, entity));
         },
     },
     thermostat_running_mode: {
@@ -1127,7 +1128,7 @@ const converters = {
     STS_PRS_251_beep: {
         key: ['beep'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped));
+            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped, entity));
         },
     },
     ZNCLDJ11LM_options: {
@@ -1185,7 +1186,7 @@ const converters = {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
-                await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped));
+                await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
             } else {
                 const lookup = {
                     'open': 100,
@@ -1391,7 +1392,7 @@ const converters = {
                 'closuresDoorLock',
                 `${value.toLowerCase()}Door`,
                 {'pincodevalue': ''},
-                getOptions(meta.mapped),
+                getOptions(meta.mapped, entity),
             );
 
             return {readAfterWriteTime: 200};
@@ -2008,7 +2009,7 @@ const converters = {
             } else {
                 await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
             }
-            // await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped));
+            // await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
         },
     },
     // connected power outlet is on attribute 2 and not 1
