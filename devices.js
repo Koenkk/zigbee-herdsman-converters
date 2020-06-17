@@ -8905,9 +8905,14 @@ const devices = [
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
             await readMeteringPowerConverterAttributes(endpoint);
-            await configureReporting.instantaneousDemand(endpoint);
+
+            try {
+                await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+                await configureReporting.instantaneousDemand(endpoint);
+            } catch (error) {
+                // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
+            }
         },
     },
     {
