@@ -8164,7 +8164,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await configureReporting.temperature(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
         },
     },
 
