@@ -1410,15 +1410,6 @@ const converters = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-C-007/GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
-                // GL-C-007/GL-C-008 RGBW
-                if (key === 'state' && value.toUpperCase() === 'OFF') {
-                    await converters.light_onoff_brightness.convertSet(meta.device.getEndpoint(13), key, value, meta);
-                }
-
-                entity = meta.state.white_value === -1 ? meta.device.getEndpoint(11) : meta.device.getEndpoint(13);
-            }
-
             if (meta.mapped.model === 'GL-S-007ZS') {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
