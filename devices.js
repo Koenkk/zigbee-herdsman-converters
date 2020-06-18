@@ -4864,12 +4864,21 @@ const devices = [
                 {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
                 {ID: 15, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
             ]},
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                {ID: 15, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+            ]},
         ],
         model: 'GL-C-008-2ID', // 2 ID controls color temperature and color separate
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT (2 ID)',
         extend: gledopto.light,
         supports: 'on/off, brightness, color temperature, color',
+        // Only enable disableDefaultResponse for the second fingerprint:
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
+        meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
         endpoint: (device) => {
             return {rgb: 11, cct: 15};
         },
