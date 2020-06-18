@@ -4466,6 +4466,25 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['FB56+ZSW1JKJ2.7'],
+        model: 'HGZB-44',
+        vendor: 'Nue / 3A',
+        description: 'Smart light switch - 4 gang v2.0',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'top-left': 16, 'top-right': 17, 'bottom-right': 18, 'bottom-left': 19};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(19), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2', 'LXN56-DS27LX1.3'],
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
