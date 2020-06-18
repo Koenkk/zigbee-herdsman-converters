@@ -379,7 +379,9 @@ const converters = {
 
                     const level = state === 'off' ? 0 : (store[entityID] ? store[entityID].brightness : 254);
                     const payload = {level, transtime: transition.time};
-                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
+                    await entity.command(
+                        'genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity)
+                    );
                     return {state: {state: state.toUpperCase(), brightness: state === 'on' ? level : 0}};
                 } else {
                     if (hasState && state === 'on' && store.hasOwnProperty(entityID) &&
