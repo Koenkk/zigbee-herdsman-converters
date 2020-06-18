@@ -4474,7 +4474,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'top-left': 16, 'top-right': 17, 'bottom-right': 18, 'bottom-left': 19};
+            return {'top_left': 16, 'top_right': 17, 'bottom_right': 18, 'bottom_left': 19};
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
