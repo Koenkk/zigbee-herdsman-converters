@@ -4813,6 +4813,12 @@ const devices = [
     // Gledopto
     {
         zigbeeModel: ['GL-C-006'],
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
         model: 'GL-C-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller WW/CW',
@@ -4852,7 +4858,7 @@ const devices = [
         supports: 'on/off, brightness, color temperature, color',
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
-                return {rgb: 11, white: 15};
+                return {rgb: 11, white: 10};
             } else {
                 return {rgb: 11, white: 15};
             }
@@ -4904,9 +4910,9 @@ const devices = [
     },
     {
         zigbeeModel: ['GL-C-008'],
-        model: 'GL-C-008',
+        model: 'GL-C-008-1ID', // 1 ID controls color temperature and color separate
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT',
+        description: 'Zigbee LED controller RGB + CCT (1 ID)',
         extend: gledopto.light,
         meta: {disableDefaultResponse: true},
         supports: 'on/off, brightness, color temperature, color',
