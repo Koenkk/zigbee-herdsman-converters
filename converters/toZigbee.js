@@ -1425,10 +1425,28 @@ const converters = {
             return await converters.light_onoff_brightness.convertGet(entity, key, meta);
         },
     },
-    gledopto_light_color_colortemp_white: {
-        key: ['color', 'color_temp', 'color_temp_percent', 'white_value'],
+    gledopto_light_colortemp: {
+        key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
-            const xyWhite = {x: 0.323, y: 0.329};
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            // Gledopto devices turn ON when they are OFF and color is set.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
+            const state = {state: 'ON'};
+
+            const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
+            result.state = {...result.state, ...state};
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_colortemp.convertGet(entity, key, meta);
+        },
+    },
+    gledopto_light_color: {
+        key: ['color'],
+        convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
@@ -1444,37 +1462,33 @@ const converters = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/3509
             const state = {state: 'ON'};
 
-            // GL-C-007/GL-C-008 RGBW
-            if (meta.mapped.model === 'GL-C-007/GL-C-008' && utils.hasEndpoints(meta.device, [10, 11, 13])) {
-                if (key === 'white_value') {
-                    // Switch from RGB to white
-                    await meta.device.getEndpoint(13).command('genOnOff', 'on', {});
-                    await meta.device.getEndpoint(11).command('genOnOff', 'off', {});
-
-                    const result = await converters.light_brightness.convertSet(
-                        meta.device.getEndpoint(13), key, value, meta,
-                    );
-                    return {
-                        state: {white_value: value, ...result.state, color: xyWhite},
-                        readAfterWriteTime: 0,
-                    };
-                } else {
-                    if (meta.state.white_value !== -1) {
-                        // Switch from white to RGB
-                        await meta.device.getEndpoint(11).command('genOnOff', 'on', {});
-                        await meta.device.getEndpoint(13).command('genOnOff', 'off', {});
-                        state.white_value = -1;
-                    }
-                    entity = meta.device.getEndpoint(11);
-                }
-            }
-
-            const result = await converters.light_color_colortemp.convertSet(entity, key, value, meta);
+            const result = await converters.light_color.convertSet(entity, key, value, meta);
             result.state = {...result.state, ...state};
             return result;
         },
         convertGet: async (entity, key, meta) => {
-            return await converters.light_color_colortemp.convertGet(entity, key, meta);
+            return await converters.light_color.convertGet(entity, key, meta);
+        },
+    },
+
+    gledopto_light_color_colortemp: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'color') {
+                const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
+                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                }
+
+                return result;
+            } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                const result = await converters.gledopto_light_colortemp.convertSet(entity, key, value, meta);
+                result.state.color = utils.miredsToXY(result.state.color_temp);
+                return result;
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.gledopto_light_color_colortemp.convertGet(entity, key, meta);
         },
     },
     hue_power_on_behavior: {

@@ -190,6 +190,21 @@ const convertDecimalValueTo2ByteHexArray = (value) => {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 };
 
+const replaceInArray = (arr, oldElements, newElements) => {
+    const clone = [...arr];
+    for (let i = 0; i < oldElements.length; i++) {
+        const index = clone.indexOf(oldElements[i]);
+
+        if (index !== -1) {
+            clone[index] = newElements[i];
+        } else {
+            throw new Error('Element not in array');
+        }
+    }
+
+    return clone;
+};
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -204,4 +219,5 @@ module.exports = {
     getRandomInt,
     convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
+    replaceInArray,
 };
