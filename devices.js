@@ -3954,6 +3954,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Flex XL RGBW'],
+        model: '73773',
+        vendor: 'Sylvania',
+        description: 'SMART+ Flex XL RGBW Strip',
+        extend: ledvance.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['LIGHTIFY A19 ON/OFF/DIM', 'LIGHTIFY A19 ON/OFF/DIM 10 Year'],
         model: '74283',
         vendor: 'Sylvania',
