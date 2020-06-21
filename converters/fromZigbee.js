@@ -4648,7 +4648,7 @@ const converters = {
                 result['ALG'] = alg.join(',');
                 result['occupied_heating_setpoint'] = alg[2]/10;
                 result['local_temperature'] = alg[3]/10;
-                result['pi_heating_demand'] = alg[9];
+                result['pi_heating_demand'] = parseInt(alg[9]);
             } else if (data[0] === 'ADC') {
                 // TODO What is ADC
                 const adc = data.slice(1);
