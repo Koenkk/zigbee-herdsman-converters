@@ -5029,12 +5029,12 @@ const converters = {
                         if (lastPreviousAction == 100 ) {
                             // Action open
                             currentPosition = currentPosition == -1 ? 0 : currentPosition;
-                            
+
                             currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
                         } else if (lastPreviousAction == 0 ) {
                             // Action close
                             currentPosition = currentPosition == -1 ? 100 : currentPosition;
-                            
+
                             currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
                         }
                         currentPosition = currentPosition > 100 ? 100 : currentPosition;
