@@ -5008,13 +5008,59 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
-            // When controlling manually the device always first send the correct position but after that always 50.
-            // Therefore ignore 50.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                msg.data['currentPositionLiftPercentage'] !== 50) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage;
+            const timeCoverSetMiddle = 60;
+            
+            // Need to add time_close and time_open in your configuration.yaml (and set the real time)
+            if(options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+                const deviceID = msg.device.ieeeAddr;
+                if (!store[deviceID]) {
+                    store[deviceID] = {lastPreviousAction: false, CurrentPosition : -1, since: false};
+                }
+                let currentPosition = store[deviceID].CurrentPosition;
+                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
+                
+                store[deviceID].since = Date.now();
+                let lastPreviousAction = store[deviceID].lastPreviousAction;
+                store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
+                
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        if (lastPreviousAction == 100 ) {
+                            // Action open
+                            currentPosition = currentPosition == -1 ? 0 : currentPosition;
+                            
+                            currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
+                        } else if (lastPreviousAction == 0 ) {
+                            // Action close
+                            currentPosition = currentPosition == -1 ? 100 : currentPosition;
+                            
+                            currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
+                        }
+                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
+                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                    }
+                }
+                store[deviceID].CurrentPosition = currentPosition;
+                
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50 ) {
+                    // postion cast float to int
+                    result.position = currentPosition | 0;
+                } else {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        // postion cast float to int
+                        result.position = currentPosition | 0;
+                    } else {
+                        result.position = lastPreviousAction;
+                    }
+                }
+            } else {
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50) {
+                    const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                    result.position = liftPercentage;
+                }
             }
             return result;
         },
