@@ -4644,10 +4644,17 @@ const converters = {
             const data = msg.data['deviceInfo'].split(',');
             if (data[0] === 'ALG') {
                 // TODO What is ALG
-                result['ALG'] = data.slice(1).join(',');
+                const alg = data.slice(1);
+                result['ALG'] = alg.join(',');
+                result['occupied_heating_setpoint'] = alg[2]/10;
+                result['local_temperature'] = alg[3]/10;
+                result['pi_heating_demand'] = alg[9];
             } else if (data[0] === 'ADC') {
                 // TODO What is ADC
-                result['ADC'] = data.slice(1).join(',');
+                const adc = data.slice(1);
+                result['ADC'] = adc.join(',');
+                result['occupied_heating_setpoint'] = adc[5]/100;
+                result['local_temperature'] = adc[3]/10;
             } else if (data[0] === 'UI') {
                 if (data[1] === 'BoostUp') {
                     result['boost'] = 'Up';
