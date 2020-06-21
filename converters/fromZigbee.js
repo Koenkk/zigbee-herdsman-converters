@@ -5009,20 +5009,20 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const timeCoverSetMiddle = 60;
-            
+
             // Need to add time_close and time_open in your configuration.yaml (and set the real time)
-            if(options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!store[deviceID]) {
-                    store[deviceID] = {lastPreviousAction: false, CurrentPosition : -1, since: false};
+                    store[deviceID] = {lastPreviousAction: false, CurrentPosition: -1, since: false};
                 }
                 let currentPosition = store[deviceID].CurrentPosition;
                 const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
-                
+
                 store[deviceID].since = Date.now();
-                let lastPreviousAction = store[deviceID].lastPreviousAction;
+                const lastPreviousAction = store[deviceID].lastPreviousAction;
                 store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
-                
+
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
                     msg.data['currentPositionLiftPercentage'] == 50 ) {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
@@ -5042,7 +5042,7 @@ const converters = {
                     }
                 }
                 store[deviceID].CurrentPosition = currentPosition;
-                
+
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
                     msg.data['currentPositionLiftPercentage'] !== 50 ) {
                     // postion cast float to int
