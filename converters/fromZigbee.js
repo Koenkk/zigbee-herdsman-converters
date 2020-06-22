@@ -5185,7 +5185,6 @@ const converters = {
             }
         },
     },
-    
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
