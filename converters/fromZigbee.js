@@ -5010,31 +5010,39 @@ const converters = {
             const result = {};
             const timeCoverSetMiddle = 60;
 
-            // Need to add time_close and time_open in your configuration.yaml (and set the real time)
-            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set the real time)
+            if(options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!store[deviceID]) {
-                    store[deviceID] = {lastPreviousAction: false, CurrentPosition: -1, since: false};
+                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition : -1, since: false};
+                }
+                // ignore if first action is middle and ignore action middle if previous action is middle
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && 
+                    msg.data['currentPositionLiftPercentage'] == 50 ) { 
+                    if((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) || 
+                    store[deviceID].lastPreviousAction == 50 ) {
+                        console.log(`ZMCSW032D ignore action `);
+                        return;
+                    }
                 }
                 let currentPosition = store[deviceID].CurrentPosition;
-                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
-
-                store[deviceID].since = Date.now();
                 const lastPreviousAction = store[deviceID].lastPreviousAction;
+                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
+                
+                store[deviceID].since = Date.now();
                 store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
 
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
                     msg.data['currentPositionLiftPercentage'] == 50 ) {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         if (lastPreviousAction == 100 ) {
-                            // Action open
+                            // Open
                             currentPosition = currentPosition == -1 ? 0 : currentPosition;
-
                             currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
                         } else if (lastPreviousAction == 0 ) {
-                            // Action close
+                            // Close
                             currentPosition = currentPosition == -1 ? 100 : currentPosition;
-
                             currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
                         }
                         currentPosition = currentPosition > 100 ? 100 : currentPosition;
@@ -5052,10 +5060,12 @@ const converters = {
                         // postion cast float to int
                         result.position = currentPosition | 0;
                     } else {
+                        store[deviceID].CurrentPosition = lastPreviousAction;
                         result.position = lastPreviousAction;
                     }
                 }
             } else {
+                // Previous solution without time_close and time_open
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
                     msg.data['currentPositionLiftPercentage'] !== 50) {
                     const liftPercentage = msg.data['currentPositionLiftPercentage'];
