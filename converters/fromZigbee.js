@@ -5011,17 +5011,17 @@ const converters = {
             const timeCoverSetMiddle = 60;
 
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
-            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set the real time)
-            if(options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!store[deviceID]) {
-                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition : -1, since: false};
+                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition: -1, since: false};
                 }
                 // ignore if first action is middle and ignore action middle if previous action is middle
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && 
-                    msg.data['currentPositionLiftPercentage'] == 50 ) { 
-                    if((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) || 
-                    store[deviceID].lastPreviousAction == 50 ) {
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if ((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) ||
+                        store[deviceID].lastPreviousAction == 50 ) {
                         console.log(`ZMCSW032D ignore action `);
                         return;
                     }
@@ -5029,7 +5029,7 @@ const converters = {
                 let currentPosition = store[deviceID].CurrentPosition;
                 const lastPreviousAction = store[deviceID].lastPreviousAction;
                 const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
-                
+
                 store[deviceID].since = Date.now();
                 store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
 
