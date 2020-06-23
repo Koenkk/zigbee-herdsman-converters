@@ -2933,6 +2933,22 @@ const devices = [
             await endpoint.configureReporting('msIlluminanceMeasurement', payload);
         },
     },
+    {
+        zigbeeModel: ['DIYRuZ_R8_8'],
+        model: 'DIYRuZ_R8_8',
+        vendor: 'Custom devices (DiY)',
+        description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
+        supports: 'on/off',
+        fromZigbee: [
+            fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.ignore_basic_report,
+        ],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {
+                'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
+            };
+        },
+    },
 
     // eCozy
     {
