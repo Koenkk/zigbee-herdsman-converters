@@ -2728,8 +2728,8 @@ const devices = [
         ],
         endpoint: (device) => {
             return {
-                'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5, 'action': 1,
                 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
+                'action': 1,
             };
         },
     },
