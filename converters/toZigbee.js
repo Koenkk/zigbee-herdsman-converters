@@ -124,11 +124,13 @@ const converters = {
                 if (!meta.state.hasOwnProperty('state')) {
                     return {};
                 } else {
-                    await entity.write('genBinaryOutput', {0x0055: {value: (meta.state.state === 'OFF')?0x01:0x00, type: 0x10}}, options);
+                    const payload = {0x0055: {value: (meta.state.state === 'OFF')?0x01:0x00, type: 0x10}};
+                    await entity.write('genBinaryOutput', payload, options);
                     return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
                 }
             } else {
-                await entity.write('genBinaryOutput', {0x0055: {value: (value.toUpperCase() === 'OFF')?0x00:0x01, type: 0x10}}, options);
+                const payload = {0x0055: {value: (value.toUpperCase() === 'OFF')?0x00:0x01, type: 0x10}};
+                await entity.write('genBinaryOutput', payload, options);
                 return {state: value.toUpperCase()};
             }
         },
