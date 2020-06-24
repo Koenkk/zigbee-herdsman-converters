@@ -182,15 +182,6 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('seMetering', payload);
     },
-    thermostatControlSequanceOfOperation: async (endpoint, min=0, max=repInterval.HOUR, change=1) => {
-        const payload = [{
-            attribute: 'ctrlSeqeOfOper',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
-        await endpoint.configureReporting('hvacThermostat', payload);
-    },
     thermostatSystemMode: async (endpoint, min=10, max=repInterval.HOUR) => {
         const payload = [{
             attribute: 'systemMode',
