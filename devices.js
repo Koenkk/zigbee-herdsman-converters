@@ -3978,7 +3978,7 @@ const devices = [
         zigbeeModel: ['Flex XL RGBW'],
         model: '73773',
         vendor: 'Sylvania',
-        description: 'SMART+ Flex XL RGBW Strip',
+        description: 'SMART+ Flex XL RGBW strip',
         extend: ledvance.light_onoff_brightness_colortemp_colorxy,
         ota: ota.ledvance,
     },
