@@ -16,7 +16,9 @@ function arrayEquals(as, bs) {
 for (const device of devices) {
     if (device.hasOwnProperty('fingerprint')) {
         withFingerprint.push(device);
-    } else {
+    }
+
+    if (device.hasOwnProperty('zigbeeModel')) {
         for (const zigbeeModel of device.zigbeeModel) {
             byZigbeeModel.set(zigbeeModel.toLowerCase(), device);
         }

@@ -2728,8 +2728,8 @@ const devices = [
         ],
         endpoint: (device) => {
             return {
-                'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5, 'action': 1,
                 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
+                'action': 1,
             };
         },
     },
@@ -3876,6 +3876,27 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['OFL 120 C'],
+        model: 'OFL 120 C',
+        vendor: 'Innr',
+        description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['OFL 140 C'],
+        model: 'OFL 140 C',
+        vendor: 'Innr',
+        description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['OSL 130 C'],
+        model: 'OSL 130 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Digi
     {
@@ -4478,7 +4499,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5'],
+        zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5', 'FB56+ZSW1IKJ2.7'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
