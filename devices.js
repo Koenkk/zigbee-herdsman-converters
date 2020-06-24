@@ -2936,7 +2936,7 @@ const devices = [
     {
         zigbeeModel: ['DIYRuZ_R8_8'],
         model: 'DIYRuZ_R8_8',
-        vendor: 'Custom devices (DiY)',
+        vendor: 'DIYRuZ',
         description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
         supports: 'on/off',
         fromZigbee: [
