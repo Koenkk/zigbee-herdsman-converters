@@ -11054,6 +11054,71 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint);
         },
     },
+
+    // KMPCIL
+    {
+        zigbeeModel: ['RES005'],
+        model: 'KMPCIL_RES005',
+        vendor: 'KMPCIL',
+        description: 'Environment sensor',
+        supports: 'battery, temperature, humidity, pressure, illuminance, occupancy, switch',
+        fromZigbee: [
+            fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy,
+            fz.kmpcil_res005_on_off,
+        ],
+        toZigbee: [tz.kmpcil_res005_on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(8);
+            const binds = [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'kmpcilPressureMeasurement',
+                'msIlluminanceMeasurement', 'genBinaryInput', 'genBinaryOutput',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+            const payloadBattery = [{
+                attribute: 'batteryPercentageRemaining',
+                minimumReportInterval: 1,
+                maximumReportInterval: 120,
+                reportableChange: 1,
+            }];
+            await endpoint.configureReporting('genPowerCfg', payloadBattery);
+            const payload = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 5,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 200,
+            }];
+            await endpoint.configureReporting('msIlluminanceMeasurement', payload);
+            const payloadPressure = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 2,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 3,
+            }];
+            await endpoint.configureReporting('kmpcilPressureMeasurement', payloadPressure);
+            const options = {disableDefaultResponse: true};
+            await endpoint.write('genBinaryInput', {0x0051: {value: 0x01, type: 0x10}}, options);
+            await endpoint.write('genBinaryInput', {0x0101: {value: 25, type: 0x23}}, options);
+            const payloadBinaryInput = [{
+                attribute: 'presentValue',
+                minimumReportInterval: 0,
+                maximumReportInterval: 30,
+                reportableChange: 1,
+            }];
+            await endpoint.configureReporting('genBinaryInput', payloadBinaryInput);
+            await endpoint.write('genBinaryOutput', {0x0051: {value: 0x01, type: 0x10}}, options);
+            const payloadBinaryOutput = [{
+                attribute: 'presentValue',
+                minimumReportInterval: 0,
+                maximumReportInterval: 30,
+                reportableChange: 1,
+            }];
+
+            await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
