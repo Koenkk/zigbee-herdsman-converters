@@ -10189,14 +10189,6 @@ const devices = [
                     reportableChange: 1,
                 },
             ]);
-            await endpoint.configureReporting('wiserDeviceInfo', [
-                {
-                    attribute: 'deviceInfo',
-                    minimumReportInterval: repInterval.MINUTE,
-                    maximumReportInterval: repInterval.HOUR,
-                    reportableChange: 1,
-                },
-            ]);
         },
     },
     {
