@@ -15,7 +15,7 @@
  *                         don't provide one.
  * applyRedFix: see toZigbee.light_color
  * enhancedHue: see toZigbee.light_color
- * skipHueAndSaturation: see toZigbee.light_color
+ * supportsHue: see toZigbee.light_color
  * timeout: timeout for commands to this device used in toZigbee.
  */
 
@@ -1523,7 +1523,7 @@ const devices = [
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
         extend: generic.light_onoff_brightness_colorxy,
         ota: ota.tradfri,
-        meta: {skipHueAndSaturation: true},
+        meta: {supportsHue: false},
     },
     {
         zigbeeModel: [
