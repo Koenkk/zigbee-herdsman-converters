@@ -2949,6 +2949,15 @@ const devices = [
             };
         },
     },
+    {
+        zigbeeModel: ['DIYRuZ_RT'],
+        model: 'DIYRuZ_RT',
+        vendor: 'DIYRuZ',
+        description: '',
+        supports: 'on/off, temperature',
+        fromZigbee: [fz.on_off, fz.temperature],
+        toZigbee: [tz.on_off],
+    },
 
     // eCozy
     {
