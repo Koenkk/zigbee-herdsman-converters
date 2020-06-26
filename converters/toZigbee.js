@@ -1777,28 +1777,31 @@ const converters = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            let cluster = 'genLevelCtrl';
-            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
-                const value2 = parseInt(value);
-                if (isNaN(value2)) {
+            const epId = parseInt(key.substr(1, 1));
+            if ( utils.hasEndpoints(meta.device, [epId]) ) {
+                const endpoint = meta.device.getEndpoint(epId);
+                let cluster = 'genLevelCtrl';
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = parseInt(value);
+                    if (isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {'currentLevel': value2};
+                    await endpoint.write(cluster, payload);
                     return;
                 }
-                const payload = {'currentLevel': value2};
-                await entity.write(cluster, payload);
-                return;
-            }
 
-            cluster = 'genAnalogInput';
-            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
-                const value2 = parseFloat(value);
-                if (isNaN(value2)) {
+                cluster = 'genAnalogInput';
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = parseFloat(value);
+                    if (isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {'presentValue': value2};
+                    await endpoint.write(cluster, payload);
                     return;
                 }
-                const payload = {'presentValue': value2};
-                await entity.write(cluster, payload);
-                return;
             }
-
             return;
         },
     },
