@@ -11144,14 +11144,14 @@ const devices = [
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
         },
     },
+
+    // Enbrighten
     {
         zigbeeModel: ['43080'],
         model: '43080',
         vendor: 'Enbrighten',
-        description: 'ZigBee in-wall smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        description: 'Zigbee in-wall smart dimmer',
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
