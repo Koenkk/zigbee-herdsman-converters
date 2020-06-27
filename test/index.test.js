@@ -157,4 +157,18 @@ describe('index.js', () => {
             foundModels.push(device.model);
         });
     });
+    it('Verify addDeviceDefinition', () => {
+        const mockZigbeeModel = 'my-mock-device';
+        const mockDevice = {
+            zigbeeModel: [mockZigbeeModel],
+            model: 'mock-model'
+        };
+        const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
+        expect(undefinedDevice).toBeUndefined();
+        const beforeAdditionDeviceCount = index.devices.length;
+        index.addDeviceDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
+        const device = index.findByZigbeeModel(mockZigbeeModel);
+        expect(device.model).toBe(mockDevice.model);
+    });
 });
