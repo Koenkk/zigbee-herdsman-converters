@@ -1279,7 +1279,9 @@ const converters = {
                     const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
                     publish({click: payload});
                 }
-                store[deviceID].double_timer = setTimeout(() => {}, 1000)
+                store[deviceID].double_timer = setTimeout(() => {
+                    store[deviceID].double_timer = null;
+                }, 1000)
             }
         },
     },
