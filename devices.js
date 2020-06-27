@@ -2949,6 +2949,15 @@ const devices = [
             };
         },
     },
+    {
+        zigbeeModel: ['DIYRuZ_RT'],
+        model: 'DIYRuZ_RT',
+        vendor: 'DIYRuZ',
+        description: '[DiY CC2530 Zigbee 3.0 firmware](https://habr.com/ru/company/iobroker/blog/495926/)',
+        supports: 'on/off, temperature',
+        fromZigbee: [fz.on_off, fz.temperature],
+        toZigbee: [tz.on_off],
+    },
 
     // eCozy
     {
