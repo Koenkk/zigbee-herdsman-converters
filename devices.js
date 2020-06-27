@@ -9129,7 +9129,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'genOnOff', 'genLevelCtrl',
+                'genOnOff', 'genLevelCtrl',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.onOff(endpoint);
