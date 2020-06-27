@@ -1274,9 +1274,12 @@ const converters = {
                     publish({click: 'single'});
                 }
             } else {
-                const clicks = msg.data['32768'];
-                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
-                publish({click: payload});
+                if(!store[deviceID].double_timer) {
+                    const clicks = msg.data['32768'];
+                    const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
+                    publish({click: payload});
+                }
+                store[deviceID].double_timer = setTimeout(() => {}, 1000)
             }
         },
     },
