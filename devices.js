@@ -1896,7 +1896,7 @@ const devices = [
         model: '046677548285',
         vendor: 'Philips',
         description: 'Hue white E12 with Bluetooth',
-        extend: hue.light_onoff_brightnes,
+        extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
     {
