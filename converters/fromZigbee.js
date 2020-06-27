@@ -1274,13 +1274,13 @@ const converters = {
                     publish({click: 'single'});
                 }
             } else {
-                if(!store[deviceID].double_timer) {
+                if(!store[deviceID].timer_multiple) {
                     const clicks = msg.data['32768'];
                     const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
                     publish({click: payload});
                 }
-                store[deviceID].double_timer = setTimeout(() => {
-                    store[deviceID].double_timer = null;
+                store[deviceID].timer_multiple = setTimeout(() => {
+                    store[deviceID].timer_multiple = null;
                 }, 1000)
             }
         },
