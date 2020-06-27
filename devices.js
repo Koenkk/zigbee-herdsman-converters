@@ -8489,6 +8489,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['511.010'],
+        model: '511.010',
+        vendor: 'Iluminize',
+        description: 'Zigbee LED-Controller ',
+        extend: generic.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['511.012'],
         model: '511.012',
         vendor: 'Iluminize',
