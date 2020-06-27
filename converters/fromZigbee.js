@@ -1255,6 +1255,7 @@ const converters = {
 
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
+                clearTimeout(store[deviceID].timer);
                 store[deviceID].timer = setTimeout(() => {
                     publish({click: 'long'});
                     store[deviceID].timer = null;
