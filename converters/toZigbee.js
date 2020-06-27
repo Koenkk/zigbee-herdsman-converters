@@ -781,10 +781,10 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             // Some bulb like Ikea Tådfri LED1624G9 do not support 'currentHue' and 'currentSaturation' attributes.
-            // Skip them if the `supportsHue` flag is set to false
+            // Skip them if the `supportsHueAndSaturation` flag is set to false
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340
             const attributes = ['currentX', 'currentY'];
-            if (meta.mapped && meta.mapped.meta && meta.mapped.meta.supportsHue !== false) {
+            if (meta.mapped && meta.mapped.meta && meta.mapped.meta.supportsHueAndSaturation !== false) {
                 attributes.push('currentHue', 'currentSaturation');
             }
             await entity.read('lightingColorCtrl', attributes);
