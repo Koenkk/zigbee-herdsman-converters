@@ -7282,8 +7282,7 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
 
-    // Salus Controls 
-
+    // Salus Controls
     {
         zigbeeModel: ['SPE600'],
         model: 'SPE600',
@@ -7305,7 +7304,6 @@ const devices = [
         },
         ota: ota.salus,
     },
-
     {
         zigbeeModel: ['SP600'],
         model: 'SP600',
