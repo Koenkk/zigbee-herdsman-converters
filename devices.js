@@ -10364,7 +10364,7 @@ const devices = [
             tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
