@@ -9150,6 +9150,20 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['DM2500ZB'],
+        model: 'DM2500ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee smart dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
 
     // Lutron
     {
