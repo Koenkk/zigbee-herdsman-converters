@@ -1891,7 +1891,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LWE001'],
-        model: '046677548285',
+        model: '929002039801',
         vendor: 'Philips',
         description: 'Hue white E12 with Bluetooth',
         extend: hue.light_onoff_brightness,
