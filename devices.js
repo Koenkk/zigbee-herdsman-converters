@@ -10314,20 +10314,16 @@ const devices = [
         },
     },
     {
-        zigbeeModel: [
-            ' Double gangs remote switch',
-            'Double gangs remote switch',
-        ],
+        zigbeeModel: [' Double gangs remote switch', 'Double gangs remote switch'],
         model: '067774',
         vendor: 'Legrand',
-        // led blink RED when battery is low
         description: 'Wireless double remote switch',
         supports: 'action',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.cmd_move, fz.cmd_stop, fz.battery_3V],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 0, multiEndpoint: true},
+        meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {left: 1, right: 2};
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10340,17 +10336,14 @@ const devices = [
         },
     },
     {
-        zigbeeModel: [
-            ' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-        ],
+        zigbeeModel: [' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067694',
         vendor: 'Legrand',
-        // led blink RED when battery is low
         description: 'Remote toggle switch',
-        supports: 'on/off, toggle',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery_3V],
+        supports: 'action',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 2},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
@@ -10371,7 +10364,7 @@ const devices = [
             tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
         ],
-        meta: {configureKey: 0},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
