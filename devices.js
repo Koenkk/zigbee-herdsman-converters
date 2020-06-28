@@ -10597,7 +10597,7 @@ const devices = [
         zigbeeModel: ['SMARTCODE_DEADBOLT_5_L'],
         model: '99100-006',
         vendor: 'Kwikset',
-        description: '910 SmartCode Traditional Electronic Deadbolt',
+        description: '910 SmartCode traditional electronic deadbolt',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
