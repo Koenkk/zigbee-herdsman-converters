@@ -9128,10 +9128,7 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genOnOff', 'genLevelCtrl',
-            ];
-            await bind(endpoint, coordinatorEndpoint, binds);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
             await configureReporting.brightness(endpoint);
         },
