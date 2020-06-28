@@ -1,8 +1,8 @@
-const axios = require('axios');
 const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newer';
 const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
 const assert = require('assert');
 const common = require('./common');
+const axios = common.getAxios();
 
 /**
  * Helper functions

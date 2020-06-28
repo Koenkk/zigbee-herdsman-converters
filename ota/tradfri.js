@@ -1,7 +1,7 @@
-const axios = require('axios');
 const url = 'https://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const assert = require('assert');
 const common = require('./common');
+const axios = common.getAxios();
 
 /**
  * Helper functions
