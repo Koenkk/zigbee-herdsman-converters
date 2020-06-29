@@ -7282,13 +7282,12 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
 
-    // Salus Controls 
-
+    // Salus Controls
     {
         zigbeeModel: ['SPE600'],
         model: 'SPE600',
         vendor: 'Salus Controls',
-        description: 'Smart plug',
+        description: 'Smart plug (EU socket)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
@@ -7305,12 +7304,11 @@ const devices = [
         },
         ota: ota.salus,
     },
-
     {
         zigbeeModel: ['SP600'],
         model: 'SP600',
         vendor: 'Salus Controls',
-        description: 'Smart plug',
+        description: 'Smart plug (UK socket)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.SP600_power],
         toZigbee: [tz.on_off],
