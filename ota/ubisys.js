@@ -40,39 +40,16 @@ async function getImageMeta(current, logger, device) {
     };
 }
 
-async function getNewImage(current, logger, device) {
-    const meta = await getImageMeta(current, logger, device);
-    assert(meta.fileVersion > current.fileVersion, 'No new image available');
-
-    const download = await axios.get(meta.url, {responseType: 'arraybuffer'});
-    const start = download.data.indexOf(common.upgradeFileIdentifier);
-
-    const image = common.parseImage(download.data.slice(start));
-    assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
-    assert(image.header.manufacturerCode === 0x10f2, 'Manufacturer code mismatch');
-    assert(image.header.imageType === current.imageType, 'Image type mismatch');
-    assert(image.header.minimumHardwareVersion <= device.hardwareVersion &&
-        device.hardwareVersion <= image.header.maximumHardwareVersion, 'Hardware version mismatch');
-    return image;
-}
-
-async function isNewImageAvailable(current, logger, device) {
-    const meta = await getImageMeta(current, logger, device);
-    const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
-    logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
-    return Math.sign(current.fileVersion - meta.fileVersion);
-}
-
 /**
  * Interface implementation
  */
 
 async function isUpdateAvailable(device, logger, requestPayload=null) {
-    return common.isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload);
+    return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
 async function updateToLatest(device, logger, onProgress) {
-    return common.updateToLatest(device, logger, onProgress, getNewImage);
+    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 
 module.exports = {
