@@ -1253,9 +1253,15 @@ const converters = {
                 store[deviceID] = {};
             }
 
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr].transaction === current) {
+                console.log(`message ignored!`);   
+                return;
+            }
+            store[msg.device.ieeeAddr].transaction = current;
+
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
-                clearTimeout(store[deviceID].timer);
                 store[deviceID].timer = setTimeout(() => {
                     publish({click: 'long'});
                     store[deviceID].timer = null;
@@ -1274,14 +1280,9 @@ const converters = {
                     publish({click: 'single'});
                 }
             } else {
-                if(!store[deviceID].timer_multiple) {
-                    const clicks = msg.data['32768'];
-                    const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
-                    publish({click: payload});
-                }
-                store[deviceID].timer_multiple = setTimeout(() => {
-                    store[deviceID].timer_multiple = null;
-                }, 1000)
+                const clicks = msg.data['32768'];
+                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
+                publish({click: payload});
             }
         },
     },
