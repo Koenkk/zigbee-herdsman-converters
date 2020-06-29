@@ -10382,6 +10382,45 @@ const devices = [
         },
     },
     {
+        zigbeeModel: [' Double gangs remote switch', 'Double gangs remote switch'],
+        model: '067774',
+        vendor: 'Legrand',
+        description: 'Wireless double remote switch',
+        supports: 'action',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1, multiEndpoint: true},
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+        },
+        onEvent: async (type, data, device, options) => {
+            await legrand.read_initial_battery_state(type, data, device);
+        },
+    },
+    {
+        zigbeeModel: [' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '067694',
+        vendor: 'Legrand',
+        description: 'Remote toggle switch',
+        supports: 'action',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
+        },
+        onEvent: async (type, data, device, options) => {
+            await legrand.read_initial_battery_state(type, data, device);
+        },
+    },
+    {
         zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
         model: '067771',
         vendor: 'Legrand',
