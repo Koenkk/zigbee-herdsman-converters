@@ -7308,12 +7308,33 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
 
-    // Salus
+    // Salus Controls
+    {
+        zigbeeModel: ['SPE600'],
+        model: 'SPE600',
+        vendor: 'Salus Controls',
+        description: 'Smart plug (EU socket)',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 4},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.instantaneousDemand(endpoint, {minimumReportInterval: 5, reportableChange: 10});
+            await configureReporting.currentSummDelivered(
+                endpoint, {minimumReportInterval: 5, reportableChange: [0, 10]},
+            );
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+        },
+        ota: ota.salus,
+    },
     {
         zigbeeModel: ['SP600'],
         model: 'SP600',
-        vendor: 'Salus',
-        description: 'Smart plug',
+        vendor: 'Salus Controls',
+        description: 'Smart plug (UK socket)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.SP600_power],
         toZigbee: [tz.on_off],
