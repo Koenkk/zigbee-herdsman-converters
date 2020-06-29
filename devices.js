@@ -7604,6 +7604,13 @@ const devices = [
             await configureReporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
+        model: '07115L',
+        vendor: 'Immax',
+        description: 'Neo SMART LED E27 9W RGB + CCT, dimmable, Zigbee 3.0',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Yale
     {
