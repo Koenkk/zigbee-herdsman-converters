@@ -9,10 +9,20 @@ const axios = common.getAxios();
  * Helper functions
  */
 
-async function getImageMeta(imageType, hardwareVersion) {
-    const firmwarePageHtml = (await axios.get(firmwareHtmlPageUrl)).data;
+async function getImageMeta(current, logger, device) {
+    const imageType = current.imageType;
+    const hardwareVersion = device.hardwareVersion;
+
+    const firmwarePage = await axios.get(firmwareHtmlPageUrl);
+    logger.debug(
+        `OTA ubisys: got firmware page, status: ${firmwarePage.status}, data.length: ${firmwarePage.data.length}`);
+    assert(firmwarePage.status === 200, `HTTP Error getting ubisys firmware page`);
+    const firmwarePageHtml = firmwarePage.data;
+
+    imageRegex.lastIndex = 0; // reset (global) regex for next exec to match from the beginning again
     let imageMatch = imageRegex.exec(firmwarePageHtml);
     while (imageMatch != null) {
+        logger.debug(`OTA ubisys: image found: ${imageMatch[0]}`);
         if (parseInt(imageMatch[1], 16) === imageType &&
             parseInt(imageMatch[2], 16) <= hardwareVersion && hardwareVersion <= parseInt(imageMatch[3], 16)) {
             break;
@@ -21,6 +31,7 @@ async function getImageMeta(imageType, hardwareVersion) {
     }
     assert(imageMatch !== null,
         `No image available for imageType '0x${imageType.toString(16)}' with hardware version ${hardwareVersion}`);
+
     return {
         hardwareVersionMin: parseInt(imageMatch[2], 16),
         hardwareVersionMax: parseInt(imageMatch[3], 16),
@@ -30,7 +41,7 @@ async function getImageMeta(imageType, hardwareVersion) {
 }
 
 async function getNewImage(current, logger, device) {
-    const meta = await getImageMeta(current.imageType, device.hardwareVersion);
+    const meta = await getImageMeta(current, logger, device);
     assert(meta.fileVersion > current.fileVersion, 'No new image available');
 
     const download = await axios.get(meta.url, {responseType: 'arraybuffer'});
@@ -46,10 +57,10 @@ async function getNewImage(current, logger, device) {
 }
 
 async function isNewImageAvailable(current, logger, device) {
-    const meta = await getImageMeta(current.imageType, device.hardwareVersion);
+    const meta = await getImageMeta(current, logger, device);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
-    return meta.fileVersion > current.fileVersion;
+    return Math.sign(current.fileVersion - meta.fileVersion);
 }
 
 /**
