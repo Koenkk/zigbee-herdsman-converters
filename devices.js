@@ -7290,7 +7290,7 @@ const devices = [
         vendor: 'Salus Controls',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.on_off, fz.SP600_power],
+        fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
