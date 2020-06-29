@@ -1254,10 +1254,7 @@ const converters = {
             }
 
             const current = msg.meta.zclTransactionSequenceNumber;
-            if (store[msg.device.ieeeAddr].transaction === current) {
-                console.log(`message ignored!`);   
-                return;
-            }
+            if (store[msg.device.ieeeAddr].transaction === current) return;
             store[msg.device.ieeeAddr].transaction = current;
 
             // 0 = click down, 1 = click up, else = multiple clicks
