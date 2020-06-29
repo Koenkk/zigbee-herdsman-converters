@@ -1253,6 +1253,10 @@ const converters = {
                 store[deviceID] = {};
             }
 
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr].transaction === current) return;
+            store[msg.device.ieeeAddr].transaction = current;
+
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
                 store[deviceID].timer = setTimeout(() => {
