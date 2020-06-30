@@ -6119,7 +6119,7 @@ const devices = [
         vendor: 'Iris',
         description: 'Contact and temperature sensor',
         supports: 'contact and temperature',
-        fromZigbee: [fz.iris_3320L_contact, fz.temperature, fz.battery_3V_2100],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery_3V_2100],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
