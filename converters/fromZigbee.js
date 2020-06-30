@@ -2566,7 +2566,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data.zonestatus === 36};
+            return {contact: (msg.data.zonestatus & 1) === 0};
         },
     },
     RZHAC_4256251_power: {
