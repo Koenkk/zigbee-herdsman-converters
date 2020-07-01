@@ -1632,6 +1632,7 @@ const converters = {
                 },
             };
             await entity.write('msOccupancySensing', payload, options.hue);
+            return {state: {motion_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', [48], options.hue);

@@ -2475,7 +2475,7 @@ const devices = [
         supports: 'occupancy, temperature, illuminance',
         fromZigbee: [
             fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
-            fz.ignore_basic_report,
+            fz.ignore_basic_report, fz.hue_motion_sensitivity,
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {

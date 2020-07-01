@@ -533,6 +533,17 @@ const converters = {
             }
         },
     },
+    hue_motion_sensitivity: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = ['low', 'medium', 'high'];
+
+            if (msg.data.hasOwnProperty('48')) {
+                return {motion_sensitivity: lookup[msg.data['48']]};
+            }
+        },
+    },
     brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
