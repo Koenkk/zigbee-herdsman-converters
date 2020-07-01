@@ -130,9 +130,9 @@ const configureReporting = {
     temperature: async (endpoint) => {
         const payload = [{
             attribute: 'measuredValue',
-            minimumReportInterval: 0,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: 25,
+            reportableChange: 100,
         }];
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
@@ -191,7 +191,7 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 10) => {
+    humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 100) => {
         const payload = [{
             attribute: 'measuredValue',
             minimumReportInterval: min,
