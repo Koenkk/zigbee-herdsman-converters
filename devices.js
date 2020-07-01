@@ -7695,6 +7695,23 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['YRL220 TS LL'],
+        // The zigbee module card indicate that the module will work on YRD 221 and YRD 221RL also
+        model: 'YRL-220L',
+        vendor: 'Yale',
+        description: 'Real living keyless leveler lock',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery_not_divided],
+        toZigbee: [tz.generic_lock],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['YRD226/246 TSDB'],
         model: 'YRD226/246 TSDB',
         vendor: 'Yale',
