@@ -4182,9 +4182,11 @@ const converters = {
             // 13,40,18,47,  4,28,0,56
             // 13,40,18,8,   4,32,0,40
             let value = {};
-            if (msg.data[4] == 0 && 1 <= value && value <= 3) {
+            if (msg.data[4] == 0) {
                 value = msg.data[6];
-                return {click: clickLookup[value]};
+                if (1 <= value && value <= 3) {
+                    return {click: clickLookup[value]};
+                }
             } else if (msg.data[4] == 4) {
                 value = msg.data[7];
 
