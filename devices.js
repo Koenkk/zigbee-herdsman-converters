@@ -8934,7 +8934,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['3AFE130104020015', '3AFE270104020015'],
+        zigbeeModel: ['3AFE130104020015', '3AFE270104020015', '3AFE280104020015'],
         model: '2AJZ4KPDR',
         vendor: 'Konke',
         description: 'Contact sensor',
