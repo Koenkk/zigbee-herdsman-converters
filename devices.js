@@ -8764,6 +8764,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LED_E27_ORD'],
+        model: 'A806S-Q1G',
+        vendor: 'Leedarson',
+        description: 'LED E27 color',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['ZHA-DimmableLight'],
         model: 'A806S-Q1R',
         vendor: 'Leedarson',
