@@ -2503,7 +2503,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue motion outdoor sensor',
         supports: 'occupancy, temperature, illuminance',
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout, fz.hue_motion_sensitivity],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
             return {
