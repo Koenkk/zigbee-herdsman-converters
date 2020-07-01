@@ -4173,24 +4173,27 @@ const converters = {
             // 13,40,18,47,  4,28,0,56
             // 13,40,18,8,   4,32,0,40
             let value = {};
-            let lookup = {};
-            if (msg.data[4] == 0) {
+            if (msg.data[4] == 0 && 1 <= value && value <= 3) {
                 value = msg.data[6];
-                lookup = {
-                    1: {click: 'single'},
-                    2: {click: 'double'},
-                    3: {click: 'triple'},
-                };
+                return {click: clickLookup[value]};
             } else if (msg.data[4] == 4) {
                 value = msg.data[7];
-                lookup = {
-                    5: {occupancy: true, side: 'right'},
-                    7: {occupancy: true, side: 'right'},
-                    40: {occupancy: true, side: 'left'},
-                    56: {occupancy: true, side: 'left'},
+
+                const sidelookup = {
+                    5: 'right',
+                    7: 'right',
+                    40: 'left',
+                    56: 'left',
                 };
+                if (sidelookup[value]) {
+                    msg.data.occupancy = 1;
+                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    payload.side = sidelookup[value];
+
+                    return payload;
+                }
             }
-            return lookup[value] ? lookup[value] : null;
+            return null;
         },
     },
     terncy_knob: {
