@@ -524,6 +524,15 @@ const converters = {
             }
         },
     },
+    occupancy_timeout: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('pirOToUDelay')) {
+                return {occupancy_timeout: msg.data.pirOToUDelay};
+            }
+        },
+    },
     brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],

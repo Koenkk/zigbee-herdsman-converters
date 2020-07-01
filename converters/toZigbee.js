@@ -293,6 +293,7 @@ const converters = {
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('msOccupancySensing', {pirOToUDelay: value});
+            return {state: {occupancy_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
