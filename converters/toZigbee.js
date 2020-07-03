@@ -292,6 +292,7 @@ const converters = {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
+            value *= 1;
             await entity.write('msOccupancySensing', {pirOToUDelay: value});
             return {state: {occupancy_timeout: value}};
         },
@@ -1632,6 +1633,7 @@ const converters = {
                 },
             };
             await entity.write('msOccupancySensing', payload, options.hue);
+            return {state: {motion_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', [48], options.hue);

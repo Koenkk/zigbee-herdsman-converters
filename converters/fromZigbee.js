@@ -2708,6 +2708,17 @@ const converters = {
             return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },
+    hue_motion_sensitivity: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = ['low', 'medium', 'high'];
+
+            if (msg.data.hasOwnProperty('48')) {
+                return {motion_sensitivity: lookup[msg.data['48']]};
+            }
+        },
+    },
     thermostat_att_report: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
