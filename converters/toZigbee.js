@@ -185,7 +185,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await entity.command(
                 'genLevelCtrl',
-                'moveToLevel',
+                'moveToLevelWithOnOff',
                 {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
                 getOptions(meta.mapped, entity),
             );
