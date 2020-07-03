@@ -127,12 +127,13 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('msOccupancySensing', payload);
     },
-    temperature: async (endpoint) => {
+    temperature: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'measuredValue',
             minimumReportInterval: 5,
             maximumReportInterval: repInterval.HOUR,
             reportableChange: 100,
+            ...overrides,
         }];
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
@@ -191,12 +192,13 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 100) => {
+    humidity: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'measuredValue',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
+            minimumReportInterval: 10,
+            maximumReportInterval: repInterval.HOUR,
+            reportableChange: 100,
+            ...overrides,
         }];
         await endpoint.configureReporting('msRelativeHumidity', payload);
     },
@@ -6820,7 +6822,7 @@ const devices = [
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
             await configureReporting.temperature(endpoint);
-            await configureReporting.humidity(endpoint, 0, repInterval.HOUR, 25);
+            await configureReporting.humidity(endpoint, {minimumReportInterval: 0, reportableChange: 25});
             await configureReporting.batteryVoltage(endpoint);
         },
     },
@@ -8079,7 +8081,7 @@ const devices = [
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
             await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.humidity(endpoint, 10, 300, 1);
+            await configureReporting.humidity(endpoint, {minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 1});
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
@@ -8130,7 +8132,7 @@ const devices = [
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
             await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.humidity(endpoint, 10, 300, 1);
+            await configureReporting.humidity(endpoint, {minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 1});
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
@@ -10039,7 +10041,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint);
+            await configureReporting.temperature(endpoint, {minimumReportInterval: 5, reportableChange: 100});
             await configureReporting.humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
