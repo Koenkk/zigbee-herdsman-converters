@@ -53,6 +53,24 @@ const readMeteringPowerConverterAttributes = async (endpoint) => {
     await endpoint.read('seMetering', ['multiplier', 'divisor']);
 };
 
+const configureReportingPayload = (attribute, min, max, change, overrides) => {
+    const payload = {
+        attribute: attribute,
+        minimumReportInterval: min,
+        maximumReportInterval: max,
+        reportableChange: change,
+    };
+
+
+    if (overrides) {
+        if (overrides.hasOwnProperty('min')) payload.minimumReportInterval = overrides.min;
+        if (overrides.hasOwnProperty('max')) payload.maximumReportInterval = overrides.max;
+        if (overrides.hasOwnProperty('change')) payload.reportableChange = overrides.change;
+    }
+
+    return [payload];
+};
+
 const configureReporting = {
     currentPositionLiftPercentage: async (endpoint) => {
         const payload = [{
@@ -127,12 +145,13 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('msOccupancySensing', payload);
     },
-    temperature: async (endpoint) => {
+    temperature: async (endpoint, overrides) => {
         const payload = [{
             attribute: 'measuredValue',
-            minimumReportInterval: 0,
+            minimumReportInterval: 5,
             maximumReportInterval: repInterval.HOUR,
-            reportableChange: 25,
+            reportableChange: 100,
+            ...overrides,
         }];
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
@@ -191,13 +210,8 @@ const configureReporting = {
         }];
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    humidity: async (endpoint, min = 10, max = repInterval.HOUR, change = 10) => {
-        const payload = [{
-            attribute: 'measuredValue',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    humidity: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 100, overrides);
         await endpoint.configureReporting('msRelativeHumidity', payload);
     },
     thermostatKeypadLockMode: async (endpoint, min = 10, max = repInterval.HOUR) => {
@@ -6815,7 +6829,7 @@ const devices = [
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
             await configureReporting.temperature(endpoint);
-            await configureReporting.humidity(endpoint, 0, repInterval.HOUR, 25);
+            await configureReporting.humidity(endpoint, {min: 0, change: 25});
             await configureReporting.batteryVoltage(endpoint);
         },
     },
@@ -8091,7 +8105,7 @@ const devices = [
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
             await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.humidity(endpoint, 10, 300, 1);
+            await configureReporting.humidity(endpoint, {min: 10, max: 300, change: 1});
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
@@ -8142,7 +8156,7 @@ const devices = [
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
             await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.humidity(endpoint, 10, 300, 1);
+            await configureReporting.humidity(endpoint, {min: 10, max: 300, change: 1});
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
             await configureReporting.thermostatSystemMode(endpoint, 1, 0);
             await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
@@ -10058,7 +10072,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint);
+            await configureReporting.temperature(endpoint, {minimumReportInterval: 5, reportableChange: 100});
             await configureReporting.humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
