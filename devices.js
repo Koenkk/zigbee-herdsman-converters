@@ -72,301 +72,138 @@ const configureReportingPayload = (attribute, min, max, change, overrides) => {
 };
 
 const configureReporting = {
-    currentPositionLiftPercentage: async (endpoint) => {
-        const payload = [{
-            attribute: 'currentPositionLiftPercentage',
-            minimumReportInterval: 1,
-            maximumReportInterval: repInterval.MAX,
-            reportableChange: 1,
-        }];
+    currentPositionLiftPercentage: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('currentPositionLiftPercentage', 1, repInterval.MAX, 1, overrides);
         await endpoint.configureReporting('closuresWindowCovering', payload);
     },
-    batteryPercentageRemaining: async (endpoint) => {
-        const payload = [{
-            attribute: 'batteryPercentageRemaining',
-            minimumReportInterval: repInterval.HOUR,
-            maximumReportInterval: repInterval.MAX,
-            reportableChange: 0,
-        }];
+    batteryPercentageRemaining: async (endpoint, overrides) => {
+        const payload = configureReportingPayload(
+            'batteryPercentageRemaining', repInterval.HOUR, repInterval.MAX, 0, overrides,
+        );
         await endpoint.configureReporting('genPowerCfg', payload);
     },
-    batteryVoltage: async (endpoint) => {
-        const payload = [{
-            attribute: 'batteryVoltage',
-            minimumReportInterval: repInterval.HOUR,
-            maximumReportInterval: repInterval.MAX,
-            reportableChange: 0,
-        }];
+    batteryVoltage: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('batteryVoltage', repInterval.HOUR, repInterval.MAX, 0, overrides);
         await endpoint.configureReporting('genPowerCfg', payload);
     },
-    batteryAlarmState: async (endpoint) => {
-        const payload = [{
-            attribute: 'batteryAlarmState',
-            minimumReportInterval: repInterval.HOUR,
-            maximumReportInterval: repInterval.MAX,
-            reportableChange: 0,
-        }];
+    batteryAlarmState: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('batteryAlarmState', repInterval.HOUR, repInterval.MAX, 0, overrides);
         await endpoint.configureReporting('genPowerCfg', payload);
     },
     onOff: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'onOff',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('onOff', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('genOnOff', payload);
     },
-    lockState: async (endpoint) => {
-        const payload = [{
-            attribute: 'lockState',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    lockState: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('lockState', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('closuresDoorLock', payload);
     },
-    brightness: async (endpoint) => {
-        const payload = [{
-            attribute: 'currentLevel',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 1,
-        }];
+    brightness: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('currentLevel', 0, repInterval.HOUR, 1, overrides);
         await endpoint.configureReporting('genLevelCtrl', payload);
     },
-    occupancy: async (endpoint) => {
-        const payload = [{
-            attribute: 'occupancy',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    occupancy: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('occupancy', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('msOccupancySensing', payload);
     },
     temperature: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'measuredValue',
-            minimumReportInterval: 5,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 100,
-            ...overrides,
-        }];
+        const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 100, overrides);
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
-    pressure: async (endpoint) => {
-        const payload = [{
-            attribute: 'measuredValue',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    pressure: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 5, overrides);
         await endpoint.configureReporting('msPressureMeasurement', payload);
     },
-    illuminance: async (endpoint, min=0, max=repInterval.HOUR, change=0) => {
-        const payload = [{
-            attribute: 'measuredValue',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    illuminance: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 5, overrides);
         await endpoint.configureReporting('msIlluminanceMeasurement', payload);
     },
     instantaneousDemand: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'instantaneousDemand',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 1,
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('instantaneousDemand', 5, repInterval.HOUR, 1, overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
     currentSummDelivered: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'currentSummDelivered',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: [1, 1],
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('currentSummDelivered', 5, repInterval.HOUR, [1, 1], overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
-    currentSummReceived: async (endpoint) => {
-        const payload = [{
-            attribute: 'currentSummReceived',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: [1, 1],
-        }];
+    currentSummReceived: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('currentSummReceived', 5, repInterval.HOUR, [1, 1], overrides);
         await endpoint.configureReporting('seMetering', payload);
     },
-    thermostatSystemMode: async (endpoint, min=10, max=repInterval.HOUR) => {
-        const payload = [{
-            attribute: 'systemMode',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-        }];
+    thermostatSystemMode: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('systemMode', 10, repInterval.HOUR, null, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
     humidity: async (endpoint, overrides) => {
         const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 100, overrides);
         await endpoint.configureReporting('msRelativeHumidity', payload);
     },
-    thermostatKeypadLockMode: async (endpoint, min = 10, max = repInterval.HOUR) => {
-        const payload = [{
-            attribute: 'keypadLockout',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-        }];
+    thermostatKeypadLockMode: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('keypadLockout', 10, repInterval.HOUR, null, overrides);
         await endpoint.configureReporting('hvacUserInterfaceCfg', payload);
     },
-    thermostatTemperature: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'localTemp',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatTemperature: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('localTemp', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatTemperatureCalibration: async (endpoint) => {
-        const payload = [{
-            attribute: 'localTemperatureCalibration',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    thermostatTemperatureCalibration: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('localTemperatureCalibration', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatOccupiedHeatingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'occupiedHeatingSetpoint',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatOccupiedHeatingSetpoint: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('occupiedHeatingSetpoint', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatUnoccupiedHeatingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'unoccupiedHeatingSetpoint',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatUnoccupiedHeatingSetpoint: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('unoccupiedHeatingSetpoint', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatOccupiedCoolingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'occupiedCoolingSetpoint',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatOccupiedCoolingSetpoint: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('occupiedCoolingSetpoint', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatUnoccupiedCoolingSetpoint: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'unoccupiedCoolingSetpoint',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatUnoccupiedCoolingSetpoint: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('occupiedCoolingSetpoint', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatPIHeatingDemand: async (endpoint, min=0, max=repInterval.MINUTES_5, change=10) => {
-        const payload = [{
-            attribute: 'pIHeatingDemand',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatPIHeatingDemand: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('pIHeatingDemand', 0, repInterval.MINUTES_5, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatRunningState: async (endpoint) => {
-        const payload = [{
-            attribute: 'runningState',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    thermostatRunningState: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('runningState', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatTemperatureSetpointHold: async (endpoint, min=0, max=repInterval.HOUR) => {
-        const payload = [{
-            attribute: 'tempSetpointHold',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: 0,
-        }];
+    thermostatTemperatureSetpointHold: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('tempSetpointHold', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    thermostatTemperatureSetpointHoldDuration: async (endpoint, min=0, max=repInterval.HOUR, change=10) => {
-        const payload = [{
-            attribute: 'tempSetpointHoldDuration',
-            minimumReportInterval: min,
-            maximumReportInterval: max,
-            reportableChange: change,
-        }];
+    thermostatTemperatureSetpointHoldDuration: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('tempSetpointHoldDuration', 0, repInterval.HOUR, 10, overrides);
         await endpoint.configureReporting('hvacThermostat', payload);
     },
-    presentValue: async (endpoint) => {
-        const payload = [{
-            attribute: 'presentValue',
-            minimumReportInterval: 10,
-            maximumReportInterval: repInterval.MINUTE,
-            reportableChange: 1,
-        }];
+    presentValue: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('presentValue', 10, repInterval.MINUTE, 1, overrides);
         await endpoint.configureReporting('genBinaryInput', payload);
     },
     activePower: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'activePower',
-            minimumReportInterval: 5,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 1,
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('activePower', 5, repInterval.HOUR, 1, overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
     rmsCurrent: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'rmsCurrent',
-            minimumReportInterval: 5,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 1,
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('rmsCurrent', 5, repInterval.HOUR, 1, overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
     rmsVoltage: async (endpoint, overrides) => {
-        const payload = [{
-            attribute: 'rmsVoltage',
-            minimumReportInterval: 5,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 1,
-        }];
-        Object.assign(payload[0], overrides);
+        const payload = configureReportingPayload('rmsVoltage', 5, repInterval.HOUR, 1, overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-    powerFactor: async (endpoint) => {
-        const payload = [{
-            attribute: 'powerFactor',
-            minimumReportInterval: 1,
-            maximumReportInterval: repInterval.MINUTES_5,
-            reportableChange: 1,
-        }];
+    powerFactor: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('powerFactor', 0, repInterval.MAX, 1, overrides);
         await endpoint.configureReporting('haElectricalMeasurement', payload);
     },
-    fanMode: async (endpoint) => {
-        const payload = [{
-            attribute: 'fanMode',
-            minimumReportInterval: 0,
-            maximumReportInterval: repInterval.HOUR,
-            reportableChange: 0,
-        }];
+    fanMode: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('fanMode', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('hvacFanCtrl', payload);
     },
 };
@@ -1223,7 +1060,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.illuminance(endpoint, 15, repInterval.HOUR, 500);
+            await configureReporting.illuminance(endpoint, {min: 15, max: repInterval.HOUR, change: 500});
         },
     },
 
@@ -3528,7 +3365,7 @@ const devices = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.HOUR, 1);
+            await configureReporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.HOUR, change: 1});
             await configureReporting.thermostatRunningState(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await configureReporting.thermostatTemperatureSetpointHold(endpoint);
@@ -4220,8 +4057,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await readMeteringPowerConverterAttributes(endpoint);
-            await configureReporting.instantaneousDemand(endpoint,
-                {'minimumReportInterval': 10, 'reportableChange': 2});
+            await configureReporting.instantaneousDemand(endpoint, {min: 10, change: 2});
         },
     },
     {
@@ -5466,11 +5302,11 @@ const devices = [
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             // Limit updates to 3V and max 600s (10m)
-            await configureReporting.rmsVoltage(endpoint, {'maximumReportInterval': 600, 'reportableChange': 3});
+            await configureReporting.rmsVoltage(endpoint, {max: 600, change: 3});
             // Limit updates to 0.01A and max 600s (10m)
-            await configureReporting.rmsCurrent(endpoint, {'maximumReportInterval': 600, 'reportableChange': 10});
+            await configureReporting.rmsCurrent(endpoint, {max: 600, change: 10});
             // Limit updates to 4.0W and max 600s (10m)
-            await configureReporting.activePower(endpoint, {'maximumReportInterval': 600, 'reportableChange': 40});
+            await configureReporting.activePower(endpoint, {max: 600, change: 40});
         },
     },
     {
@@ -5525,7 +5361,7 @@ const devices = [
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.activePower(endpoint);
             await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {reportableChange: 10});
+            await configureReporting.rmsVoltage(endpoint, {change: 10});
         },
     },
     {
@@ -6050,7 +5886,7 @@ const devices = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint, 900, repInterval.HOUR, 1);
+            await configureReporting.thermostatTemperature(endpoint, {min: 900, max: repInterval.HOUR, change: 1});
             await configureReporting.thermostatTemperatureCalibration(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await configureReporting.thermostatRunningState(endpoint);
@@ -6101,8 +5937,8 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.onOff(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
-            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
+            await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await configureReporting.activePower(endpoint); // Power reports in 0.1W
         },
     },
@@ -6287,9 +6123,9 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
-            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
-            await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
+            await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
+            await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
         },
     },
     {
@@ -6317,9 +6153,9 @@ const devices = [
                     powerDivisor: 10,
                 });
             }
-            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 2}); // Voltage reports in V
-            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 10}); // Current reports in mA
-            await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.1W
+            await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
+            await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
+            await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
         },
     },
     {
@@ -6493,8 +6329,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await readMeteringPowerConverterAttributes(endpoint);
-            await configureReporting.instantaneousDemand(endpoint,
-                {'minimumReportInterval': 10, 'reportableChange': 2});
+            await configureReporting.instantaneousDemand(endpoint, {min: 10, change: 2});
         },
     },
     {
@@ -7331,10 +7166,8 @@ const devices = [
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.instantaneousDemand(endpoint, {minimumReportInterval: 5, reportableChange: 10});
-            await configureReporting.currentSummDelivered(
-                endpoint, {minimumReportInterval: 5, reportableChange: [0, 10]},
-            );
+            await configureReporting.instantaneousDemand(endpoint, {min: 5, change: 10});
+            await configureReporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
         ota: ota.salus,
@@ -7352,10 +7185,8 @@ const devices = [
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await configureReporting.instantaneousDemand(endpoint, {minimumReportInterval: 5, reportableChange: 10});
-            await configureReporting.currentSummDelivered(
-                endpoint, {minimumReportInterval: 5, reportableChange: [0, 10]},
-            );
+            await configureReporting.instantaneousDemand(endpoint, {min: 5, change: 10});
+            await configureReporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
         ota: ota.salus,
@@ -7410,10 +7241,16 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
-            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_10, 25);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_10, 1);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_10, 25);
-            await configureReporting.thermostatUnoccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_10, 25);
+            await configureReporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
+            await configureReporting.thermostatPIHeatingDemand(
+                endpoint, {min: 0, max: repInterval.MINUTES_10, change: 1},
+            );
+            await configureReporting.thermostatOccupiedHeatingSetpoint(
+                endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25},
+            );
+            await configureReporting.thermostatUnoccupiedHeatingSetpoint(
+                endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25},
+            );
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4003, type: 41},
                 minimumReportInterval: 0,
@@ -8005,11 +7842,11 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
-            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
+            await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
@@ -8054,11 +7891,11 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
-            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
+            await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
@@ -8104,12 +7941,12 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
-            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
             await configureReporting.humidity(endpoint, {min: 10, max: 300, change: 1});
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
+            await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
@@ -8155,12 +7992,12 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
-            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
             await configureReporting.humidity(endpoint, {min: 10, max: 300, change: 1});
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
-            await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
+            await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'StelproSystemMode', // cluster 0x0201 attribute 0x401c
@@ -8247,9 +8084,9 @@ const devices = [
                 'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
             ]);
             await configureReporting.onOff(endpoint);
-            await configureReporting.rmsVoltage(endpoint, {'reportableChange': 110}); // Voltage reports in 0.00458V
-            await configureReporting.rmsCurrent(endpoint, {'reportableChange': 55}); // Current reports in 0.00183A
-            await configureReporting.activePower(endpoint, {'reportableChange': 2}); // Power reports in 0.261W
+            await configureReporting.rmsVoltage(endpoint, {change: 110}); // Voltage reports in 0.00458V
+            await configureReporting.rmsCurrent(endpoint, {change: 55}); // Current reports in 0.00183A
+            await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.261W
         },
     },
     {
@@ -8877,7 +8714,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await configureReporting.onOff(endpoint, {minimumReportInterval: 1, maximumReportInterval: 0xfffe});
+            await configureReporting.onOff(endpoint, {min: 1, max: 0xfffe});
             const options = {manufacturerCode: 4406, disableDefaultResponse: false};
             await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
             await endpoint.configureReporting('seMetering', [{
@@ -9070,14 +8907,15 @@ const devices = [
             ];
 
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint, 10, 60, 50);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 1, 0, 50);
-            await configureReporting.thermostatSystemMode(endpoint, 1, 0);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 1, 900, 5);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
+
             await readMeteringPowerConverterAttributes(endpoint);
 
             try {
-                await configureReporting.thermostatKeypadLockMode(endpoint, 1, 0);
+                await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
                 await configureReporting.instantaneousDemand(endpoint);
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
@@ -10072,7 +9910,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint, {minimumReportInterval: 5, reportableChange: 100});
+            await configureReporting.temperature(endpoint, {min: 5, change: 100});
             await configureReporting.humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
@@ -10285,9 +10123,13 @@ const devices = [
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.batteryVoltage(endpoint);
-            await configureReporting.thermostatTemperature(endpoint, 0, repInterval.MINUTES_15, 25);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, 0, repInterval.MINUTES_15, 25);
-            await configureReporting.thermostatPIHeatingDemand(endpoint, 0, repInterval.MINUTES_15, 1);
+            await configureReporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_15, change: 25});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(
+                endpoint, {min: 0, max: repInterval.MINUTES_15, change: 25},
+            );
+            await configureReporting.thermostatPIHeatingDemand(
+                endpoint, {min: 0, max: repInterval.MINUTES_15, change: 1},
+            );
             // bind of hvacUserInterfaceCfg fails with 'Table Full', does this have any effect?
             await endpoint.configureReporting('hvacUserInterfaceCfg', [
                 {
