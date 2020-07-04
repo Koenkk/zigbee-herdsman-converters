@@ -3117,10 +3117,7 @@ const devices = [
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
         supports: 'occupancy, tamper and temperature',
-        fromZigbee: [
-            fz.temperature,
-            fz.ias_occupancy_alarm_2,
-        ],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
         ota: ota.ledvance,
         meta: {configureKey: 1},
