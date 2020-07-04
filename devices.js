@@ -7512,7 +7512,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['iZBModule01'],
+        zigbeeModel: ['iZBModule01', '0700000001'],
         model: 'YMF40/YDM4109+',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
