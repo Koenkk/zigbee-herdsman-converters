@@ -8204,6 +8204,7 @@ const devices = [
         meta: {configureKey: 1},
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
+            {vendor: 'Samotech', model: 'SM311'},
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
