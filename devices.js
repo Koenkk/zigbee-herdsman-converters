@@ -8201,14 +8201,30 @@ const devices = [
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
         extend: generic.light_onoff_brightness,
-        meta: {configureKey: 1},
+        supports: 'on/off, brightness, power measurement',
+        fromZigbee: [
+            fz.on_off, fz.brightness, fz.electrical_measurement_power, fz.metering_power, fz.ignore_basic_report,
+        ],
+        meta: {configureKey: 2},
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
             {vendor: 'Samotech', model: 'SM311'},
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const binds = [
+                'genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering',
+            ];
+            await bind(endpoint, coordinatorEndpoint, binds);
+
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint, {min: 5, change: 5});
+            await configureReporting.rmsVoltage(endpoint, {min: 5});
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
         },
     },
 
