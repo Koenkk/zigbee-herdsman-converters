@@ -8202,7 +8202,7 @@ const devices = [
         description: 'ZigBee knob smart dimmer',
         supports: generic.light_onoff_brightness.supports + ', power measurements',
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat(
-            [fz.electrical_measurement_power, fz.metering_power]
+            [fz.electrical_measurement_power, fz.metering_power],
         ),
         toZigbee: generic.light_onoff_brightness.toZigbee,
         meta: {configureKey: 2},
