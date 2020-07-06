@@ -6075,6 +6075,7 @@ const devices = [
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {rgb: 10, white: 11};
         },
