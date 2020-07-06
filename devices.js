@@ -8200,11 +8200,11 @@ const devices = [
         model: 'ZG2835RAC',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        extend: generic.light_onoff_brightness,
-        supports: 'on/off, brightness, power measurement',
-        fromZigbee: [
-            fz.on_off, fz.brightness, fz.electrical_measurement_power, fz.metering_power, fz.ignore_basic_report,
-        ],
+        supports: generic.light_onoff_brightness.supports + ', power measurements',
+        fromZigbee: generic.light_onoff_brightness.fromZigbee.concat(
+            [fz.electrical_measurement_power, fz.metering_power]
+        ),
+        toZigbee: generic.light_onoff_brightness.toZigbee,
         meta: {configureKey: 2},
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
