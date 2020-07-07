@@ -9936,7 +9936,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Motion sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery_3V],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
