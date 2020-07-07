@@ -3715,7 +3715,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart plug',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
