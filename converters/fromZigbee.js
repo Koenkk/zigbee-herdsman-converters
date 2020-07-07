@@ -3323,8 +3323,8 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
-            const pressure = parseFloat(msg.data['32']) / 1000.0;
+            const pressure = msg.data.hasOwnProperty('measuredValue') ?
+                msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
