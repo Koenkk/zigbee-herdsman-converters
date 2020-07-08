@@ -5063,6 +5063,15 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
 
+    // YSRSAI
+    {
+        zigbeeModel: ['ZB-CL01'],
+        model: 'ZB-CL01',
+        vendor: 'YSRSAI',
+        description: 'Zigbee LED controller',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+
     // ROBB
     {
         zigbeeModel: ['ROB_200-004-0'],
