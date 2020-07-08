@@ -193,8 +193,8 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
 
     return new Promise((resolve, reject) => {
         const answerNextImageBlockOrPageRequest = () => {
-            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 60000);
-            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, 60000);
+            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 150000);
+            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, 150000);
             waiters.imageBlockOrPageRequest = {
                 promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
                 cancel: () => {
