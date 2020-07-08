@@ -5058,13 +5058,69 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
-            // When controlling manually the device always first send the correct position but after that always 50.
-            // Therefore ignore 50.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                msg.data['currentPositionLiftPercentage'] !== 50) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage;
+            const timeCoverSetMiddle = 60;
+
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+                const deviceID = msg.device.ieeeAddr;
+                if (!store[deviceID]) {
+                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition: -1, since: false};
+                }
+                // ignore if first action is middle and ignore action middle if previous action is middle
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if ((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) ||
+                        store[deviceID].lastPreviousAction == 50 ) {
+                        console.log(`ZMCSW032D ignore action `);
+                        return;
+                    }
+                }
+                let currentPosition = store[deviceID].CurrentPosition;
+                const lastPreviousAction = store[deviceID].lastPreviousAction;
+                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
+
+                store[deviceID].since = Date.now();
+                store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        if (lastPreviousAction == 100 ) {
+                            // Open
+                            currentPosition = currentPosition == -1 ? 0 : currentPosition;
+                            currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
+                        } else if (lastPreviousAction == 0 ) {
+                            // Close
+                            currentPosition = currentPosition == -1 ? 100 : currentPosition;
+                            currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
+                        }
+                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
+                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                    }
+                }
+                store[deviceID].CurrentPosition = currentPosition;
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50 ) {
+                    // postion cast float to int
+                    result.position = currentPosition | 0;
+                } else {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        // postion cast float to int
+                        result.position = currentPosition | 0;
+                    } else {
+                        store[deviceID].CurrentPosition = lastPreviousAction;
+                        result.position = lastPreviousAction;
+                    }
+                }
+            } else {
+                // Previous solution without time_close and time_open
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50) {
+                    const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                    result.position = liftPercentage;
+                }
             }
             return result;
         },
