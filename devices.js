@@ -5066,9 +5066,9 @@ const devices = [
     // YSRSAI
     {
         zigbeeModel: ['ZB-CL01'],
-        model: 'ZB-CL01',
+        model: 'YSR-MINI-01',
         vendor: 'YSRSAI',
-        description: 'Zigbee LED controller',
+        description: 'Zigbee LED controller (RGB+CCT)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
