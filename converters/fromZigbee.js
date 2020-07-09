@@ -4833,7 +4833,7 @@ const converters = {
             // This attribute returns usually 2 when power is over the defined threshold.
             if (msg.data.hasOwnProperty('61440')) {
                 payload.power_alarm_active_value = msg.data['61440'];
-                payload.power_alarm_active = (payload.alarm_active_value > 0);
+                payload.power_alarm_active = (payload.power_alarm_active_value > 0);
             }
             // 0xf001 = 61441
             if (msg.data.hasOwnProperty('61441')) {
