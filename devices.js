@@ -2833,6 +2833,7 @@ const devices = [
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
+            tz.thermostat_pi_heating_demand, tz.thermostat_running_state,
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

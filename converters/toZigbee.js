@@ -866,6 +866,18 @@ const converters = {
             await entity.read('hvacThermostat', ['ocupancy']);
         },
     },
+    thermostat_pi_heating_demand: {
+        key: ['pi_heating_demand'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['pIHeatingDemand']);
+        },
+    },
+    thermostat_running_state: {
+        key: ['running_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['runningState']);
+        },
+    },
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
