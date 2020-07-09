@@ -1000,12 +1000,6 @@ const converters = {
             await entity.read('hvacThermostat', ['runningMode']);
         },
     },
-    thermostat_running_state: {
-        key: ['running_state'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['runningState']);
-        },
-    },
     thermostat_temperature_display_mode: {
         key: ['temperature_display_mode'],
         convertSet: async (entity, key, value, meta) => {
