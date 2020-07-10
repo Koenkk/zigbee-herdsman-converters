@@ -11213,7 +11213,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    //UseeLink
+    // UseeLink
     {
         zigbeeModel: ['TS0115'],
         model: 'SM-SO306E/K/M',
