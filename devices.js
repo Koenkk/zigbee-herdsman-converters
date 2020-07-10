@@ -9884,26 +9884,13 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
-
-    // eWeLink: the IoT solution provider behinds lots of smart device brands
-    {
-        zigbeeModel: ['SA-003-Zigbee'],
-        model: 'SA-003-Zigbee',
-        vendor: 'eWeLink',
-        description: 'Zigbee smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.SA003_on_off],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-    },
     {
         zigbeeModel: ['DS01'],
-        model: 'RHK06',
-        vendor: 'eWeLink',
+        model: 'SNZB-04',
+        vendor: 'SONOFF',
+        whiteLabel: [
+            {vendor: 'eWeLink', model: 'RHK06'},
+        ],
         description: 'Contact sensor',
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery_3V],
@@ -9917,8 +9904,11 @@ const devices = [
     },
     {
         zigbeeModel: ['WB01'],
-        model: 'RHK07',
-        vendor: 'eWeLink',
+        model: 'SNZB-01',
+        vendor: 'SONOFF',
+        whiteLabel: [
+            {vendor: 'eWeLink', model: 'RHK07'},
+        ],
         description: 'Wireless button',
         supports: 'single, double, long',
         fromZigbee: [fz.ewelink_action, fz.battery_3V],
@@ -9932,8 +9922,11 @@ const devices = [
     },
     {
         zigbeeModel: ['TH01'],
-        model: 'RHK08',
-        vendor: 'eWeLink',
+        model: 'SNZB-02',
+        vendor: 'SONOFF',
+        whiteLabel: [
+            {vendor: 'eWeLink', model: 'RHK08'},
+        ],
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
@@ -9950,8 +9943,11 @@ const devices = [
     },
     {
         zigbeeModel: ['MS01'],
-        model: 'RHK09',
-        vendor: 'eWeLink',
+        model: 'SNZB-03',
+        vendor: 'SONOFF',
+        whiteLabel: [
+            {vendor: 'eWeLink', model: 'RHK09'},
+        ],
         description: 'Motion sensor',
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery_3V],
@@ -9962,6 +9958,22 @@ const devices = [
             const bindClusters = ['genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
             await configureReporting.batteryVoltage(endpoint);
+        },
+    },
+
+    // eWeLink: the IoT solution provider behinds lots of smart device brands
+    {
+        zigbeeModel: ['SA-003-Zigbee'],
+        model: 'SA-003-Zigbee',
+        vendor: 'eWeLink',
+        description: 'Zigbee smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.SA003_on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
 
