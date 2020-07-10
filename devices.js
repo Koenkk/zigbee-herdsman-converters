@@ -1170,6 +1170,29 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TS0115'],
+        model: 'TS0115',
+        vendor: 'TuYa',
+        description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (10A or 16A)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        whiteLabel: [
+            {vendor: 'UseeLink', model: 'SM-SO306E/K/M'},
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 7};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['RH3052'],
         model: 'TT001ZAV20',
         vendor: 'TuYa',
@@ -11211,30 +11234,6 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
-        },
-    },
-    // UseeLink
-    {
-        zigbeeModel: ['TS0115'],
-        model: 'SM-SO306E/K/M',
-        vendor: 'UseeLink',
-        description: '4 AC Outlets and 2 USB Super Charging Ports(10A or 16A)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {
-                'l1': 1, 'l2': 2, 'l3': 3,
-                'l4': 4, 'l5': 7,
-            };
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
         },
     },
 ];
