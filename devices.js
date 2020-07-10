@@ -9303,6 +9303,22 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['PM-B540-ZB'],
+        model: 'PM-B540-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart plug 16A',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['PM-B430-ZB'],
         model: 'PM-B430-ZB',
         vendor: 'Dawon DNS',
@@ -11195,6 +11211,30 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
+        },
+    },
+    //UseeLink
+    {
+        zigbeeModel: ['TS0115'],
+        model: 'SM-SO306E/K/M',
+        vendor: 'UseeLink',
+        description: '4 AC Outlets and 2 USB Super Charging Ports(10A or 16A)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {
+                'l1': 1, 'l2': 2, 'l3': 3,
+                'l4': 4, 'l5': 7,
+            };
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
         },
     },
 ];
