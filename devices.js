@@ -9940,6 +9940,8 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
