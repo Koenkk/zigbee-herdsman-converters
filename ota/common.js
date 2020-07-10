@@ -152,7 +152,7 @@ function callOnProgress(startTime, lastUpdate, imageBlockRequest, image, logger,
     }
 }
 
-async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload) {
+async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload, getImageMeta = null) {
     logger.debug(`Check if update available for '${device.ieeeAddr}' (${device.modelID})`);
 
     if (requestPayload === null) {
@@ -165,7 +165,7 @@ async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPay
         requestPayload = request.payload;
     }
 
-    const available = await isNewImageAvailable(requestPayload, logger, device);
+    const available = await isNewImageAvailable(requestPayload, logger, device, getImageMeta);
     logger.debug(`Update available for '${device.ieeeAddr}': ${available < 0 ? 'YES' : 'NO'}`);
     if (available > 0) {
         logger.warn(`Firmware on '${device.ieeeAddr}' is newer than latest firmware online.`);
@@ -173,7 +173,14 @@ async function isUpdateAvailable(device, logger, isNewImageAvailable, requestPay
     return (available < 0);
 }
 
-async function updateToLatest(device, logger, onProgress, getNewImage) {
+async function isNewImageAvailable(current, logger, device, getImageMeta) {
+    const meta = await getImageMeta(current, logger, device);
+    const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
+    logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
+    return Math.sign(current.fileVersion - meta.fileVersion);
+}
+
+async function updateToLatest(device, logger, onProgress, getNewImage, getImageMeta = null, downloadImage = null) {
     logger.debug(`Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
 
     const endpoint = getOTAEndpoint(device);
@@ -183,7 +190,7 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
     const request = await requestOTA(endpoint);
     logger.debug(`Got OTA request '${JSON.stringify(request.payload)}'`);
 
-    const image = await getNewImage(request.payload, logger, device);
+    const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage);
     logger.debug(`Got new image for '${device.ieeeAddr}'`);
 
     const waiters = {};
@@ -313,6 +320,28 @@ async function updateToLatest(device, logger, onProgress, getNewImage) {
     });
 }
 
+async function getNewImage(current, logger, device, getImageMeta, downloadImage) {
+    const meta = await getImageMeta(current, logger, device);
+    logger.debug(`getNewImage for '${device.ieeeAddr}', meta ${JSON.stringify(meta)}`);
+    assert(meta.fileVersion > current.fileVersion, 'No new image available');
+
+    const download = downloadImage ? await downloadImage(meta, logger) :
+        await getAxios().get(meta.url, {responseType: 'arraybuffer'});
+
+    const start = download.data.indexOf(upgradeFileIdentifier);
+    const image = parseImage(download.data.slice(start));
+    logger.debug(`getNewImage for '${device.ieeeAddr}', image header ${JSON.stringify(image.header)}`);
+    assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
+    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, 'Image size mismatch');
+    assert(image.header.manufacturerCode === current.manufacturerCode, 'Manufacturer code mismatch');
+    assert(image.header.imageType === current.imageType, 'Image type mismatch');
+    if ('minimumHardwareVersion' in image.header && 'maximumHardwareVersion' in image.header) {
+        assert(image.header.minimumHardwareVersion <= device.hardwareVersion &&
+            device.hardwareVersion <= image.header.maximumHardwareVersion, 'Hardware version mismatch');
+    }
+    return image;
+}
+
 function getAxios() {
     let config = {};
     const proxy = process.env.HTTPS_PROXY;
@@ -331,6 +360,8 @@ module.exports = {
     upgradeFileIdentifier,
     isUpdateAvailable,
     parseImage,
+    isNewImageAvailable,
     updateToLatest,
+    getNewImage,
     getAxios,
 };
