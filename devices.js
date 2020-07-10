@@ -1133,10 +1133,46 @@ const devices = [
         zigbeeModel: ['TS0121'],
         model: 'TS0121',
         description: '10A UK or 16A EU smart plug',
+        whiteLabel: [
+            {vendor: 'Blitzwolf', model: 'BW-SHP13'},
+        ],
         supports: 'on/off',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 100,
+                multiplier: 1,
+            });
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 1,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 1000,
+            });
+        },
+        onEvent: async (type, data, device) => {
+            // This device doesn't support reporting correctly.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+            const endpoint = device.getEndpoint(1);
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 10*1000); // Every 10 seconds
+            }
+        },
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
