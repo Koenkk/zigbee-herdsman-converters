@@ -11250,6 +11250,26 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+
+    //Niko Connected Socket
+    {
+        zigbeeModel: ['Connected socket outlet'],
+        model: '170-33505',
+        vendor: 'Niko',
+        description: 'Niko Connected Socket',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 5},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
