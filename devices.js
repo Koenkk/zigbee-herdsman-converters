@@ -1337,7 +1337,7 @@ const devices = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc' }],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc'}],
         model: 'X712A',
         vendor: 'Lonsonho',
         description: '2 gang switch',
