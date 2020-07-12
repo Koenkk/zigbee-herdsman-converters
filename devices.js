@@ -3749,6 +3749,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['AE 280 C'],
+        model: 'AE 280 C',
+        vendor: 'Innr',
+        description: 'E26 bulb RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['SP 120'],
         model: 'SP 120',
         vendor: 'Innr',
