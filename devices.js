@@ -11251,12 +11251,12 @@ const devices = [
         },
     },
 
-    //Niko Connected Socket
+    // Niko
     {
         zigbeeModel: ['Connected socket outlet'],
         model: '170-33505',
         vendor: 'Niko',
-        description: 'Niko Connected Socket',
+        description: 'Connected socket outlet',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
