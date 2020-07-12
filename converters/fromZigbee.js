@@ -4886,6 +4886,23 @@ const converters = {
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
         },
     },
+    tuya_switch2: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const state = msg.data.data[0] ? 'ON' : 'OFF';
+
+            switch (dp) {
+            case 257: // 0x01 0x01
+                return {state_l1: state};
+            case 258: // 0x01 0x02
+                return {state_l2: state};
+            case 259: // 0x01 0x03
+                return {state_l3: state};
+            }
+        },
+    },
     tuya_curtain: {
         cluster: 'manuSpecificTuyaDimmer',
         type: ['commandSetDataResponse', 'commandGetData'],

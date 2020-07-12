@@ -1322,6 +1322,34 @@ const devices = [
         },
     },
 
+    // Lonsonho
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}],
+        model: 'X711A',
+        vendor: 'Lonsonho',
+        description: '1 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1};
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc' }],
+        model: 'X712A',
+        vendor: 'Lonsonho',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1};
+        },
+    },
+
     // IKEA
     {
         zigbeeModel: [
