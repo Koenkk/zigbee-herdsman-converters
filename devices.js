@@ -1163,6 +1163,9 @@ const devices = [
         ],
         toZigbee: [],
         meta: {configureKey: 1},
+        whiteLabel: [
+            {vendor: 'Samotech', model: 'SM301Z'},
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genPowerCfg']);
