@@ -70,7 +70,7 @@ function findByDevice(device) {
     }
 
     const candidates = getFromLookup(device.modelID);
-    if (candidates.length === 0) {
+    if (!candidates) {
         return null;
     } else if (candidates.length === 1) {
         return candidates[0];
