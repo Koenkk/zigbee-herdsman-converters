@@ -9165,6 +9165,15 @@ const devices = [
             await configureReporting.brightness(endpoint);
         },
     },
+    {
+        zigbeeModel: ['WL4200'],
+        model: 'WL4200',
+        vendor: 'Sinope',
+        description: 'Zigbee smart water leak detector',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+    },
 
     // Lutron
     {
