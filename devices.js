@@ -1130,6 +1130,33 @@ const devices = [
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
     {
+        zigbeeModel: ['kud7u2l'],
+        fingerprint: [
+            {
+                type: 'EndDevice', manufacturerID: 4098, manufacturerName: '_TZE200_ckud7u2l', modelID: 'TS0601', powerSource: 'Battery',
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 81, inputClusters: [0, 4, 5, 61184], outputClusters: [25, 10]},
+                ],
+            },
+        ],
+        model: 'TS0601_thermostat',
+        vendor: 'TuYa',
+        description: 'Radiator valve with thermostat',
+        supports: 'thermostat, temperature',
+        whiteLabel: [
+            {vendor: 'Moes', model: 'HY369RT'},
+            {vendor: 'SHOJZJ', model: '378RT'},
+        ],
+        fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report],
+        toZigbee: [
+            tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
+            tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
+            tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
+            tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
+            tz.tuya_thermostat_force,
+        ],
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121',
         description: '10A UK or 16A EU smart plug',
@@ -10168,33 +10195,6 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-    },
-    {
-        zigbeeModel: ['kud7u2l'],
-        model: 'HY369RT',
-        vendor: 'Moes',
-        description: 'Radiator valve with thermostat',
-        supports: 'thermostat, temperature',
-        fromZigbee: [
-            fz.tuya_thermostat,
-            fz.tuya_thermostat_on_set_data,
-            fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.tuya_thermostat_child_lock,
-            tz.tuya_thermostat_window_detection,
-            tz.tuya_thermostat_valve_detection,
-            tz.tuya_thermostat_current_heating_setpoint,
-            tz.tuya_thermostat_system_mode,
-            tz.tuya_thermostat_auto_lock,
-            tz.tuya_thermostat_calibration,
-            tz.tuya_thermostat_min_temp,
-            tz.tuya_thermostat_max_temp,
-            tz.tuya_thermostat_boost_time,
-            tz.tuya_thermostat_comfort_temp,
-            tz.tuya_thermostat_eco_temp,
-            tz.tuya_thermostat_force,
-        ],
     },
 
     // Schneider Electric
