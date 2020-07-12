@@ -58,6 +58,36 @@ describe('index.js', () => {
         expect(definition.model).toBe('XBee');
     });
 
+    it('Find device by fingerprint prefer over zigbeeModel', () => {
+        const mullerEndpoints = [
+            {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
+            {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
+        ];
+        const muller = {
+            type: 'Router',
+            manufacturerID: 4635,
+            manufacturerName: 'MLI',
+            modelID: 'CCT Lighting',
+            powerSource: 'Mains (single phase)',
+            endpoints: mullerEndpoints,
+            getEndpoint: (ID) => mullerEndpoints.find((e) => e.ID === ID),
+        };
+
+        const sunricher = {
+            // Mock, not the actual fingerprint.
+            type: 'Router',
+            manufacturerID: 9999,
+            manufacturerName: 'SunRicher',
+            modelID: 'CCT Lighting',
+            powerSource: 'Mains (single phase)',
+            endpoints: [],
+            getEndpoint: (ID) => null,
+        };
+
+        expect(index.findByDevice(sunricher).model).toBe('ZG192910-4');
+        expect(index.findByDevice(muller).model).toBe('404031');
+    });
+
     it('Verify devices.js definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
@@ -157,6 +187,7 @@ describe('index.js', () => {
             foundModels.push(device.model);
         });
     });
+
     it('Verify addDeviceDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
         const mockDevice = {
@@ -164,7 +195,7 @@ describe('index.js', () => {
             model: 'mock-model'
         };
         const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
-        expect(undefinedDevice).toBeUndefined();
+        expect(undefinedDevice).toBeNull();
         const beforeAdditionDeviceCount = index.devices.length;
         index.addDeviceDefinition(mockDevice);
         expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);

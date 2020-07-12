@@ -4,8 +4,9 @@ const devices = require('./devices');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
 
-const byZigbeeModel = new Map();
-const withFingerprint = [];
+// key: zigbeeModel, value: array of definitions (most of the times 1)
+const lookup = new Map();
+const definitions = [];
 
 function arrayEquals(as, bs) {
     if (as.length !== bs.length) return false;
@@ -13,54 +14,85 @@ function arrayEquals(as, bs) {
     return true;
 }
 
-function addToLookupMaps(device) {
-    if (device.hasOwnProperty('fingerprint')) {
-        withFingerprint.push(device);
+function addToLookup(zigbeeModel, definition) {
+    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (!lookup.has(zigbeeModel)) {
+        lookup.set(zigbeeModel, []);
     }
 
-    if (device.hasOwnProperty('zigbeeModel')) {
-        for (const zigbeeModel of device.zigbeeModel) {
-            byZigbeeModel.set(zigbeeModel.toLowerCase(), device);
+    if (!lookup.get(zigbeeModel).includes(definition)) {
+        lookup.get(zigbeeModel).push(definition);
+    }
+}
+
+function getFromLookup(zigbeeModel) {
+    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (lookup.has(zigbeeModel)) {
+        return lookup.get(zigbeeModel);
+    }
+
+    zigbeeModel = zigbeeModel ? zigbeeModel.replace(/\0.*$/g, '').trim() : null;
+    return lookup.get(zigbeeModel);
+}
+
+function addDefinition(definition) {
+    definitions.push(definition);
+
+    if (definition.hasOwnProperty('fingerprint')) {
+        for (const fingerprint of definition.fingerprint) {
+            addToLookup(fingerprint.modelID, definition);
+        }
+    }
+
+    if (definition.hasOwnProperty('zigbeeModel')) {
+        for (const zigbeeModel of definition.zigbeeModel) {
+            addToLookup(zigbeeModel, definition);
         }
     }
 }
-for (const device of devices) {
-    addToLookupMaps(device);
+
+for (const definition of devices) {
+    addDefinition(definition);
 }
 
-function findByZigbeeModel(model) {
-    if (!model) {
+function findByZigbeeModel(zigbeeModel) {
+    if (!zigbeeModel) {
         return null;
     }
 
-    model = model.toLowerCase();
-
-    let definition = byZigbeeModel.get(model);
-
-    if (!definition) {
-        definition = byZigbeeModel.get(model.replace(/\0.*$/g, '').trim());
-    }
-
-    return definition;
+    const candidates = getFromLookup(zigbeeModel);
+    return candidates ? candidates[0] : null;
 }
 
 function findByDevice(device) {
-    let definition = findByZigbeeModel(device.modelID);
+    if (!device) {
+        return null;
+    }
 
-    if (!definition) {
-        // Find by fingerprint
-        loop:
-        for (const definitionWithFingerprint of withFingerprint) {
-            for (const fingerprint of definitionWithFingerprint.fingerprint) {
-                if (fingerprintMatch(fingerprint, device)) {
-                    definition = definitionWithFingerprint;
-                    break loop;
+    const candidates = getFromLookup(device.modelID);
+    if (candidates.length === 0) {
+        return null;
+    } else if (candidates.length === 1) {
+        return candidates[0];
+    } else {
+        // Multiple candidates possible, first try to match based on fingerprint, return the first matching one.
+        for (const candidate of candidates) {
+            if (candidate.hasOwnProperty('fingerprint')) {
+                for (const fingerprint of candidate.fingerprint) {
+                    if (fingerprintMatch(fingerprint, device)) {
+                        return candidate;
+                    }
                 }
             }
         }
-    }
 
-    return definition;
+        // Match based on fingerprint failed, return first matching definition based on zigbeeModel
+        for (const candidate of candidates) {
+            if (candidate.hasOwnProperty('zigbeeModel')) {
+                return candidate;
+            }
+        }
+    }
 }
 
 function fingerprintMatch(fingerprint, device) {
@@ -95,19 +127,13 @@ function fingerprintMatch(fingerprint, device) {
     return match;
 }
 
-
-function addDeviceDefinition(device) {
-    devices.push(device);
-    addToLookupMaps(device);
-}
-
 module.exports = {
-    devices,
+    devices: definitions,
     findByZigbeeModel,
     findByDevice,
     toZigbeeConverters: toZigbee,
     fromZigbeeConverters: fromZigbee,
-    addDeviceDefinition,
+    addDeviceDefinition: addDefinition,
     // Can be used to handle events for devices which are not fully paired yet (no modelID).
     // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
     onEvent: async (type, data, device) => {
