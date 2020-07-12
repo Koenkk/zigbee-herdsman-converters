@@ -7190,6 +7190,20 @@ const devices = [
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
+    {
+        fingerprint: [{
+            // Identify through fingerprint as modelID is the same as Sunricher ZG192910-4
+            type: 'Router', manufacturerID: 4635, manufacturerName: 'MLI', modelID: 'CCT Lighting',
+            powerSource: 'Mains (single phase)', endpoints: [
+                {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
+                {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
+            ],
+        }],
+        model: '404031',
+        vendor: 'Müller Licht',
+        description: 'Tint Armaro',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // Salus Controls
     {
