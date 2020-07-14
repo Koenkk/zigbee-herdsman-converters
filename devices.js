@@ -371,20 +371,6 @@ const livolo = {
 };
 
 const devices = [
-    // 3A Smart Home DE
-    {
-        zigbeeModel: ['LXN59-2S7LX1.0'],
-        model: 'LXN59-2S7LX1.0',
-        vendor: '3A Smart Home DE',
-        description: 'Smart light relay - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-    },
     // Xiaomi
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -4406,6 +4392,22 @@ const devices = [
     },
 
     // Nue, 3A
+    {
+        zigbeeModel: ['LXN59-2S7LX1.0'],
+        model: 'LXN59-2S7LX1.0',
+        vendor: 'Nue / 3A',
+        description: 'Smart light relay - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZW-EU-02'},
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+    },
     {
         zigbeeModel: ['FTB56+ZSN15HG1.0'],
         model: 'HGZB-1S',
