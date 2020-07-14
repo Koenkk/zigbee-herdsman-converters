@@ -1117,7 +1117,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS0601', 'owvfni3\u0000'],
+        zigbeeModel: ['TS0601', 'owvfni3\u0000', 'owvfni3'],
         model: 'TS0601',
         vendor: 'TuYa',
         description: 'Curtain motor',
