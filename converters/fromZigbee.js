@@ -4897,7 +4897,7 @@ const converters = {
                 const lookup = {257: 'state_l1', 258: 'state_l2', 259: 'state_l3'};
                 return {[lookup[dp]]: state};
             } else {
-                return dp == 257 ? {state: state} : null;
+                return dp === 257 ? {state: state} : null;
             }
         },
     },
