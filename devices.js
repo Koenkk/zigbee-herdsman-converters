@@ -1117,7 +1117,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS0601', 'owvfni3\u0000'],
+        zigbeeModel: ['TS0601', 'owvfni3\u0000', 'owvfni3'],
         model: 'TS0601',
         vendor: 'TuYa',
         description: 'Curtain motor',
@@ -1160,10 +1160,46 @@ const devices = [
         zigbeeModel: ['TS0121'],
         model: 'TS0121',
         description: '10A UK or 16A EU smart plug',
+        whiteLabel: [
+            {vendor: 'Blitzwolf', model: 'BW-SHP13'},
+        ],
         supports: 'on/off',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 100,
+                multiplier: 1,
+            });
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 1,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+            });
+        },
+        onEvent: async (type, data, device) => {
+            // This device doesn't support reporting correctly.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+            const endpoint = device.getEndpoint(1);
+            if (type === 'stop') {
+                clearInterval(store[device.ieeeAddr]);
+            } else if (!store[device.ieeeAddr]) {
+                store[device.ieeeAddr] = setInterval(async () => {
+                    try {
+                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 10*1000); // Every 10 seconds
+            }
+        },
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
@@ -2161,7 +2197,15 @@ const devices = [
         zigbeeModel: ['LTD003'],
         model: '4503848C5',
         vendor: 'Philips',
-        description: 'Hue White ambiance Muscari pendant light',
+        description: 'Hue white ambiance Muscari pendant light',
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTD010'],
+        model: '5996411U5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance 5/6" retrofit recessed downlight',
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -4421,6 +4465,22 @@ const devices = [
 
     // Nue, 3A
     {
+        zigbeeModel: ['LXN59-2S7LX1.0'],
+        model: 'LXN59-2S7LX1.0',
+        vendor: 'Nue / 3A',
+        description: 'Smart light relay - 2 gang',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZW-EU-02'},
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+    },
+    {
         zigbeeModel: ['FTB56+ZSN15HG1.0'],
         model: 'HGZB-1S',
         vendor: 'Nue / 3A',
@@ -4952,6 +5012,12 @@ const devices = [
     },
     {
         zigbeeModel: ['GL-C-009'],
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
         model: 'GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller dimmer',
@@ -8382,6 +8448,13 @@ const devices = [
             return {l1: 1, l2: 2, l3: 3};
         },
     },
+    {
+        zigbeeModel: ['HOMA1064'],
+        model: 'HLC833-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'Wireless dimmable controller',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Honyar
     {
@@ -9996,7 +10069,7 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.BASICZBR3_on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         toZigbee: [tz.on_off],
     },
     {
@@ -10005,7 +10078,7 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

@@ -4555,7 +4555,7 @@ const converters = {
             }
         },
     },
-    BASICZBR3_on_off: {
+    on_off_skip_duplicate_transaction: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
