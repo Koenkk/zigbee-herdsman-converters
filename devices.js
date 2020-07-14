@@ -10010,7 +10010,7 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
         supports: 'on/off',
-        fromZigbee: [fz.BASICZBR3_on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         toZigbee: [tz.on_off],
     },
     {
@@ -10019,7 +10019,7 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
