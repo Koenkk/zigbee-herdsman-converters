@@ -8396,6 +8396,13 @@ const devices = [
             return {l1: 1, l2: 2, l3: 3};
         },
     },
+    {
+        zigbeeModel: ['HOMA1064'],
+        model: 'HLC833-Z-SC',
+        vendor: 'Shenzhen Homa',
+        description: 'Wireless dimmable controller',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Honyar
     {
