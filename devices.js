@@ -8358,7 +8358,7 @@ const devices = [
         zigbeeModel: ['HOMA1064'],
         model: 'HLC833-Z-SC',
         vendor: 'Shenzhen Homa',
-        description: 'Wireless Dimmable Controller',
+        description: 'Wireless dimmable controller',
         extend: generic.light_onoff_brightness,
     },
 
