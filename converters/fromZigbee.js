@@ -4890,16 +4890,14 @@ const converters = {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
             const state = msg.data.data[0] ? 'ON' : 'OFF';
-
-            switch (dp) {
-            case 257: // 0x01 0x01
-                return {state_l1: state};
-            case 258: // 0x01 0x02
-                return {state_l2: state};
-            case 259: // 0x01 0x03
-                return {state_l3: state};
+            if (multiEndpoint) {
+                const lookup = {257: 'state_l1', 258: 'state_l2', 259: 'state_l3'};
+                return {[lookup[dp]]: state}
+            } else {
+                return dp == 257 ? {state: state} : null;
             }
         },
     },

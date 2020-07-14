@@ -1367,10 +1367,6 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
-        endpoint: (device) => {
-            // Endpoint selection is made in tuya_switch_state
-            return {'l1': 1, 'l2': 1, 'l3': 1};
-        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc'}],
@@ -1380,9 +1376,10 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
-            return {'l1': 1, 'l2': 1, 'l3': 1};
+            return {'l1': 1, 'l2': 1};
         },
     },
 
