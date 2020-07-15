@@ -6598,6 +6598,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['SGMHM-I1'],
+        model: 'SGMHM-I1',
+        vendor: 'GS',
+        description: 'Combustible gas sensor',
+        supports: 'gas',
+        fromZigbee: [fz.ias_gas_alarm_2],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['GAS_V15'],
         model: 'HS1CG_M',
         vendor: 'HEIMAN',
