@@ -1102,7 +1102,7 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
         },
     },
-    ZNCZ02LM_QBCZ11LM_power_outage_memory: {
+    xiaomi_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             const payload = value ?
