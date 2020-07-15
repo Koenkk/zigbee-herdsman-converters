@@ -11400,6 +11400,16 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
+    // Tuya TYZS1L Led Strip Controller
+    {
+        zigbeeModel: ['TS0503A'],
+        model: 'TYZS1L',
+        vendor: '_TZ3000_c5drg1wn',
+        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
+        fromZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off],
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) =>
