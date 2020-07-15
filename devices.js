@@ -6745,7 +6745,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['HT-EM', 'TH-T_V14'],
+        zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],
         model: 'HS1HT',
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
