@@ -657,6 +657,20 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.switch.b1nacn02'],
+        model: 'QBKG23LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.xiaomi_power],
+        toZigbee: [tz.on_off],
+        meta: {},
+        endpoint: (device) => {
+            return {'system': 1};
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
+    {
         zigbeeModel: ['lumi.switch.b2nacn02'],
         model: 'QBKG24LM',
         vendor: 'Xiaomi',
@@ -1063,6 +1077,13 @@ const devices = [
     },
 
     // TuYa
+    {
+        zigbeeModel: ['TS0503A'],
+        model: 'TYZS1L',
+        vendor: 'TuYa',
+        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
     {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
