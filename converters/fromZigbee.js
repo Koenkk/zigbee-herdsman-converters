@@ -1578,7 +1578,8 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID),
+                    action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
         },
     },
     WXKG02LM_click_multistate: {
@@ -1603,7 +1604,8 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
-                return {click: button + (action ? `_${action}` : '')};
+                return {click: button + (action ? `_${action}` : ''),
+                        action: button + (action ? `_${action}` : '')};
             }
         },
     },
