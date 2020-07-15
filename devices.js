@@ -664,7 +664,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.xiaomi_power],
         toZigbee: [tz.on_off],
-        meta: {multiEndpoint: true},
+        meta: {},
         endpoint: (device) => {
             return {'system': 1};
         },
@@ -1077,6 +1077,13 @@ const devices = [
     },
 
     // TuYa
+    {
+        zigbeeModel: ['TS0503A'],
+        model: 'TYZS1L',
+        vendor: 'TuYa',
+        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
     {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
@@ -11399,16 +11406,6 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.rmsVoltage(endpoint);
         },
-    },
-    // Tuya TYZS1L Led Strip Controller
-    {
-        zigbeeModel: ['TS0503A'],
-        model: 'TYZS1L',
-        vendor: '_TZ3000_c5drg1wn',
-        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
-        fromZigbee: [tz.on_off],
-        fromZigbee: [fz.on_off],
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 ];
 
