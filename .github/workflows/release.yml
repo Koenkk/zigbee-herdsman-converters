@@ -1,8 +1,12 @@
-name: Create new patch release
+name: Create new release
 
 on:
-  repository_dispatch:
-    types: patch_release
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Release type (patch/minor/major)'
+        default: 'patch'
+        required: true
 
 jobs:
   build:
@@ -24,7 +28,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
     - name: Bump version
-      run: npm version patch
+      run: npm version ${{ github.event.inputs.type }}
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
