@@ -1,0 +1,39 @@
+name: Create new release
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Release type (patch/minor/major)'
+        default: 'patch'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: 12
+        registry-url: https://registry.npmjs.org/
+    - name: Install dependencies
+      run: npm ci
+    - name: Test
+      run: npm test
+    - name: Lint
+      run: npm run lint
+    - name: Setup Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+    - name: Bump version
+      run: "npm version ${{ github.event.inputs.type }}"
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish to npm
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}

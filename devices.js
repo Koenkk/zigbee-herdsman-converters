@@ -657,6 +657,20 @@ const devices = [
         onEvent: xiaomi.prevent_reset,
     },
     {
+        zigbeeModel: ['lumi.switch.b1nacn02'],
+        model: 'QBKG23LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.xiaomi_power],
+        toZigbee: [tz.on_off],
+        meta: {},
+        endpoint: (device) => {
+            return {'system': 1};
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
+    {
         zigbeeModel: ['lumi.switch.b2nacn02'],
         model: 'QBKG24LM',
         vendor: 'Xiaomi',
@@ -790,7 +804,7 @@ const devices = [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -859,7 +873,7 @@ const devices = [
         fromZigbee: [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
         ],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -1063,6 +1077,13 @@ const devices = [
     },
 
     // TuYa
+    {
+        zigbeeModel: ['TS0503A'],
+        model: 'TYZS1L',
+        vendor: 'TuYa',
+        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
     {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
@@ -6749,7 +6770,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['HT-EM', 'TH-T_V14'],
+        zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],
         model: 'HS1HT',
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
@@ -11059,6 +11080,13 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['WallDimmerMaster'],
+        model: 'AU-A1ZB2WDM',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 250W smart rotary dimmer module',
+        extend: generic.light_onoff_brightness,
     },
 
     // Wally
