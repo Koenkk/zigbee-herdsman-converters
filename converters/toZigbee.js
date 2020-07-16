@@ -2147,13 +2147,7 @@ const converters = {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
             const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await entity.command(
-                'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 256+keyid, fn: 0, data: [1, (value === 'ON') ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
-
+            sendTuyaCommand(entity, 256 + keyid, 0, [1, value === 'ON' ? 1 : 0]);
             return {state: {state: value.toUpperCase()}};
         },
     },
