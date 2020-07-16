@@ -11060,7 +11060,7 @@ const devices = [
         zigbeeModel: ['WallDimmerMaster'],
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
-        description: 'AOne 250W Smart Rotary Dimmer Module',
+        description: 'AOne 250W smart rotary dimmer module',
         extend: generic.light_onoff_brightness,
     },
 
