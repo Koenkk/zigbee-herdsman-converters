@@ -2,3 +2,4 @@ node_modules/
 .vs/slnx.sqlite
 .vs/ProjectSettings.json
 .idea
+.DS_Store
