@@ -1369,13 +1369,38 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+    },
+
+    // Lonsonho
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}],
+        model: 'X711A',
+        vendor: 'Lonsonho',
+        description: '1 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc'}],
+        model: 'X712A',
+        vendor: 'Lonsonho',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1};
         },
     },
 
