@@ -11056,6 +11056,13 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['WallDimmerMaster'],
+        model: 'AU-A1ZB2WDM',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 250W Smart Rotary Dimmer Module',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Wally
     {
