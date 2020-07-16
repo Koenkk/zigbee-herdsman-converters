@@ -3,7 +3,7 @@ name: Create new release
 on:
   workflow_dispatch:
     inputs:
-      name:
+      type:
         description: 'Release type (patch/minor/major)'
         default: 'patch'
         required: true
