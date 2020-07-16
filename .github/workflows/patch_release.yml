@@ -1,0 +1,31 @@
+name: Create new patch release
+
+on:
+  repository_dispatch:
+    types: patch_release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: 12
+        registry-url: https://registry.npmjs.org/
+    - name: Install dependencies
+      run: npm ci
+    - name: Test
+      run: npm test
+    - name: Lint
+      run: npm run lint
+    - name: Setup Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+    - name: Bump version
+      run: npm version patch
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
