@@ -4894,11 +4894,15 @@ const converters = {
             const dp = msg.data.dp;
             const state = msg.data.data[0] ? 'ON' : 'OFF';
             if (multiEndpoint) {
-                const lookup = {257: 'state_l1', 258: 'state_l2', 259: 'state_l3'};
-                return {[lookup[dp]]: state};
-            } else {
-                return dp === 257 ? {state: state} : null;
+                const lookup = {257: 'l1', 258: 'l2', 259: 'l3'};
+                const endpoint = lookup[dp];
+                if (endpoint in model.endpoint(msg.device)) {
+                    return {[`state_${endpoint}`]: state};
+                }
+            } else if (dp === 257) {
+                return {state: state};
             }
+            return null;
         },
     },
     tuya_curtain: {

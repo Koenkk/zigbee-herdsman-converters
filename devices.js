@@ -1348,7 +1348,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
