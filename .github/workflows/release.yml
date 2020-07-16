@@ -43,4 +43,4 @@ jobs:
         echo "::set-output name=version::$(npm view zigbee-herdsman-converters version)"
     - name: Trigger Zigbee2mqtt update
       run: |
-        curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}'
+        curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN_KOENKK }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}'
