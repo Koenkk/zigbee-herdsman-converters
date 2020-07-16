@@ -23,10 +23,6 @@ jobs:
       run: npm test
     - name: Lint
       run: npm run lint
-    - name: Setup Git
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
     - name: Bump version
       run: "npm version ${{ github.event.inputs.type }}"
     - name: Push changes
@@ -37,3 +33,10 @@ jobs:
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
+    - name: Get zigbee-herdsman-converters version
+      id: zchversion
+      run: |
+        echo "::set-output name=version::$(npm view zigbee-herdsman-converters version)"
+    - name: Trigger Zigbee2mqtt update
+      run: |
+        curl -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" --request POST --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}' https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches
