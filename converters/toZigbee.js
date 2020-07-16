@@ -288,6 +288,52 @@ const converters = {
             );
         },
     },
+    ZMCSW032D_cover_position_tilt: {
+        key: ['position', 'tilt'],
+        convertSet: async (entity, key, value, meta) => {
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+                const sleepSeconds = async (s) => {
+                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                };
+                const oldPosition = meta.state.position;
+                if (value == 100) {
+                    await entity.command('closuresWindowCoveringZMCSW032D', "open", {}, getOptions(meta.mapped));
+                } else if (value == 0) {
+                    await entity.command('closuresWindowCoveringZMCSW032D', "close", {}, getOptions(meta.mapped));
+                } else {
+                    if (oldPosition > value) {
+                        const delta = oldPosition - value;
+                        const multiplier = meta.options.time_open / 100;
+                        const timeBeforeStop = delta * multiplier;
+                        await entity.command('closuresWindowCoveringZMCSW032D', "close", {}, getOptions(meta.mapped));
+                        await sleepSeconds(timeBeforeStop);
+                        await entity.command('closuresWindowCoveringZMCSW032D', "stop", {}, getOptions(meta.mapped));
+                    } else if (oldPosition < value) {
+                        const delta = value - oldPosition;
+                        const multiplier = meta.options.time_close / 100;
+                        const timeBeforeStop = delta * multiplier;
+                        await entity.command('closuresWindowCoveringZMCSW032D', "open", {}, getOptions(meta.mapped));
+                        await sleepSeconds(timeBeforeStop);
+                        await entity.command('closuresWindowCoveringZMCSW032D', "stop", {}, getOptions(meta.mapped));
+                    }
+                }
+                return {state: {'position' : value}};
+            } else {
+                // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+                // HomeAssistant etc. work the other way round.
+                value = 100 - value;
+                await converters.cover_position_tilt_inverted.convertSet(entity, key, value, meta);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const isPosition = (key === 'position');
+            await entity.read(
+                'closuresWindowCovering',
+                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage'],
+            );
+        },
+    },
     occupancy_timeout: {
         // set delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
