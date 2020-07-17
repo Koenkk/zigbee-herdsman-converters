@@ -3,6 +3,8 @@
 const utils = require('./utils');
 const common = require('./common');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const convertToPercent = (value) => Math.round((+value / 255) * 100).toString();
+const convertToBrightness = (value) => Math.round(+value * 2.55).toString();
 
 const store = {};
 
@@ -406,7 +408,14 @@ const converters = {
                     await entity.command(
                         'genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity),
                     );
-                    return {state: {state: state.toUpperCase(), brightness: state === 'on' ? level : 0}};
+
+                    return {
+                        state: {
+                            state: state.toUpperCase(),
+                            brightness: level,
+                            brightness_percent: Number(convertToPercent(level)),
+                        },
+                    };
                 } else {
                     if (hasState && state === 'on' && store.hasOwnProperty(entityID) &&
                         store[entityID].turnedOffWithTransition) {
@@ -424,7 +433,11 @@ const converters = {
                             getOptions(meta.mapped, entity),
                         );
                         return {
-                            state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
+                            state: {
+                                state: brightness === 0 ? 'OFF' : 'ON',
+                                brightness: Number(brightness),
+                                brightness_percent: Number(convertToPercent(brightness)),
+                            },
                             readAfterWriteTime: transition * 100,
                         };
                     } else {
@@ -435,11 +448,13 @@ const converters = {
                         }
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
+
                         if (result.state) {
                             if (state === 'on') {
                                 result.readAfterWriteTime = 0;
                                 if (store.hasOwnProperty(entityID)) {
                                     result.state.brightness = store[entityID].brightness;
+                                    result.state.brightness_percent = Number(convertToPercent(store[entityID].brightness));
                                 } else if (meta.state.brightness === 0) {
                                     /**
                                      * In case bulb is turned off and the store is reset (because of application
@@ -451,11 +466,12 @@ const converters = {
                                     if (entityToRead) {
                                         const readData = await entityToRead.read('genLevelCtrl', ['currentLevel']);
                                         result.state.brightness = readData.currentLevel;
+                                        result.state.brightness_percent = Number(convertToPercent(readData.currentLevel));
                                     }
                                 }
                             } else {
-                                // off = brightness 0
                                 result.state.brightness = 0;
+                                result.state.brightness_percent = 0;
                             }
                         }
 
@@ -465,6 +481,7 @@ const converters = {
             } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
                 const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
                 result.state.brightness = 0;
+                result.state.brightness_percent = 0;
                 return result;
             } else {
                 const transition = getTransition(entity, 'brightness', meta).time;
@@ -473,7 +490,7 @@ const converters = {
                 if (message.hasOwnProperty('brightness')) {
                     brightness = message.brightness;
                 } else if (message.hasOwnProperty('brightness_percent')) {
-                    brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
+                    brightness = convertToBrightness(message.brightness_percent);
                 }
                 brightness = Math.min(254, brightness);
                 store[entityID] = {...store[entityID], brightness};
@@ -484,7 +501,11 @@ const converters = {
                     getOptions(meta.mapped, entity),
                 );
                 return {
-                    state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
+                    state: {
+                        state: brightness === 0 ? 'OFF' : 'ON',
+                        brightness: Number(brightness),
+                        brightness_percent: Number(convertToPercent(brightness)),
+                    },
                     readAfterWriteTime: transition * 100,
                 };
             }
