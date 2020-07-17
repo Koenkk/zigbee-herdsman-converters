@@ -1574,7 +1574,7 @@ const converters = {
             }
         },
     },
-    WXKG02LM_click: {
+    legacy_WXKG02LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1582,7 +1582,7 @@ const converters = {
                 action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
         },
     },
-    WXKG02LM_click_multistate: {
+    legacy_WXKG02LM_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {

@@ -462,8 +462,8 @@ const devices = [
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right, both click (and double, long click for left, right and both depending on model)',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WXKG02LM_click,
-            fz.WXKG02LM_click_multistate,
+            fz.xiaomi_battery_3v, fz.legacy_WXKG02LM_click,
+            fz.legacy_WXKG02LM_click_multistate,
         ],
         toZigbee: [],
         endpoint: (device) => {
