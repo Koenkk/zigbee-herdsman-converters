@@ -1609,11 +1609,12 @@ const converters = {
             }
         },
     },
-    WXKG03LM_click: {
+    legacy_WXKG03LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'single'};
+            return {click: 'single',
+                action: 'single'};
         },
     },
     WXKG06LM_action: {
