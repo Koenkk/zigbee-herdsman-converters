@@ -5311,6 +5311,14 @@ const converters = {
         },
     },
 
+    occsensor: {
+    cluster: 'genOnOff',
+    type: 'attributeReport',
+    convert: (model, msg, publish, options) => {
+        return {occupancy: msg.data['onOff'] === 1 ? true : false};
+
+    },
+
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',

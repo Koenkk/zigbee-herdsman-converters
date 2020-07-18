@@ -11439,6 +11439,17 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
+
+    // PRIDEX OCCSensor
+    {
+        zigbeeModel: ['OCCSensor'],
+        model: 'OCCSensor',
+        vendor: 'PRIDEX',
+        description: 'PRIDEX Occupancy sensor',
+        supports: 'Occupancy sensor logic true at P06',
+        fromZigbee: [fz.occsensor],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) =>
