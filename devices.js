@@ -11356,7 +11356,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'kmpcilPressureMeasurement',
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'genBinaryInput', 'genBinaryOutput',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
@@ -11377,12 +11377,14 @@ const devices = [
             }];
             await endpoint.configureReporting('msIlluminanceMeasurement', payload);
             const payloadPressure = [{
-                attribute: 'measuredValue',
+                // 0 = measuredValue, override dataType from int16 to uint16
+                // https://github.com/Koenkk/zigbee-herdsman/pull/191/files?file-filters%5B%5D=.ts#r456569398
+                attribute: {ID: 0, type: 33},
                 minimumReportInterval: 2,
                 maximumReportInterval: repInterval.HOUR,
                 reportableChange: 3,
             }];
-            await endpoint.configureReporting('kmpcilPressureMeasurement', payloadPressure);
+            await endpoint.configureReporting('msPressureMeasurement', payloadPressure);
             const options = {disableDefaultResponse: true};
             await endpoint.write('genBinaryInput', {0x0051: {value: 0x01, type: 0x10}}, options);
             await endpoint.write('genBinaryInput', {0x0101: {value: 25, type: 0x23}}, options);
