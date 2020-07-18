@@ -5050,6 +5050,15 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
+
+    smartthings_acceleration: {
+        cluster: 'manuSpecificSamsungAccelerometer',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {acceleration: msg.data['acceleration'] === 1 ? true : false};
+        },
+    },
+
     MultiSensor_ias_contact_alarm: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

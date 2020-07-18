@@ -72,6 +72,11 @@ const configureReportingPayload = (attribute, min, max, change, overrides) => {
 };
 
 const configureReporting = {
+    accelerationState: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('acceleration', 10, repInterval.MINUTE, 1, overrides);
+        const options = {manufacturerCode: 0x110A};
+        await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
+    },
     currentPositionLiftPercentage: async (endpoint, overrides) => {
         const payload = configureReportingPayload('currentPositionLiftPercentage', 1, repInterval.MAX, 1, overrides);
         await endpoint.configureReporting('closuresWindowCovering', payload);
@@ -5654,9 +5659,13 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            const options = {manufacturerCode: 0x110A};
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
+            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.accelerationState(endpoint);
         },
     },
     {
