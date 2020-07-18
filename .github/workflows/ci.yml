@@ -3,13 +3,13 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2-beta
       with:
-        node-version: 12 
+        node-version: 12
     - name: Get NodeJS Version
       id: nodeversion
       run: |
