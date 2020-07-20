@@ -8413,7 +8413,7 @@ const devices = [
         description: 'ZigBee knob smart dimmer',
         supports: generic.light_onoff_brightness.supports + ', power measurements',
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat(
-            [fz.electrical_measurement_power, fz.metering_power],
+            [fz.electrical_measurement_power, fz.metering_power, fz.ignore_genOta],
         ),
         toZigbee: generic.light_onoff_brightness.toZigbee,
         meta: {configureKey: 2},
@@ -8432,8 +8432,8 @@ const devices = [
             await configureReporting.brightness(endpoint);
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.activePower(endpoint);
-            await configureReporting.rmsCurrent(endpoint, {min: 5, change: 5});
-            await configureReporting.rmsVoltage(endpoint, {min: 5});
+            await configureReporting.rmsCurrent(endpoint, {min: 10, change: 10});
+            await configureReporting.rmsVoltage(endpoint, {min: 10});
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
         },
