@@ -11421,6 +11421,14 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['43102'],
+        model: '43102',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall outlet',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
 
     // Niko
     {
