@@ -2356,6 +2356,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1746430P7'],
+        model: '1746430P7',
+        vendor: 'Philips',
+        description: 'Hue outdoor Resonate wall lamp',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LLC006'],
         model: '7099930PH',
         vendor: 'Philips',
