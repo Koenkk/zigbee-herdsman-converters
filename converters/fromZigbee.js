@@ -1272,6 +1272,9 @@ const converters = {
                     publish({click: 'long'});
                     store[deviceID].timer = null;
                     store[deviceID].long = Date.now();
+                    store[deviceID].long_timer = setTimeout(() => {
+                        store[deviceID].long = false;
+                    }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
                 }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
             } else if (state === 1) {
                 if (store[deviceID].long) {
