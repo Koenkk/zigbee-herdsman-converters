@@ -29,18 +29,19 @@ jobs:
         git config --local user.name "github-actions[bot]"
     - name: Bump version
       run: "npm version ${{ github.event.inputs.type }}"
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish to npm
-      run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
+    # - name: Push changes
+    #   uses: ad-m/github-push-action@master
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Publish to npm
+    #   run: npm publish
+    #   env:
+    #     NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
     - name: Get zigbee-herdsman-converters version
       id: zchversion
       run: |
-        echo "::set-output name=version::$(node -p \"require('./package.json').version\")"
+        version=$(node -p "require('./package.json').version")
+        echo "::set-output name=version::$version"
     - name: Trigger Zigbee2mqtt update
       run: |
         curl -XPOST -H "Authorization: token ${{ secrets.TRIGGER_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}'
