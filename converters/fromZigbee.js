@@ -1272,6 +1272,9 @@ const converters = {
                     publish({click: 'long'});
                     store[deviceID].timer = null;
                     store[deviceID].long = Date.now();
+                    store[deviceID].long_timer = setTimeout(() => {
+                        store[deviceID].long = false;
+                    }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
                 }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
             } else if (state === 1) {
                 if (store[deviceID].long) {
@@ -4887,6 +4890,25 @@ const converters = {
                 4: 'state_l4',
             };
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
+        },
+    },
+    tuya_switch2: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
+            const dp = msg.data.dp;
+            const state = msg.data.data[0] ? 'ON' : 'OFF';
+            if (multiEndpoint) {
+                const lookup = {257: 'l1', 258: 'l2', 259: 'l3'};
+                const endpoint = lookup[dp];
+                if (endpoint in model.endpoint(msg.device)) {
+                    return {[`state_${endpoint}`]: state};
+                }
+            } else if (dp === 257) {
+                return {state: state};
+            }
+            return null;
         },
     },
     tuya_curtain: {
