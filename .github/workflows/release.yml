@@ -29,14 +29,14 @@ jobs:
         git config --local user.name "github-actions[bot]"
     - name: Bump version
       run: "npm version ${{ github.event.inputs.type }}"
-    # - name: Push changes
-    #   uses: ad-m/github-push-action@master
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Publish to npm
-    #   run: npm publish
-    #   env:
-    #     NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish to npm
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
     - name: Get zigbee-herdsman-converters version
       id: zchversion
       run: |
