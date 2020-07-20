@@ -11426,6 +11426,7 @@ const devices = [
         model: '43102',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall outlet',
+        supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
