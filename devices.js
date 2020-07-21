@@ -7405,10 +7405,11 @@ const devices = [
     // AduroSmart
     {
         zigbeeModel: ['ZLL-ExtendedColo'],
-        model: '81809',
+        model: '81809/81813',
         vendor: 'AduroSmart',
-        description: 'ERIA colors and white shades smart light bulb A19',
+        description: 'ERIA colors and white shades smart light bulb A19/BR30',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true},
         endpoint: (device) => {
             return {
                 'default': 2,
