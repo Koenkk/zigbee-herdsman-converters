@@ -1577,18 +1577,46 @@ const converters = {
             }
         },
     },
-    WXKG02LM_click: {
+    on_off_action_single: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: getProperty('single', msg, model)};
+        },
+    },
+    legacy_WXKG02LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
-                return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-            } else {
-                return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+        },
+    },
+    WXKG02LM_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
+            // of a message with the same transaction sequence number twice.
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr] === current) return;
+            store[msg.device.ieeeAddr] = current;
+
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+
+            const actionLookup = {
+                0: 'long',
+                1: null,
+                2: 'double',
+            };
+
+            const action = actionLookup[value];
+            if (button) {
+                return {action: button + (action ? `_${action}` : '')};
             }
         },
     },
-    WXKG02LM_click_multistate: {
+    legacy_WXKG02LM_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1610,23 +1638,15 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
-                if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
-                    return {click: button + (action ? `_${action}` : '')};
-                } else {
-                    return {action: button + (action ? `_${action}` : '')};
-                }
+                return {click: button + (action ? `_${action}` : '')};
             }
         },
     },
-    WXKG03LM_click: {
+    legacy_WXKG03LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
-                return {click: 'single'};
-            } else {
-                return {action: 'single'};
-            }
+            return {click: 'single'};
         },
     },
     WXKG06LM_action: {
