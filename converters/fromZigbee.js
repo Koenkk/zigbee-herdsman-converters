@@ -1577,15 +1577,18 @@ const converters = {
             }
         },
     },
-    legacy_WXKG02LM_click: {
+    WXKG02LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID),
-                action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
+                return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            }else{
+                return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            }
         },
     },
-    legacy_WXKG02LM_click_multistate: {
+    WXKG02LM_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1607,17 +1610,23 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
-                return {click: button + (action ? `_${action}` : ''),
-                    action: button + (action ? `_${action}` : '')};
+                if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
+                    return {click: button + (action ? `_${action}` : '')};
+                }else{
+                    return {action: button + (action ? `_${action}` : '')};
+                }
             }
         },
     },
-    legacy_WXKG03LM_click: {
+    WXKG03LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'single',
-                action: 'single'};
+            if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
+                return {click: 'single'};
+            }else{
+                return {action: 'single'};
+            }
         },
     },
     WXKG06LM_action: {
