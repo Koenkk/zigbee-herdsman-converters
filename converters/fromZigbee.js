@@ -1583,7 +1583,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
                 return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-            }else{
+            } else {
                 return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
             }
         },
@@ -1612,7 +1612,7 @@ const converters = {
             if (button) {
                 if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
                     return {click: button + (action ? `_${action}` : '')};
-                }else{
+                } else {
                     return {action: button + (action ? `_${action}` : '')};
                 }
             }
@@ -1624,7 +1624,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (options.hasOwnProperty('legacy_click') && options.legacy_click === false) {
                 return {click: 'single'};
-            }else{
+            } else {
                 return {action: 'single'};
             }
         },
