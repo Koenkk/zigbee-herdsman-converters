@@ -5313,7 +5313,7 @@ const converters = {
             }
         },
     },
-	ZGRC_KEY_009_cmdMoveHue: {
+    ZGRC_KEY_009_cmdMoveHue: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
@@ -5324,16 +5324,16 @@ const converters = {
             } 
         },
     },
-	
-	ZGRC_KEY_009_cmdMoveColorTemp: {
+
+    ZGRC_KEY_009_cmdMoveColorTemp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options, meta) => {
                 return {action: 'W_hold'};
         },
     },
-	
-	ZGRC_KEY_009_cmdMoveColorTemp_release: {
+
+    ZGRC_KEY_009_cmdMoveColorTemp_release: {
         cluster: 'lightingColorCtrl',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
