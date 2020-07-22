@@ -5321,7 +5321,7 @@ const converters = {
                 return {action: 'circle_release'};
             } else {
                 return {action: 'circle_hold'};
-            } 
+            }
         },
     },
 
@@ -5329,7 +5329,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options, meta) => {
-                return {action: 'W_hold'};
+            return {action: 'W_hold'};
         },
     },
 
