@@ -436,7 +436,7 @@ const converters = {
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                         if (result.state) {
-                            if (state === 'on') {
+                            if (result.state.state === 'ON') {
                                 result.readAfterWriteTime = 0;
                                 if (store.hasOwnProperty(entityID)) {
                                     result.state.brightness = store[entityID].brightness;
