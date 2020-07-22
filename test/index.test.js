@@ -50,12 +50,46 @@ describe('index.js', () => {
         const device = {
             type: 'Router',
             manufacturerID: 4126,
+            modelID: undefined,
             endpoints,
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
         const definition = index.findByDevice(device);
         expect(definition.model).toBe('XBee');
+    });
+
+
+    it('Find device by using findDevice shoudlnt match when modelID is null and there is no fingerprint match', () => {
+        const endpoints = [
+            {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: undefined,
+            manufacturerID: undefined,
+            modelID: undefined,
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition).toBeNull();
+    });
+
+    it('Find device by using findDevice when device has modelID should match', () => {
+        const endpoints = [
+            {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: undefined,
+            manufacturerID: undefined,
+            modelID: "lumi.sensor_motion",
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("RTCGQ01LM");
     });
 
     it('Find device by fingerprint prefer over zigbeeModel', () => {

@@ -72,7 +72,7 @@ function findByDevice(device) {
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
         return null;
-    } else if (candidates.length === 1) {
+    } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
         // Multiple candidates possible, first try to match based on fingerprint, return the first matching one.
@@ -93,6 +93,8 @@ function findByDevice(device) {
             }
         }
     }
+
+    return null;
 }
 
 function fingerprintMatch(fingerprint, device) {
