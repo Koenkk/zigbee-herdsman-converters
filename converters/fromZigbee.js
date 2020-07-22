@@ -5313,6 +5313,33 @@ const converters = {
             }
         },
     },
+	ZGRC_KEY_009_cmdMoveHue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveHue',
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.movemode === 0) {
+                return {action: 'circle_release'};
+            } else {
+                return {action: 'circle_hold'};
+            } 
+        },
+    },
+	
+	ZGRC_KEY_009_cmdMoveColorTemp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+                return {action: 'W_hold'};
+        },
+    },
+	
+	ZGRC_KEY_009_cmdMoveColorTemp_release: {
+        cluster: 'lightingColorCtrl',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'W_release'};
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

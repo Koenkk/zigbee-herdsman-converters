@@ -8439,7 +8439,20 @@ const devices = [
             await configureReporting.currentSummDelivered(endpoint);
         },
     },
-
+	{
+		zigbeeModel: ['ZGRC-KEY-009'],
+		model: 'ZGRC-KEY-009',
+		vendor: 'Sunricher',
+		description: 'Zigbee wall remote control for RGBW',
+		supports: 'scenes, level control on/off',
+		fromZigbee: [
+		fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
+		fz.command_move_to_color_temp, fz.ZGRC_KEY_009_cmdMoveColorTemp, fz.ZGRC_KEY_009_cmdMoveColorTemp_release,
+		fz.command_move_to_color, fz.ZGRC_KEY_009_cmdMoveHue,
+		fz.command_recall
+		],
+		toZigbee: [],
+	},
     // Shenzhen Homa
     {
         zigbeeModel: ['HOMA1008'],
