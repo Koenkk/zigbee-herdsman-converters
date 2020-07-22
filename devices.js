@@ -8831,7 +8831,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SZ-PIR02_SF'],
+        zigbeeModel: ['SZ-PIR02_SF', 'SZ-PIR02'],
         model: 'AL-PIR02',
         vendor: 'Sercomm',
         description: 'PIR motion sensor',
