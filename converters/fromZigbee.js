@@ -1037,10 +1037,24 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
+            return {action: 'on'};
+        },
+    },
+    legacy_genOnOff_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
             return {click: 'on'};
         },
     },
     genOnOff_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'off'};
+        },
+    },
+    legacy_genOnOff_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
