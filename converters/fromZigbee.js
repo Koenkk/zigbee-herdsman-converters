@@ -2825,6 +2825,26 @@ const converters = {
 
             if (msg.data.hasOwnProperty('data')) {
                 const zoneStatus = msg.data.zonestatus;
+                return {action: buttonStates[zoneStatus]};
+            } else {
+                const zoneStatus = msg.data.zonestatus;
+                return {action: buttonStates[zoneStatus]};
+            }
+        },
+    },
+    legacy_st_button_state: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonStates = {
+                0: 'off',
+                1: 'single',
+                2: 'double',
+                3: 'hold',
+            };
+
+            if (msg.data.hasOwnProperty('data')) {
+                const zoneStatus = msg.data.zonestatus;
                 return {click: buttonStates[zoneStatus]};
             } else {
                 const zoneStatus = msg.data.zonestatus;

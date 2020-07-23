@@ -5795,7 +5795,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Button',
         supports: 'single, double and hold click, temperature',
-        fromZigbee: [fz.st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
+        fromZigbee: [fz.st_button_state, fz.legacy_st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6870,7 +6870,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
         supports: 'click',
-        fromZigbee: [fz.st_button_state],
+        fromZigbee: [fz.st_button_state, fz.legacy_st_button_state],
         toZigbee: [],
     },
     {
