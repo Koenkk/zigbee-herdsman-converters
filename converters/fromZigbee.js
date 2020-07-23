@@ -1199,6 +1199,13 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.sceneid};
+        },
+    },
+    legacy_scenes_recall_click: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
             return {click: msg.data.sceneid};
         },
     },
