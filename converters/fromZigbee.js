@@ -1044,7 +1044,9 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'on'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'on'};
+            }
         },
     },
     genOnOff_cmdOff: {
@@ -1058,7 +1060,9 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'off'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'off'};
+            }
         },
     },
 
@@ -1073,7 +1077,9 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_down'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'brightness_down'};
+            }
         },
     },
     E1743_brightness_up: {
@@ -1087,7 +1093,9 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_up'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'brightness_up'};
+            }
         },
     },
     E1743_brightness_stop: {
@@ -1101,7 +1109,9 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_stop'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'brightness_stop'};
+            }
         },
     },
     E1744_play_pause: {
@@ -1142,7 +1152,9 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {click: msg.data.groupid};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: msg.data.groupid};
+            }
         },
     },
     bitron_power: {
@@ -1206,7 +1218,9 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {click: msg.data.sceneid};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: msg.data.sceneid};
+            }
         },
     },
     smartthings_contact: {
@@ -1342,43 +1356,45 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            const state = msg.data['onOff'];
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const deviceID = msg.device.ieeeAddr;
+                const state = msg.data['onOff'];
 
-            if (!store[deviceID]) {
-                store[deviceID] = {};
-            }
+                if (!store[deviceID]) {
+                    store[deviceID] = {};
+                }
 
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (store[msg.device.ieeeAddr].transaction === current) return;
-            store[msg.device.ieeeAddr].transaction = current;
+                const current = msg.meta.zclTransactionSequenceNumber;
+                if (store[msg.device.ieeeAddr].transaction === current) return;
+                store[msg.device.ieeeAddr].transaction = current;
 
-            // 0 = click down, 1 = click up, else = multiple clicks
-            if (state === 0) {
-                store[deviceID].timer = setTimeout(() => {
-                    publish({click: 'long'});
-                    store[deviceID].timer = null;
-                    store[deviceID].long = Date.now();
-                    store[deviceID].long_timer = setTimeout(() => {
+                // 0 = click down, 1 = click up, else = multiple clicks
+                if (state === 0) {
+                    store[deviceID].timer = setTimeout(() => {
+                        publish({click: 'long'});
+                        store[deviceID].timer = null;
+                        store[deviceID].long = Date.now();
+                        store[deviceID].long_timer = setTimeout(() => {
+                            store[deviceID].long = false;
+                        }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
+                    }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
+                } else if (state === 1) {
+                    if (store[deviceID].long) {
+                        const duration = Date.now() - store[deviceID].long;
+                        publish({click: 'long_release', duration: duration});
                         store[deviceID].long = false;
-                    }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
-                }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
-            } else if (state === 1) {
-                if (store[deviceID].long) {
-                    const duration = Date.now() - store[deviceID].long;
-                    publish({click: 'long_release', duration: duration});
-                    store[deviceID].long = false;
-                }
+                    }
 
-                if (store[deviceID].timer) {
-                    clearTimeout(store[deviceID].timer);
-                    store[deviceID].timer = null;
-                    publish({click: 'single'});
+                    if (store[deviceID].timer) {
+                        clearTimeout(store[deviceID].timer);
+                        store[deviceID].timer = null;
+                        publish({click: 'single'});
+                    }
+                } else {
+                    const clicks = msg.data['32768'];
+                    const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
+                    publish({click: payload});
                 }
-            } else {
-                const clicks = msg.data['32768'];
-                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
-                publish({click: payload});
             }
         },
     },
@@ -1675,7 +1691,9 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            }
         },
     },
     WXKG02LM_action_multistate: {
@@ -1725,7 +1743,9 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
-                return {click: button + (action ? `_${action}` : '')};
+                if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                    return {click: button + (action ? `_${action}` : '')};
+                }
             }
         },
     },
@@ -1733,7 +1753,9 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'single'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'single'};
+            }
         },
     },
     WXKG06LM_action: {
@@ -1789,7 +1811,9 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'release'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'release'};
+            }
         },
     },
     cover_open: {
@@ -1803,7 +1827,9 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'open'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'open'};
+            }
         },
     },
     cover_close: {
@@ -1817,7 +1843,9 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
-            return {click: 'close'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: 'close'};
+            }
         },
     },
     xiaomi_power: {
@@ -1945,8 +1973,10 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                return {click: 'single'};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                if (!msg.data['61440']) {
+                    return {click: 'single'};
+                }
             }
         },
     },
@@ -1987,10 +2017,12 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                const mapping = {4: 'left', 5: 'right', 6: 'both'};
-                const button = mapping[msg.endpoint.ID];
-                return {click: button};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                if (!msg.data['61440']) {
+                    const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                    const button = mapping[msg.endpoint.ID];
+                    return {click: button};
+                }
             }
         },
     },
@@ -2008,9 +2040,11 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const times = {1: 'single', 2: 'double'};
-                return {click: times[msg.data.presentValue]};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                if ([1, 2].includes(msg.data.presentValue)) {
+                    const times = {1: 'single', 2: 'double'};
+                    return {click: times[msg.data.presentValue]};
+                }
             }
         },
     },
@@ -2030,11 +2064,13 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const mapping = {5: 'left', 6: 'right', 7: 'both'};
-                const times = {1: 'single', 2: 'double'};
-                const button = mapping[msg.endpoint.ID];
-                return {click: `${button}_${times[msg.data.presentValue]}`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                if ([1, 2].includes(msg.data.presentValue)) {
+                    const mapping = {5: 'left', 6: 'right', 7: 'both'};
+                    const times = {1: 'single', 2: 'double'};
+                    const button = mapping[msg.endpoint.ID];
+                    return {click: `${button}_${times[msg.data.presentValue]}`};
+                }
             }
         },
     },
@@ -2834,19 +2870,21 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            const buttonStates = {
-                0: 'off',
-                1: 'single',
-                2: 'double',
-                3: 'hold',
-            };
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const buttonStates = {
+                    0: 'off',
+                    1: 'single',
+                    2: 'double',
+                    3: 'hold',
+                };
 
-            if (msg.data.hasOwnProperty('data')) {
-                const zoneStatus = msg.data.zonestatus;
-                return {click: buttonStates[zoneStatus]};
-            } else {
-                const zoneStatus = msg.data.zonestatus;
-                return {click: buttonStates[zoneStatus]};
+                if (msg.data.hasOwnProperty('data')) {
+                    const zoneStatus = msg.data.zonestatus;
+                    return {click: buttonStates[zoneStatus]};
+                } else {
+                    const zoneStatus = msg.data.zonestatus;
+                    return {click: buttonStates[zoneStatus]};
+                }
             }
         },
     },
@@ -2915,7 +2953,9 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            }
         },
     },
     hue_motion_sensitivity: {
@@ -3871,9 +3911,11 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_on`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = msg.endpoint.ID;
+                if (button) {
+                    return {click: `${button}_on`};
+                }
             }
         },
     },
@@ -3891,9 +3933,11 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_off`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = msg.endpoint.ID;
+                if (button) {
+                    return {click: `${button}_off`};
+                }
             }
         },
     },
@@ -3912,10 +3956,12 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {click: `${button}_${direction}`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = msg.endpoint.ID;
+                const direction = msg.data.movemode == 0 ? 'up' : 'down';
+                if (button) {
+                    return {click: `${button}_${direction}`};
+                }
             }
         },
     },
@@ -3934,10 +3980,12 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {click: `${button}_${direction}`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = msg.endpoint.ID;
+                const direction = msg.data.movemode == 0 ? 'up' : 'down';
+                if (button) {
+                    return {click: `${button}_${direction}`};
+                }
             }
         },
     },
@@ -3955,9 +4003,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_stop`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = msg.endpoint.ID;
+                if (button) {
+                    return {click: `${button}_stop`};
+                }
             }
         },
     },
@@ -3972,7 +4022,9 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            }
         },
     },
     SZ_ESW01_AU_power: {
@@ -4326,20 +4378,22 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                const value = msg.data['presentValue'];
 
-            const actionLookup = {
-                1: 'single',
-                2: 'double',
-                3: 'tripple',
-                4: 'hold',
-            };
+                const actionLookup = {
+                    1: 'single',
+                    2: 'double',
+                    3: 'tripple',
+                    4: 'hold',
+                };
 
-            const action = actionLookup[value];
+                const action = actionLookup[value];
 
-            if (button) {
-                return {click: button + (action ? `_${action}` : '')};
+                if (button) {
+                    return {click: button + (action ? `_${action}` : '')};
+                }
             }
         },
     },
@@ -4512,49 +4566,51 @@ const converters = {
         cluster: 'manuSpecificClusterAduroSmart',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            // 13,40,18,104, 0,8,1 - click
-            // 13,40,18,22,  0,17,1
-            // 13,40,18,32,  0,18,1
-            // 13,40,18,6,   0,16,1
-            // 13,40,18,111, 0,4,2 - double click
-            // 13,40,18,58,  0,7,2
-            // 13,40,18,6,   0,2,3 - triple click
-            // motion messages:
-            // 13,40,18,105, 4,167,0,7 - motion on right side
-            // 13,40,18,96,  4,27,0,5
-            // 13,40,18,101, 4,27,0,7
-            // 13,40,18,125, 4,28,0,5
-            // 13,40,18,85,  4,28,0,7
-            // 13,40,18,3,   4,24,0,5
-            // 13,40,18,81,  4,10,1,7
-            // 13,40,18,72,  4,30,1,5
-            // 13,40,18,24,  4,25,0,40 - motion on left side
-            // 13,40,18,47,  4,28,0,56
-            // 13,40,18,8,   4,32,0,40
-            let value = {};
-            if (msg.data[4] == 0) {
-                value = msg.data[6];
-                if (1 <= value && value <= 3) {
-                    return {click: clickLookup[value]};
-                }
-            } else if (msg.data[4] == 4) {
-                value = msg.data[7];
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                // 13,40,18,104, 0,8,1 - click
+                // 13,40,18,22,  0,17,1
+                // 13,40,18,32,  0,18,1
+                // 13,40,18,6,   0,16,1
+                // 13,40,18,111, 0,4,2 - double click
+                // 13,40,18,58,  0,7,2
+                // 13,40,18,6,   0,2,3 - triple click
+                // motion messages:
+                // 13,40,18,105, 4,167,0,7 - motion on right side
+                // 13,40,18,96,  4,27,0,5
+                // 13,40,18,101, 4,27,0,7
+                // 13,40,18,125, 4,28,0,5
+                // 13,40,18,85,  4,28,0,7
+                // 13,40,18,3,   4,24,0,5
+                // 13,40,18,81,  4,10,1,7
+                // 13,40,18,72,  4,30,1,5
+                // 13,40,18,24,  4,25,0,40 - motion on left side
+                // 13,40,18,47,  4,28,0,56
+                // 13,40,18,8,   4,32,0,40
+                let value = {};
+                if (msg.data[4] == 0) {
+                    value = msg.data[6];
+                    if (1 <= value && value <= 3) {
+                        return {click: clickLookup[value]};
+                    }
+                } else if (msg.data[4] == 4) {
+                    value = msg.data[7];
 
-                const sidelookup = {
-                    5: 'right',
-                    7: 'right',
-                    40: 'left',
-                    56: 'left',
-                };
-                if (sidelookup[value]) {
-                    msg.data.occupancy = 1;
-                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
-                    payload.side = sidelookup[value];
+                    const sidelookup = {
+                        5: 'right',
+                        7: 'right',
+                        40: 'left',
+                        56: 'left',
+                    };
+                    if (sidelookup[value]) {
+                        msg.data.occupancy = 1;
+                        const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                        payload.side = sidelookup[value];
 
-                    return payload;
+                        return payload;
+                    }
                 }
+                return null;
             }
-            return null;
         },
     },
     terncy_knob: {
@@ -4855,8 +4911,10 @@ const converters = {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options, meta) => {
-            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
-            return {click: 'power', action: cmd};
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const cmd = msg.type === 'commandOn' ? 'on' : 'off';
+                return {click: 'power', action: cmd};
+            }
         },
     },
     CCTSwitch_D0001_move_to_level_recall: {
