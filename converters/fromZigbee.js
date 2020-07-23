@@ -2002,6 +2002,16 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if ([1, 2].includes(msg.data.presentValue)) {
                 const times = {1: 'single', 2: 'double'};
+                return {action: times[msg.data.presentValue]};
+            }
+        },
+    },
+    legacy_QBKG11LM_click: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if ([1, 2].includes(msg.data.presentValue)) {
+                const times = {1: 'single', 2: 'double'};
                 return {click: times[msg.data.presentValue]};
             }
         },
