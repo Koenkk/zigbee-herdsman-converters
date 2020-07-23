@@ -4486,6 +4486,55 @@ const converters = {
             if (msg.data[4] == 0) {
                 value = msg.data[6];
                 if (1 <= value && value <= 3) {
+                    return {action: clickLookup[value]};
+                }
+            } else if (msg.data[4] == 4) {
+                value = msg.data[7];
+
+                const sidelookup = {
+                    5: 'right',
+                    7: 'right',
+                    40: 'left',
+                    56: 'left',
+                };
+                if (sidelookup[value]) {
+                    msg.data.occupancy = 1;
+                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    payload.side = sidelookup[value];
+
+                    return payload;
+                }
+            }
+            return null;
+        },
+    },
+    legacy_terncy_raw: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // 13,40,18,104, 0,8,1 - click
+            // 13,40,18,22,  0,17,1
+            // 13,40,18,32,  0,18,1
+            // 13,40,18,6,   0,16,1
+            // 13,40,18,111, 0,4,2 - double click
+            // 13,40,18,58,  0,7,2
+            // 13,40,18,6,   0,2,3 - triple click
+            // motion messages:
+            // 13,40,18,105, 4,167,0,7 - motion on right side
+            // 13,40,18,96,  4,27,0,5
+            // 13,40,18,101, 4,27,0,7
+            // 13,40,18,125, 4,28,0,5
+            // 13,40,18,85,  4,28,0,7
+            // 13,40,18,3,   4,24,0,5
+            // 13,40,18,81,  4,10,1,7
+            // 13,40,18,72,  4,30,1,5
+            // 13,40,18,24,  4,25,0,40 - motion on left side
+            // 13,40,18,47,  4,28,0,56
+            // 13,40,18,8,   4,32,0,40
+            let value = {};
+            if (msg.data[4] == 0) {
+                value = msg.data[6];
+                if (1 <= value && value <= 3) {
                     return {click: clickLookup[value]};
                 }
             } else if (msg.data[4] == 4) {

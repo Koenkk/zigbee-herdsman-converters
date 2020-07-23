@@ -9842,7 +9842,7 @@ const devices = [
         supports: 'temperature, occupancy, illuminance, click, double click, triple click',
         fromZigbee: [
             fz.terncy_temperature, fz.occupancy_with_timeout,
-            fz.illuminance, fz.terncy_raw, fz.battery_not_divided,
+            fz.illuminance, fz.terncy_raw, fz.legacy_terncy_raw, fz.battery_not_divided,
         ],
         toZigbee: [],
     },
@@ -9852,7 +9852,7 @@ const devices = [
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
         supports: 'single, double and triple click, rotate',
-        fromZigbee: [fz.terncy_raw, fz.terncy_knob, fz.battery_not_divided],
+        fromZigbee: [fz.terncy_raw, fz.legacy_terncy_raw, fz.terncy_knob, fz.battery_not_divided],
         toZigbee: [],
     },
 
