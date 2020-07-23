@@ -2910,6 +2910,13 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+        },
+    },
+    legacy_CTR_U_scene: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
             return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },

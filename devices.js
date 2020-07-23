@@ -7065,7 +7065,7 @@ const devices = [
         supports: 'on/off, brightness up/down and click/hold/release',
         fromZigbee: [
             fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
-            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene,
+            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene, fz.legacy_CTR_U_scene,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
