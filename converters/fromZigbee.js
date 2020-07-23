@@ -388,18 +388,25 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                payload.battery = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
-                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+                // Deprecated: voltage is = mV now but should be V
+                payload.voltage = msg.data['batteryVoltage'] * 100;
+
+                if (model.meta.hasOwnProperty('batteryVoltageToPercentage')) {
+                    if (model.meta.batteryVoltageToPercentage === 'CR2032') {
+                        payload.battery = toPercentageCR2032(payload.voltage);
+                    }
+                }
             }
 
             if (msg.data.hasOwnProperty('batteryAlarmState')) {
                 const battery1Low = (msg.data.batteryAlarmState & 1<<0) > 0;
                 const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
                 const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
-                payload['battery_low'] = battery1Low || battery2Low || battery3Low;
+                payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
             return payload;
