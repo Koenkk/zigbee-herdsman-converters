@@ -8750,10 +8750,10 @@ const devices = [
         model: 'ZGRC-KEY-013',
         vendor: 'RGB Genie',
         description: '3 Zone remote and dimmer',
-        supports: 'click',
+        supports: 'click, action',
         fromZigbee: [
             fz.battery_not_divided, fz.ZGRC013_brightness_onoff, fz.ZGRC013_brightness, fz.ZGRC013_brightness_stop,
-            fz.ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
+            fz.ZGRC013_cmdOn, fz.legacy_ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.ZGRC013_scene,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
