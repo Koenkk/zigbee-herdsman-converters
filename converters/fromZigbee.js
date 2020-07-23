@@ -1782,6 +1782,13 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
+            return {action: 'release'};
+        },
+    },
+    legacy_cover_stop: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
             return {click: 'release'};
         },
     },
@@ -1789,10 +1796,24 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
+            return {action: 'open'};
+        },
+    },
+    legacy_cover_open: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandUpOpen',
+        convert: (model, msg, publish, options, meta) => {
             return {click: 'open'};
         },
     },
     cover_close: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandDownClose',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'close'};
+        },
+    },
+    legacy_cover_close: {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
