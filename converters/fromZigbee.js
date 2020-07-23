@@ -1061,7 +1061,15 @@ const converters = {
             return {click: 'off'};
         },
     },
+
     E1743_brightness_down: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'brightness_down'};
+        },
+    },
+    legacy_E1743_brightness_down: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
@@ -1072,10 +1080,24 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
+            return {action: 'brightness_up'};
+        },
+    },
+    legacy_E1743_brightness_up: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
             return {click: 'brightness_up'};
         },
     },
     E1743_brightness_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'brightness_stop'};
+        },
+    },
+    legacy_E1743_brightness_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStopWithOnOff',
         convert: (model, msg, publish, options, meta) => {

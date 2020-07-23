@@ -1669,8 +1669,8 @@ const devices = [
         description: 'TRADFRI ON/OFF switch',
         supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.E1743_brightness_up, fz.E1743_brightness_down,
-            fz.E1743_brightness_stop, fz.battery_not_divided,
+            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.E1743_brightness_up, fz.legacy_E1743_brightness_up, fz.E1743_brightness_down, fz.legacy_E1743_brightness_down,
+            fz.E1743_brightness_stop, fz.legacy_E1743_brightness_stop, fz.battery_not_divided,
         ],
         toZigbee: [],
         ota: ota.tradfri,
