@@ -1937,6 +1937,15 @@ const converters = {
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             if (!msg.data['61440']) {
+                return {action: 'single'};
+            }
+        },
+    },
+    legacy_QBKG04LM_QBKG11LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!msg.data['61440']) {
                 return {click: 'single'};
             }
         },

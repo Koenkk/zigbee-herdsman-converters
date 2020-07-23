@@ -536,7 +536,7 @@ const devices = [
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
             fz.QBKG04LM_QBKG11LM_operation_mode,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
