@@ -544,6 +544,12 @@ const devices = [
             return {'system': 1, 'default': 2};
         },
         onEvent: xiaomi.prevent_reset,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
@@ -573,11 +579,16 @@ const devices = [
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
         onEvent: xiaomi.prevent_reset,
+        configure: async (device, coordinatorEndpoint) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
@@ -979,6 +990,12 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
@@ -988,6 +1005,12 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.lock.aq1'],
