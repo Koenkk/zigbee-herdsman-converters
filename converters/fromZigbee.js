@@ -1979,8 +1979,6 @@ const converters = {
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             if (!msg.data['61440']) {
-                const mapping = {4: 'left', 5: 'right', 6: 'both'};
-                const button = mapping[msg.endpoint.ID];
                 return {action: getProperty('single', msg, model)};
             }
         },
@@ -3906,11 +3904,33 @@ const converters = {
             const button = msg.endpoint.ID;
             const direction = msg.data.movemode == 0 ? 'up' : 'down';
             if (button) {
+                return {action: `${button}_${direction}`};
+            }
+        },
+    },
+    legacy_ZGRC013_brightness: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            const direction = msg.data.movemode == 0 ? 'up' : 'down';
+            if (button) {
                 return {click: `${button}_${direction}`};
             }
         },
     },
     ZGRC013_brightness_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            const direction = msg.data.movemode == 0 ? 'up' : 'down';
+            if (button) {
+                return {action: `${button}_${direction}`};
+            }
+        },
+    },
+    legacy_ZGRC013_brightness_onoff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
@@ -3927,11 +3947,28 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const button = msg.endpoint.ID;
             if (button) {
+                return {action: `${button}_stop`};
+            }
+        },
+    },
+    legacy_ZGRC013_brightness_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            if (button) {
                 return {click: `${button}_stop`};
             }
         },
     },
     ZGRC013_scene: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+        },
+    },
+    legacy_ZGRC013_scene: {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
