@@ -404,7 +404,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
         supports: 'single, double, triple, quadruple, many, long, long_release click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG01LM_click],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG01LM_click, fz.legacy_WXKG01LM_click],
         toZigbee: [],
     },
     {

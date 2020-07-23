@@ -1322,6 +1322,50 @@ const converters = {
             } else if (state === 1) {
                 if (store[deviceID].long) {
                     const duration = Date.now() - store[deviceID].long;
+                    publish({action: 'long_release', duration: duration});
+                    store[deviceID].long = false;
+                }
+
+                if (store[deviceID].timer) {
+                    clearTimeout(store[deviceID].timer);
+                    store[deviceID].timer = null;
+                    publish({action: 'single'});
+                }
+            } else {
+                const clicks = msg.data['32768'];
+                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
+                publish({action: payload});
+            }
+        },
+    },
+    legacy_WXKG01LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            const state = msg.data['onOff'];
+
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr].transaction === current) return;
+            store[msg.device.ieeeAddr].transaction = current;
+
+            // 0 = click down, 1 = click up, else = multiple clicks
+            if (state === 0) {
+                store[deviceID].timer = setTimeout(() => {
+                    publish({click: 'long'});
+                    store[deviceID].timer = null;
+                    store[deviceID].long = Date.now();
+                    store[deviceID].long_timer = setTimeout(() => {
+                        store[deviceID].long = false;
+                    }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
+                }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
+            } else if (state === 1) {
+                if (store[deviceID].long) {
+                    const duration = Date.now() - store[deviceID].long;
                     publish({click: 'long_release', duration: duration});
                     store[deviceID].long = false;
                 }
