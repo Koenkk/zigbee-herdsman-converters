@@ -1981,6 +1981,17 @@ const converters = {
             if (!msg.data['61440']) {
                 const mapping = {4: 'left', 5: 'right', 6: 'both'};
                 const button = mapping[msg.endpoint.ID];
+                return {action: getProperty('single', msg, model)};
+            }
+        },
+    },
+    legacy_QBKG03LM_QBKG12LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!msg.data['61440']) {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoint.ID];
                 return {click: button};
             }
         },
