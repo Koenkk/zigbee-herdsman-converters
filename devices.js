@@ -6018,7 +6018,7 @@ const devices = [
         vendor: 'Bitron',
         description: '4-Touch single click buttons',
         supports: 'click',
-        fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click],
+        fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click, fz.legacy_AV2010_34_click],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {

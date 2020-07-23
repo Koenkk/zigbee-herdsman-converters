@@ -1135,6 +1135,13 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.groupid};
+        },
+    },
+    legacy_AV2010_34_click: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
             return {click: msg.data.groupid};
         },
     },
