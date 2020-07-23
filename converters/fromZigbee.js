@@ -1033,13 +1033,6 @@ const converters = {
             return result;
         },
     },
-    genOnOff_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'on'};
-        },
-    },
     legacy_genOnOff_cmdOn: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1049,13 +1042,6 @@ const converters = {
             }
         },
     },
-    genOnOff_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
-        },
-    },
     legacy_genOnOff_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -1063,14 +1049,6 @@ const converters = {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return {click: 'off'};
             }
-        },
-    },
-
-    E1743_brightness_down: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'brightness_down'};
         },
     },
     legacy_E1743_brightness_down: {
@@ -1096,13 +1074,6 @@ const converters = {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return {click: 'brightness_up'};
             }
-        },
-    },
-    E1743_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'brightness_stop'};
         },
     },
     legacy_E1743_brightness_stop: {
@@ -1139,13 +1110,6 @@ const converters = {
                     transition_time: msg.data.transtime,
                 };
             }
-        },
-    },
-    AV2010_34_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: msg.data.groupid};
         },
     },
     legacy_AV2010_34_click: {
@@ -1205,13 +1169,6 @@ const converters = {
                 result.battery_alarm_state = msg.data['batteryAlarmState'];
             }
             return result;
-        },
-    },
-    scenes_recall_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: msg.data.sceneid};
         },
     },
     legacy_scenes_recall_click: {
@@ -4011,13 +3968,6 @@ const converters = {
             }
         },
     },
-    ZGRC013_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
-        },
-    },
     legacy_ZGRC013_scene: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -4897,14 +4847,6 @@ const converters = {
             return {
                 action: `${type}`,
             };
-        },
-    },
-    CCTSwitch_D0001_on_off: {
-        cluster: 'genOnOff',
-        type: ['commandOn', 'commandOff'],
-        convert: (model, msg, publish, options, meta) => {
-            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
-            return {action: cmd};
         },
     },
     legacy_CCTSwitch_D0001_on_off: {

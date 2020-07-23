@@ -1670,8 +1670,8 @@ const devices = [
         description: 'TRADFRI ON/OFF switch',
         supports: 'on, off, brightness up/down/stop',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.E1743_brightness_up,
-            fz.legacy_E1743_brightness_up, fz.E1743_brightness_down, fz.legacy_E1743_brightness_down, fz.E1743_brightness_stop,
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.command_move,
+            fz.legacy_E1743_brightness_up, fz.legacy_E1743_brightness_down, fz.command_stop,
             fz.legacy_E1743_brightness_stop, fz.battery_not_divided,
         ],
         toZigbee: [],
@@ -4516,7 +4516,7 @@ const devices = [
         description: 'Smart 1 key scene wall switch',
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FTB56+ZSN16HG1.0'],
@@ -4525,7 +4525,7 @@ const devices = [
         description: 'Smart 2 key scene wall switch',
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
@@ -4534,7 +4534,7 @@ const devices = [
         description: 'Smart 4 key scene wall switch',
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.scenes_recall_click, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['LXN56-DC27LX1.1', 'LXN56-DS27LX1.1'],
@@ -6020,8 +6020,8 @@ const devices = [
         model: 'AV2010/34',
         vendor: 'Bitron',
         description: '4-Touch single click buttons',
-        supports: 'click',
-        fromZigbee: [fz.ignore_power_report, fz.AV2010_34_click, fz.legacy_AV2010_34_click],
+        supports: 'click, action',
+        fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy_AV2010_34_click],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7067,7 +7067,7 @@ const devices = [
         description: 'CTR.U remote',
         supports: 'on/off, brightness up/down and click/hold/release',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
             fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene, fz.legacy_CTR_U_scene,
             fz.ignore_basic_report,
         ],
@@ -7152,7 +7152,7 @@ const devices = [
         description: 'Zigbee 3.0 Keypad Pulse 4S',
         supports: 'click, action, brightness, scenes',
         fromZigbee: [
-            fz.scenes_recall_click, fz.legacy_scenes_recall_click, fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff,
+            fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
         ],
         toZigbee: [],
@@ -7164,7 +7164,7 @@ const devices = [
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         supports: 'click, action, brightness, scenes',
         fromZigbee: [
-            fz.scenes_recall_click, fz.legacy_scenes_recall_click, fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff,
+            fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
         ],
         toZigbee: [],
@@ -8536,7 +8536,7 @@ const devices = [
         vendor: 'NET2GRID',
         description: 'White Net2Grid power outlet switch with power meter',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.on_off,
+        fromZigbee: [fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.metering_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
@@ -8758,7 +8758,7 @@ const devices = [
         fromZigbee: [
             fz.battery_not_divided, fz.ZGRC013_brightness_onoff, fz.legacy_ZGRC013_brightness_onoff, fz.ZGRC013_brightness,
             fz.legacy_ZGRC013_brightness, fz.ZGRC013_brightness_stop, fz.legacy_ZGRC013_brightness_stop, fz.ZGRC013_cmdOn,
-            fz.legacy_ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.legacy_ZGRC013_cmdOff, fz.ZGRC013_scene,
+            fz.legacy_ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -8893,7 +8893,8 @@ const devices = [
         description: '4-Key Remote Controller',
         supports: 'on/off, brightness up/down and click/hold/release, cct',
         fromZigbee: [
-            fz.CCTSwitch_D0001_on_off,
+            fz.command_on,
+            fz.command_off,
             fz.legacy_CCTSwitch_D0001_on_off,
             fz.CCTSwitch_D0001_move_to_level_recall,
             fz.CCTSwitch_D0001_move_to_colortemp_recall,
@@ -8946,7 +8947,7 @@ const devices = [
         description: 'Bizy plug meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.on_off,
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
@@ -8975,7 +8976,7 @@ const devices = [
         description: 'DinRail 1-phase meter',
         supports: 'on/off, power, energy measurement and temperature',
         fromZigbee: [
-            fz.genOnOff_cmdOn, fz.legacy_genOnOff_cmdOn, fz.genOnOff_cmdOff, fz.legacy_genOnOff_cmdOff, fz.on_off,
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         toZigbee: [tz.on_off],
