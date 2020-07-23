@@ -1932,6 +1932,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1743830P7'],
+        model: '1743830P7',
+        vendor: 'Philips',
+        description: 'Hue Econic outdoor Wall',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1743130P7'],
         model: '1743130P7',
         vendor: 'Philips',
