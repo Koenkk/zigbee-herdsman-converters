@@ -4318,6 +4318,27 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
+                return {action: button + (action ? `_${action}` : '')};
+            }
+        },
+    },
+    legacy_ptvo_switch_buttons: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+
+            const actionLookup = {
+                1: 'single',
+                2: 'double',
+                3: 'tripple',
+                4: 'hold',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
                 return {click: button + (action ? `_${action}` : '')};
             }
         },
