@@ -1245,6 +1245,13 @@ const converters = {
             await entity.read('genAnalogOutput', [0x0055]);
         },
     },
+	ZNCLDJ12LM_control: {
+		key: ['discovery'],
+		convertSet: async (entity, key, value, meta) => {
+			meta.logger.info(`${meta.options.friendlyName}: activating end stops discovery mode`);
+			await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
+		},
+	},
     ledvance_commands: {
         /* deprectated osram_*/
         key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
