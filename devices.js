@@ -10983,7 +10983,7 @@ const devices = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         supports: 'smoke, warning, temperature',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
+        fromZigbee: [fz.temperature, fz.battery_cr2032, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.warning],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
