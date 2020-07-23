@@ -1131,13 +1131,6 @@ const converters = {
             }
         },
     },
-    osram_lightify_switch_long_middle: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'long_middle'};
-        },
-    },
     AV2010_34_click: {
         cluster: 'genScenes',
         type: 'commandRecall',
