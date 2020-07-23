@@ -2624,6 +2624,14 @@ const devices = [
         extend: hue.light_onoff_brightness_colorxy,
     },
     {
+        zigbeeModel: ['1746330P7'],
+        model: '1746330P7',
+        vendor: 'Philips',
+        description: 'Hue Appear outdoor wall light',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCS001'],
         model: '1741830P7',
         vendor: 'Philips',
