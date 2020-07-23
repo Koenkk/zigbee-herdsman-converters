@@ -2745,6 +2745,7 @@ const devices = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input,
             tz.ptvo_switch_light_brightness, tz.on_off,
         ],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
                 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
@@ -2962,6 +2963,7 @@ const devices = [
             fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
                 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
@@ -7068,7 +7070,7 @@ const devices = [
         supports: 'on/off, brightness up/down and click/hold/release',
         fromZigbee: [
             fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
-            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.CTR_U_scene, fz.legacy_CTR_U_scene,
+            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
@@ -8756,9 +8758,9 @@ const devices = [
         description: '3 Zone remote and dimmer',
         supports: 'click, action',
         fromZigbee: [
-            fz.battery_not_divided, fz.ZGRC013_brightness_onoff, fz.legacy_ZGRC013_brightness_onoff, fz.ZGRC013_brightness,
-            fz.legacy_ZGRC013_brightness, fz.ZGRC013_brightness_stop, fz.legacy_ZGRC013_brightness_stop, fz.ZGRC013_cmdOn,
-            fz.legacy_ZGRC013_cmdOn, fz.ZGRC013_cmdOff, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
+            fz.battery_not_divided, fz.command_move, fz.legacy_ZGRC013_brightness_onoff,
+            fz.legacy_ZGRC013_brightness, fz.command_stop, fz.legacy_ZGRC013_brightness_stop, fz.command_on,
+            fz.legacy_ZGRC013_cmdOn, fz.command_off, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
         ],
         toZigbee: [],
         meta: {configureKey: 1},

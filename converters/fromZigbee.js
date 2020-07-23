@@ -2899,13 +2899,6 @@ const converters = {
             };
         },
     },
-    CTR_U_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
-        },
-    },
     legacy_CTR_U_scene: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -3854,38 +3847,6 @@ const converters = {
             };
         },
     },
-    ZGRC013_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {action: `${button}_on`};
-            }
-        },
-    },
-    legacy_ZGRC013_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                const button = msg.endpoint.ID;
-                if (button) {
-                    return {click: `${button}_on`};
-                }
-            }
-        },
-    },
-    ZGRC013_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {action: `${button}_off`};
-            }
-        },
-    },
     legacy_ZGRC013_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -3895,17 +3856,6 @@ const converters = {
                 if (button) {
                     return {click: `${button}_off`};
                 }
-            }
-        },
-    },
-    ZGRC013_brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {action: `${button}_${direction}`};
             }
         },
     },
@@ -3922,17 +3872,6 @@ const converters = {
             }
         },
     },
-    ZGRC013_brightness_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {action: `${button}_${direction}`};
-            }
-        },
-    },
     legacy_ZGRC013_brightness_onoff: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
@@ -3943,16 +3882,6 @@ const converters = {
                 if (button) {
                     return {click: `${button}_${direction}`};
                 }
-            }
-        },
-    },
-    ZGRC013_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {action: `${button}_stop`};
             }
         },
     },
@@ -4320,7 +4249,7 @@ const converters = {
             const action = actionLookup[value];
 
             if (button) {
-                return {action: button + (action ? `_${action}` : '')};
+                return {action: getProperty(action, msg, model)};
             }
         },
     },
