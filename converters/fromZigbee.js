@@ -4848,6 +4848,14 @@ const converters = {
         type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options, meta) => {
             const cmd = msg.type === 'commandOn' ? 'on' : 'off';
+            return {action: 'power', action: cmd};
+        },
+    },
+    legacy_CCTSwitch_D0001_on_off: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
             return {click: 'power', action: cmd};
         },
     },

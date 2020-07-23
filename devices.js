@@ -8894,6 +8894,7 @@ const devices = [
         supports: 'on/off, brightness up/down and click/hold/release, cct',
         fromZigbee: [
             fz.CCTSwitch_D0001_on_off,
+            fz.legacy_CCTSwitch_D0001_on_off,
             fz.CCTSwitch_D0001_move_to_level_recall,
             fz.CCTSwitch_D0001_move_to_colortemp_recall,
             fz.CCTSwitch_D0001_colortemp_updown_hold_release,
