@@ -2024,6 +2024,18 @@ const converters = {
                 const mapping = {5: 'left', 6: 'right', 7: 'both'};
                 const times = {1: 'single', 2: 'double'};
                 const button = mapping[msg.endpoint.ID];
+                return {action: `${button}_${times[msg.data.presentValue]}`};
+            }
+        },
+    },
+    legacy_QBKG12LM_click: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if ([1, 2].includes(msg.data.presentValue)) {
+                const mapping = {5: 'left', 6: 'right', 7: 'both'};
+                const times = {1: 'single', 2: 'double'};
+                const button = mapping[msg.endpoint.ID];
                 return {click: `${button}_${times[msg.data.presentValue]}`};
             }
         },

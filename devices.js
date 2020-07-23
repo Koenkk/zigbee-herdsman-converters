@@ -587,7 +587,7 @@ const devices = [
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_QBKG12LM_click, fz.xiaomi_power_from_basic,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.QBKG12LM_click, fz.xiaomi_power,
+            fz.QBKG03LM_QBKG12LM_operation_mode, fz.QBKG12LM_click, fz.legacy_QBKG12LM_click, fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
