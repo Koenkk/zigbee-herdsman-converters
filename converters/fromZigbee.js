@@ -3885,6 +3885,16 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const button = msg.endpoint.ID;
             if (button) {
+                return {action: `${button}_off`};
+            }
+        },
+    },
+    legacy_ZGRC013_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            if (button) {
                 return {click: `${button}_off`};
             }
         },
