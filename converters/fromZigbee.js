@@ -201,6 +201,14 @@ const ratelimitedDimmer = (model, msg, publish, options, meta) => {
     }
 };
 
+const transactionStore = {};
+const hasAlreadyReceivedTransaction = (msg) => {
+    const current = msg.meta.zclTransactionSequenceNumber;
+    if (transactionStore[msg.device.ieeeAddr] === current) return true;
+    transactionStore[msg.device.ieeeAddr] = current;
+    return false;
+}
+
 const holdUpdateBrightness324131092621 = (deviceID) => {
     if (store[deviceID] && store[deviceID].brightnessSince && store[deviceID].brightnessDirection) {
         const duration = Date.now() - store[deviceID].brightnessSince;
@@ -322,8 +330,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
 
 const converters = {
     /**
-     * Generic/recommended converters, the converters below comply with the ZCL
-     * and are recommended to for re-use
+     * Generic/recommended converters, re-use if possible.
      */
     lock_operation_event: {
         cluster: 'closuresDoorLock',
@@ -366,20 +373,6 @@ const converters = {
                     lock_state: lookup[msg.data['lockState']],
                 };
             }
-        },
-    },
-    kmpcil_res005_occupancy: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {occupancy: (msg.data['presentValue']===1)};
-        },
-    },
-    kmpcil_res005_on_off: {
-        cluster: 'genBinaryOutput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
         },
     },
     battery: {
@@ -805,6 +798,33 @@ const converters = {
             return payload;
         },
     },
+    command_cover_stop: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('stop', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_cover_open: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandUpOpen',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('open', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_cover_close: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandDownClose',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: getProperty('close', msg, model)};
+            if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1002,9 +1022,172 @@ const converters = {
     },
 
     /**
+     * Non-generic converters
+     */
+    xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && !msg.data['61440']) {
+                return;
+            }
+
+            // Dont' use getProperty here, endpoints don't match
+            if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) {
+                const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                const button = mapping[msg.endpoint.ID];
+                return {action: `single_${mapping[button]}`};
+            } else {
+                return {action: 'single'};
+            }
+        },
+    },
+    xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyReceivedTransaction(msg)) return;
+            const actionLookup = {0: 'hold', 1: 'single', 2: 'double', 255: 'release'};
+            let buttonLookup = null;
+            if (model.model === 'WXKG02LM') buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            if (model.model === 'QBKG12LM') buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
+
+            const action = actionLookup[msg.data['presentValue']];
+            if (buttonLookup) {
+                const button = buttonLookup[msg.endpoint.ID];
+                if (button) {
+                    return {action: `${action}_${button}`}
+                }
+            } else {
+                return {action};
+            }
+        },
+    },
+    xiaomi_WXKG01LM_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            const state = msg.data['onOff'];
+
+            if (!store[deviceID]) {
+                store[deviceID] = {};
+            }
+
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr].transaction === current) return;
+            store[msg.device.ieeeAddr].transaction = current;
+
+            // 0 = click down, 1 = click up, else = multiple clicks
+            if (state === 0) {
+                store[deviceID].timer = setTimeout(() => {
+                    publish({action: 'hold'});
+                    store[deviceID].timer = null;
+                    store[deviceID].hold = Date.now();
+                    store[deviceID].hold_timer = setTimeout(() => {
+                        store[deviceID].hold = false;
+                    }, 4000); // After 4000 milliseconds of not reciving release we assume it will not happen.
+                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+            } else if (state === 1) {
+                if (store[deviceID].hold) {
+                    const duration = Date.now() - store[deviceID].hold;
+                    publish({action: 'release', duration: duration});
+                    store[deviceID].hold = false;
+                }
+
+                if (store[deviceID].timer) {
+                    clearTimeout(store[deviceID].timer);
+                    store[deviceID].timer = null;
+                    publish({action: 'single'});
+                }
+            } else {
+                const clicks = msg.data['32768'];
+                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
+                publish({action: payload});
+            }
+        },
+    },
+    command_status_change_notification_action: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'single', 2: 'double', 3: 'hold'};
+            const zoneStatus = msg.data.zonestatus;
+            return {action: lookup[zoneStatus]};
+        },
+    },
+    ptvo_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup = {1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
+            const value = msg.data['presentValue'];
+            const action = actionLookup[value];
+            return {action: getProperty(action, msg, model)};
+        },
+    },
+    terncy_raw: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // 13,40,18,104, 0,8,1 - click
+            // 13,40,18,22,  0,17,1
+            // 13,40,18,32,  0,18,1
+            // 13,40,18,6,   0,16,1
+            // 13,40,18,111, 0,4,2 - double click
+            // 13,40,18,58,  0,7,2
+            // 13,40,18,6,   0,2,3 - triple click
+            // motion messages:
+            // 13,40,18,105, 4,167,0,7 - motion on right side
+            // 13,40,18,96,  4,27,0,5
+            // 13,40,18,101, 4,27,0,7
+            // 13,40,18,125, 4,28,0,5
+            // 13,40,18,85,  4,28,0,7
+            // 13,40,18,3,   4,24,0,5
+            // 13,40,18,81,  4,10,1,7
+            // 13,40,18,72,  4,30,1,5
+            // 13,40,18,24,  4,25,0,40 - motion on left side
+            // 13,40,18,47,  4,28,0,56
+            // 13,40,18,8,   4,32,0,40
+            let value = {};
+            if (msg.data[4] == 0) {
+                value = msg.data[6];
+                if (1 <= value && value <= 3) {
+                    return {action: clickLookup[value]};
+                }
+            } else if (msg.data[4] == 4) {
+                value = msg.data[7];
+                const sidelookup = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
+                if (sidelookup[value]) {
+                    msg.data.occupancy = 1;
+                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    payload.action_side = sidelookup[value];
+                    payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
+
+                    return payload;
+                }
+            }
+        },
+    },
+
+    /**
      * Device specific converters, not recommended for re-use.
      * TODO: This has not been fully sorted out yet.
      */
+    leagcy_xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+            const actionLookup = {0: 'long', 1: null, 2: 'double'};
+            const action = actionLookup[value];
+
+            if (button) {
+                return {action: `${button}${(action ? `_${action}` : '')}`};
+            }
+        },
+    },
     scenes_recall_scene_65029: {
         cluster: 65029,
         type: ['raw'],
@@ -1058,13 +1241,6 @@ const converters = {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return {click: 'brightness_down'};
             }
-        },
-    },
-    E1743_brightness_up: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'brightness_up'};
         },
     },
     legacy_E1743_brightness_up: {
@@ -1265,50 +1441,6 @@ const converters = {
             }
         },
     },
-    WXKG01LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            const state = msg.data['onOff'];
-
-            if (!store[deviceID]) {
-                store[deviceID] = {};
-            }
-
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (store[msg.device.ieeeAddr].transaction === current) return;
-            store[msg.device.ieeeAddr].transaction = current;
-
-            // 0 = click down, 1 = click up, else = multiple clicks
-            if (state === 0) {
-                store[deviceID].timer = setTimeout(() => {
-                    publish({click: 'long'});
-                    store[deviceID].timer = null;
-                    store[deviceID].long = Date.now();
-                    store[deviceID].long_timer = setTimeout(() => {
-                        store[deviceID].long = false;
-                    }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
-                }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
-            } else if (state === 1) {
-                if (store[deviceID].long) {
-                    const duration = Date.now() - store[deviceID].long;
-                    publish({action: 'long_release', duration: duration});
-                    store[deviceID].long = false;
-                }
-
-                if (store[deviceID].timer) {
-                    clearTimeout(store[deviceID].timer);
-                    store[deviceID].timer = null;
-                    publish({action: 'single'});
-                }
-            } else {
-                const clicks = msg.data['32768'];
-                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
-                publish({action: payload});
-            }
-        },
-    },
     legacy_WXKG01LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1435,21 +1567,6 @@ const converters = {
                 16: {action: 'hold'}, // hold for more than 400ms
                 17: {action: 'release'}, // release after hold for more than 400ms
                 18: {action: 'shake'}, // shake
-            };
-
-            return lookup[value] ? lookup[value] : null;
-        },
-    },
-    xiaomi_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            const lookup = {
-                1: {action: 'single'}, // single click
-                2: {action: 'double'}, // double click
-                0: {action: 'hold'}, // hold for more than 400ms
-                255: {action: 'release'}, // release after hold for more than 400ms
             };
 
             return lookup[value] ? lookup[value] : null;
@@ -1616,32 +1733,12 @@ const converters = {
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
-    xiaomi_on_off_action: {
+    legacy_xiaomi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
+            // Legacy: use xiaomi_on_off_action_single
             return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-        },
-    },
-    xiaomi_multistate_action: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-            const actionLookup = {0: 'long', 1: null, 2: 'double'};
-            const action = actionLookup[value];
-
-            if (button) {
-                return {action: `${button}${(action ? `_${action}` : '')}`};
-            }
-        },
-    },
-    on_off_action_single: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty('single', msg, model)};
         },
     },
     legacy_WXKG02LM_click: {
@@ -1650,31 +1747,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-            }
-        },
-    },
-    WXKG02LM_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
-            // of a message with the same transaction sequence number twice.
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (store[msg.device.ieeeAddr] === current) return;
-            store[msg.device.ieeeAddr] = current;
-
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-
-            const actionLookup = {
-                0: 'long',
-                1: null,
-                2: 'double',
-            };
-
-            const action = actionLookup[value];
-            if (button) {
-                return {action: button + (action ? `_${action}` : '')};
             }
         },
     },
@@ -1715,13 +1787,6 @@ const converters = {
             }
         },
     },
-    WXKG06LM_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'single'};
-        },
-    },
     immax_07046L_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -1757,13 +1822,6 @@ const converters = {
             return {water_leak: msg.data.zonestatus === 1};
         },
     },
-    cover_stop: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'release'};
-        },
-    },
     legacy_cover_stop: {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
@@ -1773,13 +1831,6 @@ const converters = {
             }
         },
     },
-    cover_open: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandUpOpen',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'open'};
-        },
-    },
     legacy_cover_open: {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
@@ -1787,13 +1838,6 @@ const converters = {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return {click: 'open'};
             }
-        },
-    },
-    cover_close: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandDownClose',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'close'};
         },
     },
     legacy_cover_close: {
@@ -1917,15 +1961,6 @@ const converters = {
             }
         },
     },
-    QBKG04LM_QBKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                return {action: 'single'};
-            }
-        },
-    },
     legacy_QBKG04LM_QBKG11LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
@@ -1961,15 +1996,6 @@ const converters = {
             }
         },
     },
-    QBKG03LM_QBKG12LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                return {action: getProperty('single', msg, model)};
-            }
-        },
-    },
     legacy_QBKG03LM_QBKG12LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
@@ -1983,16 +2009,6 @@ const converters = {
             }
         },
     },
-    QBKG11LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const times = {1: 'single', 2: 'double'};
-                return {action: times[msg.data.presentValue]};
-            }
-        },
-    },
     legacy_QBKG11LM_click: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -2002,18 +2018,6 @@ const converters = {
                     const times = {1: 'single', 2: 'double'};
                     return {click: times[msg.data.presentValue]};
                 }
-            }
-        },
-    },
-    QBKG12LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const mapping = {5: 'left', 6: 'right', 7: 'both'};
-                const times = {1: 'single', 2: 'double'};
-                const button = mapping[msg.endpoint.ID];
-                return {action: `${button}_${times[msg.data.presentValue]}`};
             }
         },
     },
@@ -2801,26 +2805,6 @@ const converters = {
             };
 
             return {action: buttonStates[msg.data.zonestatus]};
-        },
-    },
-    st_button_state: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonStates = {
-                0: 'off',
-                1: 'single',
-                2: 'double',
-                3: 'hold',
-            };
-
-            if (msg.data.hasOwnProperty('data')) {
-                const zoneStatus = msg.data.zonestatus;
-                return {action: buttonStates[zoneStatus]};
-            } else {
-                const zoneStatus = msg.data.zonestatus;
-                return {action: buttonStates[zoneStatus]};
-            }
         },
     },
     legacy_st_button_state: {
@@ -3847,6 +3831,16 @@ const converters = {
             };
         },
     },
+    legacy_ZGRC013_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            if (button) {
+                return {click: `${button}_on`};
+            }
+        },
+    },
     legacy_ZGRC013_cmdOff: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -4232,27 +4226,6 @@ const converters = {
             return payload;
         },
     },
-    ptvo_switch_buttons: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-
-            const actionLookup = {
-                1: 'single',
-                2: 'double',
-                3: 'tripple',
-                4: 'hold',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                return {action: getProperty(action, msg, model)};
-            }
-        },
-    },
     legacy_ptvo_switch_buttons: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4392,55 +4365,6 @@ const converters = {
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
-    terncy_raw: {
-        cluster: 'manuSpecificClusterAduroSmart',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            // 13,40,18,104, 0,8,1 - click
-            // 13,40,18,22,  0,17,1
-            // 13,40,18,32,  0,18,1
-            // 13,40,18,6,   0,16,1
-            // 13,40,18,111, 0,4,2 - double click
-            // 13,40,18,58,  0,7,2
-            // 13,40,18,6,   0,2,3 - triple click
-            // motion messages:
-            // 13,40,18,105, 4,167,0,7 - motion on right side
-            // 13,40,18,96,  4,27,0,5
-            // 13,40,18,101, 4,27,0,7
-            // 13,40,18,125, 4,28,0,5
-            // 13,40,18,85,  4,28,0,7
-            // 13,40,18,3,   4,24,0,5
-            // 13,40,18,81,  4,10,1,7
-            // 13,40,18,72,  4,30,1,5
-            // 13,40,18,24,  4,25,0,40 - motion on left side
-            // 13,40,18,47,  4,28,0,56
-            // 13,40,18,8,   4,32,0,40
-            let value = {};
-            if (msg.data[4] == 0) {
-                value = msg.data[6];
-                if (1 <= value && value <= 3) {
-                    return {action: clickLookup[value]};
-                }
-            } else if (msg.data[4] == 4) {
-                value = msg.data[7];
-
-                const sidelookup = {
-                    5: 'right',
-                    7: 'right',
-                    40: 'left',
-                    56: 'left',
-                };
-                if (sidelookup[value]) {
-                    msg.data.occupancy = 1;
-                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
-                    payload.side = sidelookup[value];
-
-                    return payload;
-                }
-            }
-            return null;
-        },
-    },
     legacy_terncy_raw: {
         cluster: 'manuSpecificClusterAduroSmart',
         type: 'raw',
@@ -4471,24 +4395,7 @@ const converters = {
                     if (1 <= value && value <= 3) {
                         return {click: clickLookup[value]};
                     }
-                } else if (msg.data[4] == 4) {
-                    value = msg.data[7];
-
-                    const sidelookup = {
-                        5: 'right',
-                        7: 'right',
-                        40: 'left',
-                        56: 'left',
-                    };
-                    if (sidelookup[value]) {
-                        msg.data.occupancy = 1;
-                        const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
-                        payload.side = sidelookup[value];
-
-                        return payload;
-                    }
                 }
-                return null;
             }
         },
     },
@@ -4784,7 +4691,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 const cmd = msg.type === 'commandOn' ? 'on' : 'off';
-                return {click: 'power', action: cmd};
+                return {click: 'power'};
             }
         },
     },
@@ -5584,6 +5491,20 @@ const converters = {
 
                 return null;
             }
+        },
+    },
+    kmpcil_res005_occupancy: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: (msg.data['presentValue']===1)};
+        },
+    },
+    kmpcil_res005_on_off: {
+        cluster: 'genBinaryOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
         },
     },
 
