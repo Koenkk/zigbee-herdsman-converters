@@ -404,7 +404,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
         supports: 'single, double, triple, quadruple, many, long, long_release click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG01LM_click, fz.legacy_WXKG01LM_click],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
         toZigbee: [],
     },
     {
@@ -414,8 +414,8 @@ const devices = [
         description: 'Aqara wireless switch',
         supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WXKG11LM_click,
-            fz.xiaomi_action_click_multistate,
+            fz.xiaomi_multistate_action,
+            /* check these: */ fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -426,7 +426,7 @@ const devices = [
         description: 'Aqara wireless switch (with gyroscope)',
         supports: 'single, double, shake, hold, release',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.WXKG12LM_action_click_multistate,
+            fz.xiaomi_battery_3v, fz.xiaomi_multistate_action, fz.legacy_WXKG12LM_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -436,7 +436,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         supports: 'single (and double, hold, release and long click depending on model)',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.on_off_action_single, fz.legacy_WXKG03LM_click, fz.xiaomi_action_click_multistate],
+        fromZigbee: [
+            fz.xiaomi_multistate_action,
+            /* check these: */
+            fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
     },
@@ -446,7 +449,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 single key wireless wall switch',
         supports: 'action',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WXKG06LM_action, fz.xiaomi_action_multistate],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
         meta: {configureKey: 1},
@@ -462,10 +465,11 @@ const devices = [
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right, both click (and double, long click for left, right and both depending on model)',
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.on_off_action_single, fz.legacy_WXKG02LM_click,
-            fz.WXKG02LM_action_multistate, fz.legacy_WXKG02LM_click_multistate,
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
+            /* check these: */ fz.xiaomi_battery_3v, fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
         ],
         toZigbee: [],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'both': 3};
         },
@@ -536,7 +540,7 @@ const devices = [
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
             fz.QBKG04LM_QBKG11LM_operation_mode,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -552,8 +556,11 @@ const devices = [
         description: 'Aqara single key wired wall switch',
         supports: 'on/off, power measurement',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.xiaomi_power_from_basic,
-            fz.QBKG04LM_QBKG11LM_operation_mode, fz.QBKG11LM_click, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
+            /* check these: */
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_power_from_basic,
+            fz.QBKG04LM_QBKG11LM_operation_mode, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -569,7 +576,9 @@ const devices = [
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         supports: 'release/hold, on/off, temperature',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
+            fz.xiaomi_on_off_action,
+            /* check these */
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -586,8 +595,10 @@ const devices = [
         description: 'Aqara double key wired wall switch',
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_QBKG12LM_click,
-            fz.xiaomi_power_from_basic, fz.QBKG03LM_QBKG12LM_operation_mode, fz.QBKG12LM_click, fz.legacy_QBKG12LM_click,
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
+            /* check these: */
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
+            fz.xiaomi_power_from_basic, fz.QBKG03LM_QBKG12LM_operation_mode, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
@@ -603,7 +614,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 double key wireless wall switch',
         supports: 'action',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
+        fromZigbee: [fz.xiaomi_battery_3v, fz.legacy_xiaomi_on_off_action, fz.legacy_xiaomi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -617,7 +628,7 @@ const devices = [
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
         supports: 'on/off, action',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
             fz.QBKG04LM_QBKG11LM_operation_mode,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -633,7 +644,7 @@ const devices = [
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
         supports: 'on/off, action, power measurement',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
@@ -1777,8 +1788,10 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
         supports: 'click, action',
-        fromZigbee: [fz.battery_not_divided, fz.cover_close, fz.legacy_cover_close, fz.cover_open, fz.legacy_cover_open, fz.cover_stop,
-            fz.legacy_cover_stop],
+        fromZigbee: [
+            fz.battery_not_divided, fz.command_cover_close, fz.legacy_cover_close, fz.command_cover_open, fz.legacy_cover_open,
+            fz.command_cover_stop, fz.legacy_cover_stop,
+        ],
         toZigbee: [],
         meta: {configureKey: 1},
         ota: ota.tradfri,
@@ -2739,7 +2752,7 @@ const devices = [
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
         supports: 'hold, single, double and triple click, on/off, type, rssi',
         fromZigbee: [
-            fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.legacy_ptvo_switch_buttons, fz.ptvo_switch_uart,
+            fz.ptvo_switch_state, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.ptvo_switch_level_control, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input,
@@ -2960,7 +2973,7 @@ const devices = [
         description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
         supports: 'on/off',
         fromZigbee: [
-            fz.ptvo_switch_state, fz.ptvo_switch_buttons, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
+            fz.ptvo_switch_state, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
         ],
         toZigbee: [tz.on_off],
         meta: {multiEndpoint: true},
@@ -5800,7 +5813,10 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Button',
         supports: 'single, double and hold click, temperature',
-        fromZigbee: [fz.st_button_state, fz.legacy_st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
+        fromZigbee: [
+            fz.command_status_change_notification_action,
+            fz.legacy_st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport,
+        ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6875,7 +6891,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
         supports: 'click',
-        fromZigbee: [fz.st_button_state, fz.legacy_st_button_state],
+        fromZigbee: [fz.command_status_change_notification_action, fz.legacy_st_button_state],
         toZigbee: [],
     },
     {
@@ -8763,7 +8779,7 @@ const devices = [
             fz.legacy_ZGRC013_cmdOn, fz.command_off, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
         ],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -9006,7 +9022,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Multi-function button',
         supports: 'single, double and long click',
-        fromZigbee: [fz.konke_click, fz.battery_3V],
+        fromZigbee: [fz.konke_action, fz.battery_3V, fz.legacy_konke_click],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
