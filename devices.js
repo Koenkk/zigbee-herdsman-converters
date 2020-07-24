@@ -5299,6 +5299,13 @@ const devices = [
         description: 'Zigbee LED controller (RGB+CCT)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['ZB-CT01'],
+        model: 'ZB-CT01',
+        vendor: 'YSRSAI',
+        description: 'Zigbee LED controller (WW/CW)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // ROBB
     {
