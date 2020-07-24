@@ -11162,7 +11162,6 @@ const devices = [
             const binds = ['genPowerCfg', 'genOnOff', 'msTemperatureMeasurement', 'msRelativeHumidity'];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.batteryPercentageRemaining(endpoint);
-            await configureReporting.onOff(endpoint);
             await configureReporting.temperature(endpoint);
             await configureReporting.humidity(endpoint);
         },
