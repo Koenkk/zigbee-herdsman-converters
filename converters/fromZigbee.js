@@ -1111,6 +1111,23 @@ const converters = {
             }
         },
     },
+    xiaomi_WXKG11LM_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let clicks;
+            if (msg.data.onOff) {
+                clicks = 1;
+            } else if (msg.data['32768']) {
+                clicks = msg.data['32768'];
+            }
+
+            const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+            if (actionLookup[clicks]) {
+                return {action: actionLookup[clicks]};
+            }
+        },
+    },
     command_status_change_notification_action: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1187,6 +1204,27 @@ const converters = {
     /**
      * Legacy: DONT RE-USE!!
      */
+    legacy_WXKG11LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                const data = msg.data;
+                let clicks;
+
+                if (data.onOff) {
+                    clicks = 1;
+                } else if (data['32768']) {
+                    clicks = data['32768'];
+                }
+
+                const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                if (actionLookup[clicks]) {
+                    return {click: actionLookup[clicks]};
+                }
+            }
+        },
+    },
     legacy_konke_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2032,25 +2070,6 @@ const converters = {
             }
 
             return result;
-        },
-    },
-    WXKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            let clicks;
-
-            if (data.onOff) {
-                clicks = 1;
-            } else if (data['32768']) {
-                clicks = data['32768'];
-            }
-
-            const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-            if (actionLookup[clicks]) {
-                return {click: actionLookup[clicks]};
-            }
         },
     },
     WSDCGQ11LM_pressure: {

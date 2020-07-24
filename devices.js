@@ -414,8 +414,8 @@ const devices = [
         description: 'Aqara wireless switch',
         supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
         fromZigbee: [
-            fz.xiaomi_multistate_action,
-            /* check these: */ fz.xiaomi_battery_3v, fz.WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
+            fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action,
+            /* check these: */ fz.xiaomi_battery_3v, fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
         ],
         toZigbee: [],
     },
