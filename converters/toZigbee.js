@@ -1041,7 +1041,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const fanMode = common.fanMode[value.toLowerCase()];
             await entity.write('hvacFanCtrl', {fanMode});
-            return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacFanCtrl', ['fanMode']);
@@ -1221,7 +1221,7 @@ const converters = {
             return {state: {options: opts}};
         },
     },
-    ZNCLDJ11LM_ZNCLDJ12LM_control: {
+    xiaomi_curtain: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
