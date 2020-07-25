@@ -1221,7 +1221,7 @@ const converters = {
             return {state: {options: opts}};
         },
     },
-    ZNCLDJ11LM_ZNCLDJ12LM_control: {
+    xiaomi_curtain: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && value.toLowerCase() === 'stop') {
