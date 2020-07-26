@@ -1205,7 +1205,7 @@ const converters = {
             } else {
                 throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
             }
-            
+
             // Reset limits is an action, not a state.
             delete opts.reset_limits;
             return {state: {options: opts}};
