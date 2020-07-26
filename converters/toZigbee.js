@@ -1216,10 +1216,10 @@ const converters = {
             }
         },
     },
-    xiaomi_curtain: {
+    xiaomi_curtain_position_state: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'state' && value.toLowerCase() === 'stop') {
+            if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
             } else {
                 const lookup = {
