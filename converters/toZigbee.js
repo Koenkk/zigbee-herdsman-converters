@@ -1176,7 +1176,7 @@ const converters = {
             const opts = {
                 reverse_direction: false,
                 hand_open: true,
-                reset_limits: false, // TODO how is this called in the Xiaomi app?
+                reset_limits: false,
                 ...value,
             };
 
@@ -1205,7 +1205,9 @@ const converters = {
             } else {
                 throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
             }
-
+            
+            // Reset limits is an action, not a state.
+            delete opts.reset_limits;
             return {state: {options: opts}};
         },
         convertGet: async (entity, key, meta) => {
