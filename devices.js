@@ -653,10 +653,10 @@ const devices = [
         model: 'QBKG22LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
-        supports: 'on/off, action, power measurement',
+        supports: 'on/off, action',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
+            fz.QBKG03LM_QBKG12LM_operation_mode,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
@@ -670,8 +670,8 @@ const devices = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        supports: 'on/off, action, power measurement',
-        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.xiaomi_power],
+        supports: 'on/off, action',
+        fromZigbee: [fz.on_off, fz.QBKG25LM_click],
         toZigbee: [tz.on_off],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
