@@ -437,9 +437,9 @@ const devices = [
         description: 'Aqara single key wireless wall switch',
         supports: 'single (and double, hold, release and long click depending on model)',
         fromZigbee: [
-            fz.xiaomi_multistate_action,
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
+            fz.xiaomi_battery_3v, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
     },
@@ -469,7 +469,6 @@ const devices = [
             /* check these: */ fz.xiaomi_battery_3v, fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'both': 3};
         },
@@ -1587,8 +1586,8 @@ const devices = [
         description: 'TRADFRI wireless dimmer',
         supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
         fromZigbee: [
-            fz.cmd_move, fz.cmd_move_with_onoff, fz.cmd_stop, fz.cmd_stop_with_onoff,
-            fz.cmd_move_to_level_with_onoff, fz.battery_not_divided,
+            fz.legacy_cmd_move, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop, fz.legacy_cmd_stop_with_onoff,
+            fz.legacy_cmd_move_to_level_with_onoff, fz.battery_not_divided,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -1721,7 +1720,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
         supports: 'volume up/down, play/pause, skip forward/backward',
-        fromZigbee: [fz.cmd_move, fz.cmd_stop, fz.E1744_play_pause, fz.E1744_skip, fz.battery_not_divided],
+        fromZigbee: [fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.legacy_E1744_play_pause, fz.legacy_E1744_skip, fz.battery_not_divided],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1},
@@ -7218,7 +7217,7 @@ const devices = [
         supports: 'click, action, brightness, scenes',
         fromZigbee: [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
-            fz.legacy_genOnOff_cmdOff, fz.battery, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
+            fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
         ],
         toZigbee: [],
     },
@@ -7230,7 +7229,7 @@ const devices = [
         supports: 'click, action, brightness, scenes',
         fromZigbee: [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
-            fz.legacy_genOnOff_cmdOff, fz.battery, fz.cmd_move_with_onoff, fz.cmd_stop_with_onoff,
+            fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
         ],
         toZigbee: [],
     },
@@ -10571,7 +10570,7 @@ const devices = [
         // led blink RED when battery is low
         description: 'Wireless remote switch',
         supports: 'action',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.cmd_move, fz.cmd_stop, fz.battery_3V],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {

@@ -146,6 +146,7 @@ describe('index.js', () => {
                 throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
             }
 
+            expect(device.fromZigbee).not.toContain(undefined);
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
             // Verify fromConverters
