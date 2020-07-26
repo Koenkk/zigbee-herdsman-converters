@@ -430,7 +430,7 @@ const converters = {
                     } else {
                         // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                         // with transition.
-                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                        if (meta.state.hasOwnProperty('brightness') && state === 'off' && meta.state.brightness !== 0) {
                             store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: false};
                         }
 
