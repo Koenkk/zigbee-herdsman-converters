@@ -2124,6 +2124,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCL001'],
+        model: '8718699703424',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip plus',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCA001', 'LCA002', 'LCA003'],
         model: '9290022166',
         vendor: 'Philips',
