@@ -1170,55 +1170,50 @@ const converters = {
             await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped, entity));
         },
     },
-    ZNCLDJ11LM_options: {
+    xiaomi_curtain_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
             const opts = {
-                'reverse_direction': false,
-                'hand_open': true,
-                'reset_move': false,
+                reverse_direction: false,
+                hand_open: true,
+                reset_limits: false, // TODO how is this called in the Xiaomi app?
                 ...value,
             };
 
-            const payload = [
-                0x07,
-                0x00,
-                opts.reset_move ? 0x01: 0x02,
-                0x00,
-                opts.reverse_direction ? 0x01: 0x00,
-                0x04,
-                !opts.hand_open ? 0x01: 0x00,
-                0x12,
-            ];
+            // Legacy names
+            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
+            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
 
+            if (meta.mapped.model === 'ZNCLDJ12LM') {
+                await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
+                await entity.write('genBasic', {0xff29: {value: !opts.auto_close, type: 0x10}}, options.xiaomi);
 
-            meta.logger.info('ZNCLDJ11LM setting ' +
-                (opts.reverse_direction ? 'reverse' : 'original') + ' direction' +
-                (opts.reset_move ? ' and resetting move':''));
-            await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+                if (opts.reset_limits) {
+                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
+                }
+            } else if (meta.mapped.model === 'ZNCLDJ11LM') {
+                const payload = [
+                    0x07, 0x00, opts.reset_limits ? 0x01: 0x02, 0x00, opts.reverse_direction ? 0x01: 0x00, 0x04,
+                    !opts.hand_open ? 0x01: 0x00, 0x12,
+                ];
 
-            if (value.hand_open !== undefined) { // requires a separate request with slightly different payload
-                payload[2] = 0x08;
-                meta.logger.info('ZNCLDJ11LM ' + (opts.hand_open ? 'enabling' : 'disabling') + ' hand open');
                 await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+
+                // hand_open requires a separate request with slightly different payload
+                payload[2] = 0x08;
+                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
             }
+
+            return {state: {options: opts}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genBasic', [0x0401], options.xiaomi);
-        },
-    },
-    ZNCLDJ12LM_options: {
-        key: ['options'],
-        convertSet: async (entity, key, value, meta) => {
-            const opts = {
-                'reverse_direction': false,
-                'auto_close': true,
-                ...value,
-            };
-
-            await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
-            await entity.write('genBasic', {0xff29: {value: !opts.auto_close, type: 0x10}}, options.xiaomi);
-            return {state: {options: opts}};
+            if (meta.mapped.model === 'ZNCLDJ11LM') {
+                await entity.read('genBasic', [0x0401], options.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options get called for not supported model: ${meta.mapped.model}`);
+            }
         },
     },
     xiaomi_curtain: {
@@ -1243,13 +1238,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genAnalogOutput', [0x0055]);
-        },
-    },
-    ZNCLDJ12LM_control: {
-        key: ['discovery'],
-        convertSet: async (entity, key, value, meta) => {
-            meta.logger.info(`${meta.options.friendlyName}: activating end stops discovery mode`);
-            await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
         },
     },
     ledvance_commands: {
