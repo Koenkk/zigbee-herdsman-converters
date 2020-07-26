@@ -671,8 +671,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         supports: 'on/off, action',
-        fromZigbee: [fz.on_off, fz.QBKG25LM_click],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.QBKG25LM_operation_mode],
+        toZigbee: [tz.on_off, tz.QBKG25LM_operation_mode, tz.ZNCZ04LM_power_outage_memory, tz.QBKG25LM_do_not_disturb],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};

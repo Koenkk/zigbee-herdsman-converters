@@ -1164,6 +1164,27 @@ const converters = {
             await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
         },
     },
+    QBKG25LM_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookupState = {
+                'control_relay': 0x01,
+                'decoupled': 0x00,
+            };
+
+            await entity.write('aqaraOpple', {0x0200: {value: lookupState[value], type: 0x20}}, options.xiaomi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', 0x0200, options.xiaomi);
+        },
+    },
+    QBKG25LM_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            return {state: {do_not_disturb: value}};
+        },
+    },
     STS_PRS_251_beep: {
         key: ['beep'],
         convertSet: async (entity, key, value, meta) => {

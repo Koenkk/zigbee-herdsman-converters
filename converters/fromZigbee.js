@@ -2329,6 +2329,29 @@ const converters = {
             }
         },
     },
+    QBKG25LM_operation_mode: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const mappingButton = {
+                1: 'left',
+                2: 'center',
+                3: 'right',
+            };
+            const mappingMode = {
+                0x01: 'control_relay',
+                0x00: 'decoupled',
+            };
+            for (const key in mappingButton) {
+                if (msg.endpoint.ID == key && msg.data.hasOwnProperty('512')) {
+                    const payload = {};
+                    const mode = mappingMode['512'];
+                    payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    return payload;
+                }
+            }
+        },
+    },
     xiaomi_lock_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
