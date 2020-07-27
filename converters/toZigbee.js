@@ -1186,7 +1186,7 @@ const converters = {
 
             if (meta.mapped.model === 'ZNCLDJ12LM') {
                 await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
-                await entity.write('genBasic', {0xff29: {value: !opts.auto_close, type: 0x10}}, options.xiaomi);
+                await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, options.xiaomi);
 
                 if (opts.reset_limits) {
                     await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
