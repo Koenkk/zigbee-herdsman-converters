@@ -1332,6 +1332,9 @@ const devices = [
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang without neutral wire',
         supports: 'on/off',
+        whiteLabel: [
+            {vendor: 'Vrey', model: 'VR-X712U-0013'},
+        ],
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
