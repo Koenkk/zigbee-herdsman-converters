@@ -1524,7 +1524,7 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            return await converters.gledopto_light_color_colortemp.convertGet(entity, key, meta);
+            return await converters.light_color_colortemp.convertGet(entity, key, meta);
         },
     },
     hue_power_on_behavior: {
