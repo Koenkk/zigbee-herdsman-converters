@@ -1705,7 +1705,7 @@ const devices = [
         ],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, disableActionGroup: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in

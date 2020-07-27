@@ -160,7 +160,7 @@ const ictcg1 = (model, msg, publish, options, action) => {
     return payload.brightness;
 };
 
-const getProperty = (name, msg, definition) => {
+const postfixWithEndpointName = (name, msg, definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
         const endpointName = definition.hasOwnProperty('endpoint') ?
             getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
@@ -169,6 +169,13 @@ const getProperty = (name, msg, definition) => {
         return name;
     }
 };
+
+const addActionGroup = (payload, msg, definition) => {
+    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
+    if (!disableActionGroup && msg.groupID) {
+        payload.action_group = msg.groupID;
+    }
+}
 
 const ratelimitedDimmer = (model, msg, publish, options, meta) => {
     const deviceID = msg.device.ieeeAddr;
@@ -531,7 +538,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
-                const property = getProperty('brightness', msg, model);
+                const property = postfixWithEndpointName('brightness', msg, model);
                 return {[property]: msg.data['currentLevel']};
             }
         },
@@ -607,7 +614,7 @@ const converters = {
             for (const entry of lookup) {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
-                    const property = getProperty(entry.name, msg, model);
+                    const property = postfixWithEndpointName(entry.name, msg, model);
                     payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
                 }
             }
@@ -619,7 +626,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                const property = getProperty('state', msg, model);
+                const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -769,8 +776,8 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -778,8 +785,8 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`panic`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`panic`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -793,8 +800,8 @@ const converters = {
                 2: 'arm_night_zones',
                 3: 'arm_all_zones',
             };
-            const payload = {action: getProperty(lookup[msg.data['armmode']], msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(lookup[msg.data['armmode']], msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -802,8 +809,8 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('stop', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('stop', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -811,8 +818,8 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('open', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('open', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -820,8 +827,8 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('close', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('close', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -829,8 +836,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('on', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('on', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -838,8 +845,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('off', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('off', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -847,8 +854,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`off`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`off`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -856,8 +863,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('toggle', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('toggle', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -866,11 +873,11 @@ const converters = {
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`brightness_move_to_level`, msg, model),
+                action: postfixWithEndpointName(`brightness_move_to_level`, msg, model),
                 action_level: msg.data.level,
                 action_transition_time: msg.data.transtime / 100,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -879,9 +886,9 @@ const converters = {
         type: ['commandMove', 'commandMoveWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -891,11 +898,11 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
-                action: getProperty(`brightness_step_${direction}`, msg, model),
+                action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime / 100,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -903,8 +910,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`brightness_stop`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -914,10 +921,10 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
-                action: getProperty(`color_temperature_step_${direction}`, msg, model),
+                action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -926,14 +933,14 @@ const converters = {
         type: 'commandEnhancedMoveToHueAndSaturation',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`enhanced_move_to_hue_and_saturation`, msg, model),
+                action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
                 action_hue: msg.data.enhancehue * 360 / 65536 % 360,
                 action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
 
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -949,7 +956,7 @@ const converters = {
             };
 
             const payload = {
-                action: getProperty(`color_loop_set`, msg, model),
+                action: postfixWithEndpointName(`color_loop_set`, msg, model),
                 action_update_flags: {
                     action: (updateFlags & 1 << 0) > 0,
                     direction: (updateFlags & 1 << 1) > 0,
@@ -962,7 +969,7 @@ const converters = {
                 action_start_hue: msg.data.starthue,
             };
 
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -971,11 +978,11 @@ const converters = {
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`color_temperature_move`, msg, model),
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -984,14 +991,14 @@ const converters = {
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`color_move`, msg, model),
+                action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
                 },
                 action_transition_time: msg.data.transtime,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -999,8 +1006,8 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('hue_move', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('hue_move', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -1008,8 +1015,8 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`emergency`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -1017,7 +1024,7 @@ const converters = {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`identify`, msg, model)};
+            return {action: postfixWithEndpointName(`identify`, msg, model)};
         },
     },
 
@@ -1036,7 +1043,7 @@ const converters = {
             if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
             if (['WXKG02LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
 
-            // Dont' use getProperty here, endpoints don't match
+            // Dont' use postfixWithEndpointName here, endpoints don't match
             if (mapping) {
                 const button = mapping[msg.endpoint.ID];
                 return {action: `single_${button}`};
@@ -1141,7 +1148,7 @@ const converters = {
             const actionLookup = {1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
-            return {action: getProperty(action, msg, model)};
+            return {action: postfixWithEndpointName(action, msg, model)};
         },
     },
     terncy_raw: {
@@ -3411,7 +3418,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // Xiaomi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
             if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
-                const property = getProperty('state', msg, model);
+                const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -3452,7 +3459,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('toggle', msg, model)};
+            const payload = {action: postfixWithEndpointName('toggle', msg, model)};
             return payload;
         },
     },
@@ -5362,7 +5369,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {action: getProperty('on', msg, model)};
+            return {action: postfixWithEndpointName('on', msg, model)};
         },
     },
     ZG2819S_command_off: {
@@ -5374,7 +5381,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {action: getProperty('off', msg, model)};
+            return {action: postfixWithEndpointName('off', msg, model)};
         },
     },
     K4003C_binary_input: {
