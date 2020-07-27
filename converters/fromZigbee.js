@@ -175,7 +175,7 @@ const addActionGroup = (payload, msg, definition) => {
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
-}
+};
 
 const ratelimitedDimmer = (model, msg, publish, options, meta) => {
     const deviceID = msg.device.ieeeAddr;
