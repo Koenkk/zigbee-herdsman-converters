@@ -5097,7 +5097,7 @@ const converters = {
     },
     tuya_switch2: {
         cluster: 'manuSpecificTuyaDimmer',
-        type: 'commandGetData',
+        type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
