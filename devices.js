@@ -10713,7 +10713,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: [' DIN power consumption module\u0000\u0000'],
+        zigbeeModel: [' DIN power consumption module\u0000\u0000', ' DIN power consumption module'],
         model: '412015',
         vendor: 'Legrand',
         description: 'DIN power consumption module',
