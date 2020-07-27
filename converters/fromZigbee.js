@@ -5055,7 +5055,7 @@ const converters = {
         cluster: 'manuSpecificSamsungAccelerometer',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {acceleration: msg.data['acceleration'] === 1 ? true : false};
+            return {acceleration: msg.data['moving'] === 1 ? true : false};
         },
     },
 
