@@ -1093,7 +1093,8 @@ const converters = {
                     store[deviceID].hold = Date.now();
                     store[deviceID].hold_timer = setTimeout(() => {
                         store[deviceID].hold = false;
-                    }, options.hold_timeout_expire || 4000); // After 4000 milliseconds of not reciving release we assume it will not happen.
+                    }, options.hold_timeout_expire || 4000);
+                    // After 4000 milliseconds of not reciving release we assume it will not happen.
                 }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
             } else if (state === 1) {
                 if (store[deviceID].hold) {
