@@ -12,7 +12,7 @@ async function getImageMeta(current, logger, device) {
     const modelId = device.modelId;
     const images = (await axios.get(url)).data.versions;
     const image = images.find((i) => i.model === modelId);
-    assert(image !== null, `No image available for modelId '${modelId}'`);
+    assert(image, `No image available for modelId '${modelId}'`);
     return {
         fileVersion: parseInt(image.version, 16),
         url: image.url.replace(/^http:\/\//, 'https://'),
