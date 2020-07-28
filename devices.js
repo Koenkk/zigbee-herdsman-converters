@@ -5726,12 +5726,17 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.temperature, fz.battery_3V, fz.ias_contact_alarm_1],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            const options = {manufacturerCode: 0x110A};
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
+            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
+            const payload = configureReportingPayload('acceleration', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
         },
     },
     {
