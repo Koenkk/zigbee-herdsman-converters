@@ -541,7 +541,7 @@ const devices = [
         supports: 'release/hold, on/off',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
-            fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -566,7 +566,7 @@ const devices = [
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_power_from_basic,
-            fz.QBKG04LM_QBKG11LM_operation_mode, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -585,7 +585,7 @@ const devices = [
             fz.xiaomi_on_off_action,
             /* check these */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
+            fz.xiaomi_operation_mode_basic, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true, configureKey: 1},
@@ -609,7 +609,7 @@ const devices = [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
-            fz.xiaomi_power_from_basic, fz.QBKG03LM_QBKG12LM_operation_mode, fz.legacy_QBKG12LM_click,
+            fz.xiaomi_power_from_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
@@ -640,7 +640,7 @@ const devices = [
         supports: 'on/off, action',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
-            fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -656,7 +656,7 @@ const devices = [
         supports: 'on/off, action',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
@@ -671,7 +671,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         supports: 'on/off, action',
-        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.QBKG25LM_operation_mode],
+        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
