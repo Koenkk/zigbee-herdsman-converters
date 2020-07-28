@@ -1411,7 +1411,10 @@ const devices = [
 
     // Lonsonho
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'},
+        ],
         model: 'X711A',
         vendor: 'Lonsonho',
         description: '1 gang switch',
