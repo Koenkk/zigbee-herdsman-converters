@@ -949,7 +949,7 @@ const devices = [
         supports: 'open, close, stop, position',
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
-        toZigbee: [tz.xiaomi_curtain, tz.ZNCLDJ11LM_options],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
@@ -958,7 +958,7 @@ const devices = [
         description: 'Aqara B1 curtain motor ',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
-        toZigbee: [tz.xiaomi_curtain, tz.ZNCLDJ12LM_options],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
             // however when reading it will provide the correct value.
