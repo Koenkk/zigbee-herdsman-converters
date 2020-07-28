@@ -672,7 +672,7 @@ const devices = [
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         supports: 'on/off, action',
         fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.QBKG25LM_operation_mode],
-        toZigbee: [tz.on_off, tz.QBKG25LM_operation_mode, tz.ZNCZ04LM_power_outage_memory, tz.QBKG25LM_do_not_disturb],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -827,7 +827,7 @@ const devices = [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -853,7 +853,7 @@ const devices = [
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report, fz.ignore_time_read,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ04LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
@@ -896,7 +896,7 @@ const devices = [
         fromZigbee: [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -11467,6 +11467,67 @@ const devices = [
                 reportableChange: 1,
             }];
             await endpoint.configureReporting('genBinaryInput', payloadBinaryInput);
+            await endpoint.write('genBinaryOutput', {0x0051: {value: 0x01, type: 0x10}}, options);
+            const payloadBinaryOutput = [{
+                attribute: 'presentValue',
+                minimumReportInterval: 0,
+                maximumReportInterval: 30,
+                reportableChange: 1,
+            }];
+
+            await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
+        },
+    },
+
+    // Enbrighten
+    {
+        zigbeeModel: ['43080'],
+        model: '43080',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['43102'],
+        model: '43102',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
+
+    // Niko
+    {
+        zigbeeModel: ['Connected socket outlet'],
+        model: '170-33505',
+        vendor: 'Niko',
+        description: 'Connected socket outlet',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 5},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+        },
+    },
+];
+
+module.exports = devices.map((device) =>
+    device.extend ? Object.assign({}, device.extend, device) : device,
+);
+enBinaryInput', payloadBinaryInput);
             await endpoint.write('genBinaryOutput', {0x0051: {value: 0x01, type: 0x10}}, options);
             const payloadBinaryOutput = [{
                 attribute: 'presentValue',
