@@ -664,7 +664,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.xiaomi_power],
         toZigbee: [tz.on_off],
-        meta: {},
+        meta: {multiEndpoint: false},
         endpoint: (device) => {
             return {'system': 1};
         },
