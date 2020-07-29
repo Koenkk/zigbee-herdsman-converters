@@ -1889,7 +1889,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCP001', 'LCP002'],
+        zigbeeModel: ['LCP001', 'LCP002', '4090331P9_01', '4090331P9_02'],
         model: '4090331P9',
         vendor: 'Philips',
         description: 'Hue Ensis',
