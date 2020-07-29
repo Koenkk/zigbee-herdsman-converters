@@ -1135,12 +1135,42 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['TS0041'],
+        model: 'TS0041',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 1 button',
+        supports: 'action',
+        whiteLabel: [
+            {vendor: 'Smart9', model: 'S9TSZGB'},
+            {vendor: 'Lonsonho', model: 'TS0041'},
+        ],
+        fromZigbee: [fz.tuya_on_off_action],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
-        description: 'Touch wall remote 2 gang',
+        description: 'Wireless switch with 2 buttons',
+        whiteLabel: [
+            {vendor: 'Smart9', model: 'S9TSZGB'},
+            {vendor: 'Lonsonho', model: 'TS0042'},
+        ],
         supports: 'action',
-        fromZigbee: [fz.ts0042_click],
+        fromZigbee: [fz.tuya_on_off_action],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0043'],
+        model: 'TS0043',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 3 buttons',
+        whiteLabel: [
+            {vendor: 'Smart9', model: 'S9TSZGB'},
+            {vendor: 'Lonsonho', model: 'TS0043'},
+        ],
+        supports: 'action',
+        fromZigbee: [fz.tuya_on_off_action],
         toZigbee: [],
     },
     {
@@ -10369,24 +10399,6 @@ const devices = [
     },
 
     // Smart9
-    {
-        zigbeeModel: ['TS0041'],
-        model: 'S9TSZGB_1',
-        vendor: 'Smart9',
-        description: 'Touch switch (1 button)',
-        supports: 'action',
-        fromZigbee: [fz.ts0041_click],
-        toZigbee: [],
-    },
-    {
-        zigbeeModel: ['TS0043'],
-        model: 'S9TSZGB_3',
-        vendor: 'Smart9',
-        description: 'Touch switch (3 button)',
-        supports: 'action',
-        fromZigbee: [fz.ts0043_click],
-        toZigbee: [],
-    },
     {
         zigbeeModel: ['TS0215'],
         model: 'S9ZGBRC01',

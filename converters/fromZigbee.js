@@ -202,8 +202,8 @@ const ratelimitedDimmer = (model, msg, publish, options, meta) => {
 };
 
 const transactionStore = {};
-const hasAlreadyReceivedTransaction = (msg) => {
-    const current = msg.meta.zclTransactionSequenceNumber;
+const hasAlreadyProcessedMessage = (msg, transaction=null) => {
+    const current = transaction !== null ? transaction : msg.meta.zclTransactionSequenceNumber;
     if (transactionStore[msg.device.ieeeAddr] === current) return true;
     transactionStore[msg.device.ieeeAddr] = current;
     return false;
@@ -1056,7 +1056,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyReceivedTransaction(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             let actionLookup = {0: 'hold', 1: 'single', 2: 'double', 255: 'release'};
             let buttonLookup = null;
             if (model.model === 'WXKG02LM') buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
@@ -1080,7 +1080,7 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyReceivedTransaction(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             const state = msg.data['onOff'];
             if (!store[deviceID]) store[deviceID] = {};
@@ -3334,30 +3334,16 @@ const converters = {
             return result;
         },
     },
-    ts0043_click: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
-            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
-        },
-    },
-    ts0042_click: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonMapping = {1: 'left', 2: 'right'};
-            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
-        },
-    },
-    ts0041_click: {
+    tuya_on_off_action: {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${clickMapping[msg.data[3]]}`};
+            let buttonMapping = null;
+            if (model.model === 'TS0042') buttonMapping = {1: 'left', 2: 'right'};
+            if (model.model === 'TS0043') buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
     tint404011_brightness_updown_click: {
@@ -3414,7 +3400,7 @@ const converters = {
                 msg.meta.frameControl.disableDefaultResponse = true;
             }
 
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyReceivedTransaction(msg)) {
+            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -4789,7 +4775,7 @@ const converters = {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyReceivedTransaction(msg)) {
+            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
