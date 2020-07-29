@@ -388,7 +388,7 @@ const converters = {
                 // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
-                if (model.meta.hasOwnProperty('battery') && model.meta.battery.hasOwnProperty('voltageToPercentage')) {
+                if (model.meta && model.meta.batery && model.meta.battery.voltageToPercentage) {
                     if (model.meta.battery.voltageToPercentage === 'CR2032') {
                         payload.battery = toPercentageCR2032(payload.voltage);
                     }
