@@ -1466,6 +1466,20 @@ const devices = [
             return {'l1': 1, 'l2': 1};
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fqytfymk'}],
+        model: 'X713A',
+        vendor: 'Lonsonho',
+        description: '3 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1};
+        },
+    },
 
     // IKEA
     {
