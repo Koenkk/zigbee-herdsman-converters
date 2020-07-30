@@ -7219,6 +7219,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['NLG-RGB-TW light'],
+        model: '100.470.92',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-FRAMELESS LED-Panel, Smart-Home RGB-TW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['NLG-plug '],
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
