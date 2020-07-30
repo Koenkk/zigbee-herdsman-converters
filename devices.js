@@ -10213,6 +10213,22 @@ const devices = [
         fromZigbee: [fz.SE21_action],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['2a103244da0b406fa51410c692f79ead'],
+        model: 'AM25',
+        vendor: 'ORVIBO',
+        description: 'Smart blind controller',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
 
     // SONOFF
     {
