@@ -7195,24 +7195,24 @@ const devices = [
 
     // Paul Neuhaus
     {
-        zigbeeModel: ['NLG-CCT light '],
-        model: '100.424.11',
+        zigbeeModel: ['NLG-CCT light'],
+        model: 'NLG-CCT light',
         vendor: 'Paul Neuhaus',
-        description: 'Q-INIGO LED ceiling light',
+        description: 'Various color temperature lights (e.g. 100.424.11)',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['Neuhaus NLG-TW light', 'NLG-TW light'],
-        model: '8195-55',
+        model: 'NLG-TW light',
         vendor: 'Paul Neuhaus',
-        description: 'Q-Inigo ceiling light, Smart-Home',
+        description: 'Various tunable white lights (e.g. 8195-55)',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['NLG-RGBW light '],
-        model: '100.110.39',
+        zigbeeModel: ['NLG-RGBW light'],
+        model: 'NLG-RGBW light',
         vendor: 'Paul Neuhaus',
-        description: 'Q-FLAG LED Panel, Smart-Home RGBW',
+        description: 'Various RGBW lights (e.g. 100.110.39, 100.111.57)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         endpoint: (device) => {
             return {'default': 2};
@@ -7220,13 +7220,13 @@ const devices = [
     },
     {
         zigbeeModel: ['NLG-RGB-TW light'],
-        model: '100.470.92',
+        model: 'NLG-RGB-TW light',
         vendor: 'Paul Neuhaus',
-        description: 'Q-FRAMELESS LED-Panel, Smart-Home RGB-TW',
+        description: 'Various RGB + tunable white lights (e.g. 100.470.92)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
-        zigbeeModel: ['NLG-plug '],
+        zigbeeModel: ['NLG-plug'],
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
         description: 'Q-PLUG adapter plug with night orientation light',
