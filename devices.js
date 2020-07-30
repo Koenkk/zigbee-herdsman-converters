@@ -1144,7 +1144,7 @@ const devices = [
             {vendor: 'Smart9', model: 'S9TSZGB'},
             {vendor: 'Lonsonho', model: 'TS0041'},
         ],
-        fromZigbee: [fz.tuya_on_off_action],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
     {
@@ -1157,7 +1157,7 @@ const devices = [
             {vendor: 'Lonsonho', model: 'TS0042'},
         ],
         supports: 'action',
-        fromZigbee: [fz.tuya_on_off_action],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
     {
@@ -1170,7 +1170,7 @@ const devices = [
             {vendor: 'Lonsonho', model: 'TS0043'},
         ],
         supports: 'action',
-        fromZigbee: [fz.tuya_on_off_action],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
     {
