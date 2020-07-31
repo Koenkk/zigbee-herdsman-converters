@@ -6128,7 +6128,7 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_toggle, fz.command_step,
             fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_stop,
             fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
-            fz.tint404011_scene, fz.nlg_remote_command_set_scene,
+            fz.tint404011_scene, fz.command_recall,
         ],
         toZigbee: [],
     },

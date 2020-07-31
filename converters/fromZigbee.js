@@ -3417,13 +3417,6 @@ const converters = {
             }
         },
     },
-    nlg_remote_command_set_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return { action: 'set_scene', action_scene_id: msg.data.sceneid };
-        },
-    },
     tint404011_scene: {
         cluster: 'genBasic',
         type: 'write',
