@@ -1134,8 +1134,8 @@ const converters = {
                 return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
             } else if (meta.mapped.model === 'QBKG25LM') {
                 const lookupState = {control_relay: 0x01, decoupled: 0x00};
-                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value], type: 0x20}}, options.xiaomi);
-                return {state: {operation_mode: value}};
+                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, options.xiaomi);
+                return {state: {operation_mode: value.state}};
             } else {
                 throw new Error('Not supported');
             }
