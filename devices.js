@@ -6119,7 +6119,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['NLG-remote'],
+        zigbeeModel: ['NLG-remote', 'Neuhaus remote'],
         model: '100.462.31',
         vendor: 'Paul Neuhaus',
         description: 'Q-REMOTE',
