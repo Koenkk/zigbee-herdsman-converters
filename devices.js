@@ -540,7 +540,7 @@ const devices = [
         supports: 'release/hold, on/off',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
-            fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -565,7 +565,7 @@ const devices = [
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_power_from_basic,
-            fz.QBKG04LM_QBKG11LM_operation_mode, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -584,7 +584,7 @@ const devices = [
             fz.xiaomi_on_off_action,
             /* check these */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
+            fz.xiaomi_operation_mode_basic, fz.generic_device_temperature,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true, configureKey: 1},
@@ -608,7 +608,7 @@ const devices = [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
-            fz.xiaomi_power_from_basic, fz.QBKG03LM_QBKG12LM_operation_mode, fz.legacy_QBKG12LM_click,
+            fz.xiaomi_power_from_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
@@ -639,7 +639,7 @@ const devices = [
         supports: 'on/off, action',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
-            fz.QBKG04LM_QBKG11LM_operation_mode,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
@@ -652,10 +652,10 @@ const devices = [
         model: 'QBKG22LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
-        supports: 'on/off, action, power measurement',
+        supports: 'on/off, action',
         fromZigbee: [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.QBKG03LM_QBKG12LM_operation_mode, fz.generic_device_temperature,
+            fz.xiaomi_operation_mode_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
@@ -669,9 +669,9 @@ const devices = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        supports: 'on/off, action, power measurement',
-        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.xiaomi_power],
-        toZigbee: [tz.on_off],
+        supports: 'on/off, action',
+        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -826,7 +826,7 @@ const devices = [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -852,7 +852,7 @@ const devices = [
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report, fz.ignore_time_read,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ04LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
@@ -895,7 +895,7 @@ const devices = [
         fromZigbee: [
             fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
         ],
-        toZigbee: [tz.on_off, tz.ZNCZ02LM_QBCZ11LM_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],

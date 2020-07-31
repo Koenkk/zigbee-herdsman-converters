@@ -1240,6 +1240,56 @@ const converters = {
             }
         },
     },
+    xiaomi_operation_mode_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM'].includes(model.model)) {
+                const mappingMode = {0x12: 'control_relay', 0xFE: 'decoupled'};
+                const key = '65314';
+                if (msg.data.hasOwnProperty(key)) {
+                    payload.operation_mode = mappingMode[msg.data[key]];
+                }
+            } else if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) {
+                const mappingButton = {'65314': 'left', '65315': 'right'};
+                const mappingMode = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xFE: 'decoupled'};
+                for (const key in mappingButton) {
+                    if (msg.data.hasOwnProperty(key)) {
+                        const mode = mappingMode[msg.data[key]];
+                        payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    }
+                }
+            } else {
+                throw new Error('Not supported');
+            }
+
+            return payload;
+        },
+    },
+    xiaomi_operation_mode_opple: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const mappingButton = {
+                1: 'left',
+                2: 'center',
+                3: 'right',
+            };
+            const mappingMode = {
+                0x01: 'control_relay',
+                0x00: 'decoupled',
+            };
+            for (const key in mappingButton) {
+                if (msg.endpoint.ID == key && msg.data.hasOwnProperty('512')) {
+                    const payload = {};
+                    const mode = mappingMode['512'];
+                    payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    return payload;
+                }
+            }
+        },
+    },
 
     /**
      * Legacy: DONT RE-USE!!
@@ -2341,21 +2391,6 @@ const converters = {
             }
         },
     },
-    QBKG04LM_QBKG11LM_operation_mode: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const mappingMode = {
-                0x12: 'control_relay',
-                0xFE: 'decoupled',
-            };
-            const key = '65314';
-            if (msg.data.hasOwnProperty(key)) {
-                const mode = mappingMode[msg.data[key]];
-                return {operation_mode: mode};
-            }
-        },
-    },
     QBKG25LM_click: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -2378,29 +2413,6 @@ const converters = {
                 const payload = {};
                 payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
-            }
-        },
-    },
-    QBKG03LM_QBKG12LM_operation_mode: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const mappingButton = {
-                '65314': 'left',
-                '65315': 'right',
-            };
-            const mappingMode = {
-                0x12: 'control_left_relay',
-                0x22: 'control_right_relay',
-                0xFE: 'decoupled',
-            };
-            for (const key in mappingButton) {
-                if (msg.data.hasOwnProperty(key)) {
-                    const payload = {};
-                    const mode = mappingMode[msg.data[key]];
-                    payload[`operation_mode_${mappingButton[key]}`] = mode;
-                    return payload;
-                }
             }
         },
     },

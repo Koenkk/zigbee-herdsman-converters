@@ -1102,66 +1102,61 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
         },
     },
-    ZNCZ02LM_QBCZ11LM_power_outage_memory: {
+    xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = value ?
-                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
-                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
+            if (['ZNCZ04LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
 
-            await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
-            await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
-            return {state: {power_outage_memory: value}};
-        },
-    },
-    ZNCZ04LM_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+                await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
+                await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+
             return {state: {power_outage_memory: value}};
         },
     },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookupAttrId = {
-                'single': 0xFF22,
-                'left': 0xFF22,
-                'right': 0xFF23,
-            };
-            const lookupState = {
-                'control_relay': 0x12,
-                'control_left_relay': 0x12,
-                'control_right_relay': 0x22,
-                'decoupled': 0xFE,
-            };
-            let button;
-            if (value.hasOwnProperty('button')) {
-                button = value.button;
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
+                const button = value.hasOwnProperty('button') ? value.button : 'single';
+                const payload = {};
+                payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
+                await entity.write('genBasic', payload, options.xiaomi);
+                return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
+            } else if (meta.mapped.model === 'QBKG25LM') {
+                const lookupState = {control_relay: 0x01, decoupled: 0x00};
+                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, options.xiaomi);
+                return {state: {operation_mode: value.state}};
             } else {
-                button = 'single';
+                throw new Error('Not supported');
             }
-
-            const payload = {};
-            payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
-
-            await entity.write('genBasic', payload, options.xiaomi);
         },
         convertGet: async (entity, key, meta) => {
-            const lookupAttrId = {
-                'single': 0xFF22,
-                'left': 0xFF22,
-                'right': 0xFF23,
-            };
-
-            let button;
-            if (meta.message[key].hasOwnProperty('button')) {
-                button = meta.message[key].button;
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
+                await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
+            } else if (meta.mapped.model === 'QBKG25LM') {
+                await entity.read('aqaraOpple', 0x0200, options.xiaomi);
             } else {
-                button = 'single';
+                throw new Error('Not supported');
             }
-
-            await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
+        },
+    },
+    xiaomi_switch_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            return {state: {do_not_disturb: value}};
         },
     },
     STS_PRS_251_beep: {
