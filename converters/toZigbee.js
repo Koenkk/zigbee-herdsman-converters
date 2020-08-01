@@ -392,7 +392,7 @@ const converters = {
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
                 if (transition.specified && (state === 'off' || state === 'on')) {
-                    if (state === 'off') {
+                    if (state === 'off' && meta.state.brightness) {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
                         // it once we turn it on again.
@@ -430,13 +430,13 @@ const converters = {
                     } else {
                         // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                         // with transition.
-                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                        if (meta.state.hasOwnProperty('brightness') && state === 'off' && meta.state.brightness !== 0) {
                             store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: false};
                         }
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
                         if (result.state) {
-                            if (state === 'on') {
+                            if (result.state.state === 'ON') {
                                 result.readAfterWriteTime = 0;
                                 if (store.hasOwnProperty(entityID)) {
                                     result.state.brightness = store[entityID].brightness;
@@ -1041,7 +1041,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const fanMode = common.fanMode[value.toLowerCase()];
             await entity.write('hvacFanCtrl', {fanMode});
-            return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacFanCtrl', ['fanMode']);
@@ -1102,66 +1102,61 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
         },
     },
-    ZNCZ02LM_power_outage_memory: {
+    xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = value ?
-                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
-                [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
+            if (['ZNCZ04LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
 
-            await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
-            await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
-            return {state: {power_outage_memory: value}};
-        },
-    },
-    ZNCZ04LM_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+                await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
+                await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+
             return {state: {power_outage_memory: value}};
         },
     },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookupAttrId = {
-                'single': 0xFF22,
-                'left': 0xFF22,
-                'right': 0xFF23,
-            };
-            const lookupState = {
-                'control_relay': 0x12,
-                'control_left_relay': 0x12,
-                'control_right_relay': 0x22,
-                'decoupled': 0xFE,
-            };
-            let button;
-            if (value.hasOwnProperty('button')) {
-                button = value.button;
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
+                const button = value.hasOwnProperty('button') ? value.button : 'single';
+                const payload = {};
+                payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
+                await entity.write('genBasic', payload, options.xiaomi);
+                return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
+            } else if (meta.mapped.model === 'QBKG25LM') {
+                const lookupState = {control_relay: 0x01, decoupled: 0x00};
+                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, options.xiaomi);
+                return {state: {operation_mode: value.state}};
             } else {
-                button = 'single';
+                throw new Error('Not supported');
             }
-
-            const payload = {};
-            payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
-
-            await entity.write('genBasic', payload, options.xiaomi);
         },
         convertGet: async (entity, key, meta) => {
-            const lookupAttrId = {
-                'single': 0xFF22,
-                'left': 0xFF22,
-                'right': 0xFF23,
-            };
-
-            let button;
-            if (meta.message[key].hasOwnProperty('button')) {
-                button = meta.message[key].button;
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
+                await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
+            } else if (meta.mapped.model === 'QBKG25LM') {
+                await entity.read('aqaraOpple', 0x0200, options.xiaomi);
             } else {
-                button = 'single';
+                throw new Error('Not supported');
             }
-
-            await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
+        },
+    },
+    xiaomi_switch_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            return {state: {do_not_disturb: value}};
         },
     },
     STS_PRS_251_beep: {
@@ -1170,61 +1165,58 @@ const converters = {
             await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped, entity));
         },
     },
-    ZNCLDJ11LM_options: {
+    xiaomi_curtain_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
             const opts = {
-                'reverse_direction': false,
-                'hand_open': true,
-                'reset_move': false,
+                reverse_direction: false,
+                hand_open: true,
+                reset_limits: false,
                 ...value,
             };
 
-            const payload = [
-                0x07,
-                0x00,
-                opts.reset_move ? 0x01: 0x02,
-                0x00,
-                opts.reverse_direction ? 0x01: 0x00,
-                0x04,
-                !opts.hand_open ? 0x01: 0x00,
-                0x12,
-            ];
+            // Legacy names
+            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
+            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
 
+            if (meta.mapped.model === 'ZNCLDJ12LM') {
+                await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
+                await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, options.xiaomi);
 
-            meta.logger.info('ZNCLDJ11LM setting ' +
-                (opts.reverse_direction ? 'reverse' : 'original') + ' direction' +
-                (opts.reset_move ? ' and resetting move':''));
-            await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+                if (opts.reset_limits) {
+                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
+                }
+            } else if (meta.mapped.model === 'ZNCLDJ11LM') {
+                const payload = [
+                    0x07, 0x00, opts.reset_limits ? 0x01: 0x02, 0x00, opts.reverse_direction ? 0x01: 0x00, 0x04,
+                    !opts.hand_open ? 0x01: 0x00, 0x12,
+                ];
 
-            if (value.hand_open !== undefined) { // requires a separate request with slightly different payload
-                payload[2] = 0x08;
-                meta.logger.info('ZNCLDJ11LM ' + (opts.hand_open ? 'enabling' : 'disabling') + ' hand open');
                 await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genBasic', [0x0401], options.xiaomi);
-        },
-    },
-    ZNCLDJ12LM_options: {
-        key: ['options'],
-        convertSet: async (entity, key, value, meta) => {
-            const opts = {
-                'reverse_direction': false,
-                'auto_close': true,
-                ...value,
-            };
 
-            await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
-            await entity.write('genBasic', {0xff29: {value: !opts.auto_close, type: 0x10}}, options.xiaomi);
+                // hand_open requires a separate request with slightly different payload
+                payload[2] = 0x08;
+                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
+            }
+
+            // Reset limits is an action, not a state.
+            delete opts.reset_limits;
             return {state: {options: opts}};
         },
+        convertGet: async (entity, key, meta) => {
+            if (meta.mapped.model === 'ZNCLDJ11LM') {
+                await entity.read('genBasic', [0x0401], options.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options get called for not supported model: ${meta.mapped.model}`);
+            }
+        },
     },
-    ZNCLDJ11LM_ZNCLDJ12LM_control: {
+    xiaomi_curtain_position_state: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'state' && value.toLowerCase() === 'stop') {
+            if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
             } else {
                 const lookup = {
@@ -1524,7 +1516,7 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            return await converters.gledopto_light_color_colortemp.convertGet(entity, key, meta);
+            return await converters.light_color_colortemp.convertGet(entity, key, meta);
         },
     },
     hue_power_on_behavior: {
@@ -2179,20 +2171,10 @@ const converters = {
     tuya_switch_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'l1': 1,
-                'l2': 2,
-                'l3': 3,
-                'l4': 4,
-            };
-            const keyid = lookup[meta.endpoint_name];
-            await entity.command(
-                'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 256+keyid, fn: 0, data: [1, (value === 'ON') ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
-
+            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
+            const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
+            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
+            sendTuyaCommand(entity, 256 + keyid, 0, [1, value === 'ON' ? 1 : 0]);
             return {state: {state: value.toUpperCase()}};
         },
     },
