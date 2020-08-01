@@ -1109,6 +1109,7 @@ const devices = [
         model: 'TYZS1L',
         vendor: 'TuYa',
         description: 'Led strip controller HSB',
+        supports: 'on/off, color (hue/saturation)',
         fromZigbee: [fz.on_off, fz.tuya_led_controller],
         toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
     },
