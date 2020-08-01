@@ -2108,7 +2108,7 @@ const converters = {
             if (key === 'state') {
                 if (value.toLowerCase() === 'off') {
                     await entity.command(
-                        'genOnOff', 'offWithEffect', {effectid: 0x01, effectvariant: 0x01}, getOptions(meta.mapped, entity)
+                        'genOnOff', 'offWithEffect', {effectid: 0x01, effectvariant: 0x01}, getOptions(meta.mapped, entity),
                     );
                 } else {
                     const payload = {level: 255, transtime: 0};
@@ -2133,7 +2133,7 @@ const converters = {
             if (key === 'state') {
                 await entity.read('genOnOff', ['onOff']);
             } else if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currenthHue','currentSaturation']);
+                await entity.read('lightingColorCtrl', ['currenthHue', 'currentSaturation']);
             }
         },
     },
