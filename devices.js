@@ -7216,9 +7216,6 @@ const devices = [
         vendor: 'Paul Neuhaus',
         description: 'Various RGBW lights (e.g. 100.110.39, 100.111.57)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        endpoint: (device) => {
-            return {'default': 2};
-        },
     },
     {
         zigbeeModel: ['NLG-RGB-TW light'],
