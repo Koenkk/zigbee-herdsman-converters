@@ -1079,11 +1079,12 @@ const devices = [
     // TuYa
     {
         zigbeeModel: ['TS0503A'],
-        model: 'TYZS1L',
-        vendor: 'TuYa',
-        description: 'Zigbee LED Strip controller RGB + CCT or RGBW',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
-    },
+    	model: 'TYZS1L',
+    	vendor: 'TuYa',
+    	description: 'Led strip controller HSB',
+    	fromZigbee: [fz.on_off, fz.tuya_led_controller],
+    	toZigbee: [tz.tuya_led_controller_on_off, tz.tuya_led_controller_color, tz.ignore_transition, tz.ignore_rate],
+	},
     {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',

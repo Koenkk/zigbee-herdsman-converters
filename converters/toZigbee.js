@@ -2110,6 +2110,41 @@ const converters = {
             await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
         },
     },
+    tuya_led_controller_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.toLowerCase() === 'off') {
+                await entity.command('genOnOff', 'offWithEffect', {effectid: 0x01, effectvariant: 0x01}, getOptions(meta.mapped, entity));
+            } else {
+                const payload = {level: 255, transtime: 0};
+
+                await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
+            }
+                return {state: {state: value.toUpperCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
+    tuya_led_controller_color: {
+        key: ['color'],
+        convertSet: async (entity, key, value, meta) => {
+            const hue = {};
+            const saturation = {};
+            
+            hue.hue = Math.round((value.h * 254) / 360);
+            saturation.saturation = Math.round(value.s * 2.54);
+            
+            hue.transtime = saturation.transtime = 0;
+            hue.direction = 0;
+
+            await entity.command('lightingColorCtrl', 'moveToHue', hue, {}, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', 'moveToSaturation', saturation, {}, getOptions(meta.mapped, entity));        
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['currenthHue','currentSaturation']);
+        },
+    },
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
