@@ -2103,7 +2103,7 @@ const converters = {
         },
     },
     tuya_led_controller: {
-        key: ['state'],
+        key: ['state', 'color'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
                 if (value.toLowerCase() === 'off') {
@@ -2119,8 +2119,8 @@ const converters = {
                 const hue = {};
                 const saturation = {};
 
-                hue.hue = Math.round((value.h * 254) / 360);
-                saturation.saturation = Math.round(value.s * 2.54);
+                hue.hue = Math.round((value.hue * 254) / 360);
+                saturation.saturation = Math.round(value.saturation * 2.54);
 
                 hue.transtime = saturation.transtime = 0;
                 hue.direction = 0;
