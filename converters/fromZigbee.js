@@ -4850,21 +4850,22 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-                    
             const result = {};
-				
-			if (msg.data['61441']) {
+
+            if (msg.data['61441']) {
                 result.brightness = msg.data['61441'];
-            }          
-            result.color = {};
-            
-            if (msg.data.hasOwnProperty('currentHue')) {
-                result.color.h = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
             }
-            
+
+            result.color = {};
+
+            if (msg.data.hasOwnProperty('currentHue')) {
+                result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+            }
+
             if (msg.data['currentSaturation']) {
-                result.color.s = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
-            }                
+                result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+            }
+
             return result;
         },
     },
