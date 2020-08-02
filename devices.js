@@ -5377,6 +5377,35 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
+    // Somgoms
+    {
+        zigbeeModel: ['tdtqgwv'],
+        model: 'ZSTY-SM-11ZG-US-W',
+        vendor: ' Somgoms',
+        description: '1 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_switch_state],
+    },
+    {
+        zigbeeModel: ['bordckq'],
+        model: 'ZSTY-SM-1CTZG-US-W',
+        vendor: 'Somgoms',
+        description: 'Curtain switch',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+    },
+    {
+        zigbeeModel: ['hpb9yts'],
+        model: 'ZSTY-SM-1DMZG-US-W',
+        vendor: 'Somgoms',
+        description: 'Dimmer switch',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+    },
+
     // ROBB
     {
         zigbeeModel: ['ROB_200-004-0'],
