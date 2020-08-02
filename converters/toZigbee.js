@@ -183,7 +183,7 @@ const converters = {
     cover_position_via_brightness: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
-            const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
+            const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
             value = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
@@ -1223,9 +1223,7 @@ const converters = {
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
 
                 if (key === 'position') {
-                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
-                        !meta.options.invert_cover : meta.options.invert_cover);
-                    value = invert ? 100 - value : value;
+                    value = meta.options.invert_cover ? 100 - value : value;
                 }
 
                 const payload = {0x0055: {value, type: 0x39}};

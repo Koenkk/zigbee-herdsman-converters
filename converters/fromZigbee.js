@@ -1042,7 +1042,7 @@ const converters = {
                 result.position = invert ? value : 100 - value;
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
-                let value = msg.data['currentPositionTiltPercentage'];
+                const value = msg.data['currentPositionTiltPercentage'];
                 result.tilt = invert ? value : 100 - value;
             }
             return result;
@@ -1054,7 +1054,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const currentLevel = msg.data['currentLevel'];
-            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            let position = Math.round(Number(currentLevel) / 2.55).toString();
             position = options.invert_cover ? 100 - position : position;
             const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
             return {state: state, position: position};
@@ -5365,16 +5365,16 @@ const converters = {
                     msg.data['currentPositionLiftPercentage'] !== 50 ) {
                     // postion cast float to int
                     result.position = currentPosition | 0;
-                    result.position = options.invert_cover ? 100 - result.position  : result.position ;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
                 } else {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         // postion cast float to int
                         result.position = currentPosition | 0;
-                        result.position = options.invert_cover ? 100 - result.position  : result.position ;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     } else {
                         store[deviceID].CurrentPosition = lastPreviousAction;
                         result.position = lastPreviousAction;
-                        result.position = options.invert_cover ? 100 - result.position  : result.position ;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     }
                 }
             } else {
@@ -5383,7 +5383,7 @@ const converters = {
                     msg.data['currentPositionLiftPercentage'] !== 50) {
                     const liftPercentage = msg.data['currentPositionLiftPercentage'];
                     result.position = liftPercentage;
-                    result.position = options.invert_cover ? 100 - result.position  : result.position ;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
                 }
             }
             return result;
