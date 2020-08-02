@@ -183,6 +183,8 @@ const converters = {
     cover_position_via_brightness: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
+            const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
+            value = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
@@ -255,22 +257,13 @@ const converters = {
     cover_position_tilt: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            value = 100 - value;
-            await converters.cover_position_tilt_inverted.convertSet(entity, key, value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            await converters.cover_position_tilt_inverted.convertGet(entity, key, meta);
-        },
-    },
-    cover_position_tilt_inverted: {
-        key: ['position', 'tilt'],
-        convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
-            // ZigBee officially expects "open" to be 0 and "closed" to be 100 whereas
+            const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
+            value = invert ? 100 - value : value;
+
+            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand expects "open" to be 100 and "closed" to be 0
+            // For zigbee-herdsman-converters: open = 100, close = 0
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
@@ -1228,6 +1221,12 @@ const converters = {
 
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
+
+                if (key === 'position') {
+                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
+                        !meta.options.invert_cover : meta.options.invert_cover);
+                    value = invert ? 100 - value : value;
+                }
 
                 const payload = {0x0055: {value, type: 0x39}};
                 await entity.write('genAnalogOutput', payload);
@@ -2386,6 +2385,9 @@ const converters = {
 
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
+                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
+                        !meta.options.invert_cover : meta.options.invert_cover);
+                    value = invert ? 100 - value : value;
                     sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
                 } else {
                     meta.logger.debug('owvfni3: Curtain motor position is out of range');

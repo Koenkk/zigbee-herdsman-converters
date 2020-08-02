@@ -1027,6 +1027,48 @@ const converters = {
             return {action: postfixWithEndpointName(`identify`, msg, model)};
         },
     },
+    cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // For zigbee-herdsman-converters: open = 100, close = 0
+            // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
+            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+                const value = msg.data['currentPositionLiftPercentage'];
+                result.position = invert ? value : 100 - value;
+            }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+                let value = msg.data['currentPositionTiltPercentage'];
+                result.tilt = invert ? value : 100 - value;
+            }
+            return result;
+        },
+    },
+
+    cover_position_via_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const currentLevel = msg.data['currentLevel'];
+            const position = Math.round(Number(currentLevel) / 2.55).toString();
+            position = options.invert_cover ? 100 - position : position;
+            const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
+            return {state: state, position: position};
+        },
+    },
+    cover_state_via_onoff: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+            }
+        },
+    },
 
     /**
      * Non-generic converters, re-use if possible
@@ -1221,7 +1263,8 @@ const converters = {
                 running = msg.data['61440'] !== 0;
             }
 
-            const position = precisionRound(msg.data['presentValue'], 2);
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
             return {position: position, running: running};
         },
     },
@@ -2454,7 +2497,9 @@ const converters = {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {position: precisionRound(msg.data['presentValue'], 2)};
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position};
         },
     },
     JTYJGD01LMBW_smoke: {
@@ -3677,25 +3722,6 @@ const converters = {
             return action ? action : null;
         },
     },
-    cover_position_via_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const currentLevel = msg.data['currentLevel'];
-            const position = Math.round(Number(currentLevel) / 2.55).toString();
-            const state = position > 0 ? 'OPEN' : 'CLOSE';
-            return {state: state, position: position};
-        },
-    },
-    cover_state_via_onoff: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
-            }
-        },
-    },
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -3874,44 +3900,6 @@ const converters = {
                 test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
                 battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
             };
-        },
-    },
-    cover_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // ubisys J1 will report 255 if lift or tilt positions are not known.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
-                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
-                result.tilt = tiltPercentage <= 100 ? (100 - tiltPercentage) : null;
-            }
-            return result;
-        },
-    },
-    cover_position_tilt_inverted: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage <= 100 ? liftPercentage : null;
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
-                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
-                result.tilt = tiltPercentage <= 100 ? tiltPercentage : null;
-            }
-            return result;
         },
     },
     generic_fan_mode: {
@@ -5165,7 +5153,8 @@ const converters = {
             case 1031: // 0x04 0x07: Started moving (triggered by transmitter oder pulling on curtain)
                 return {'running': true};
             case 515: { // 0x02 0x03: Arrived at position
-                const position = msg.data.data[3];
+                let position = msg.data.data[3];
+                position = options.invert_cover ? 100 - position : position;
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
@@ -5376,13 +5365,16 @@ const converters = {
                     msg.data['currentPositionLiftPercentage'] !== 50 ) {
                     // postion cast float to int
                     result.position = currentPosition | 0;
+                    result.position = options.invert_cover ? 100 - result.position  : result.position ;
                 } else {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         // postion cast float to int
                         result.position = currentPosition | 0;
+                        result.position = options.invert_cover ? 100 - result.position  : result.position ;
                     } else {
                         store[deviceID].CurrentPosition = lastPreviousAction;
                         result.position = lastPreviousAction;
+                        result.position = options.invert_cover ? 100 - result.position  : result.position ;
                     }
                 }
             } else {
@@ -5391,6 +5383,7 @@ const converters = {
                     msg.data['currentPositionLiftPercentage'] !== 50) {
                     const liftPercentage = msg.data['currentPositionLiftPercentage'];
                     result.position = liftPercentage;
+                    result.position = options.invert_cover ? 100 - result.position  : result.position ;
                 }
             }
             return result;
