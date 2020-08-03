@@ -114,6 +114,15 @@ const getOptions = (definition, entity) => {
     return result;
 };
 
+const correctHue = (hue, meta) => {
+	const {options} = meta;
+	if (options.hasOwnProperty('hue_correction')) {
+		return utils.interpolateHue(hue, options.hue_correction);
+	} else {
+		return hue;
+	}
+}
+
 const converters = {
     /**
      * Generic
@@ -570,7 +579,7 @@ const converters = {
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-                    utils.hslToHSV(value.h, value.s, value.l)));
+                    utils.hslToHSV(correctHue(value.h, meta), value.s, value.l)));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -586,7 +595,7 @@ const converters = {
                 newState.color = {hsl: value.hsl};
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-                    utils.hslToHSV(hsl[0], hsl[1], hsl[2])));
+                    utils.hslToHSV(correctHue(hsl[0], meta), hsl[1], hsl[2])));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -599,7 +608,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, v: value.b};
-                const hsv = utils.gammaCorrectHSV(value.h, value.s, value.b);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, value.b);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -613,7 +622,7 @@ const converters = {
             } else if (value.hasOwnProperty('hsb')) {
                 let hsv = value.hsb.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
-                hsv = utils.gammaCorrectHSV(hsv[0], hsv[1], hsv[2]);
+                hsv = utils.gammaCorrectHSV(correctHue(hsv[0], meta), hsv[1], hsv[2]);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -626,7 +635,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
                 newState.color = {h: value.h, s: value.s, v: value.v};
-                const hsv = utils.gammaCorrectHSV(value.h, value.s, value.v);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, value.v);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -640,7 +649,7 @@ const converters = {
             } else if (value.hasOwnProperty('hsv')) {
                 let hsv = value.hsv.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
-                hsv = utils.gammaCorrectHSV(hsv[0], hsv[1], hsv[2]);
+                hsv = utils.gammaCorrectHSV(correctHue(hsv[0], meta), hsv[1], hsv[2]);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
@@ -653,7 +662,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
-                const hsv = utils.gammaCorrectHSV(value.h, value.s, 100);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, 100);
                 value.saturation = hsv.s * (2.54);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
@@ -664,7 +673,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
-                const hsv = utils.gammaCorrectHSV(value.h, 100, 100);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), 100, 100);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     cmd = 'moveToHue';
@@ -679,7 +688,7 @@ const converters = {
                 cmd = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
-                const hsv = utils.gammaCorrectHSV(value.hue, value.saturation, 100);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.hue, meta), value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
@@ -690,7 +699,7 @@ const converters = {
                 }
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
-                const hsv = utils.gammaCorrectHSV(value.hue, 100, 100);
+                const hsv = utils.gammaCorrectHSV(correctHue(value.hue, meta), 100, 100);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     cmd = 'moveToHue';
@@ -2130,7 +2139,7 @@ const converters = {
             if (key === 'state') {
                 await entity.read('genOnOff', ['onOff']);
             } else if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation']);
+                await entity.read('lightingColorCtrl', ['currenthHue', 'currentSaturation']);
             }
         },
     },
