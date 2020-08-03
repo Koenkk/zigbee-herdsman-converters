@@ -2130,7 +2130,7 @@ const converters = {
             if (key === 'state') {
                 await entity.read('genOnOff', ['onOff']);
             } else if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currenthHue', 'currentSaturation']);
+                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation']);
             }
         },
     },
