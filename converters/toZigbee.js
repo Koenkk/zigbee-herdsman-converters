@@ -115,13 +115,13 @@ const getOptions = (definition, entity) => {
 };
 
 const correctHue = (hue, meta) => {
-	const {options} = meta;
-	if (options.hasOwnProperty('hue_correction')) {
-		return utils.interpolateHue(hue, options.hue_correction);
-	} else {
-		return hue;
-	}
-}
+    const {options} = meta;
+    if (options.hasOwnProperty('hue_correction')) {
+        return utils.interpolateHue(hue, options.hue_correction);
+    } else {
+        return hue;
+    }
+};
 
 const converters = {
     /**
