@@ -161,6 +161,8 @@ function hexToRgb(hex) {
  * @return {Number} corrected hue value
  */
 function interpolateHue(hue, correctionMap) {
+    if (correctionMap.length < 2) return hue;
+
     // retain immutablity
     const clonedCorrectionMap = [...correctionMap];
 
