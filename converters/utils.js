@@ -154,6 +154,28 @@ function hexToRgb(hex) {
     return {r: r, g: g, b: b};
 }
 
+/**
+ * interpolates hue value based on correction map through ranged linear interpolation
+ * @param {Number} hue hue to be corrected
+ * @param {Array} correctionMap array of hueIn -> hueOut mappings; example: [ {"in": 20, "out": 25}, {"in": 109, "out": 104}]
+ * @returns {Number} corrected hue value
+ */
+function interpolateHue(hue, correctionMap) {
+    // retain immutablity
+    let clonedCorrectionMap = [...correctionMap]
+
+    // reverse sort calibration map and find left edge
+    clonedCorrectionMap.sort((a, b) => b.in - a.in)
+    const correctionLeft = clonedCorrectionMap.find(m => m.in <= hue) || { "in": 0, "out": 0 }
+
+    // sort calibration map and find right edge
+    clonedCorrectionMap.sort((a, b) => a.in - b.in)
+    const correctionRight = clonedCorrectionMap.find(m => m.in > hue) || { "in": 359, "out": 359 }
+
+    const ratio = 1 - (correctionRight.in - hue) / (correctionRight.in - correctionLeft.in)
+    return Math.round(correctionLeft.out + ratio * (correctionRight.out - correctionLeft.out))
+}
+
 function getKeyByValue(object, value, fallback) {
     const key = Object.keys(object).find((k) => object[k] === value);
     return key != null ? Number(key) : (fallback || 0);
@@ -211,6 +233,7 @@ module.exports = {
     hexToRgb,
     hslToHSV,
     getKeyByValue,
+    interpolateHue,
     hasEndpoints,
     miredsToXY,
     xyToMireds,
