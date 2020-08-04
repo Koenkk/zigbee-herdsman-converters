@@ -10290,6 +10290,13 @@ const devices = [
         },
     },
     {
+        fingerprint: [
+            // ModelID is from the temperature/humidity sensor (SNZB-02) but this is SNZB-04, wrong modelID in firmware?
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
+            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+            ]},
+        ],
         zigbeeModel: ['DS01'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
