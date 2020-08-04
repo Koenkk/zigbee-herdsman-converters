@@ -5537,6 +5537,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['4512721'],
+        model: '4512721',
+        vendor: 'Namron',
+        description: 'Zigbee 4 channel switch K8 (black)',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+    },
+    {
         zigbeeModel: ['4512702'],
         model: '4512702',
         vendor: 'Namron',
