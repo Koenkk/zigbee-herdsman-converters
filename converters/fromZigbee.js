@@ -5606,7 +5606,8 @@ const converters = {
             case 1139: // 0x0473 [0] 
                 break; 
             case 1140: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
-                return {volume: dataAsDecNumber};
+                const lvl = {2: 'low', 1: 'medium', 0: 'high'}[dataAsDecNumber];
+                return {volume: lvl};
             default: // Unknown code
                 console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }

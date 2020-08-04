@@ -1430,7 +1430,7 @@ const devices = [
         description: 'Temperature & humidity sensor and alarm',
         supports: 'temperature, humidity, alarm',
         fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
-        toZigbee: [],
+        toZigbee: [tz.neo_t_h_alarm],
     },
 
     // Norklmes
