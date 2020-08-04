@@ -5603,11 +5603,10 @@ const converters = {
                 break;
             case 1126: // 0x0466 [5] Melody
                 return {melody: dataAsDecNumber};
-            case 1139: // 0x0473 [0] 
-                break; 
+            case 1139: // 0x0473 [0]
+                break;
             case 1140: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
-                const lvl = {2: 'low', 1: 'medium', 0: 'high'}[dataAsDecNumber];
-                return {volume: lvl};
+                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[dataAsDecNumber]};
             default: // Unknown code
                 console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }

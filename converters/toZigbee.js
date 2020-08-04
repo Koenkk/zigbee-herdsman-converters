@@ -2487,24 +2487,19 @@ const converters = {
                 sendTuyaCommand(entity, 1140, 0, [1,  parseInt(lvl, 10)]);
                 break;
             case 'duration':
-                sendTuyaCommand(entity, 615, 0, [4, 0, 0, 
-                    ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_max':
-                sendTuyaCommand(entity, 620, 0, [4, 0, 0, 
-                    ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_min':
-                sendTuyaCommand(entity, 619, 0, [4, 0, 0, 
-                    ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_max':
-                sendTuyaCommand(entity, 621, 0, [4, 0, 0, 
-                    ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_min':
-                sendTuyaCommand(entity, 622, 0, [4, 0, 0, 
-                    ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_alarm':
                 sendTuyaCommand(entity, 369, 0, [1, value === 'ON' ? 1 : 0]);
@@ -2513,7 +2508,7 @@ const converters = {
                 sendTuyaCommand(entity, 370, 0, [1, value === 'ON' ? 1 : 0]);
                 break;
             default: // Unknown key
-                console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+                console.log(`Unhandled key ${key}`);
             }
         },
     },
