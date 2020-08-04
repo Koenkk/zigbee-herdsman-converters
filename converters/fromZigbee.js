@@ -3404,6 +3404,21 @@ const converters = {
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
+    tuya_water_leak: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const key = msg.data.dp;
+            const val = msg.data.data;
+            if (key === 357) {
+                return {
+                    water_leak: val[0] === 1,
+                };
+            }
+
+            return null;
+        },
+    },
     tint404011_brightness_updown_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',

@@ -1430,7 +1430,15 @@ const devices = [
         fromZigbee: [fz.scenes_recall_scene_65029],
         toZigbee: [],
     },
-
+    {
+        zigbeeModel: ['q9mpfhw'],
+        model: 'SNTZ009',
+        vendor: 'TuYa',
+        description: 'Water leak sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.tuya_water_leak],
+        toZigbee: [],
+    },
     // Norklmes
     {
         zigbeeModel: ['qnazj70'],
