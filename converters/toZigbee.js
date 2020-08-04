@@ -2470,7 +2470,7 @@ const converters = {
     },
     neo_t_h_alarm: {
         key: [
-            'alarm', 'melody', 'volume', 'duration', 
+            'alarm', 'melody', 'volume', 'duration',
             'temperature_max', 'temperature_min', 'humidity_min', 'humidity_max',
             'temperature_alarm', 'humidity_alarm',
         ],
@@ -2480,11 +2480,10 @@ const converters = {
                 sendTuyaCommand(entity, 360, 0, [1, value === 'ON' ? 1 : 0]);
                 break;
             case 'melody':
-                sendTuyaCommand(entity, 1126, 0, [1,  parseInt(value, 10)]);
+                sendTuyaCommand(entity, 1126, 0, [1, parseInt(value, 10)]);
                 break;
             case 'volume':
-                const lvl = {'low': 2, 'medium': 1, 'high': 0}[value];
-                sendTuyaCommand(entity, 1140, 0, [1,  parseInt(lvl, 10)]);
+                sendTuyaCommand(entity, 1140, 0, [1, {'low': 2, 'medium': 1, 'high': 0}[value]]);
                 break;
             case 'duration':
                 sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
