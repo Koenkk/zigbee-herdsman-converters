@@ -1436,7 +1436,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Water leak sensor',
         supports: 'water leak',
-        fromZigbee: [fz.tuya_water_leak],
+        fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
         toZigbee: [],
     },
     // Norklmes
