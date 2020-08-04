@@ -1351,21 +1351,27 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0011'],
-        model: 'GDKES-01TZXD',
+        model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang without neutral wire',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
+        whiteLabel: [
+            {vendor: 'Vrey', model: 'VR-X712U-0013'},
+            {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
+            {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
+        ],
     },
     {
         zigbeeModel: ['TS0012'],
-        model: 'GDKES-02TZXD',
+        model: 'TS0012',
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang without neutral wire',
         supports: 'on/off',
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
+            {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
         ],
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -1380,7 +1386,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0013'],
-        model: 'GDKES-03TZXD',
+        model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
         supports: 'on/off',
@@ -1389,6 +1395,9 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
+        whiteLabel: [
+            {vendor: 'TUYATEC', model: 'GDKES-03TZXD'},
+        ],
         meta: {configureKey: 2, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             for (const ID of [1, 2, 3]) {
@@ -5524,7 +5533,7 @@ const devices = [
         zigbeeModel: ['4512703'],
         model: '4512703',
         vendor: 'Namron',
-        description: 'Zigbee 4 channel switch K8',
+        description: 'Zigbee 4 channel switch K8 (white)',
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery,
