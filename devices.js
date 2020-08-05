@@ -1440,6 +1440,17 @@ const devices = [
         toZigbee: [],
     },
 
+    // Neo
+    {
+        zigbeeModel: ['0yu2xgi'],
+        model: 'NAS-AB02B0',
+        vendor: 'Neo',
+        description: 'Temperature & humidity sensor and alarm',
+        supports: 'temperature, humidity, alarm',
+        fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
+        toZigbee: [tz.neo_t_h_alarm],
+    },
+
     // Norklmes
     {
         zigbeeModel: ['qnazj70'],

@@ -2481,6 +2481,49 @@ const converters = {
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
         },
     },
+    neo_t_h_alarm: {
+        key: [
+            'alarm', 'melody', 'volume', 'duration',
+            'temperature_max', 'temperature_min', 'humidity_min', 'humidity_max',
+            'temperature_alarm', 'humidity_alarm',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'alarm':
+                sendTuyaCommand(entity, 360, 0, [1, value ? 1 : 0]);
+                break;
+            case 'melody':
+                sendTuyaCommand(entity, 1126, 0, [1, parseInt(value, 10)]);
+                break;
+            case 'volume':
+                sendTuyaCommand(entity, 1140, 0, [1, {'low': 2, 'medium': 1, 'high': 0}[value]]);
+                break;
+            case 'duration':
+                sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'temperature_max':
+                sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'temperature_min':
+                sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'humidity_max':
+                sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'humidity_min':
+                sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'temperature_alarm':
+                sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
+                break;
+            case 'humidity_alarm':
+                sendTuyaCommand(entity, 370, 0, [1, value ? 1 : 0]);
+                break;
+            default: // Unknown key
+                console.log(`Unhandled key ${key}`);
+            }
+        },
+    },
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {

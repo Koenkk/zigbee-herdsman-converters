@@ -5584,6 +5584,49 @@ const converters = {
             return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
         },
     },
+    neo_t_h_alarm: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const data = msg.data.data;
+            const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+            switch (dp) {
+            case 360: // 0x0168 [0]/[1] Alarm!
+                return {alarm: (dataAsDecNumber!=0)};
+            case 368: // 0x0170 [0]
+                break;
+            case 369: // 0x0171 [0]/[1] Disable/Enable alarm by temperature
+                return {temperature_alarm: (dataAsDecNumber!=0)};
+            case 370: // 0x0172 [0]/[1] Disable/Enable alarm by humidity
+                return {humidity_alarm: (dataAsDecNumber!=0)};
+            case 615: // 0x0267 [0,0,0,10] duration alarm in second
+                return {duration: dataAsDecNumber};
+            case 617: // 0x0269 [0,0,0,240] temperature
+                return {temperature: (dataAsDecNumber/10).toFixed(1)};
+            case 618: // 0x026A [0,0,0,36] humidity
+                return {humidity: dataAsDecNumber};
+            case 619: // 0x026B [0,0,0,18] min alarm temperature
+                return {temperature_min: dataAsDecNumber};
+            case 620: // 0x026C [0,0,0,27] max alarm temperature
+                return {temperature_max: dataAsDecNumber};
+            case 621: // 0x026D [0,0,0,45] min alarm humidity
+                return {humidity_min: dataAsDecNumber};
+            case 622: // 0x026E [0,0,0,80] max alarm humidity
+                return {humidity_max: dataAsDecNumber};
+            case 1125: // 0x0465 [4]
+                break;
+            case 1126: // 0x0466 [5] Melody
+                return {melody: dataAsDecNumber};
+            case 1139: // 0x0473 [0]
+                break;
+            case 1140: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
+                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[dataAsDecNumber]};
+            default: // Unknown code
+                console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
