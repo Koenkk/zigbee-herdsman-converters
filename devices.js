@@ -1439,6 +1439,7 @@ const devices = [
         fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
         toZigbee: [],
     },
+
     // Norklmes
     {
         zigbeeModel: ['qnazj70'],
