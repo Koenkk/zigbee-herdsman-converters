@@ -12,13 +12,6 @@
 const common = require('./common');
 const utils = require('./utils');
 
-const clickLookup = {
-    1: 'single',
-    2: 'double',
-    3: 'triple',
-    4: 'quadruple',
-};
-
 const occupancyTimeout = 90; // In seconds
 
 const defaultPrecision = {
@@ -167,13 +160,20 @@ const ictcg1 = (model, msg, publish, options, action) => {
     return payload.brightness;
 };
 
-const getProperty = (name, msg, definition) => {
+const postfixWithEndpointName = (name, msg, definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
         const endpointName = definition.hasOwnProperty('endpoint') ?
             getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
         return `${name}_${endpointName}`;
     } else {
         return name;
+    }
+};
+
+const addActionGroup = (payload, msg, definition) => {
+    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
+    if (!disableActionGroup && msg.groupID) {
+        payload.action_group = msg.groupID;
     }
 };
 
@@ -199,6 +199,14 @@ const ratelimitedDimmer = (model, msg, publish, options, meta) => {
         payload.brightness = msg.data.level;
         publish(payload);
     }
+};
+
+const transactionStore = {};
+const hasAlreadyProcessedMessage = (msg, transaction=null) => {
+    const current = transaction !== null ? transaction : msg.meta.zclTransactionSequenceNumber;
+    if (transactionStore[msg.device.ieeeAddr] === current) return true;
+    transactionStore[msg.device.ieeeAddr] = current;
+    return false;
 };
 
 const holdUpdateBrightness324131092621 = (deviceID) => {
@@ -322,8 +330,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
 
 const converters = {
     /**
-     * Generic/recommended converters, the converters below comply with the ZCL
-     * and are recommended to for re-use
+     * Generic/recommended converters, re-use if possible.
      */
     lock_operation_event: {
         cluster: 'closuresDoorLock',
@@ -374,18 +381,25 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                payload.battery = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
-                payload['voltage'] = msg.data['batteryVoltage'] * 100;
+                // Deprecated: voltage is = mV now but should be V
+                payload.voltage = msg.data['batteryVoltage'] * 100;
+
+                if (model.meta && model.meta.batery && model.meta.battery.voltageToPercentage) {
+                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
+                        payload.battery = toPercentageCR2032(payload.voltage);
+                    }
+                }
             }
 
             if (msg.data.hasOwnProperty('batteryAlarmState')) {
                 const battery1Low = (msg.data.batteryAlarmState & 1<<0) > 0;
                 const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
                 const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
-                payload['battery_low'] = battery1Low || battery2Low || battery3Low;
+                payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
             return payload;
@@ -510,12 +524,21 @@ const converters = {
             }
         },
     },
+    occupancy_timeout: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('pirOToUDelay')) {
+                return {occupancy_timeout: msg.data.pirOToUDelay};
+            }
+        },
+    },
     brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
-                const property = getProperty('brightness', msg, model);
+                const property = postfixWithEndpointName('brightness', msg, model);
                 return {[property]: msg.data['currentLevel']};
             }
         },
@@ -591,7 +614,7 @@ const converters = {
             for (const entry of lookup) {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
-                    const property = getProperty(entry.name, msg, model);
+                    const property = postfixWithEndpointName(entry.name, msg, model);
                     payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
                 }
             }
@@ -603,7 +626,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                const property = getProperty('state', msg, model);
+                const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -753,8 +776,8 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`recall_${msg.data.sceneid}`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -762,8 +785,8 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`panic`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`panic`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -777,8 +800,35 @@ const converters = {
                 2: 'arm_night_zones',
                 3: 'arm_all_zones',
             };
-            const payload = {action: getProperty(lookup[msg.data['armmode']], msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(lookup[msg.data['armmode']], msg, model)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_cover_stop: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: postfixWithEndpointName('stop', msg, model)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_cover_open: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandUpOpen',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: postfixWithEndpointName('open', msg, model)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_cover_close: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandDownClose',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: postfixWithEndpointName('close', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -786,8 +836,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('on', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('on', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -795,8 +845,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('off', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('off', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -804,8 +854,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`off`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`off`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -813,8 +863,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('toggle', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('toggle', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -823,11 +873,11 @@ const converters = {
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`brightness_move_to_level`, msg, model),
+                action: postfixWithEndpointName(`brightness_move_to_level`, msg, model),
                 action_level: msg.data.level,
                 action_transition_time: msg.data.transtime / 100,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -836,9 +886,9 @@ const converters = {
         type: ['commandMove', 'commandMoveWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            const action = getProperty(`brightness_move_${direction}`, msg, model);
+            const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -848,11 +898,11 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
-                action: getProperty(`brightness_step_${direction}`, msg, model),
+                action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime / 100,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -860,8 +910,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`brightness_stop`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -871,10 +921,10 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
-                action: getProperty(`color_temperature_step_${direction}`, msg, model),
+                action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -883,14 +933,14 @@ const converters = {
         type: 'commandEnhancedMoveToHueAndSaturation',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`enhanced_move_to_hue_and_saturation`, msg, model),
+                action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
                 action_hue: msg.data.enhancehue * 360 / 65536 % 360,
                 action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
 
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -906,7 +956,7 @@ const converters = {
             };
 
             const payload = {
-                action: getProperty(`color_loop_set`, msg, model),
+                action: postfixWithEndpointName(`color_loop_set`, msg, model),
                 action_update_flags: {
                     action: (updateFlags & 1 << 0) > 0,
                     direction: (updateFlags & 1 << 1) > 0,
@@ -919,7 +969,7 @@ const converters = {
                 action_start_hue: msg.data.starthue,
             };
 
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -928,11 +978,11 @@ const converters = {
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`color_temperature_move`, msg, model),
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -941,14 +991,14 @@ const converters = {
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(`color_move`, msg, model),
+                action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
                 },
                 action_transition_time: msg.data.transtime,
             };
-            if (msg.groupID) payload.action_group = msg.groupID;
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -956,8 +1006,8 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('hue_move', msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName('hue_move', msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -965,8 +1015,8 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty(`emergency`, msg, model)};
-            if (msg.groupID) payload.action_group = msg.groupID;
+            const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -974,13 +1024,899 @@ const converters = {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: getProperty(`identify`, msg, model)};
+            return {action: postfixWithEndpointName(`identify`, msg, model)};
+        },
+    },
+    cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // For zigbee-herdsman-converters: open = 100, close = 0
+            // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
+            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+                const value = msg.data['currentPositionLiftPercentage'];
+                result.position = invert ? value : 100 - value;
+            }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+                const value = msg.data['currentPositionTiltPercentage'];
+                result.tilt = invert ? value : 100 - value;
+            }
+            return result;
+        },
+    },
+
+    cover_position_via_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const currentLevel = msg.data['currentLevel'];
+            let position = Math.round(Number(currentLevel) / 2.55).toString();
+            position = options.invert_cover ? 100 - position : position;
+            const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
+            return {state: state, position: position};
+        },
+    },
+    cover_state_via_onoff: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
+            }
         },
     },
 
     /**
-     * Device specific converters, not recommended for re-use.
-     * TODO: This has not been fully sorted out yet.
+     * Non-generic converters, re-use if possible
+     */
+    xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && !msg.data['61440']) {
+                return;
+            }
+
+            let mapping = null;
+            if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
+            if (['WXKG02LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
+
+            // Dont' use postfixWithEndpointName here, endpoints don't match
+            if (mapping) {
+                const button = mapping[msg.endpoint.ID];
+                return {action: `single_${button}`};
+            } else {
+                return {action: 'single'};
+            }
+        },
+    },
+    xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
+            let actionLookup = {0: 'hold', 1: 'single', 2: 'double', 255: 'release'};
+            let buttonLookup = null;
+            if (model.model === 'WXKG02LM') buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            if (model.model === 'QBKG12LM') buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
+            if (model.model === 'WXKG12LM') {
+                actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
+            }
+
+            const action = actionLookup[msg.data['presentValue']];
+            if (buttonLookup) {
+                const button = buttonLookup[msg.endpoint.ID];
+                if (button) {
+                    return {action: `${action}_${button}`};
+                }
+            } else {
+                return {action};
+            }
+        },
+    },
+    xiaomi_WXKG01LM_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
+            const deviceID = msg.device.ieeeAddr;
+            const state = msg.data['onOff'];
+            if (!store[deviceID]) store[deviceID] = {};
+
+            // 0 = click down, 1 = click up, else = multiple clicks
+            if (state === 0) {
+                store[deviceID].timer = setTimeout(() => {
+                    publish({action: 'hold'});
+                    store[deviceID].timer = null;
+                    store[deviceID].hold = Date.now();
+                    store[deviceID].hold_timer = setTimeout(() => {
+                        store[deviceID].hold = false;
+                    }, options.hold_timeout_expire || 4000);
+                    // After 4000 milliseconds of not reciving release we assume it will not happen.
+                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+            } else if (state === 1) {
+                if (store[deviceID].hold) {
+                    const duration = Date.now() - store[deviceID].hold;
+                    publish({action: 'release', duration: duration});
+                    store[deviceID].hold = false;
+                }
+
+                if (store[deviceID].timer) {
+                    clearTimeout(store[deviceID].timer);
+                    store[deviceID].timer = null;
+                    publish({action: 'single'});
+                }
+            } else {
+                const clicks = msg.data['32768'];
+                const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
+                publish({action: payload});
+            }
+        },
+    },
+    xiaomi_WXKG11LM_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let clicks;
+            if (msg.data.onOff) {
+                clicks = 1;
+            } else if (msg.data['32768']) {
+                clicks = msg.data['32768'];
+            }
+
+            const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+            if (actionLookup[clicks]) {
+                return {action: actionLookup[clicks]};
+            }
+        },
+    },
+    command_status_change_notification_action: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'single', 2: 'double', 3: 'hold'};
+            const zoneStatus = msg.data.zonestatus;
+            return {action: lookup[zoneStatus]};
+        },
+    },
+    ptvo_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup = {1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
+            const value = msg.data['presentValue'];
+            const action = actionLookup[value];
+            return {action: postfixWithEndpointName(action, msg, model)};
+        },
+    },
+    terncy_raw: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // 13,40,18,104, 0,8,1 - single
+            // 13,40,18,22,  0,17,1
+            // 13,40,18,32,  0,18,1
+            // 13,40,18,6,   0,16,1
+            // 13,40,18,111, 0,4,2 - double
+            // 13,40,18,58,  0,7,2
+            // 13,40,18,6,   0,2,3 - triple
+            // motion messages:
+            // 13,40,18,105, 4,167,0,7 - motion on right side
+            // 13,40,18,96,  4,27,0,5
+            // 13,40,18,101, 4,27,0,7
+            // 13,40,18,125, 4,28,0,5
+            // 13,40,18,85,  4,28,0,7
+            // 13,40,18,3,   4,24,0,5
+            // 13,40,18,81,  4,10,1,7
+            // 13,40,18,72,  4,30,1,5
+            // 13,40,18,24,  4,25,0,40 - motion on left side
+            // 13,40,18,47,  4,28,0,56
+            // 13,40,18,8,   4,32,0,40
+            let value = {};
+            if (msg.data[4] == 0) {
+                value = msg.data[6];
+                if (1 <= value && value <= 3) {
+                    const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                    return {action: actionLookup[value]};
+                }
+            } else if (msg.data[4] == 4) {
+                value = msg.data[7];
+                const sidelookup = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
+                if (sidelookup[value]) {
+                    msg.data.occupancy = 1;
+                    const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    payload.action_side = sidelookup[value];
+                    payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
+
+                    return payload;
+                }
+            }
+        },
+    },
+    konke_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['onOff'];
+            const lookup = {128: 'single', 129: 'double', 130: 'hold'};
+            return lookup[value] ? {action: lookup[value]} : null;
+        },
+    },
+    xiaomi_curtain_position: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+
+            if (model.model === 'ZNCLDJ12LM' && msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
+                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
+                return;
+            }
+
+            if (msg.data['61440']) {
+                running = msg.data['61440'] !== 0;
+            }
+
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position: position, running: running};
+        },
+    },
+    xiaomi_curtain_options: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data['1025'];
+            if (data) {
+                return {
+                    options: { // next values update only when curtain finished initial setup and knows current position
+                        reverse_direction: data[2]=='\u0001',
+                        hand_open: data[5]=='\u0000',
+                    },
+                };
+            }
+        },
+    },
+    xiaomi_operation_mode_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM'].includes(model.model)) {
+                const mappingMode = {0x12: 'control_relay', 0xFE: 'decoupled'};
+                const key = '65314';
+                if (msg.data.hasOwnProperty(key)) {
+                    payload.operation_mode = mappingMode[msg.data[key]];
+                }
+            } else if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) {
+                const mappingButton = {'65314': 'left', '65315': 'right'};
+                const mappingMode = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xFE: 'decoupled'};
+                for (const key in mappingButton) {
+                    if (msg.data.hasOwnProperty(key)) {
+                        const mode = mappingMode[msg.data[key]];
+                        payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    }
+                }
+            } else {
+                throw new Error('Not supported');
+            }
+
+            return payload;
+        },
+    },
+    xiaomi_operation_mode_opple: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const mappingButton = {
+                1: 'left',
+                2: 'center',
+                3: 'right',
+            };
+            const mappingMode = {
+                0x01: 'control_relay',
+                0x00: 'decoupled',
+            };
+            for (const key in mappingButton) {
+                if (msg.endpoint.ID == key && msg.data.hasOwnProperty('512')) {
+                    const payload = {};
+                    const mode = mappingMode['512'];
+                    payload[`operation_mode_${mappingButton[key]}`] = mode;
+                    return payload;
+                }
+            }
+        },
+    },
+
+    /**
+     * Legacy: DONT RE-USE!!
+     */
+    legacy_WXKG11LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const data = msg.data;
+                let clicks;
+
+                if (data.onOff) {
+                    clicks = 1;
+                } else if (data['32768']) {
+                    clicks = data['32768'];
+                }
+
+                const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                if (actionLookup[clicks]) {
+                    return {click: actionLookup[clicks]};
+                }
+            }
+        },
+    },
+    legacy_konke_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['onOff'];
+            const lookup = {
+                128: {click: 'single'}, // single click
+                129: {click: 'double'}, // double and many click
+                130: {click: 'long'}, // hold
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
+    legacy_xiaomi_action_click_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            const lookup = {
+                1: {click: 'single'}, // single click
+                2: {click: 'double'}, // double click
+            };
+
+            return lookup[value] ? lookup[value] : null;
+        },
+    },
+    legacy_WXKG12LM_action_click_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const value = msg.data['presentValue'];
+                const lookup = {
+                    1: {click: 'single'}, // single click
+                    2: {click: 'double'}, // double click
+                };
+
+                return lookup[value] ? lookup[value] : null;
+            }
+        },
+    },
+    legacy_terncy_raw: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                // 13,40,18,104, 0,8,1 - click
+                // 13,40,18,22,  0,17,1
+                // 13,40,18,32,  0,18,1
+                // 13,40,18,6,   0,16,1
+                // 13,40,18,111, 0,4,2 - double click
+                // 13,40,18,58,  0,7,2
+                // 13,40,18,6,   0,2,3 - triple click
+                // motion messages:
+                // 13,40,18,105, 4,167,0,7 - motion on right side
+                // 13,40,18,96,  4,27,0,5
+                // 13,40,18,101, 4,27,0,7
+                // 13,40,18,125, 4,28,0,5
+                // 13,40,18,85,  4,28,0,7
+                // 13,40,18,3,   4,24,0,5
+                // 13,40,18,81,  4,10,1,7
+                // 13,40,18,72,  4,30,1,5
+                // 13,40,18,24,  4,25,0,40 - motion on left side
+                // 13,40,18,47,  4,28,0,56
+                // 13,40,18,8,   4,32,0,40
+                let value = {};
+                if (msg.data[4] == 0) {
+                    value = msg.data[6];
+                    if (1 <= value && value <= 3) {
+                        const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                        return {click: actionLookup[value]};
+                    }
+                }
+            }
+        },
+    },
+    legacy_CCTSwitch_D0001_on_off: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'power'};
+            }
+        },
+    },
+    legacy_ptvo_switch_buttons: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                const value = msg.data['presentValue'];
+
+                const actionLookup = {
+                    1: 'single',
+                    2: 'double',
+                    3: 'tripple',
+                    4: 'hold',
+                };
+
+                const action = actionLookup[value];
+
+                if (button) {
+                    return {click: button + (action ? `_${action}` : '')};
+                }
+            }
+        },
+    },
+    legacy_ZGRC013_brightness_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const button = msg.endpoint.ID;
+                const direction = msg.data.movemode == 0 ? 'up' : 'down';
+                if (button) {
+                    return {click: `${button}_${direction}`};
+                }
+            }
+        },
+    },
+    legacy_ZGRC013_brightness_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const button = msg.endpoint.ID;
+                if (button) {
+                    return {click: `${button}_stop`};
+                }
+            }
+        },
+    },
+    legacy_ZGRC013_scene: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            }
+        },
+    },
+    legacy_ZGRC013_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.endpoint.ID;
+            if (button) {
+                return {click: `${button}_on`};
+            }
+        },
+    },
+    legacy_ZGRC013_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const button = msg.endpoint.ID;
+                if (button) {
+                    return {click: `${button}_off`};
+                }
+            }
+        },
+    },
+    legacy_ZGRC013_brightness: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const button = msg.endpoint.ID;
+                const direction = msg.data.movemode == 0 ? 'up' : 'down';
+                if (button) {
+                    return {click: `${button}_${direction}`};
+                }
+            }
+        },
+    },
+    legacy_CTR_U_scene: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            }
+        },
+    },
+    legacy_st_button_state: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const buttonStates = {
+                    0: 'off',
+                    1: 'single',
+                    2: 'double',
+                    3: 'hold',
+                };
+
+                if (msg.data.hasOwnProperty('data')) {
+                    const zoneStatus = msg.data.zonestatus;
+                    return {click: buttonStates[zoneStatus]};
+                } else {
+                    const zoneStatus = msg.data.zonestatus;
+                    return {click: buttonStates[zoneStatus]};
+                }
+            }
+        },
+    },
+    legacy_QBKG11LM_click: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                if ([1, 2].includes(msg.data.presentValue)) {
+                    const times = {1: 'single', 2: 'double'};
+                    return {click: times[msg.data.presentValue]};
+                }
+            }
+        },
+    },
+    legacy_QBKG12LM_click: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                if ([1, 2].includes(msg.data.presentValue)) {
+                    const mapping = {5: 'left', 6: 'right', 7: 'both'};
+                    const times = {1: 'single', 2: 'double'};
+                    const button = mapping[msg.endpoint.ID];
+                    return {click: `${button}_${times[msg.data.presentValue]}`};
+                }
+            }
+        },
+    },
+    legacy_QBKG03LM_QBKG12LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                if (!msg.data['61440']) {
+                    const mapping = {4: 'left', 5: 'right', 6: 'both'};
+                    const button = mapping[msg.endpoint.ID];
+                    return {click: button};
+                }
+            }
+        },
+    },
+    legacy_QBKG04LM_QBKG11LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                if (!msg.data['61440']) {
+                    return {click: 'single'};
+                }
+            }
+        },
+    },
+    legacy_cover_stop: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'release'};
+            }
+        },
+    },
+    legacy_cover_open: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandUpOpen',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'open'};
+            }
+        },
+    },
+    legacy_cover_close: {
+        cluster: 'closuresWindowCovering',
+        type: 'commandDownClose',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'close'};
+            }
+        },
+    },
+    legacy_WXKG03LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'single'};
+            }
+        },
+    },
+    legacy_xiaomi_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            // Legacy: use xiaomi_on_off_action_single
+            return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+        },
+    },
+    legacy_WXKG02LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+            }
+        },
+    },
+    legacy_WXKG02LM_click_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
+            // of a message with the same transaction sequence number twice.
+            const current = msg.meta.zclTransactionSequenceNumber;
+            if (store[msg.device.ieeeAddr + 'legacy'] === current) return;
+            store[msg.device.ieeeAddr + 'legacy'] = current;
+
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+
+            const actionLookup = {
+                0: 'long',
+                1: null,
+                2: 'double',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
+                if (!options.hasOwnProperty('legacy') || options.legacy) {
+                    return {click: button + (action ? `_${action}` : '')};
+                }
+            }
+        },
+    },
+    legacy_WXKG01LM_click: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                const deviceID = msg.device.ieeeAddr;
+                const state = msg.data['onOff'];
+                const key = `${deviceID}_legacy`;
+
+                if (!store[key]) {
+                    store[key] = {};
+                }
+
+                const current = msg.meta.zclTransactionSequenceNumber;
+                if (store[key].transaction === current) return;
+                store[key].transaction = current;
+
+                // 0 = click down, 1 = click up, else = multiple clicks
+                if (state === 0) {
+                    store[key].timer = setTimeout(() => {
+                        publish({click: 'long'});
+                        store[key].timer = null;
+                        store[key].long = Date.now();
+                        store[key].long_timer = setTimeout(() => {
+                            store[key].long = false;
+                        }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
+                    }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
+                } else if (state === 1) {
+                    if (store[key].long) {
+                        const duration = Date.now() - store[key].long;
+                        publish({click: 'long_release', duration: duration});
+                        store[key].long = false;
+                    }
+
+                    if (store[key].timer) {
+                        clearTimeout(store[key].timer);
+                        store[key].timer = null;
+                        publish({click: 'single'});
+                    }
+                } else {
+                    const clicks = msg.data['32768'];
+                    const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                    const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
+                    publish({click: payload});
+                }
+            }
+        },
+    },
+    legacy_scenes_recall_click: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: msg.data.sceneid};
+            }
+        },
+    },
+    legacy_AV2010_34_click: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: msg.data.groupid};
+            }
+        },
+    },
+    legacy_E1743_brightness_down: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'brightness_down'};
+            }
+        },
+    },
+    legacy_E1743_brightness_up: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'brightness_up'};
+            }
+        },
+    },
+    legacy_E1743_brightness_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'brightness_stop'};
+            }
+        },
+    },
+    legacy_genOnOff_cmdOn: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'on'};
+            }
+        },
+    },
+    legacy_genOnOff_cmdOff: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (!options.hasOwnProperty('legacy') || options.legacy) {
+                return {click: 'off'};
+            }
+        },
+    },
+    legacy_xiaomi_multistate_action: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // refactor to xiaomi_multistate_action]
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+            const actionLookup = {0: 'long', 1: null, 2: 'double'};
+            const action = actionLookup[value];
+
+            if (button) {
+                return {action: `${button}${(action ? `_${action}` : '')}`};
+            }
+        },
+    },
+    legacy_E1744_play_pause: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_toggle.convert(model, msg, publish, options, meta);
+            } else {
+                return {action: 'play_pause'};
+            }
+        },
+    },
+    legacy_E1744_skip: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            } else {
+                const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
+                return {
+                    action: `skip_${direction}`,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+            }
+        },
+    },
+    legacy_cmd_move: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_move.convert(model, msg, publish, options, meta);
+            } else {
+                ictcg1(model, msg, publish, options, 'move');
+                const direction = msg.data.movemode === 1 ? 'left' : 'right';
+                return {action: `rotate_${direction}`, rate: msg.data.rate};
+            }
+        },
+    },
+    legacy_cmd_move_with_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_move.convert(model, msg, publish, options, meta);
+            } else {
+                ictcg1(model, msg, publish, options, 'move');
+                const direction = msg.data.movemode === 1 ? 'left' : 'right';
+                return {action: `rotate_${direction}`, rate: msg.data.rate};
+            }
+        },
+    },
+    legacy_cmd_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            } else {
+                const value = ictcg1(model, msg, publish, options, 'stop');
+                return {action: `rotate_stop`, brightness: value};
+            }
+        },
+    },
+    legacy_cmd_stop_with_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStopWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            } else {
+                const value = ictcg1(model, msg, publish, options, 'stop');
+                return {action: `rotate_stop`, brightness: value};
+            }
+        },
+    },
+    legacy_cmd_move_to_level_with_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (options.hasOwnProperty('legacy') && options.legacy === false) {
+                return converters.command_move_to_level.convert(model, msg, publish, options, meta);
+            } else {
+                const value = ictcg1(model, msg, publish, options, 'level');
+                const direction = msg.data.level === 0 ? 'left' : 'right';
+                return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
+            }
+        },
+    },
+
+    /**
+     * TODO: Converters to be checked
      */
     scenes_recall_scene_65029: {
         cluster: 65029,
@@ -1008,82 +1944,6 @@ const converters = {
             }
 
             return result;
-        },
-    },
-    genOnOff_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'on'};
-        },
-    },
-    genOnOff_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'off'};
-        },
-    },
-    E1743_brightness_down: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_down'};
-        },
-    },
-    E1743_brightness_up: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_up'};
-        },
-    },
-    E1743_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'brightness_stop'};
-        },
-    },
-    E1744_play_pause: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_toggle.convert(model, msg, publish, options, meta);
-            } else {
-                return {action: 'play_pause'};
-            }
-        },
-    },
-    E1744_skip: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_step.convert(model, msg, publish, options, meta);
-            } else {
-                const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
-                return {
-                    action: `skip_${direction}`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            }
-        },
-    },
-    osram_lightify_switch_long_middle: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'long_middle'};
-        },
-    },
-    AV2010_34_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: msg.data.groupid};
         },
     },
     bitron_power: {
@@ -1134,13 +1994,6 @@ const converters = {
                 result.battery_alarm_state = msg.data['batteryAlarmState'];
             }
             return result;
-        },
-    },
-    scenes_recall_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: msg.data.sceneid};
         },
     },
     smartthings_contact: {
@@ -1228,43 +2081,6 @@ const converters = {
             }
         },
     },
-    WXKG01LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            const state = msg.data['onOff'];
-
-            if (!store[deviceID]) {
-                store[deviceID] = {};
-            }
-
-            // 0 = click down, 1 = click up, else = multiple clicks
-            if (state === 0) {
-                store[deviceID].timer = setTimeout(() => {
-                    publish({click: 'long'});
-                    store[deviceID].timer = null;
-                    store[deviceID].long = Date.now();
-                }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
-            } else if (state === 1) {
-                if (store[deviceID].long) {
-                    const duration = Date.now() - store[deviceID].long;
-                    publish({click: 'long_release', duration: duration});
-                    store[deviceID].long = false;
-                }
-
-                if (store[deviceID].timer) {
-                    clearTimeout(store[deviceID].timer);
-                    store[deviceID].timer = null;
-                    publish({click: 'single'});
-                }
-            } else {
-                const clicks = msg.data['32768'];
-                const payload = clickLookup[clicks] ? clickLookup[clicks] : 'many';
-                publish({click: payload});
-            }
-        },
-    },
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -1332,52 +2148,6 @@ const converters = {
                 action: value < 0 ? 'rotate_left' : 'rotate_right',
                 angle: Math.floor(value * 100) / 100,
             };
-        },
-    },
-    WXKG12LM_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            const lookup = {
-                1: {click: 'single'}, // single click
-                2: {click: 'double'}, // double click
-                16: {action: 'hold'}, // hold for more than 400ms
-                17: {action: 'release'}, // release after hold for more than 400ms
-                18: {action: 'shake'}, // shake
-            };
-
-            return lookup[value] ? lookup[value] : null;
-        },
-    },
-    xiaomi_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            const lookup = {
-                1: {action: 'single'}, // single click
-                2: {action: 'double'}, // double click
-                0: {action: 'hold'}, // hold for more than 400ms
-                255: {action: 'release'}, // release after hold for more than 400ms
-            };
-
-            return lookup[value] ? lookup[value] : null;
-        },
-    },
-    xiaomi_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            const lookup = {
-                1: {click: 'single'}, // single click
-                2: {click: 'double'}, // double click
-                0: {action: 'hold'}, // hold for more than 400ms
-                255: {action: 'release'}, // release after hold for more than 400ms
-            };
-
-            return lookup[value] ? lookup[value] : null;
         },
     },
     tradfri_occupancy: {
@@ -1499,24 +2269,6 @@ const converters = {
             return result;
         },
     },
-    WXKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            let clicks;
-
-            if (data.onOff) {
-                clicks = 1;
-            } else if (data['32768']) {
-                clicks = data['32768'];
-            }
-
-            if (clickLookup[clicks]) {
-                return {click: clickLookup[clicks]};
-            }
-        },
-    },
     WSDCGQ11LM_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -1524,74 +2276,6 @@ const converters = {
             const pressure = msg.data.hasOwnProperty('16') ?
                 parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
-        },
-    },
-    xiaomi_on_off_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-        },
-    },
-    xiaomi_multistate_action: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-            const actionLookup = {0: 'long', 1: null, 2: 'double'};
-            const action = actionLookup[value];
-
-            if (button) {
-                return {action: `${button}${(action ? `_${action}` : '')}`};
-            }
-        },
-    },
-    WXKG02LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {click: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-        },
-    },
-    WXKG02LM_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
-            // of a message with the same transaction sequence number twice.
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (store[msg.device.ieeeAddr] === current) return;
-            store[msg.device.ieeeAddr] = current;
-
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-
-            const actionLookup = {
-                0: 'long',
-                1: null,
-                2: 'double',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                return {click: button + (action ? `_${action}` : '')};
-            }
-        },
-    },
-    WXKG03LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'single'};
-        },
-    },
-    WXKG06LM_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'single'};
         },
     },
     immax_07046L_arm: {
@@ -1627,27 +2311,6 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             return {water_leak: msg.data.zonestatus === 1};
-        },
-    },
-    cover_stop: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'release'};
-        },
-    },
-    cover_open: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandUpOpen',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'open'};
-        },
-    },
-    cover_close: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandDownClose',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: 'close'};
         },
     },
     xiaomi_power: {
@@ -1762,69 +2425,12 @@ const converters = {
             }
         },
     },
-    QBKG04LM_QBKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                return {click: 'single'};
-            }
-        },
-    },
     QBKG04LM_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 4) {
                 return {action: msg.data['onOff'] === 1 ? 'release' : 'hold'};
-            }
-        },
-    },
-    QBKG04LM_QBKG11LM_operation_mode: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const mappingMode = {
-                0x12: 'control_relay',
-                0xFE: 'decoupled',
-            };
-            const key = '65314';
-            if (msg.data.hasOwnProperty(key)) {
-                const mode = mappingMode[msg.data[key]];
-                return {operation_mode: mode};
-            }
-        },
-    },
-    QBKG03LM_QBKG12LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (!msg.data['61440']) {
-                const mapping = {4: 'left', 5: 'right', 6: 'both'};
-                const button = mapping[msg.endpoint.ID];
-                return {click: button};
-            }
-        },
-    },
-    QBKG11LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const times = {1: 'single', 2: 'double'};
-                return {click: times[msg.data.presentValue]};
-            }
-        },
-    },
-    QBKG12LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const mapping = {5: 'left', 6: 'right', 7: 'both'};
-                const times = {1: 'single', 2: 'double'};
-                const button = mapping[msg.endpoint.ID];
-                return {click: `${button}_${times[msg.data.presentValue]}`};
             }
         },
     },
@@ -1850,29 +2456,6 @@ const converters = {
                 const payload = {};
                 payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
                 return payload;
-            }
-        },
-    },
-    QBKG03LM_QBKG12LM_operation_mode: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const mappingButton = {
-                '65314': 'left',
-                '65315': 'right',
-            };
-            const mappingMode = {
-                0x12: 'control_left_relay',
-                0x22: 'control_right_relay',
-                0xFE: 'decoupled',
-            };
-            for (const key in mappingButton) {
-                if (msg.data.hasOwnProperty(key)) {
-                    const payload = {};
-                    const mode = mappingMode[msg.data[key]];
-                    payload[`operation_mode_${mappingButton[key]}`] = mode;
-                    return payload;
-                }
             }
         },
     },
@@ -1910,40 +2493,13 @@ const converters = {
             }
         },
     },
-    ZNCLDJ11LM_ZNCLDJ12LM_curtain_options_output: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['1025']) {
-                const d1025 = msg.data['1025'];
-                return {
-                    options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: d1025[2]=='\u0001',
-                        hand_open: d1025[5]=='\u0000',
-                    },
-                };
-            }
-        },
-    },
     curtain_position_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {position: precisionRound(msg.data['presentValue'], 2)};
-        },
-    },
-    ZNCLDJ11LM_ZNCLDJ12LM_curtain_analog_output: {
-        cluster: 'genAnalogOutput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let running = false;
-
-            if (msg.data['61440']) {
-                running = msg.data['61440'] !== 0;
-            }
-
-            const position = precisionRound(msg.data['presentValue'], 2);
-            return {position: position, running: running};
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position};
         },
     },
     JTYJGD01LMBW_smoke: {
@@ -2481,69 +3037,6 @@ const converters = {
             }
         },
     },
-    cmd_move: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_move.convert(model, msg, publish, options, meta);
-            } else {
-                ictcg1(model, msg, publish, options, 'move');
-                const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                return {action: `rotate_${direction}`, rate: msg.data.rate};
-            }
-        },
-    },
-    cmd_move_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_move.convert(model, msg, publish, options, meta);
-            } else {
-                ictcg1(model, msg, publish, options, 'move');
-                const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                return {action: `rotate_${direction}`, rate: msg.data.rate};
-            }
-        },
-    },
-    cmd_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_stop.convert(model, msg, publish, options, meta);
-            } else {
-                const value = ictcg1(model, msg, publish, options, 'stop');
-                return {action: `rotate_stop`, brightness: value};
-            }
-        },
-    },
-    cmd_stop_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_stop.convert(model, msg, publish, options, meta);
-            } else {
-                const value = ictcg1(model, msg, publish, options, 'stop');
-                return {action: `rotate_stop`, brightness: value};
-            }
-        },
-    },
-    cmd_move_to_level_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            if (options.hasOwnProperty('legacy') && options.legacy === false) {
-                return converters.command_move_to_level.convert(model, msg, publish, options, meta);
-            } else {
-                const value = ictcg1(model, msg, publish, options, 'level');
-                const direction = msg.data.level === 0 ? 'left' : 'right';
-                return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
-            }
-        },
-    },
     iris_3320L_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -2600,26 +3093,6 @@ const converters = {
             return {action: buttonStates[msg.data.zonestatus]};
         },
     },
-    st_button_state: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonStates = {
-                0: 'off',
-                1: 'single',
-                2: 'double',
-                3: 'hold',
-            };
-
-            if (msg.data.hasOwnProperty('data')) {
-                const zoneStatus = msg.data.zonestatus;
-                return {click: buttonStates[zoneStatus]};
-            } else {
-                const zoneStatus = msg.data.zonestatus;
-                return {click: buttonStates[zoneStatus]};
-            }
-        },
-    },
     CTR_U_brightness_updown_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -2674,11 +3147,15 @@ const converters = {
             };
         },
     },
-    CTR_U_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
+    hue_motion_sensitivity: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
+            const lookup = ['low', 'medium', 'high'];
+
+            if (msg.data.hasOwnProperty('48')) {
+                return {motion_sensitivity: lookup[msg.data['48']]};
+            }
         },
     },
     thermostat_att_report: {
@@ -2914,30 +3391,17 @@ const converters = {
             return result;
         },
     },
-    ts0043_click: {
+    tuya_on_off_action: {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            const buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
-        },
-    },
-    ts0042_click: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonMapping = {1: 'left', 2: 'right'};
-            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${buttonMapping[msg.endpoint.ID]}_${clickMapping[msg.data[3]]}`};
-        },
-    },
-    ts0041_click: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            return {action: `${clickMapping[msg.data[3]]}`};
+            let buttonMapping = null;
+            if (model.model === 'TS0042') buttonMapping = {1: 'left', 2: 'right'};
+            if (model.model === 'TS0043') buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
     tint404011_brightness_updown_click: {
@@ -2990,15 +3454,11 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const last = store[msg.device.ieeeAddr];
-            const current = msg.meta.zclTransactionSequenceNumber;
-
             if (msg.type === 'attributeReport') {
                 msg.meta.frameControl.disableDefaultResponse = true;
             }
 
-            if (last !== current && msg.data.hasOwnProperty('onOff')) {
-                store[msg.device.ieeeAddr] = current;
+            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -3009,7 +3469,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // Xiaomi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
             if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
-                const property = getProperty('state', msg, model);
+                const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -3050,7 +3510,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: getProperty('toggle', msg, model)};
+            const payload = {action: postfixWithEndpointName('toggle', msg, model)};
             return payload;
         },
     },
@@ -3262,31 +3722,12 @@ const converters = {
             return action ? action : null;
         },
     },
-    cover_position_via_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const currentLevel = msg.data['currentLevel'];
-            const position = Math.round(Number(currentLevel) / 2.55).toString();
-            const state = position > 0 ? 'OPEN' : 'CLOSE';
-            return {state: state, position: position};
-        },
-    },
-    cover_state_via_onoff: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
-            }
-        },
-    },
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // '{'cid':'msPressureMeasurement','data':{'32':990494}}'
-            const pressure = parseFloat(msg.data['32']) / 1000.0;
+            const pressure = msg.data.hasOwnProperty('measuredValue') ?
+                msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
@@ -3461,44 +3902,6 @@ const converters = {
             };
         },
     },
-    cover_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // ubisys J1 will report 255 if lift or tilt positions are not known.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage <= 100 ? (100 - liftPercentage) : null;
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
-                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
-                result.tilt = tiltPercentage <= 100 ? (100 - tiltPercentage) : null;
-            }
-            return result;
-        },
-    },
-    cover_position_tilt_inverted: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // ZigBee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // But e.g. Legrand reports 'open" to be 100 and "closed" to be 0
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage')) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage <= 100 ? liftPercentage : null;
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage')) {
-                const tiltPercentage = msg.data['currentPositionTiltPercentage'];
-                result.tilt = tiltPercentage <= 100 ? tiltPercentage : null;
-            }
-            return result;
-        },
-    },
     generic_fan_mode: {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -3607,65 +4010,6 @@ const converters = {
                 action: msg.data.level,
                 transition_time: msg.data.transtime,
             };
-        },
-    },
-    ZGRC013_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_on`};
-            }
-        },
-    },
-    ZGRC013_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_off`};
-            }
-        },
-    },
-    ZGRC013_brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {click: `${button}_${direction}`};
-            }
-        },
-    },
-    ZGRC013_brightness_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            const direction = msg.data.movemode == 0 ? 'up' : 'down';
-            if (button) {
-                return {click: `${button}_${direction}`};
-            }
-        },
-    },
-    ZGRC013_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.endpoint.ID;
-            if (button) {
-                return {click: `${button}_stop`};
-            }
-        },
-    },
-    ZGRC013_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
         },
     },
     SZ_ESW01_AU_power: {
@@ -3954,20 +4298,6 @@ const converters = {
             };
         },
     },
-    konke_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['onOff'];
-            const lookup = {
-                128: {click: 'single'}, // single click
-                129: {click: 'double'}, // double and many click
-                130: {click: 'long'}, // hold
-            };
-
-            return lookup[value] ? lookup[value] : null;
-        },
-    },
     linkquality_from_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -3992,27 +4322,6 @@ const converters = {
             const payload = {};
             payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
             return payload;
-        },
-    },
-    ptvo_switch_buttons: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-
-            const actionLookup = {
-                1: 'single',
-                2: 'double',
-                3: 'tripple',
-                4: 'hold',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                return {click: button + (action ? `_${action}` : '')};
-            }
         },
     },
     ptvo_switch_uart: {
@@ -4129,50 +4438,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-        },
-    },
-    terncy_raw: {
-        cluster: 'manuSpecificClusterAduroSmart',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            // 13,40,18,104, 0,8,1 - click
-            // 13,40,18,22,  0,17,1
-            // 13,40,18,32,  0,18,1
-            // 13,40,18,6,   0,16,1
-            // 13,40,18,111, 0,4,2 - double click
-            // 13,40,18,58,  0,7,2
-            // 13,40,18,6,   0,2,3 - triple click
-            // motion messages:
-            // 13,40,18,105, 4,167,0,7 - motion on right side
-            // 13,40,18,96,  4,27,0,5
-            // 13,40,18,101, 4,27,0,7
-            // 13,40,18,125, 4,28,0,5
-            // 13,40,18,85,  4,28,0,7
-            // 13,40,18,3,   4,24,0,5
-            // 13,40,18,81,  4,10,1,7
-            // 13,40,18,72,  4,30,1,5
-            // 13,40,18,24,  4,25,0,40 - motion on left side
-            // 13,40,18,47,  4,28,0,56
-            // 13,40,18,8,   4,32,0,40
-            let value = {};
-            let lookup = {};
-            if (msg.data[4] == 0) {
-                value = msg.data[6];
-                lookup = {
-                    1: {click: 'single'},
-                    2: {click: 'double'},
-                    3: {click: 'triple'},
-                };
-            } else if (msg.data[4] == 4) {
-                value = msg.data[7];
-                lookup = {
-                    5: {occupancy: true, side: 'right'},
-                    7: {occupancy: true, side: 'right'},
-                    40: {occupancy: true, side: 'left'},
-                    56: {occupancy: true, side: 'left'},
-                };
-            }
-            return lookup[value] ? lookup[value] : null;
         },
     },
     terncy_knob: {
@@ -4461,14 +4726,6 @@ const converters = {
             };
         },
     },
-    CCTSwitch_D0001_on_off: {
-        cluster: 'genOnOff',
-        type: ['commandOn', 'commandOff'],
-        convert: (model, msg, publish, options, meta) => {
-            const cmd = msg.type === 'commandOn' ? 'on' : 'off';
-            return {click: 'power', action: cmd};
-        },
-    },
     CCTSwitch_D0001_move_to_level_recall: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
@@ -4512,18 +4769,14 @@ const converters = {
             }
         },
     },
-    BASICZBR3_on_off: {
+    on_off_skip_duplicate_transaction: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
-            const last = store[msg.device.ieeeAddr];
-            const current = msg.meta.zclTransactionSequenceNumber;
-
-            if (last !== current && msg.data.hasOwnProperty('onOff')) {
-                store[msg.device.ieeeAddr] = current;
+            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
@@ -4790,7 +5043,7 @@ const converters = {
             // This attribute returns usually 2 when power is over the defined threshold.
             if (msg.data.hasOwnProperty('61440')) {
                 payload.power_alarm_active_value = msg.data['61440'];
-                payload.power_alarm_active = (payload.alarm_active_value > 0);
+                payload.power_alarm_active = (payload.power_alarm_active_value > 0);
             }
             // 0xf001 = 61441
             if (msg.data.hasOwnProperty('61441')) {
@@ -4803,9 +5056,32 @@ const converters = {
             return payload;
         },
     },
+    tuya_led_controller: {
+        cluster: 'lightingColorCtrl',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+
+            if (msg.data['61441']) {
+                result.brightness = msg.data['61441'];
+            }
+
+            result.color = {};
+
+            if (msg.data.hasOwnProperty('currentHue')) {
+                result.color.h = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+            }
+
+            if (msg.data['currentSaturation']) {
+                result.color.s = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+            }
+
+            return result;
+        },
+    },
     tuya_dimmer: {
         cluster: 'manuSpecificTuyaDimmer',
-        type: 'commandGetData',
+        type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const key = msg.data.dp;
             const val = msg.data.data;
@@ -4843,6 +5119,25 @@ const converters = {
             return {[lookup[key]]: (val) ? 'ON': 'OFF'};
         },
     },
+    tuya_switch2: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
+            const dp = msg.data.dp;
+            const state = msg.data.data[0] ? 'ON' : 'OFF';
+            if (multiEndpoint) {
+                const lookup = {257: 'l1', 258: 'l2', 259: 'l3'};
+                const endpoint = lookup[dp];
+                if (endpoint in model.endpoint(msg.device)) {
+                    return {[`state_${endpoint}`]: state};
+                }
+            } else if (dp === 257) {
+                return {state: state};
+            }
+            return null;
+        },
+    },
     tuya_curtain: {
         cluster: 'manuSpecificTuyaDimmer',
         type: ['commandSetDataResponse', 'commandGetData'],
@@ -4858,7 +5153,8 @@ const converters = {
             case 1031: // 0x04 0x07: Started moving (triggered by transmitter oder pulling on curtain)
                 return {'running': true};
             case 515: { // 0x02 0x03: Arrived at position
-                const position = msg.data.data[3];
+                let position = msg.data.data[3];
+                position = options.invert_cover ? 100 - position : position;
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
@@ -4988,6 +5284,13 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
+    smartthings_acceleration: {
+        cluster: 'manuSpecificSamsungAccelerometer',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {moving: msg.data['acceleration'] === 1 ? true : false};
+        },
+    },
     MultiSensor_ias_contact_alarm: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5015,13 +5318,73 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // https://github.com/Koenkk/zigbee2mqtt/issues/3216#issuecomment-607426623
-            // When controlling manually the device always first send the correct position but after that always 50.
-            // Therefore ignore 50.
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                msg.data['currentPositionLiftPercentage'] !== 50) {
-                const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                result.position = liftPercentage;
+            const timeCoverSetMiddle = 60;
+
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+                const deviceID = msg.device.ieeeAddr;
+                if (!store[deviceID]) {
+                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition: -1, since: false};
+                }
+                // ignore if first action is middle and ignore action middle if previous action is middle
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if ((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) ||
+                        store[deviceID].lastPreviousAction == 50 ) {
+                        console.log(`ZMCSW032D ignore action `);
+                        return;
+                    }
+                }
+                let currentPosition = store[deviceID].CurrentPosition;
+                const lastPreviousAction = store[deviceID].lastPreviousAction;
+                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
+
+                store[deviceID].since = Date.now();
+                store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        if (lastPreviousAction == 100 ) {
+                            // Open
+                            currentPosition = currentPosition == -1 ? 0 : currentPosition;
+                            currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
+                        } else if (lastPreviousAction == 0 ) {
+                            // Close
+                            currentPosition = currentPosition == -1 ? 100 : currentPosition;
+                            currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
+                        }
+                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
+                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                    }
+                }
+                store[deviceID].CurrentPosition = currentPosition;
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50 ) {
+                    // postion cast float to int
+                    result.position = currentPosition | 0;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
+                } else {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        // postion cast float to int
+                        result.position = currentPosition | 0;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
+                    } else {
+                        store[deviceID].CurrentPosition = lastPreviousAction;
+                        result.position = lastPreviousAction;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
+                    }
+                }
+            } else {
+                // Previous solution without time_close and time_open
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
+                    msg.data['currentPositionLiftPercentage'] !== 50) {
+                    const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                    result.position = liftPercentage;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
+                }
             }
             return result;
         },
@@ -5035,7 +5398,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {action: getProperty('on', msg, model)};
+            return {action: postfixWithEndpointName('on', msg, model)};
         },
     },
     ZG2819S_command_off: {
@@ -5047,7 +5410,7 @@ const converters = {
             if (msg.groupID !== 46337) {
                 return null;
             }
-            return {action: getProperty('off', msg, model)};
+            return {action: postfixWithEndpointName('off', msg, model)};
         },
     },
     K4003C_binary_input: {
@@ -5190,6 +5553,20 @@ const converters = {
 
                 return null;
             }
+        },
+    },
+    kmpcil_res005_occupancy: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: (msg.data['presentValue']===1)};
+        },
+    },
+    kmpcil_res005_on_off: {
+        cluster: 'genBinaryOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
         },
     },
 
