@@ -1241,7 +1241,7 @@ const devices = [
         model: 'TS0121',
         description: '10A UK or 16A EU smart plug',
         whiteLabel: [
-            {vendor: 'Blitzwolf', model: 'BW-SHP13'},
+            {vendor: 'BlitzWolf', model: 'BW-SHP13'},
         ],
         supports: 'on/off',
         vendor: 'TuYa',
