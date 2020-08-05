@@ -5578,13 +5578,13 @@ const converters = {
             const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
             switch (dp) {
             case 360: // 0x0168 [0]/[1] Alarm!
-                return {alarm: (dataAsDecNumber==0) ? 'OFF' : 'ON'};
+                return {alarm: (dataAsDecNumber!=0)};
             case 368: // 0x0170 [0]
                 break;
             case 369: // 0x0171 [0]/[1] Disable/Enable alarm by temperature
-                return {temperature_alarm: (dataAsDecNumber==0) ? 'OFF' : 'ON'};
+                return {temperature_alarm: (dataAsDecNumber!=0)};
             case 370: // 0x0172 [0]/[1] Disable/Enable alarm by humidity
-                return {humidity_alarm: (dataAsDecNumber==0) ? 'OFF' : 'ON'};
+                return {humidity_alarm: (dataAsDecNumber!=0)};
             case 615: // 0x0267 [0,0,0,10] duration alarm in second
                 return {duration: dataAsDecNumber};
             case 617: // 0x0269 [0,0,0,240] temperature
