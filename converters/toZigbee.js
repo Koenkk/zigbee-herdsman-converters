@@ -478,6 +478,10 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
+                if (brightness === 1 && meta.mapped.meta && meta.mapped.meta.turnsOffAtBrightness1) {
+                    brightness = 0;
+                }
+
                 store[entityID] = {...store[entityID], brightness};
                 await entity.command(
                     'genLevelCtrl',

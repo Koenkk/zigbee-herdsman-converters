@@ -3709,7 +3709,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        meta: {applyRedFix: true},
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 185 C'],
