@@ -3494,6 +3494,22 @@ const devices = [
         extend: ledvance.light_onoff_brightness_colortemp,
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['B40 TW Z3'],
+        model: '4058075208414',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Candle E14 Tunable White',
+        extend: ledvance.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['FLEX RGBW Z3'],
+        model: '4058075208339',
+        vendor: 'LEDVANCE',
+        description: 'Flex 3P Multicolor',
+        extend: ledvance.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
