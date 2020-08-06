@@ -2300,8 +2300,16 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LTA002', 'LTA003'],
+        zigbeeModel: ['LTA002'],
         model: '9290022167',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTA003'],
+        model: '9290022267',
         vendor: 'Philips',
         description: 'Hue white ambiance E26 with Bluetooth',
         extend: hue.light_onoff_brightness_colortemp,
