@@ -359,6 +359,28 @@ const converters = {
                 action: lookup[msg.data['opereventcode']],
                 action_user: msg.data['userid'],
                 action_source: msg.data['opereventsrc'],
+                action_source_name: common.lockSourceName[msg.data['opereventsrc']],
+            };
+        },
+    },
+    lock_programming_event: {
+        cluster: 'closuresDoorLock',
+        type: 'commandProgrammingEventNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                0: 'unknown',
+                1: 'master_code_changed',
+                2: 'pin_code_added',
+                3: 'pin_code_deleted',
+                4: 'pin_code_changed',
+                5: 'rfid_code_added',
+                6: 'rfid_code_deleted',
+            };
+            return {
+                action: lookup[msg.data['programeventcode']],
+                action_user: msg.data['userid'],
+                action_source: msg.data['programeventsrc'],
+                action_source_name: common.lockSourceName[msg.data['programeventsrc']],
             };
         },
     },
@@ -373,6 +395,36 @@ const converters = {
                     lock_state: lookup[msg.data['lockState']],
                 };
             }
+        },
+    },
+    lock_pin_code_rep: {
+        cluster: 'closuresDoorLock',
+        type: ['commandGetPinCodeRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            const {data} = msg;
+            let status = '';
+            let pinCodeValue = null;
+            switch (data.userstatus) {
+            case 0:
+                status = 'available';
+                break;
+            case 1:
+                status = 'enabled';
+                pinCodeValue = data.pincodevalue;
+                break;
+            case 2:
+                status = 'disabled';
+                break;
+            default:
+                status = 'not_supported';
+            }
+            const userId = data.userid.toString();
+            const result = {users: {}};
+            result.users[userId] = {status: status};
+            if (options && options.expose_pin && pinCodeValue) {
+                result.users[userId].pin_code = pinCodeValue;
+            }
+            return result;
         },
     },
     battery: {

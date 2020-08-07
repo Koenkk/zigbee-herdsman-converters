@@ -79,6 +79,13 @@ const TuyaThermostatForceMode = {
     2: 'close',
 };
 
+const lockSourceName = {
+    0: 'keypad',
+    1: 'rf',
+    2: 'manual',
+    3: 'rfid',
+};
+
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
@@ -89,4 +96,5 @@ module.exports = {
     TuyaThermostatSystemModes,
     TuyaThermostatWeekFormat,
     TuyaThermostatForceMode,
+    lockSourceName,
 };
