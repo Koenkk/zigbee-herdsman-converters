@@ -122,6 +122,43 @@ describe('index.js', () => {
         expect(index.findByDevice(muller).model).toBe('404031');
     });
 
+    it('Find by device when fingerprint has zigbeeModel of other definition', () => {
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
+        const endpoints = [
+            {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0,3,1280,1], outputClusters: [3]},
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: 0,
+            manufacturerName: 'eWeLink',
+            modelID: 'TH01',
+            powerSource: 'Battery',
+            endpoints: endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("SNZB-04");
+    });
+
+    it('onlythis Find by device when fingerprint has zigbeeModel of other definition shouln\'t match when fingerprint doesn\t match', () => {
+        const endpoints = [
+            {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: 0,
+            manufacturerName: 'eWeLink',
+            modelID: 'TH01',
+            powerSource: 'Battery',
+            endpoints: endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("SNZB-02");
+    });
+
     it('Verify devices.js definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {

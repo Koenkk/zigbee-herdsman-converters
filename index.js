@@ -88,7 +88,7 @@ function findByDevice(device) {
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel
         for (const candidate of candidates) {
-            if (candidate.hasOwnProperty('zigbeeModel')) {
+            if (candidate.hasOwnProperty('zigbeeModel') && candidate.zigbeeModel.includes(device.modelID)) {
                 return candidate;
             }
         }
