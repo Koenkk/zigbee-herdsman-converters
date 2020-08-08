@@ -847,7 +847,7 @@ const converters = {
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                action: getProperty(common.armMode[msg.data['armmode']], msg, model),
+                action: postfixWithEndpointName(common.armMode[msg.data['armmode']], msg, model),
                 action_code: msg.data.code,
                 action_zone: msg.data.zoneid,
             };
