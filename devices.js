@@ -3733,6 +3733,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['FL 120 C'],
+        model: 'FL 120 C',
+        vendor: 'Innr',
+        description: 'Color Flex LED strip',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['BF 263'],
         model: 'BF 263',
         vendor: 'Innr',
