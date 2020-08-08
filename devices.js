@@ -6620,7 +6620,7 @@ const devices = [
         supports: 'action, arm',
         meta: {configureKey: 1, commandArmIncludeTransaction: true},
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery],
-        toZigbee: [tz.centralite_arm_mode],
+        toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce'];
