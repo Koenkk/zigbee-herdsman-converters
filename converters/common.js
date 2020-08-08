@@ -86,6 +86,13 @@ const lockSourceName = {
     3: 'rfid',
 };
 
+const armMode = {
+    0: 'disarm',
+    1: 'arm_day_zones',
+    2: 'arm_night_zones',
+    3: 'arm_all_zones',
+};
+
 module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
@@ -97,4 +104,5 @@ module.exports = {
     TuyaThermostatWeekFormat,
     TuyaThermostatForceMode,
     lockSourceName,
+    armMode,
 };

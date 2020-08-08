@@ -846,14 +846,15 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            const lookup = {
-                0: 'disarm',
-                1: 'arm_day_zones',
-                2: 'arm_night_zones',
-                3: 'arm_all_zones',
+            const payload = {
+                action: getProperty(common.armMode[msg.data['armmode']], msg, model),
+                action_code: msg.data.code,
+                action_zone: msg.data.zoneid,
             };
-            const payload = {action: postfixWithEndpointName(lookup[msg.data['armmode']], msg, model)};
-            addActionGroup(payload, msg, model);
+            if (model.meta && model.meta.commandArmIncludeTransaction) {
+                payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
+            }
+            if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
     },

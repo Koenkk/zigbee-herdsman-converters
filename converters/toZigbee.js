@@ -2,6 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
+const globalStore = require('./store');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const store = {};
@@ -1051,6 +1052,26 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacFanCtrl', ['fanMode']);
+        },
+    },
+    arm_mode: {
+        key: ['arm_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getKeyByValue(common.armMode, value.mode, undefined);
+            if (mode === undefined) {
+                throw new Error(
+                    `Unsupported mode: '${value.mode}', should be one of: ${Object.values(common.armMode)}`,
+                );
+            }
+
+            if (value.hasOwnProperty('transaction')) {
+                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+            }
+
+            const panelStatus = mode !== 0 ? 0x80: 0x00;
+            globalStore.putValue(entity.deviceIeeeAddress, 'panelStatus', panelStatus);
+            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
+            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
 
@@ -2355,29 +2376,6 @@ const converters = {
             sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
         },
     },
-    
-    // Centralite 3400-D Keypad Alarm
-    3400_arm_mode: {
-        key: ['arm_mode’],
-        convertSet: async (entity, key, value, meta) => {
-        	const lookup = {
-            	'disarm': 0x0000,
-            	'arm_stay': 0x0100,
-            	'arm_arm_night': 0x0200,
-            	'armed_away': 0x0300
-        	};
-            const entry_exit_lookup = {
-                'entry_delay': 0x05,
-                'exit_delay': 0x10
-            };
-            if (((value == 'entry_delay') || (value == 'exit_delay')) && message.hasOwnProperty('delay')) {
-                await entity.write('ssIasZone', (entry_exit_lookup[value.toLowercase()]<<16)+options.delay.toString(16));
-                return {state: {arm_mode: value}};
-            }
-            await entity.write('ssIasZone', lookup[value.toLowercase()]);
-            return {state: {arm_mode: value}};
-        },
-    },    
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
