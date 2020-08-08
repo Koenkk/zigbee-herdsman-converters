@@ -140,7 +140,7 @@ describe('index.js', () => {
         expect(definition.model).toBe("SNZB-04");
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition shouln\'t match when fingerprint doesn\t match', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
