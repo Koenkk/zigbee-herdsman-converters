@@ -19,6 +19,7 @@
  * timeout: timeout for commands to this device used in toZigbee.
  */
 
+const common = require('./converters/common');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 const utils = require('./converters/utils');
@@ -366,6 +367,21 @@ const livolo = {
             await endpoint.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         } catch (error) {
             // device is lost, need to permit join
+        }
+    },
+};
+
+const pincodeLock = {
+    readPinCodeAfterProgramming: async (type, data, device) => {
+        // When we receive a code updated message, lets read the new value
+        if (data.type === 'commandProgrammingEventNotification' &&
+            data.cluster === 'closuresDoorLock' &&
+            data.data &&
+            data.data.userid !== undefined &&
+            // Don't read RF events, we can do this with retrieve_state
+            (data.data.programeventsrc === undefined || common.lockSourceName[data.data.programeventsrc] != 'rf')
+        ) {
+            await utils.getDoorLockPinCode( device.endpoints[0], data.data.userid );
         }
     },
 };
@@ -8051,16 +8067,18 @@ const devices = [
         model: '9GED18000-009',
         vendor: 'Weiser',
         description: 'SmartCode 10',
-        supports: 'lock/unlock, battery',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
-        meta: {configureKey: 3},
+        supports: 'lock/unlock, battery, pin code programming',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_rep],
+        toZigbee: [tz.generic_lock, tz.pincode_lock],
+        meta: {configureKey: 4, pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        // Note - Keypad triggered deletions do not cause a zigbee event, though Adds work fine.
+        onEvent: pincodeLock.readPinCodeAfterProgramming,
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],

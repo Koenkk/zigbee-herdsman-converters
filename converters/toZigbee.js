@@ -1442,6 +1442,64 @@ const converters = {
             await entity.read('closuresDoorLock', ['lockState']);
         },
     },
+    pincode_lock: {
+        key: ['pin_code'],
+        convertSet: async (entity, key, value, meta) => {
+            const user = value.user;
+            const pinCode = value.pin_code;
+            if ( isNaN(user) ) {
+                throw new Error('user must be numbers');
+            }
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                throw new Error('user must be in range for device');
+            }
+            if (pinCode === undefined || pinCode === null) {
+                await entity.command(
+                    'closuresDoorLock',
+                    'clearPinCode',
+                    {
+                        'userid': user,
+                    },
+                    getOptions(meta.mapped),
+                );
+            } else {
+                if (isNaN(pinCode)) {
+                    throw new Error('pinCode must be a number or pinCode');
+                }
+                await entity.command(
+                    'closuresDoorLock',
+                    'setPinCode',
+                    {
+                        'userid': user,
+                        'userstatus': 1,
+                        'usertype': 0,
+                        'pincodevalue': pinCode.toString(),
+                    },
+                    getOptions(meta.mapped),
+                );
+            }
+            return {readAfterWriteTime: 200};
+        },
+        convertGet: async (entity, key, meta) => {
+            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
+            if (user === undefined) {
+                const max = meta.mapped.meta.pinCodeCount;
+                // Get all
+                const options = getOptions(meta);
+                for (let i = 0; i < max; i++) {
+                    await utils.getDoorLockPinCode(entity, i, options);
+                }
+            } else {
+                if (isNaN(user)) {
+                    throw new Error('user must be numbers');
+                }
+                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                    throw new Error('userId must be in range for device');
+                }
+                await utils.getDoorLockPinCode(entity, user, getOptions(meta));
+            }
+        },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
