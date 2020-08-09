@@ -58,6 +58,33 @@ function getEntityOrFirstGroupMember(entity) {
     }
 }
 
+// groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
+//                first: return the first property
+function getMetaValue(entity, meta, key, groupStrategy) {
+    if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+        const values = [];
+        for (const memberMeta of meta.mapped) {
+            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
+                if (groupStrategy === 'first') {
+                    return memberMeta.meta[key];
+                }
+
+                values.push(memberMeta.meta[key]);
+            } else {
+                values.push(undefined);
+            }
+        }
+
+        if (groupStrategy === 'allEqual' && (new Set(values)).size === 1) {
+            return values[0];
+        }
+    } else if (meta.mapped && meta.mapped.meta && meta.mapped.meta.hasOwnProperty(key)) {
+        return meta.mapped.meta[key];
+    }
+
+    return undefined;
+}
+
 function getTransition(entity, key, meta) {
     const {options, message} = meta;
 
@@ -478,7 +505,7 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                if (brightness === 1 && meta.mapped.meta && meta.mapped.meta.turnsOffAtBrightness1) {
+                if (getMetaValue(entity, meta, 'turnsOffAtBrightness1', 'first') === true) {
                     brightness = 0;
                 }
 
