@@ -1122,7 +1122,7 @@ const devices = [
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
-        description: 'Aqara smart rgbw light controller',
+        description: 'Aqara smart RGBW light controller',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
@@ -1147,11 +1147,8 @@ const devices = [
         zigbeeModel: ['TS0502A'],
         model: 'TS0502A',
         vendor: 'TuYa',
-        description: 'TUYA light controller',
+        description: 'Light controller',
         extend: generic.light_onoff_brightness_colortemp,
-        fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.on_off,
-        ],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -1503,12 +1500,9 @@ const devices = [
         zigbeeModel: ['HY0080'],
         model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
-        description: 'environment controller',
+        description: 'Environment controller',
         supports: 'temperature, heating/cooling system control',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.generic_fan_mode,
-        ],
+        fromZigbee: [fz.thermostat_att_report, fz.generic_fan_mode],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
