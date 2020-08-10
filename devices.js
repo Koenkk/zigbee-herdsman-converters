@@ -1267,6 +1267,7 @@ const devices = [
             {vendor: 'Moes', model: 'HY369RT'},
             {vendor: 'SHOJZJ', model: '378RT'},
         ],
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes},
         fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
@@ -1536,17 +1537,11 @@ const devices = [
         vendor: 'TuYa',
         description: 'HVAC controller',
         supports: 'temperature, heating/cooling system control, fan mode',
-        fromZigbee: [
-            fz.tuya_thermostat2,
-            fz.tuya_thermostat_on_set_data2,
-            fz.ignore_basic_report,
-            fz.tuya_dimmer,
-        ],
+        fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report, fz.tuya_dimmer],
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2},
         toZigbee: [
-            tz.tuya_thermostat_current_heating_setpoint,
-            tz.tuya_thermostat_system_mode2,
-            tz.tuya_thermostat_fan_mode,
-            tz.tuya_dimmer_state,
+            tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
+            tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state,
         ],
     },
 
@@ -11520,6 +11515,7 @@ const devices = [
             fz.tuya_thermostat_on_set_data,
             fz.ignore_basic_report,
         ],
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes},
         toZigbee: [
             tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_window_detection,
