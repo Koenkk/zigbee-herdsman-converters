@@ -505,7 +505,7 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                if (getMetaValue(entity, meta, 'turnsOffAtBrightness1', 'first') === true) {
+                if (brightness === 1 && getMetaValue(entity, meta, 'turnsOffAtBrightness1', 'first') === true) {
                     brightness = 0;
                 }
 
