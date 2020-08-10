@@ -5177,7 +5177,7 @@ const converters = {
     tuya_fan_mode: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
-        convert: tuyaThermostat2,
+        convert: tuyaThermostat,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
