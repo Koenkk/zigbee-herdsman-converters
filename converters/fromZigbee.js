@@ -312,9 +312,8 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case 629: // 0x7502 preset ?
         return {preset: dataAsDecNumber};
     case 1028: // 0x0404 Mode changed
-        const modes = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode');
-        if (modes.hasOwnProperty(dataAsDecNumber)) {
-            return {system_mode: modes[dataAsDecNumber]};
+        if (utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber)) {
+            return {system_mode: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber]};
         } else {
             console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
             return;
