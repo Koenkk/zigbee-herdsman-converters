@@ -1213,8 +1213,9 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS0601', 'owvfni3\u0000', 'owvfni3'],
-        model: 'TS0601',
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'}],
+        model: 'TS0601_curtain',
         vendor: 'TuYa',
         description: 'Curtain motor',
         whiteLabel: [
@@ -1227,14 +1228,7 @@ const devices = [
     },
     {
         zigbeeModel: ['kud7u2l'],
-        fingerprint: [
-            {
-                type: 'EndDevice', manufacturerID: 4098, manufacturerName: '_TZE200_ckud7u2l', modelID: 'TS0601', powerSource: 'Battery',
-                endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 81, inputClusters: [0, 4, 5, 61184], outputClusters: [25, 10]},
-                ],
-            },
-        ],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
