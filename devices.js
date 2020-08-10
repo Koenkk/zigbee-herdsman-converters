@@ -5547,6 +5547,21 @@ const devices = [
             {vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'},
         ],
     },
+    {
+        zigbeeModel: ['Motor Controller'],
+        model: 'ROB_200-010-0',
+        vendor: 'ROBB',
+        description: 'Zigbee curtain motor controller',
+        supports: 'open, close, stop, position',
+        meta: {configureKey: 1},
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await configureReporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
 
     // Namron
     {
