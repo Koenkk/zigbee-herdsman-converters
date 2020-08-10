@@ -302,6 +302,24 @@ const converters = {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    light_brightness_step: {
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            const onOff = key.endsWith('_onoff');
+            const command = onOff ? 'stepWithOnOff' : 'step';
+            const mode = value > 0 ? 0 : 1;
+            const transition = getTransition(entity, key, meta).time;
+            const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
+            await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
+
+            if (meta.state.hasOwnProperty('brightness')) {
+                let brightness = meta.state.brightness + value;
+                brightness = Math.min(255, brightness);
+                brightness = Math.max(onOff ? 0 : 1, brightness);
+                return {state: {brightness, state: brightness === 0 ? 'OFF' : 'ON'}};
+            }
+        },
+    },
     light_brightness_move: {
         key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
@@ -478,7 +496,7 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1') === true) {
+                if (brightness === 1 && utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1') === true) {
                     brightness = 0;
                 }
 
