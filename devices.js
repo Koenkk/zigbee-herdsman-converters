@@ -6207,9 +6207,9 @@ const devices = [
     },
     {
         zigbeeModel: ['371000002'],
-        model: '798.09',
+        model: '371000002',
         vendor: 'Paulmann',
-        description: 'LED panel Amaris 595x595mm 35W matt white',
+        description: 'Amaris LED panels',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
