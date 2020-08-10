@@ -5551,7 +5551,7 @@ const devices = [
         zigbeeModel: ['Motor Controller'],
         model: 'ROB_200-010-0',
         vendor: 'ROBB',
-        description: 'Zigbee Curtain Motor Controller',
+        description: 'Zigbee curtain motor controller',
         supports: 'open, close, stop, position',
         meta: {configureKey: 1},
         fromZigbee: [fz.cover_position_tilt],
