@@ -1500,7 +1500,7 @@ const devices = [
     },
     {
         zigbeeModel: ['HY0080'],
-        model: 'HY0080',
+        model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
         description: 'environment controller',
         supports: 'temperature, heating/cooling system control',
