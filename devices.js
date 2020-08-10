@@ -5560,7 +5560,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await configureReporting.currentPositionLiftPercentage(endpoint);
-            },
+        },
     },
 
     // Namron
