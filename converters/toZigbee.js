@@ -2413,6 +2413,28 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_system_mode2: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaThermostatSystemModes2, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaFanModes, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1029, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV fan mode ${value} is not recognized.`);
+            }
+        },
+    },
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {

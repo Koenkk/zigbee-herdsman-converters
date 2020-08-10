@@ -328,6 +328,122 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     }
 };
 
+const tuyaThermostat2 = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+
+    /*
+     * Structure of the ZCL payload used by Tuya:
+     *
+     * - status: unit8 - 1 byte
+     * - transid: unit8 - 1 byte
+     * - dp: uint16 - 2 bytes* (Big Endian format)
+     * - fn: uint8 - 1 byte
+     * - data: octStr - variable**
+     *
+     * Examples:
+     * | status | transid | dp                | fn | data              |
+     * | 0      | 4       | 0x02 0x02 -> 514  | 0  | [4, 0, 0, 0, 180] |
+     * | 0      | 16      | 0x04 0x04 -> 1028 | 0  | [1, 2]            |
+     *
+     * * The 2 bytes field "dp" uses Big Endian which means that the most meaninful
+     * byte goes right. In plain English: a value like 0x07 0x01 has to be read
+     * from the left so, it becomes 0x0107 witch in base 10 is 263 (the code for
+     * child lock status).
+     *
+     * ** The type octStr prefixes the first byte of the value with the lenght of the
+     * data payload.
+     */
+
+    switch (dp) {
+    case 104: // 0x6800 window params
+        return {
+            window_detection_params: {
+                valve: data[0] ? 'ON' : 'OFF',
+                temperature: data[1],
+                minutes: data[2],
+            },
+        };
+    case 112: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {
+            workdays: [
+                {hour: data[0], minute: data[1], temperature: data[2]},
+                {hour: data[3], minute: data[4], temperature: data[5]},
+                {hour: data[6], minute: data[7], temperature: data[8]},
+                {hour: data[9], minute: data[10], temperature: data[11]},
+                {hour: data[12], minute: data[13], temperature: data[14]},
+                {hour: data[15], minute: data[16], temperature: data[17]},
+            ],
+        };
+    case 113: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+        return {
+            holidays: [
+                {hour: data[0], minute: data[1], temperature: data[2]},
+                {hour: data[3], minute: data[4], temperature: data[5]},
+                {hour: data[6], minute: data[7], temperature: data[8]},
+                {hour: data[9], minute: data[10], temperature: data[11]},
+                {hour: data[12], minute: data[13], temperature: data[14]},
+                {hour: data[15], minute: data[16], temperature: data[17]},
+            ],
+        };
+    case 263: // 0x0701 Changed child lock status
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 274: // 0x1201 Enabled/disabled window detection feature
+        return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 276: // 0x1401 Enabled/disabled Valve detection feature
+        return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 372: // 0x7401 auto lock mode
+        return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'};
+    case 514: // 0x0202 Changed target temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: temperature};
+    case 515: // 0x0302 MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 556: // 0x2c02 Temperature calibration
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature_calibration: temperature};
+    case 533: // 0x1502 MCU reporting battery status
+        return {battery: dataAsDecNumber};
+    case 614: // 0x6602 min temperature limit
+        return {min_temperature: dataAsDecNumber};
+    case 615: // 0x6702 max temperature limit
+        return {max_temperature: dataAsDecNumber};
+    case 617: // 0x6902 boost time
+        return {boost_time: dataAsDecNumber};
+    case 619: // 0x6b02 comfort temperature
+        return {comfort_temperature: dataAsDecNumber};
+    case 620: // 0x6c02 ECO temperature
+        return {eco_temperature: dataAsDecNumber};
+    case 621: // 0x6d02 valve position
+        return {position: dataAsDecNumber};
+    case 626: // 0x7202 preset temp ?
+        return {preset_temperature: dataAsDecNumber};
+    case 629: // 0x7502 preset ?
+        return {preset: dataAsDecNumber};
+    case 1028: // 0x0404 Mode changed
+        if (common.TuyaThermostatSystemModes.hasOwnProperty(dataAsDecNumber)) {
+            return {system_mode: common.TuyaThermostatSystemModes2[dataAsDecNumber]};
+        } else {
+            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            return;
+        }
+    case 1029: // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
+        return {fan_mode: common.TuyaFanModes[dataAsDecNumber]};
+    case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
+        return {force: common.TuyaThermostatForceMode[dataAsDecNumber]};
+    case 1135: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+        return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
+    default: // The purpose of the codes 1041 & 1043 are still unknown
+        console.log(`zigbee-herdsman-converters:siterwell_gs361: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
 const converters = {
     /**
      * Generic/recommended converters, re-use if possible.
@@ -5166,10 +5282,25 @@ const converters = {
         type: 'commandSetDataResponse',
         convert: tuyaThermostat,
     },
+    tuya_thermostat_on_set_data2: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: tuyaThermostat2,
+    },
     tuya_thermostat: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: tuyaThermostat,
+    },
+    tuya_thermostat2: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: tuyaThermostat2,
+    },
+    tuya_fan_mode: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: tuyaThermostat2,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',

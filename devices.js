@@ -1118,6 +1118,20 @@ const devices = [
             await configureReporting.illuminance(endpoint, {min: 15, max: repInterval.HOUR, change: 500});
         },
     },
+    {
+        zigbeeModel: ['lumi.light.rgbac1'],
+        model: 'ZNTGMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart rgbw light controller',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['lumi.light.cbacn1'],
+        model: 'HLQDQ01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara zigbee LED-controller ',
+        extend: generic.light_onoff_brightness,
+    },
 
     // TuYa
     {
@@ -1128,6 +1142,16 @@ const devices = [
         supports: 'on/off, color (hue/saturation)',
         fromZigbee: [fz.on_off, fz.tuya_led_controller],
         toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
+    },
+    {
+        zigbeeModel: ['TS0502A'],
+        model: 'TS0502A',
+        vendor: 'TuYa',
+        description: 'TUYA light controller',
+        extend: generic.light_onoff_brightness_colortemp,
+        fromZigbee: [
+            fz.brightness, fz.color_colortemp, fz.on_off,
+        ],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -1454,6 +1478,76 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0004'],
+        model: 'TS0004',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 4 gang with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['HY0080'],
+        model: 'HY0080',
+        vendor: 'TuYa',
+        description: 'environment controller',
+        supports: 'temperature, heating/cooling system control',
+        fromZigbee: [
+            fz.thermostat_att_report,
+            fz.generic_fan_mode,
+        ],
+        toZigbee: [
+            tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
+            tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
+            await configureReporting.thermostatTemperature(endpoint);
+            await configureReporting.thermostatSystemMode(endpoint);
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await configureReporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await configureReporting.thermostatUnoccupiedCoolingSetpoint(endpoint);
+            await configureReporting.fanMode(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['6dfgetq'],
+        model: 'D3-DPWK-TY',
+        vendor: 'TuYa',
+        description: 'HVAC controller',
+        supports: 'temperature, heating/cooling system control, fan mode',
+        fromZigbee: [
+            fz.tuya_thermostat2,
+            fz.tuya_thermostat_on_set_data2,
+            fz.ignore_basic_report,
+            fz.tuya_dimmer,
+        ],
+        toZigbee: [
+            tz.tuya_thermostat_current_heating_setpoint,
+            tz.tuya_thermostat_system_mode2,
+            tz.tuya_thermostat_fan_mode,
+            tz.tuya_dimmer_state,
+        ],
     },
 
     // Neo
