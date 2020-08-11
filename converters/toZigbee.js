@@ -2431,6 +2431,17 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const presetId = utils.getKeyByValue(common.TuyaThermostatPresets, value, null);
+            if (presetId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    },
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {

@@ -250,8 +250,9 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     switch (dp) {
     case 104: // 0x6800 window params
         return {
+            window_detection: data[0] ? 'ON' : 'OFF',
             window_detection_params: {
-                valve: data[0] ? 'ON' : 'OFF',
+                // valve: data[0] ? 'ON' : 'OFF',
                 temperature: data[1],
                 minutes: data[2],
             },
@@ -307,15 +308,19 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {eco_temperature: dataAsDecNumber};
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
-    case 626: // 0x7202 preset temp ?
-        return {preset_temperature: dataAsDecNumber};
-    case 629: // 0x7502 preset ?
-        return {preset: dataAsDecNumber};
-    case 1028: // 0x0404 Mode changed
-        if (common.TuyaThermostatSystemModes.hasOwnProperty(dataAsDecNumber)) {
-            return {system_mode: common.TuyaThermostatSystemModes[dataAsDecNumber]};
+    case 626: // 0x7202 away preset temperature
+        return {
+            away_preset_params: {away_temperature: dataAsDecNumber},
+        };
+    case 629: // 0x7502 away preset number of days
+        return {
+            away_preset_params: {away_days: dataAsDecNumber},
+        };
+    case 1028: // 0x0404 Preset changed
+        if (common.TuyaThermostatPresets.hasOwnProperty(dataAsDecNumber)) {
+            return {preset: common.TuyaThermostatPresets[dataAsDecNumber]};
         } else {
-            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            console.log(`TRV preset ${dataAsDecNumber} is not recognized.`);
             return;
         }
     case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
