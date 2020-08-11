@@ -5553,12 +5553,12 @@ const devices = [
         vendor: 'ROBB',
         description: 'Zigbee curtain motor controller',
         supports: 'open, close, stop, position',
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
     },
