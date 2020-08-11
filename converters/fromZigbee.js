@@ -309,13 +309,9 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
     case 626: // 0x7202 away preset temperature
-        return {
-            away_preset_params: {away_temperature: dataAsDecNumber},
-        };
+        return {away_preset_temperature: dataAsDecNumber};
     case 629: // 0x7502 away preset number of days
-        return {
-            away_preset_params: {away_days: dataAsDecNumber},
-        };
+        return {away_preset_days: dataAsDecNumber};
     case 1028: // 0x0404 Preset changed
         if (common.TuyaThermostatPresets.hasOwnProperty(dataAsDecNumber)) {
             return {preset: common.TuyaThermostatPresets[dataAsDecNumber]};
