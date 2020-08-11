@@ -7367,6 +7367,16 @@ const devices = [
         description: 'Q-FLAG LED panel, Smart-Home CCT',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['JZ-RGBW-Z01'],
+        model: '100.075.74',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-VIDAL RGBW ceiling lamp, 6032-55',
+        endpoint: (device) => {
+            return {'default': 2};
+        },
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // iCasa
     {
