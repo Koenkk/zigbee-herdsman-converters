@@ -76,6 +76,21 @@ const TuyaThermostatPresets = {
     6: 'complex',
 };
 
+const TuyaThermostatSystemModes2 = {
+    0: 'auto',
+    1: 'cool',
+    2: 'heat',
+    3: 'dry',
+    4: 'fan',
+};
+
+const TuyaFanModes = {
+    0: 'low',
+    1: 'medium',
+    2: 'high',
+    3: 'auto',
+};
+
 const TuyaThermostatWeekFormat = {
     0: '5+2',
     1: '6+1',
@@ -107,4 +122,6 @@ module.exports = {
     TuyaThermostatForceMode,
     TuyaThermostatPresets,
     lockSourceName,
+    TuyaFanModes,
+    TuyaThermostatSystemModes2,
 };
