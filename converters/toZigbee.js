@@ -2407,7 +2407,7 @@ const converters = {
     tuya_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            const presetId = utils.getKeyByValue(common.TuyaThermostatPresets, value, null);
+            const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
                 sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
             } else {
