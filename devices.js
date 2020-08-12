@@ -3138,7 +3138,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            if (device.applicationVersion < 3) { //Legacy PM2 firmwares
+            if (device.applicationVersion < 3) { // Legacy PM2 firmwares
                 const payload = [{
                     attribute: 'batteryPercentageRemaining',
                     minimumReportInterval: 0,
