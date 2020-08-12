@@ -3138,10 +3138,24 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-            await configureReporting.batteryVoltage(endpoint);
+            if (device.applicationVersion < 3) { //Legacy PM2 firmwares
+                const payload = [{
+                    attribute: 'batteryPercentageRemaining',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                }, {
+                    attribute: 'batteryVoltage',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                }];
+                await endpoint.configureReporting('genPowerCfg', payload);
+            }
             device.endpoints.forEach(async (ep) => {
-                await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
+                if (ep.outputClusters.includes(18)) {
+                    await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
+                }
             });
         },
         endpoint: (device) => {
