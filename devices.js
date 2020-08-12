@@ -1151,20 +1151,6 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['TS0001'],
-        model: 'TS0001',
-        vendor: 'TuYa',
-        description: 'Valve control',
-        supports: 'on/off',
-        whiteLabel: [
-            {vendor: 'CR Smart Home', model: 'TS0001'},
-            {vendor: 'Lonsonho', model: 'TS0001'},
-            {vendor: 'Bandi', description: '1 gang switch', model: 'BDS03G1'},
-        ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-    },
-    {
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
         vendor: 'TuYa',
@@ -1211,6 +1197,20 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['TS0001'],
+        model: 'TS0001',
+        vendor: 'TuYa',
+        description: '1 gang switch',
+        supports: 'on/off',
+        whiteLabel: [
+            {vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'},
+            {vendor: 'Lonsonho', model: 'X701'},
+            {vendor: 'Bandi', model: 'BDS03G1'},
+        ],
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['TS0002'],
