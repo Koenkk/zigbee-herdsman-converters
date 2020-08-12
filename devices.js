@@ -8139,7 +8139,7 @@ const devices = [
     },
     {
         zigbeeModel: ['YRD220/240 TSDB'],
-        model: 'YRD220/240 TSDB',
+        model: 'YRD220/YRD221',
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
         supports: 'lock/unlock, battery',
