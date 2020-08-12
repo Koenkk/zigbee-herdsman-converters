@@ -3832,6 +3832,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Color Flex LED strip',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['FL 120 C'],
@@ -3839,6 +3840,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Color Flex LED strip',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BF 263'],
@@ -3846,6 +3848,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 185 C'],
@@ -3861,6 +3864,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 250 C'],
@@ -3868,7 +3872,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        meta: {enhancedHue: false},
+        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 265'],
@@ -3876,6 +3880,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 265'],
@@ -3883,6 +3888,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb filament clear',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -3890,6 +3896,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 285 C'],
@@ -3897,6 +3904,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 285 C'],
@@ -3904,6 +3912,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 165'],
@@ -3911,6 +3920,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 162'],
@@ -3918,6 +3928,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 175 W'],
@@ -3925,6 +3936,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb warm dimming',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 178 T'],
@@ -3932,6 +3944,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 178 T'],
@@ -3939,6 +3952,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart bulb tunable white B22',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 122'],
@@ -3946,6 +3960,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 125'],
@@ -3953,6 +3968,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 225'],
@@ -3960,6 +3976,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 Spot',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 128 T'],
@@ -3967,6 +3984,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 228 T'],
@@ -3974,6 +3992,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 229 T'],
@@ -3981,6 +4000,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 230 C'],
@@ -3988,6 +4008,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 145'],
@@ -3995,6 +4016,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 245'],
@@ -4002,6 +4024,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 248 T'],
@@ -4009,6 +4032,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 148 T'],
@@ -4016,6 +4040,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
         extend: generic.light_onoff_brightness_colortemp,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 261'],
@@ -4023,6 +4048,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 263'],
@@ -4030,6 +4056,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 264'],
@@ -4037,6 +4064,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 165', 'BY 265'],
@@ -4044,6 +4072,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 bulb dimmable',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['PL 110'],
@@ -4051,6 +4080,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Puck Light',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['ST 110'],
@@ -4058,6 +4088,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Strip Light',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['UC 110'],
@@ -4065,6 +4096,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Under cabinet light',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['DL 110 N'],
@@ -4072,6 +4104,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot narrow',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['DL 110 W'],
@@ -4079,6 +4112,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot wide',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 N'],
@@ -4086,6 +4120,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex narrow',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 M'],
@@ -4093,6 +4128,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex medium',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 W'],
@@ -4100,6 +4136,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex wide',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['AE 260'],
@@ -4107,6 +4144,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E26/24 bulb',
         extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['AE 280 C'],
@@ -4114,6 +4152,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SP 120'],
@@ -4189,6 +4228,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['OFL 140 C'],
@@ -4196,6 +4236,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['OSL 130 C'],
@@ -4203,6 +4244,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
 
     // Digi
