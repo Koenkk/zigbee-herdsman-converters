@@ -314,7 +314,8 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {away_preset_days: dataAsDecNumber};
     case 1028: // 0x0404 Preset changed
         if (utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(dataAsDecNumber)) {
-            return {preset: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber]};
+            return {preset: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber],
+                system_mode: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber]};
         } else {
             console.log(`TRV preset ${dataAsDecNumber} is not recognized.`);
             return;
