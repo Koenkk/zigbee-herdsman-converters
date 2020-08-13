@@ -5553,7 +5553,7 @@ const devices = [
         vendor: 'ROBB',
         description: 'Zigbee curtain motor controller',
         supports: 'open, close, stop, position',
-        meta: {configureKey: 2},
+        meta: {configureKey: 2, coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint) => {
