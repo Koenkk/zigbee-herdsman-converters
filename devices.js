@@ -887,7 +887,7 @@ const devices = [
         zigbeeModel: ['lumi.plug.maeu01'],
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
-        supports: 'on/off, power measurements',
+        supports: 'on/off, power measurements (depends on firmware)',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_plug_state, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
@@ -896,8 +896,14 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await configureReporting.activePower(endpoint);
+            try {
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+                await configureReporting.activePower(endpoint);
+            } catch (e) {
+                // Not all plugs support this.
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
+            }
+
             // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
         },
