@@ -2376,6 +2376,7 @@ const converters = {
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
             sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
