@@ -5623,6 +5623,9 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
         meta: {configureKey: 2},
+        whiteLabel: [
+            {vendor: 'Samotech', model: 'SM309'},
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
