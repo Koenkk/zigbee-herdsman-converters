@@ -2385,6 +2385,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTG001'],
+        model: '9290019534',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
