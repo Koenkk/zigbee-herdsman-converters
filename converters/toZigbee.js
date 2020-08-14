@@ -193,11 +193,11 @@ const converters = {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
             const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
-                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
+                {level: Math.round(Number(zpos) * 2.55).toString(), transtime: 0},
                 getOptions(meta.mapped, entity),
             );
 
@@ -268,7 +268,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
@@ -276,7 +276,7 @@ const converters = {
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                isPosition ? {percentageliftvalue: zpos} : {percentagetiltvalue: zpos},
                 getOptions(meta.mapped, entity),
             );
 
