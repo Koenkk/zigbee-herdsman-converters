@@ -312,14 +312,20 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {away_preset_temperature: dataAsDecNumber};
     case 629: // 0x7502 away preset number of days
         return {away_preset_days: dataAsDecNumber};
-    case 1028: // 0x0404 Preset changed
-        if (utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(dataAsDecNumber)) {
-            return {preset: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber],
-                system_mode: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber]};
+    case 1028: {// 0x0404 Preset changed
+        const ret = {};
+        const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(dataAsDecNumber);
+        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber);
+        if (presetOk) {
+            ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber];
+        } else if (modeOk) {
+            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber];
         } else {
-            console.log(`TRV preset ${dataAsDecNumber} is not recognized.`);
+            console.log(`TRV preset/mode ${dataAsDecNumber} is not recognized.`);
             return;
         }
+        return ret;
+    }
     case 1029: // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
         return {fan_mode: common.TuyaFanModes[dataAsDecNumber]};
     case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
