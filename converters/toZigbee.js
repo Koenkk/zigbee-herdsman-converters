@@ -314,7 +314,7 @@ const converters = {
 
             if (meta.state.hasOwnProperty('brightness')) {
                 let brightness = meta.state.brightness + value;
-                brightness = Math.min(255, brightness);
+                brightness = Math.min(254, brightness);
                 brightness = Math.max(onOff ? 0 : 1, brightness);
 
                 if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
