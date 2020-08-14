@@ -6934,6 +6934,9 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint, {min: 10, change: 2});
         },
+        whiteLabel: [
+            {vendor: 'Blaupunkt', model: 'PSM-S1'},
+        ],
     },
     {
         zigbeeModel: ['RS_00.00.02.06TC'],
