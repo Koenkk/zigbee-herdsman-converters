@@ -10246,6 +10246,13 @@ const devices = [
         description: 'Dash L DC Volare',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['MAXI JOLLY ZB3'],
+        model: '151570',
+        vendor: 'TCI',
+        description: 'TCI LED driver for wireless control (60 watt)',
+        extend: generic.light_onoff_brightness,
+    },
 
     // TERNCY
     {
