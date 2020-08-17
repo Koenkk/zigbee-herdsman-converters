@@ -10250,7 +10250,7 @@ const devices = [
         zigbeeModel: ['MAXI JOLLY ZB3'],
         model: '151570',
         vendor: 'TCI',
-        description: 'TCI LED driver for wireless control (60 watt)',
+        description: 'LED driver for wireless control (60 watt)',
         extend: generic.light_onoff_brightness,
     },
 
