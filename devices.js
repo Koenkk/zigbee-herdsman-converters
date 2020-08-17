@@ -8899,7 +8899,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
         },
-    }
+    },
 
     // Shenzhen Homa
     {
