@@ -2449,13 +2449,19 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const data = msg.data['65281'];
-                return {
+                const payload = {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(data['152'], 2),
-                    voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
                     temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
+
+                if (data.hasOwnProperty('150')) {
+                    // Not all support voltage: https://github.com/Koenkk/zigbee2mqtt/issues/4092
+                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
+                }
+
+                return payload;
             }
         },
     },
