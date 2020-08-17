@@ -307,6 +307,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const onOff = key.endsWith('_onoff');
             const command = onOff ? 'stepWithOnOff' : 'step';
+            value = Number(value);
             const mode = value > 0 ? 0 : 1;
             const transition = getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
@@ -341,6 +342,7 @@ const converters = {
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
             } else {
+                value = Number(value);
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
                 await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
