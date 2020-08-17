@@ -6919,7 +6919,7 @@ const devices = [
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
-        zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.10TC'],
+        zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC'],
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
@@ -6934,6 +6934,9 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint, {min: 10, change: 2});
         },
+        whiteLabel: [
+            {vendor: 'Blaupunkt', model: 'PSM-S1'},
+        ],
     },
     {
         zigbeeModel: ['RS_00.00.02.06TC'],
