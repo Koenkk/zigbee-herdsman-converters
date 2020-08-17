@@ -5660,9 +5660,6 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: generic.light_onoff_brightness,
         meta: {configureKey: 2},
-        whiteLabel: [
-            {vendor: 'Samotech', model: 'SM309'},
-        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -8888,6 +8885,21 @@ const devices = [
             await configureReporting.currentSummDelivered(endpoint);
         },
     },
+
+    // Samotech
+    {
+        zigbeeModel: ['SM309'],
+        model: 'SM309',
+        vendor: 'Samotech',
+        description: 'ZigBee dimmer 400W',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    }
 
     // Shenzhen Homa
     {
