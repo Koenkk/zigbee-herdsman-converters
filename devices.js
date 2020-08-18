@@ -10756,7 +10756,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['TS0218'],
+        zigbeeModel: ['TS0218', 'TS0215A'],
         model: 'TS0218',
         vendor: 'CR Smart Home',
         description: 'Button',
