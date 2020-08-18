@@ -887,7 +887,7 @@ const devices = [
         zigbeeModel: ['lumi.plug.maeu01'],
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
-        supports: 'on/off, power measurements',
+        supports: 'on/off, power measurements (depends on firmware)',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_plug_state, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
@@ -896,8 +896,14 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await configureReporting.activePower(endpoint);
+            try {
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+                await configureReporting.activePower(endpoint);
+            } catch (e) {
+                // Not all plugs support this.
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
+            }
+
             // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
         },
@@ -1258,14 +1264,14 @@ const devices = [
             {vendor: 'Moes', model: 'HY369RT'},
             {vendor: 'SHOJZJ', model: '378RT'},
         ],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes},
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
-            tz.tuya_thermostat_force,
+            tz.tuya_thermostat_force, tz.tuya_thermostat_preset,
         ],
     },
     {
@@ -2041,6 +2047,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1745630P7'],
+        model: '1745630P7',
+        vendor: 'Philips',
+        description: 'Hue Nyro',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LDT001'],
         model: '5900131C5',
         vendor: 'Philips',
@@ -2379,6 +2393,14 @@ const devices = [
     {
         zigbeeModel: ['LTG002'],
         model: '929001953301',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTG001'],
+        model: '9290019534',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         extend: hue.light_onoff_brightness_colortemp,
@@ -4806,6 +4828,21 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['BoxRelayZ 98423051'],
+        model: '98423051',
+        vendor: 'Nordtronic',
+        description: 'Zigbee switch 400W',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Nue, 3A
     {
@@ -5695,12 +5732,12 @@ const devices = [
         vendor: 'ROBB',
         description: 'Zigbee curtain motor controller',
         supports: 'open, close, stop, position',
-        meta: {configureKey: 1},
+        meta: {configureKey: 2, coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
     },
@@ -6905,7 +6942,7 @@ const devices = [
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
     },
     {
-        zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.10TC'],
+        zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC'],
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
@@ -6920,6 +6957,9 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint, {min: 10, change: 2});
         },
+        whiteLabel: [
+            {vendor: 'Blaupunkt', model: 'PSM-S1'},
+        ],
     },
     {
         zigbeeModel: ['RS_00.00.02.06TC'],
@@ -8849,6 +8889,21 @@ const devices = [
         },
     },
 
+    // Samotech
+    {
+        zigbeeModel: ['SM309'],
+        model: 'SM309',
+        vendor: 'Samotech',
+        description: 'ZigBee dimmer 400W',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+
     // Shenzhen Homa
     {
         zigbeeModel: ['HOMA1008'],
@@ -10230,6 +10285,13 @@ const devices = [
         model: '676-00301024955Z',
         vendor: 'TCI',
         description: 'Dash L DC Volare',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['MAXI JOLLY ZB3'],
+        model: '151570',
+        vendor: 'TCI',
+        description: 'LED driver for wireless control (60 watt)',
         extend: generic.light_onoff_brightness,
     },
 

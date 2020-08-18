@@ -193,11 +193,11 @@ const converters = {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
             const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
-                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
+                {level: Math.round(Number(zpos) * 2.55).toString(), transtime: 0},
                 getOptions(meta.mapped, entity),
             );
 
@@ -268,7 +268,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
@@ -276,7 +276,7 @@ const converters = {
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                isPosition ? {percentageliftvalue: zpos} : {percentagetiltvalue: zpos},
                 getOptions(meta.mapped, entity),
             );
 
@@ -307,6 +307,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const onOff = key.endsWith('_onoff');
             const command = onOff ? 'stepWithOnOff' : 'step';
+            value = Number(value);
             const mode = value > 0 ? 0 : 1;
             const transition = getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
@@ -314,8 +315,17 @@ const converters = {
 
             if (meta.state.hasOwnProperty('brightness')) {
                 let brightness = meta.state.brightness + value;
-                brightness = Math.min(255, brightness);
+                brightness = Math.min(254, brightness);
                 brightness = Math.max(onOff ? 0 : 1, brightness);
+
+                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
+                    if (onOff && value < 0 && brightness === 1) {
+                        brightness = 0;
+                    } else if (onOff && value > 0 && meta.state.brightness === 0) {
+                        brightness++;
+                    }
+                }
+
                 return {state: {brightness, state: brightness === 0 ? 'OFF' : 'ON'}};
             }
         },
@@ -332,6 +342,7 @@ const converters = {
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
             } else {
+                value = Number(value);
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
                 await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
@@ -2376,6 +2387,7 @@ const converters = {
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
             sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
@@ -2401,6 +2413,17 @@ const converters = {
                 sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
+            if (presetId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
             }
         },
     },

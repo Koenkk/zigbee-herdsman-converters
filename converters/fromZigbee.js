@@ -250,8 +250,9 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     switch (dp) {
     case 104: // 0x6800 window params
         return {
+            window_detection: data[0] ? 'ON' : 'OFF',
             window_detection_params: {
-                valve: data[0] ? 'ON' : 'OFF',
+                // valve: data[0] ? 'ON' : 'OFF',
                 temperature: data[1],
                 minutes: data[2],
             },
@@ -307,17 +308,24 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {eco_temperature: dataAsDecNumber};
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
-    case 626: // 0x7202 preset temp ?
-        return {preset_temperature: dataAsDecNumber};
-    case 629: // 0x7502 preset ?
-        return {preset: dataAsDecNumber};
-    case 1028: // 0x0404 Mode changed
-        if (utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber)) {
-            return {system_mode: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber]};
+    case 626: // 0x7202 away preset temperature
+        return {away_preset_temperature: dataAsDecNumber};
+    case 629: // 0x7502 away preset number of days
+        return {away_preset_days: dataAsDecNumber};
+    case 1028: {// 0x0404 Preset changed
+        const ret = {};
+        const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(dataAsDecNumber);
+        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber);
+        if (presetOk) {
+            ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber];
+        } else if (modeOk) {
+            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber];
         } else {
-            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            console.log(`TRV preset/mode ${dataAsDecNumber} is not recognized.`);
             return;
         }
+        return ret;
+    }
     case 1029: // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
         return {fan_mode: common.TuyaFanModes[dataAsDecNumber]};
     case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
@@ -442,7 +450,7 @@ const converters = {
                 // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
-                if (model.meta && model.meta.batery && model.meta.battery.voltageToPercentage) {
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     if (model.meta.battery.voltageToPercentage === 'CR2032') {
                         payload.battery = toPercentageCR2032(payload.voltage);
                     }
@@ -2441,13 +2449,19 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const data = msg.data['65281'];
-                return {
+                const payload = {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(data['152'], 2),
-                    voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
                     temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
+
+                if (data.hasOwnProperty('150')) {
+                    // Not all support voltage: https://github.com/Koenkk/zigbee2mqtt/issues/4092
+                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
+                }
+
+                return payload;
             }
         },
     },
