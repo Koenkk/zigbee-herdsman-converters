@@ -1141,6 +1141,15 @@ const devices = [
 
     // TuYa
     {
+        zigbeeModel: ['TS0215A'],
+        model: 'TS0215A',
+        vendor: 'TuYa',
+        description: 'SOS button',
+        supports: 'action',
+        fromZigbee: [fz.command_emergency, fz.battery],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['TS0503A'],
         model: 'TYZS1L',
         vendor: 'TuYa',
