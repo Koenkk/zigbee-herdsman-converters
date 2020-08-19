@@ -4282,6 +4282,14 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
+    {
+        zigbeeModel: ['BE 220'],
+        model: 'BE 220',
+        vendor: 'Innr',
+        description: 'E26/E24 white bulb',
+        extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
 
     // Digi
     {
