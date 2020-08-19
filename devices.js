@@ -7534,7 +7534,7 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['NLG-RGBW light '],  // the space as the end is intentional, as this is what the device sends
+        zigbeeModel: ['NLG-RGBW light '], // the space as the end is intentional, as this is what the device sends
         model: '100.110.39',
         vendor: 'Paul Neuhaus',
         description: 'Q-FLAG LED Panel, Smart-Home RGBW',
