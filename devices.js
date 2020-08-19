@@ -4288,9 +4288,9 @@ const devices = [
         vendor: 'Innr',
         description: 'E26/E24 white bulb',
         extend: generic.light_onoff_brightness,
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},                                                    
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
-    
+
     // Digi
     {
         fingerprint: [
