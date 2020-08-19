@@ -7517,6 +7517,13 @@ const devices = [
         ],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['Dimmable-GU10-4713404'],
+        model: '4713406',
+        vendor: 'Airam',
+        description: 'GU10 spot 4.8W 2700K 385lm',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Paul Neuhaus
     {
