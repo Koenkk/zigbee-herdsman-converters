@@ -7534,10 +7534,20 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['NLG-RGBW light'],
-        model: 'NLG-RGBW light',
+        zigbeeModel: ['NLG-RGBW light '],  // the space as the end is intentional, as this is what the device sends
+        model: '100.110.39',
         vendor: 'Paul Neuhaus',
-        description: 'Various RGBW lights (e.g. 100.110.39, 100.111.57)',
+        description: 'Q-FLAG LED Panel, Smart-Home RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        endpoint: (device) => {
+            return {'default': 2};
+        },
+    },
+    {
+        zigbeeModel: ['NLG-RGBW light'],
+        model: '100.111.57',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-Riller Floor Lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
