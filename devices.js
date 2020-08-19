@@ -1234,7 +1234,7 @@ const devices = [
         description: '2 gang switch',
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D'},
-            {vendor: 'Lonhonso', model: 'X702'},
+            {vendor: 'Lonsonho', model: 'X702'},
         ],
         supports: 'on/off',
         fromZigbee: [fz.on_off],
