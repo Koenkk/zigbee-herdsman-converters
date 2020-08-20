@@ -2036,7 +2036,7 @@ const devices = [
         model: '4034031P7',
         vendor: 'Philips',
         description: 'Hue Fair',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2045,7 +2045,7 @@ const devices = [
         model: '3306431P7',
         vendor: 'Philips',
         description: 'Hue Struana',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2054,7 +2054,7 @@ const devices = [
         model: '1746130P7',
         vendor: 'Philips',
         description: 'Hue Attract',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2063,7 +2063,7 @@ const devices = [
         model: '1745630P7',
         vendor: 'Philips',
         description: 'Hue Nyro',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2072,7 +2072,7 @@ const devices = [
         model: '5900131C5',
         vendor: 'Philips',
         description: 'Hue Aphelion downlight',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2081,7 +2081,7 @@ const devices = [
         model: '7299760PH',
         vendor: 'Philips',
         description: 'Hue Bloom',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2090,7 +2090,7 @@ const devices = [
         model: '4090331P9',
         vendor: 'Philips',
         description: 'Hue Ensis',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2099,7 +2099,7 @@ const devices = [
         model: '7146060PH',
         vendor: 'Philips',
         description: 'Hue Go',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2108,7 +2108,7 @@ const devices = [
         model: '9290022411',
         vendor: 'Philips',
         description: 'Hue white single filament bulb A19 E26 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2117,7 +2117,7 @@ const devices = [
         model: '929002039801',
         vendor: 'Philips',
         description: 'Hue white E12 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2126,7 +2126,7 @@ const devices = [
         model: '929002277501',
         vendor: 'Philips',
         description: 'Hue white A19 bulb E26 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2135,7 +2135,7 @@ const devices = [
         model: '9290023349',
         vendor: 'Philips',
         description: 'Hue white A67 bulb E26 with Bluetooth (1600 Lumen)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2144,7 +2144,7 @@ const devices = [
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2153,7 +2153,7 @@ const devices = [
         model: '8718696167991',
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2162,7 +2162,7 @@ const devices = [
         model: '8718696170557',
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2171,7 +2171,7 @@ const devices = [
         model: '1744130P7',
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2180,7 +2180,7 @@ const devices = [
         model: '1743830P7',
         vendor: 'Philips',
         description: 'Hue Econic outdoor wall lamp',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2189,7 +2189,7 @@ const devices = [
         model: '1743130P7',
         vendor: 'Philips',
         description: 'Hue Impress outdoor Pedestal',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2198,7 +2198,7 @@ const devices = [
         model: '4090531P7',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2207,7 +2207,7 @@ const devices = [
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2216,7 +2216,7 @@ const devices = [
         model: '9290022268',
         vendor: 'Philips',
         description: 'Hue White A19 bulb with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2225,7 +2225,7 @@ const devices = [
         model: '8718699688820',
         vendor: 'Philips',
         description: 'Hue Filament Standard A60/E27 bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2234,7 +2234,7 @@ const devices = [
         model: '548727',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2243,7 +2243,7 @@ const devices = [
         model: '433714',
         vendor: 'Philips',
         description: 'Hue Lux A19 bulb E27',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2252,7 +2252,7 @@ const devices = [
         model: '9290011370',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2261,7 +2261,7 @@ const devices = [
         model: '8718699673147',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2270,7 +2270,7 @@ const devices = [
         model: '9290018215',
         vendor: 'Philips',
         description: 'Hue white A19 bulb E26 bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2279,7 +2279,7 @@ const devices = [
         model: '9290022169',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2288,7 +2288,7 @@ const devices = [
         model: '4090631P7',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance pendant light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2297,7 +2297,7 @@ const devices = [
         model: '8718696449691',
         vendor: 'Philips',
         description: 'Hue White Single bulb B22',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2306,7 +2306,7 @@ const devices = [
         model: '9290018195',
         vendor: 'Philips',
         description: 'Hue white GU10',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2315,7 +2315,7 @@ const devices = [
         model: 'LWG004',
         vendor: 'Philips',
         description: 'Hue white GU10 bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2324,7 +2324,7 @@ const devices = [
         model: '8718699688882',
         vendor: 'Philips',
         description: 'Hue white Filament bulb G93 E27 bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2333,7 +2333,7 @@ const devices = [
         model: '7299355PH',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2342,7 +2342,7 @@ const devices = [
         model: '915005106701',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2351,7 +2351,7 @@ const devices = [
         model: '9290018187B',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip Outdoor',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2360,7 +2360,7 @@ const devices = [
         model: '8718699703424',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2369,7 +2369,7 @@ const devices = [
         model: '9290022166',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2378,7 +2378,7 @@ const devices = [
         model: '9290012573A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2387,7 +2387,7 @@ const devices = [
         model: '9290002579A',
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2396,7 +2396,7 @@ const devices = [
         model: '8718696485880',
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2405,7 +2405,7 @@ const devices = [
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2414,7 +2414,7 @@ const devices = [
         model: '464800',
         vendor: 'Philips',
         description: 'Hue white ambiance BR30 flood light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2423,7 +2423,7 @@ const devices = [
         model: '8718696695203',
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2432,7 +2432,7 @@ const devices = [
         model: '9290020399',
         vendor: 'Philips',
         description: 'Hue white E14',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2441,7 +2441,7 @@ const devices = [
         model: '8718696598283',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2450,7 +2450,7 @@ const devices = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2459,7 +2459,7 @@ const devices = [
         model: '9290019534',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2468,7 +2468,7 @@ const devices = [
         model: '9290011998B',
         vendor: 'Philips',
         description: 'Hue white ambiance E26',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2477,7 +2477,7 @@ const devices = [
         model: '9290022167',
         vendor: 'Philips',
         description: 'Hue white ambiance E26 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2486,7 +2486,7 @@ const devices = [
         model: '9290022267',
         vendor: 'Philips',
         description: 'Hue white ambiance E26 with Bluetooth',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2495,7 +2495,7 @@ const devices = [
         model: '8718696548738',
         vendor: 'Philips',
         description: 'Hue white ambiance E26/E27',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2504,7 +2504,7 @@ const devices = [
         model: '915005587401',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2513,7 +2513,7 @@ const devices = [
         model: '3402831P7',
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom mirror light Adore',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2522,7 +2522,7 @@ const devices = [
         model: '3435011P7',
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2531,7 +2531,7 @@ const devices = [
         model: '4503848C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Muscari pendant light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2540,7 +2540,7 @@ const devices = [
         model: '5996411U5',
         vendor: 'Philips',
         description: 'Hue white ambiance 5/6" retrofit recessed downlight',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2549,7 +2549,7 @@ const devices = [
         model: '4090130P7',
         vendor: 'Philips',
         description: 'Hue Sana',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2558,7 +2558,7 @@ const devices = [
         model: '3261030P7',
         vendor: 'Philips',
         description: 'Hue Being',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2567,7 +2567,7 @@ const devices = [
         model: '4098430P7',
         vendor: 'Philips',
         description: 'Hue Being Pendant',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2576,7 +2576,7 @@ const devices = [
         model: '3261331P7',
         vendor: 'Philips',
         description: 'Hue white ambiance Still',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2585,7 +2585,7 @@ const devices = [
         model: '4096730U7',
         vendor: 'Philips',
         description: 'Hue Cher ceiling light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2594,7 +2594,7 @@ const devices = [
         model: '3216131P5',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2603,7 +2603,7 @@ const devices = [
         model: '3216131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2612,7 +2612,7 @@ const devices = [
         model: '3216331P5',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2621,7 +2621,7 @@ const devices = [
         model: '3216431P5',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2630,7 +2630,7 @@ const devices = [
         model: '4033930P7',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Fair',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2639,7 +2639,7 @@ const devices = [
         model: '4023330P7',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Amaze',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -2648,7 +2648,7 @@ const devices = [
         model: '9290011370B',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2657,7 +2657,7 @@ const devices = [
         model: '046677476816',
         vendor: 'Philips',
         description: 'Hue white PAR38 outdoor',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -2666,7 +2666,7 @@ const devices = [
         model: '7199960PH',
         vendor: 'Philips',
         description: 'Hue Iris',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2675,7 +2675,7 @@ const devices = [
         model: '1742930P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2684,7 +2684,7 @@ const devices = [
         model: '1743030P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2693,7 +2693,7 @@ const devices = [
         model: '1743230P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress lantern',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2702,7 +2702,7 @@ const devices = [
         model: '1746430P7',
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2711,7 +2711,7 @@ const devices = [
         model: '7099930PH',
         vendor: 'Philips',
         description: 'Hue Iris (Generation 2)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2720,7 +2720,7 @@ const devices = [
         model: '4080248P9',
         vendor: 'Philips',
         description: 'Hue Signe floor light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2729,7 +2729,7 @@ const devices = [
         model: '4080148P9',
         vendor: 'Philips',
         description: 'Hue Signe table light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2738,7 +2738,7 @@ const devices = [
         model: '5062131P7',
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot (1 spot)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2747,7 +2747,7 @@ const devices = [
         model: '5062231P7',
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot (2 spots)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2756,7 +2756,7 @@ const devices = [
         model: '5062331P7',
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot (3 spots)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2765,7 +2765,7 @@ const devices = [
         model: '5062431P7',
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot (4 spots)',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2774,7 +2774,7 @@ const devices = [
         model: '5045148P7',
         vendor: 'Philips',
         description: 'Hue Centura',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2939,7 +2939,7 @@ const devices = [
         model: '7099860PH',
         vendor: 'Philips',
         description: 'LivingColors Aura',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2949,7 +2949,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp,
     },
     {
@@ -2958,7 +2958,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Fuzo outdoor wall light',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
     },
     {
@@ -2967,7 +2967,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Welcome white flood light',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
     },
     {
@@ -2976,7 +2976,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Discover white and color ambiance flood light',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colorxy,
     },
     {
@@ -2984,7 +2984,7 @@ const devices = [
         model: '1746330P7',
         vendor: 'Philips',
         description: 'Hue Appear outdoor wall light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -2993,7 +2993,7 @@ const devices = [
         model: '1741830P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -3002,7 +3002,7 @@ const devices = [
         model: '9290022891',
         vendor: 'Philips',
         description: 'Hue Lily outdoor led strip',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -3012,7 +3012,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white filament Edison E27 LED',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
     },
     {
@@ -3021,7 +3021,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white filament Edison ST19 LED',
         ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness,
     },
     {
@@ -3029,7 +3029,7 @@ const devices = [
         model: '3115331PH',
         vendor: 'Philips',
         description: 'Phoenix light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -3038,7 +3038,7 @@ const devices = [
         model: '7121131PU',
         vendor: 'Philips',
         description: 'Hue Beyond white and color ambiance suspension light',
-        meta: {turnsOffAtBrightness1: true},
+
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -11884,8 +11884,7 @@ const devices = [
         fromZigbee: [fz.greenpower_on_off_switch],
         toZigbee: [],
         whiteLabel: [
-            {vendor: 'Philips',
- description: 'Hue Tap', model: '8718696743133'},
+            {vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
             {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'},
         ],
     },
