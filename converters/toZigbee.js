@@ -508,7 +508,7 @@ const converters = {
                 }
                 brightness = Math.min(254, brightness);
                 if (brightness === 1 && utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1') === true) {
-                    brightness = 0;
+                    brightness = 2;
                 }
 
                 store[entityID] = {...store[entityID], brightness};
