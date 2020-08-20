@@ -602,7 +602,16 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 const property = postfixWithEndpointName('brightness', msg, model);
-                return {[property]: msg.data['currentLevel']};
+                let value = msg.data['currentLevel'];
+                if (utils.getMetaValue(msg.endpoint, model, 'turnsOffAtBrightness1') && value === 1) {
+                    value = 0;
+                }
+
+                if (meta.state && meta.state.state === 'OFF') {
+                    value = 0;
+                }
+
+                return {[property]: value};
             }
         },
     },

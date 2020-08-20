@@ -308,6 +308,10 @@ const converters = {
             const onOff = key.endsWith('_onoff');
             const command = onOff ? 'stepWithOnOff' : 'step';
             value = Number(value);
+            if (isNaN(value)) {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+
             const mode = value > 0 ? 0 : 1;
             const transition = getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
@@ -323,6 +327,8 @@ const converters = {
                         brightness = 0;
                     } else if (onOff && value > 0 && meta.state.brightness === 0) {
                         brightness++;
+                    } else if (!onOff && value < 0 && brightness === 1) {
+                        brightness = 2;
                     }
                 }
 
@@ -343,6 +349,9 @@ const converters = {
                 await target.read('genLevelCtrl', ['currentLevel']);
             } else {
                 value = Number(value);
+                if (isNaN(value)) {
+                    throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+                }
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
                 await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
@@ -415,10 +424,15 @@ const converters = {
             const {message} = meta;
             const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
             const brightnessValue = message.hasOwnProperty('brightness') ?
-                message.brightness : message.brightness_percent;
+                Number(message.brightness) : Number(message.brightness_percent);
             const hasState = message.hasOwnProperty('state');
             const state = hasState ? message.state.toLowerCase() : null;
             const entityID = entity.constructor.name === 'Group' ? entity.groupID : entity.deviceIeeeAddress;
+
+            if (hasBrightness && (isNaN(brightnessValue) || brightnessValue < 0 || brightnessValue > 255)) {
+                // Allow 255 value, changing this to 254 would be a breaking change.
+                throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
+            }
 
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
