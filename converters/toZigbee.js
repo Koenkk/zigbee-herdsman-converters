@@ -1068,7 +1068,7 @@ const converters = {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
             }
 
-            const panelStatus = mode !== 0 ? 0x80: 0x00;
+            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
             globalStore.putValue(entity.deviceIeeeAddress, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
