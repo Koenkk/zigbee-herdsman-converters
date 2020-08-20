@@ -3659,6 +3659,51 @@ const devices = [
         ota: ota.ledvance,
     },
 
+    // Gewiss
+    {
+        zigbeeModel: ['GWA1521_Actuator_1_CH_PF'],
+        model: 'GWA1521',
+        description: 'Switch actuator 1 channel with input',
+        supports: 'on/off',
+        vendor: 'Gewiss',
+        fromZigbee: [fz.on_off, fz.ignore_genOta],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['GWA1522_Actuator_2_CH'],
+        model: 'GWA1522',
+        description: 'Switch actuator 2 channels with input',
+        supports: 'on/off',
+        vendor: 'Gewiss',
+        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+    },
+    {
+        zigbeeModel: ['GWA1531_Shutter'],
+        model: 'GWA1531',
+        description: 'Shutter actuator',
+        supports: 'on/off',
+        vendor: 'Gewiss',
+        fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await configureReporting.brightness(endpoint);
+        },
+    },
+
     // Ledvance
     {
         zigbeeModel: ['Panel TW Z3'],
