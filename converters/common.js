@@ -91,6 +91,7 @@ const armMode = {
     1: 'arm_day_zones',
     2: 'arm_night_zones',
     3: 'arm_all_zones',
+    4: 'invalid_code',
 };
 
 module.exports = {
