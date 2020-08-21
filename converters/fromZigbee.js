@@ -3502,11 +3502,13 @@ const converters = {
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            return {
+            const payload = {
                 action: `brightness_${direction}_click`,
                 step_size: msg.data.stepsize,
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_brightness_updown_hold: {
@@ -3522,10 +3524,12 @@ const converters = {
             }
             store[deviceID].movemode = direction;
 
-            return {
+            const payload = {
                 action: `brightness_${direction}_hold`,
                 rate: msg.data.rate,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_brightness_updown_release: {
@@ -3538,9 +3542,9 @@ const converters = {
             }
 
             const direction = store[deviceID].movemode;
-            return {
-                action: `brightness_${direction}_release`,
-            };
+            const payload = {action: `brightness_${direction}_release`};
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     SA003_on_off: {
@@ -3571,25 +3575,29 @@ const converters = {
         cluster: 'genBasic',
         type: 'write',
         convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data['16389']}`};
+            const payload = {action: `scene_${msg.data['16389']}`};
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action: `color_temp`,
                 action_color_temperature: msg.data.colortemp,
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_move_to_color: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
@@ -3597,6 +3605,8 @@ const converters = {
                 action: 'color_wheel',
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     E1524_E1810_toggle: {
