@@ -5852,6 +5852,13 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
+    co2: {
+        cluster: 'msCO2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {co2: Math.floor(msg.data.measuredValue * 1000000)};
+        },
+    },
 };
 
 module.exports = converters;

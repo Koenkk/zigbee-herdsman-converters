@@ -12157,6 +12157,22 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
+
+    {
+        zigbeeModel: ['TPZRCO2HT-Z3'],
+        model: 'TPZRCO2HT-Z3',
+        vendor: 'Titan Products',
+        description: 'temperature & humidity & co2 sensor',
+        supports: 'temperature and humidity and co2',
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
