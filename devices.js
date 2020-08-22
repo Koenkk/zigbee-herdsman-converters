@@ -12157,7 +12157,7 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
-    
+
     // Titan Products
     {
         zigbeeModel: ['TPZRCO2HT-Z3'],
