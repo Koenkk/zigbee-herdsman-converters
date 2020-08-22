@@ -11884,8 +11884,7 @@ const devices = [
         fromZigbee: [fz.greenpower_on_off_switch],
         toZigbee: [],
         whiteLabel: [
-            {vendor: 'Philips',
- description: 'Hue Tap', model: '8718696743133'},
+            {vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
             {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'},
         ],
     },

@@ -318,17 +318,15 @@ const converters = {
             await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
 
             if (meta.state.hasOwnProperty('brightness')) {
-                let brightness = meta.state.brightness + value;
+                let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
                 brightness = Math.min(254, brightness);
-                brightness = Math.max(onOff ? 0 : 1, brightness);
+                brightness = Math.max(onOff || meta.state.state === 'OFF' ? 0 : 1, brightness);
 
                 if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
                     if (onOff && value < 0 && brightness === 1) {
                         brightness = 0;
                     } else if (onOff && value > 0 && meta.state.brightness === 0) {
                         brightness++;
-                    } else if (!onOff && value < 0 && brightness === 1) {
-                        brightness = 2;
                     }
                 }
 
