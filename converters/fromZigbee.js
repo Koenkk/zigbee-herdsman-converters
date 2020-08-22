@@ -526,6 +526,13 @@ const converters = {
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
+    co2: {
+        cluster: 'msCO2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {co2: Math.floor(msg.data.measuredValue * 1000000)};
+        },
+    },
     occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
         cluster: 'msOccupancySensing',
