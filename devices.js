@@ -4981,6 +4981,19 @@ const devices = [
 
     // Nordtronic
     {
+        zigbeeModel: ['98425031'],
+        model: '98425031',
+        vendor: 'Nordtronic',
+        description: 'Box Dimmer 2.0',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['BoxDIM2 98425031'],
         model: '98425031',
         vendor: 'Nordtronic',
