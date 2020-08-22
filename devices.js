@@ -9098,7 +9098,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['HOMA1002', 'HOMA0019'],
+        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006'],
         model: 'HLC610-Z',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
