@@ -12137,6 +12137,23 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        zigbeeModel: ['43100'],
+        model: '43100',
+        vendor: 'Enbrighten',
+        description: 'Plug-in Zigbee outdoor smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.command_on_state, fz.command_off_state],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
+        },
+    },
 
     // Niko
     {

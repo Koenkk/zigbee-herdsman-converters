@@ -1092,6 +1092,22 @@ const converters = {
             return payload;
         },
     },
+    command_on_state: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const property = postfixWithEndpointName('state', msg, model);
+            return {[property]: 'ON'};
+        },
+    },
+    command_off_state: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            const property = postfixWithEndpointName('state', msg, model);
+            return {[property]: 'OFF'};
+        },
+    },
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
