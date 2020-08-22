@@ -12157,13 +12157,14 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
         },
     },
-
+    
+    // Titan Products
     {
         zigbeeModel: ['TPZRCO2HT-Z3'],
         model: 'TPZRCO2HT-Z3',
         vendor: 'Titan Products',
-        description: 'temperature & humidity & co2 sensor',
-        supports: 'temperature and humidity and co2',
+        description: 'Room CO2, humidity & temperature sensor',
+        supports: 'temperature, humidity and co2',
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
         toZigbee: [],
         meta: {configureKey: 2},
