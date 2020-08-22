@@ -7946,7 +7946,7 @@ const devices = [
         zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
         model: 'MLI-404011',
         description: 'Tint remote control',
-        supports: 'toggle, brightness, other buttons are not supported yet!',
+        supports: 'action; multi-group actions are not supported yet!',
         vendor: 'Müller Licht',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.command_toggle, fz.tint404011_brightness_updown_click,
