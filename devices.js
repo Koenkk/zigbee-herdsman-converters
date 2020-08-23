@@ -4981,7 +4981,7 @@ const devices = [
 
     // Nordtronic
     {
-        zigbeeModel: ['BoxDIM2 98425031','98425031'],
+        zigbeeModel: ['BoxDIM2 98425031', '98425031'],
         model: '98425031',
         vendor: 'Nordtronic',
         description: 'Box Dimmer 2.0',
