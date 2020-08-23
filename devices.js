@@ -6538,6 +6538,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['500.47'],
+        model: '500.47',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['RGBW light', '500.49'],
         model: '50049',
         vendor: 'Paulmann',
