@@ -4353,12 +4353,12 @@ const devices = [
         vendor: 'Innr',
         description: 'Smart plug',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.electrical_measurement_power, fz.on_off, fz.ignore_genLevelCtrl_report],
+        fromZigbee: [fz.electrical_measurement_power, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 4},
+        meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await configureReporting.onOff(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on readEletricalMeasurementPowerConverterAttributes.
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
@@ -4368,6 +4368,12 @@ const devices = [
             await configureReporting.activePower(endpoint);
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.rmsVoltage(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on readMeteringPowerConverterAttributes.
+            endpoint.saveClusterAttributeKeyValue('seMetering', {
+                multiplier: 1,
+                divisor: 1,
+            });
+            await configureReporting.currentSummDelivered(endpoint);
         },
     },
     {
