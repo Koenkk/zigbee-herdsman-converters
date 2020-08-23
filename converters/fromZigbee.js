@@ -3042,7 +3042,7 @@ const converters = {
                     delayedButton: null, delayedBrightnessSend: null, delayedType: null,
                     delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
                 if (brightnessEnabled) {
-                    store[deviceID].brightnessValue = 255;
+                    store[deviceID].brightnessValue = 254;
                     store[deviceID].brightnessSince = null;
                     store[deviceID].brightnessDirection = null;
                 }
@@ -3054,7 +3054,7 @@ const converters = {
                     store[deviceID].pressType = 'press';
                     if (brightnessSend) {
                         const newValue = store[deviceID].brightnessValue + (button === 'up' ? 32 : -32);
-                        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
+                        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 254);
                     }
                 } else if (type == 'hold') {
                     store[deviceID].pressType = 'hold';
