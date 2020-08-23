@@ -1212,6 +1212,12 @@ const converters = {
             await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped, entity));
         },
     },
+    xiaomi_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genAnalogInput', ['presentValue']);
+        },
+    },
     xiaomi_curtain_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
