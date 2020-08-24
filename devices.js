@@ -1577,6 +1577,20 @@ const devices = [
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
+        model: 'MKS-CM-W5',
+        vendor: 'Norklmes',
+        description: '2 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1};
+        },
+    },
 
     // Lonsonho
     {
