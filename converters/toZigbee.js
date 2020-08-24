@@ -1220,6 +1220,13 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
+    xiaomi_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
