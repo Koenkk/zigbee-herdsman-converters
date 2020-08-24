@@ -243,6 +243,33 @@ async function getDoorLockPinCode(entity, user, options = null) {
         options | {});
 }
 
+// groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
+//                first: return the first property
+function getMetaValue(entity, definition, key, groupStrategy='first') {
+    if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+        const values = [];
+        for (const memberMeta of definition) {
+            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
+                if (groupStrategy === 'first') {
+                    return memberMeta.meta[key];
+                }
+
+                values.push(memberMeta.meta[key]);
+            } else {
+                values.push(undefined);
+            }
+        }
+
+        if (groupStrategy === 'allEqual' && (new Set(values)).size === 1) {
+            return values[0];
+        }
+    } else if (definition && definition.meta && definition.meta.hasOwnProperty(key)) {
+        return definition.meta[key];
+    }
+
+    return undefined;
+}
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -261,4 +288,5 @@ module.exports = {
     convertDecimalValueTo2ByteHexArray,
     replaceInArray,
     getDoorLockPinCode,
+    getMetaValue,
 };

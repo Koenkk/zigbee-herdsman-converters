@@ -194,11 +194,11 @@ const converters = {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
             const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
-                {level: Math.round(Number(value) * 2.55).toString(), transtime: 0},
+                {level: Math.round(Number(zpos) * 2.55).toString(), transtime: 0},
                 getOptions(meta.mapped, entity),
             );
 
@@ -269,7 +269,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
-            value = invert ? 100 - value : value;
+            const zpos = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
@@ -277,7 +277,7 @@ const converters = {
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: value} : {percentagetiltvalue: value},
+                isPosition ? {percentageliftvalue: zpos} : {percentagetiltvalue: zpos},
                 getOptions(meta.mapped, entity),
             );
 
@@ -303,6 +303,38 @@ const converters = {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    light_brightness_step: {
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            const onOff = key.endsWith('_onoff');
+            const command = onOff ? 'stepWithOnOff' : 'step';
+            value = Number(value);
+            if (isNaN(value)) {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+
+            const mode = value > 0 ? 0 : 1;
+            const transition = getTransition(entity, key, meta).time;
+            const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
+            await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
+
+            if (meta.state.hasOwnProperty('brightness')) {
+                let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
+                brightness = Math.min(254, brightness);
+                brightness = Math.max(onOff || meta.state.state === 'OFF' ? 0 : 1, brightness);
+
+                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
+                    if (onOff && value < 0 && brightness === 1) {
+                        brightness = 0;
+                    } else if (onOff && value > 0 && meta.state.brightness === 0) {
+                        brightness++;
+                    }
+                }
+
+                return {state: {brightness, state: brightness === 0 ? 'OFF' : 'ON'}};
+            }
+        },
+    },
     light_brightness_move: {
         key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
@@ -315,6 +347,10 @@ const converters = {
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
             } else {
+                value = Number(value);
+                if (isNaN(value)) {
+                    throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+                }
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
                 await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
@@ -387,10 +423,15 @@ const converters = {
             const {message} = meta;
             const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
             const brightnessValue = message.hasOwnProperty('brightness') ?
-                message.brightness : message.brightness_percent;
+                Number(message.brightness) : Number(message.brightness_percent);
             const hasState = message.hasOwnProperty('state');
             const state = hasState ? message.state.toLowerCase() : null;
             const entityID = entity.constructor.name === 'Group' ? entity.groupID : entity.deviceIeeeAddress;
+
+            if (hasBrightness && (isNaN(brightnessValue) || brightnessValue < 0 || brightnessValue > 255)) {
+                // Allow 255 value, changing this to 254 would be a breaking change.
+                throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
+            }
 
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
                 const transition = getTransition(entity, 'brightness', meta);
@@ -479,8 +520,8 @@ const converters = {
                     brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
                 }
                 brightness = Math.min(254, brightness);
-                if (brightness === 1 && meta.mapped.meta && meta.mapped.meta.turnsOffAtBrightness1) {
-                    brightness = 0;
+                if (brightness === 1 && utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1') === true) {
+                    brightness = 2;
                 }
 
                 store[entityID] = {...store[entityID], brightness};
@@ -2379,6 +2420,7 @@ const converters = {
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
             sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
@@ -2399,11 +2441,33 @@ const converters = {
     tuya_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKeyByValue(common.TuyaThermostatSystemModes, value, null);
+            const modeId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
             if (modeId !== null) {
                 sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
+            if (presetId !== null) {
+                sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKeyByValue(common.TuyaFanModes, value, null);
+            if (modeId !== null) {
+                sendTuyaCommand(entity, 1029, 0, [1, parseInt(modeId)]);
+            } else {
+                console.log(`TRV fan mode ${value} is not recognized.`);
             }
         },
     },
