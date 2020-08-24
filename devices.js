@@ -6253,7 +6253,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2016 model)',
         supports: 'contact',
-        fromZigbee: [fz.temperature, fz.battery_3V, fz.ias_contact_alarm_1],
+        fromZigbee: [fz.temperature, fz.battery_3V, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
