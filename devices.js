@@ -1562,6 +1562,7 @@ const devices = [
     // Norklmes
     {
         zigbeeModel: ['qnazj70'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
         model: 'MKS-CM-W5',
         vendor: 'Norklmes',
         description: '1, 2, 3 or 4 gang switch',
