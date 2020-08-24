@@ -23,6 +23,7 @@ const common = require('./converters/common');
 const fz = require('./converters/fromZigbee');
 const tz = require('./converters/toZigbee');
 const utils = require('./converters/utils');
+const globalStore = require('./converters/store');
 const ota = require('./ota');
 
 const store = {};
@@ -6979,6 +6980,35 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await configureReporting.temperature(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['3400-D'],
+        model: '3400-D',
+        vendor: 'CentraLite',
+        description: '3-Series security keypad',
+        supports: 'action, arm',
+        meta: {configureKey: 1, commandArmIncludeTransaction: true},
+        fromZigbee: [fz.command_arm, fz.temperature, fz.battery],
+        toZigbee: [tz.arm_mode],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce'];
+            await bind(endpoint, coordinatorEndpoint, clusters);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.ieeeAddr, 'panelStatus')) {
+                const payload = {
+                    panelstatus: globalStore.getValue(device.ieeeAddr, 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await device.getEndpoint(1).commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
+            }
         },
     },
     {

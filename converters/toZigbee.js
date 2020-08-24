@@ -2,6 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
+const globalStore = require('./store');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const store = {};
@@ -1092,6 +1093,26 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacFanCtrl', ['fanMode']);
+        },
+    },
+    arm_mode: {
+        key: ['arm_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getKeyByValue(common.armMode, value.mode, undefined);
+            if (mode === undefined) {
+                throw new Error(
+                    `Unsupported mode: '${value.mode}', should be one of: ${Object.values(common.armMode)}`,
+                );
+            }
+
+            if (value.hasOwnProperty('transaction')) {
+                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+            }
+
+            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
+            globalStore.putValue(entity.deviceIeeeAddress, 'panelStatus', panelStatus);
+            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
+            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
 
