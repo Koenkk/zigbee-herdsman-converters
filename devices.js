@@ -3740,17 +3740,9 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SubstiTube'],
+        zigbeeModel: ['SubstiTube', 'Connected Tube Z3'],
         model: 'ST8AU-CON',
         vendor: 'OSRAM',
-        description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
-        extend: ledvance.light_onoff_brightness,
-        ota: ota.ledvance,
-    },
-    {
-        zigbeeModel: ['Connected Tube Z3'],
-        model: 'ST8AU-CON',
-        vendor: 'LEDVANCE',
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
         extend: ledvance.light_onoff_brightness,
         ota: ota.ledvance,
