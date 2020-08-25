@@ -1285,6 +1285,24 @@ const devices = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],
+        model: 'TS0121',
+        description: 'Smart light switch module (1 gang)',
+        supports: 'on/off',
+        vendor: 'TuYa',
+        whiteLabel: [
+            {vendor: 'Moes', model: 'MS-104Z-1'},
+        ],
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121',
         description: '10A UK or 16A EU smart plug',
