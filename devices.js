@@ -3758,7 +3758,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SubstiTube'],
+        zigbeeModel: ['SubstiTube', 'Connected Tube Z3'],
         model: 'ST8AU-CON',
         vendor: 'OSRAM',
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
