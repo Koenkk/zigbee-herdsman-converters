@@ -506,10 +506,6 @@ const converters = {
                         return result;
                     }
                 }
-            } else if (!hasState && hasBrightness && Number(brightnessValue) === 0) {
-                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
-                result.state.brightness = 0;
-                return result;
             } else {
                 const transition = getTransition(entity, 'brightness', meta).time;
                 let brightness = 0;
