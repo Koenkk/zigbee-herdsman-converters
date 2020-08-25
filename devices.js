@@ -1639,6 +1639,13 @@ const devices = [
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
     },
+    {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
+        model: 'QS-Zigbee-D02-TRIAC-LN',
+        vendor: 'Lonsonho',
+        description: '1 gang smart dimmer switch module with neutral',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // IKEA
     {
