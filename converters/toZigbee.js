@@ -357,27 +357,6 @@ const converters = {
             }
         },
     },
-    light_brightness: {
-        key: ['brightness', 'brightness_percent'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'brightness_percent') {
-                value = Math.round(Number(value) * 2.55).toString();
-            }
-
-            if (Number(value) === 0) {
-                const result = await converters.on_off.convertSet(entity, 'state', 'off', meta);
-                result.state.brightness = 0;
-                return result;
-            } else {
-                const payload = {level: Number(value), transtime: getTransition(entity, key, meta).time};
-                await entity.command('genLevelCtrl', 'moveToLevel', payload, getOptions(meta.mapped, entity));
-                return {state: {brightness: Number(value)}, readAfterWriteTime: payload.transtime * 100};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', ['currentLevel']);
-        },
-    },
     light_colortemp_move: {
         key: ['colortemp_move', 'color_temp_move'],
         convertSet: async (entity, key, value, meta) => {

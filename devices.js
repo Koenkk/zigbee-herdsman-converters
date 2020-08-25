@@ -5146,9 +5146,7 @@ const devices = [
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
-        supports: 'on/off, brightness',
-        toZigbee: [tz.on_off, tz.light_brightness],
-        fromZigbee: [fz.on_off, fz.brightness],
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5'],
