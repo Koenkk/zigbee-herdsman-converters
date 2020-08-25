@@ -11055,13 +11055,12 @@ const devices = [
         },
     },
 
-    // EcoBright
-
+    // EcoDim
     {
         zigbeeModel: ['ED-10011'],
         model: 'ED-10011',
-        vendor: 'EcoBright',
-        description: 'Zigbee 4 button wall switch Black',
+        vendor: 'EcoDim',
+        description: 'Zigbee 4 button wall switch black',
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
@@ -11070,12 +11069,11 @@ const devices = [
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
-
     {
         zigbeeModel: ['ED-10012'],
         model: 'ED-10012',
-        vendor: 'EcoBright',
-        description: 'Zigbee 2 button wall switch Black',
+        vendor: 'EcoDim',
+        description: 'Zigbee 2 button wall switch black',
         supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
@@ -11084,7 +11082,6 @@ const devices = [
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
-
 
     // Smart9
     {
