@@ -400,16 +400,23 @@ const converters = {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
-            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
+            let hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
             const brightnessValue = message.hasOwnProperty('brightness') ?
                 Number(message.brightness) : Number(message.brightness_percent);
-            const hasState = message.hasOwnProperty('state');
-            const state = hasState ? message.state.toLowerCase() : null;
+            let hasState = message.hasOwnProperty('state');
+            let state = hasState ? message.state.toLowerCase() : null;
             const entityID = entity.constructor.name === 'Group' ? entity.groupID : entity.deviceIeeeAddress;
 
             if (hasBrightness && (isNaN(brightnessValue) || brightnessValue < 0 || brightnessValue > 255)) {
                 // Allow 255 value, changing this to 254 would be a breaking change.
                 throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
+            }
+
+            if (!hasState && hasBrightness && brightnessValue === 0) {
+                // Translate to an OFF.
+                hasBrightness = false;
+                hasState = true;
+                state = 'off';
             }
 
             if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
