@@ -2919,6 +2919,28 @@ const converters = {
             return {presence: true};
         },
     },
+    PGC410EU_presence: {
+        cluster: 'manuSpecificSmartThingsArrivalSensor',
+        type: 'commandArrivalSensorNotify',
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+            const deviceID = msg.device.ieeeAddr;
+
+            // Stop existing timer because presence is detected and set a new one.
+            if (store.hasOwnProperty(deviceID)) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            store[deviceID] = setTimeout(() => {
+                publish({presence: false});
+                store[deviceID] = null;
+            }, timeout * 1000);
+
+            return {presence: true};
+        },
+    },
     battery_3V: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],

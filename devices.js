@@ -6071,6 +6071,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['PGC410EU'],
+        model: 'STSS-PRES-001',
+        vendor: 'SmartThings',
+        description: 'Presence sensor',
+        supports: 'presence',
+        fromZigbee: [fz.PGC410EU_presence, fz.battery],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['3325-S'],
         model: '3325-S',
         vendor: 'SmartThings',
