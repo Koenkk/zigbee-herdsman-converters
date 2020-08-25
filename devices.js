@@ -1286,7 +1286,7 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],
-        model: 'TS0121',
+        model: 'TS0121_switch',
         description: 'Smart light switch module (1 gang)',
         supports: 'on/off',
         vendor: 'TuYa',
@@ -1304,7 +1304,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TS0121'],
-        model: 'TS0121',
+        model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
         whiteLabel: [
             {vendor: 'BlitzWolf', model: 'BW-SHP13'},
