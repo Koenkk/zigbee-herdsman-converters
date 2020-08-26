@@ -9151,7 +9151,7 @@ const devices = [
     },
 
     // Samotech
-	{
+    {
         zigbeeModel: ['SM308'],
         model: 'SM308',
         vendor: 'Samotech',
