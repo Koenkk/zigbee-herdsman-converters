@@ -6545,7 +6545,7 @@ const devices = [
     },
     {
         zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
-                      '\u0000\u0000\u0000\u0000\u0000'],
+                      '\u0000\u0000\u0000\u0000\u0000', 'ZLL-NonColorController'],
         model: 'ZYCT-202',
         vendor: 'Trust',
         description: 'Remote control',
