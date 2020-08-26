@@ -1640,6 +1640,47 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
+        model: 'QS-Zigbee-D02-TRIAC-LN',
+        vendor: 'Lonsonho',
+        description: '1 gang smart dimmer switch module with neutral',
+        extend: generic.light_onoff_brightness,
+    },
+    {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
+        model: 'QS-Zigbee-D02-TRIAC-2C-LN',
+        vendor: 'Lonsonho',
+        description: '2 gang smart dimmer switch module with neutral',
+        extend: generic.light_onoff_brightness,
+        meta: {multiEndpoint: true, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
+    {
+        zigbeeModel: ['Plug_01'],
+        model: '4000116784070',
+        vendor: 'Lonsonho',
+        description: 'Smart plug EU',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
@@ -9169,6 +9210,20 @@ const devices = [
 
     // Samotech
     {
+        zigbeeModel: ['SM308'],
+        model: 'SM308',
+        vendor: 'Samotech',
+        description: 'Zigbee AC in wall switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ignore_genOta],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['SM309'],
         model: 'SM309',
         vendor: 'Samotech',
@@ -10490,42 +10545,6 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-
-    // Lonsonho
-    {
-        zigbeeModel: ['Plug_01'],
-        model: '4000116784070',
-        vendor: 'Lonsonho',
-        description: 'Smart plug EU',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(11);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await configureReporting.onOff(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['TS110F'],
-        model: 'QS-Zigbee-D02-TRIAC-2C-LN',
-        vendor: 'Lonsonho',
-        description: '2 gang smart dimmer switch module with neutral',
-        extend: generic.light_onoff_brightness,
-        meta: {multiEndpoint: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await configureReporting.onOff(endpoint);
-            const endpoint2 = device.getEndpoint(2);
-            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await configureReporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
         },
     },
 
