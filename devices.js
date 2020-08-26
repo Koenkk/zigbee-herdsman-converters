@@ -10493,7 +10493,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS110F'],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
