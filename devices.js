@@ -8041,7 +8041,7 @@ const devices = [
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        TS110FfromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
     },
     {
