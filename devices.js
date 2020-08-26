@@ -1639,6 +1639,23 @@ const devices = [
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
+        model: 'QS-Zigbee-S04-2C-LN',
+        vendor: 'Lonsonho',
+        description: '2 gang switch module with neutral wire',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // IKEA
     {
