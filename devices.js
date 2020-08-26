@@ -1646,6 +1646,25 @@ const devices = [
         description: '1 gang smart dimmer switch module with neutral',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
+        model: 'QS-Zigbee-D02-TRIAC-2C-LN',
+        vendor: 'Lonsonho',
+        description: '2 gang smart dimmer switch module with neutral',
+        extend: generic.light_onoff_brightness,
+        meta: {multiEndpoint: true, configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
 
     // IKEA
     {
@@ -10497,25 +10516,6 @@ const devices = [
             const endpoint = device.getEndpoint(11);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['TS110F'],
-        model: 'QS-Zigbee-D02-TRIAC-2C-LN',
-        vendor: 'Lonsonho',
-        description: '2 gang smart dimmer switch module with neutral',
-        extend: generic.light_onoff_brightness,
-        meta: {multiEndpoint: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await configureReporting.onOff(endpoint);
-            const endpoint2 = device.getEndpoint(2);
-            await bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await configureReporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
         },
     },
 
