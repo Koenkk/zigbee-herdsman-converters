@@ -1665,6 +1665,21 @@ const devices = [
             return {l1: 1, l2: 2};
         },
     },
+    {
+        zigbeeModel: ['Plug_01'],
+        model: '4000116784070',
+        vendor: 'Lonsonho',
+        description: 'Smart plug EU',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // IKEA
     {
@@ -10499,23 +10514,6 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-
-    // Lonsonho
-    {
-        zigbeeModel: ['Plug_01'],
-        model: '4000116784070',
-        vendor: 'Lonsonho',
-        description: 'Smart plug EU',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(11);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await configureReporting.onOff(endpoint);
         },
     },
 
