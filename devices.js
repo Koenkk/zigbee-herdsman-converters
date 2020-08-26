@@ -9157,9 +9157,9 @@ const devices = [
         vendor: 'Samotech',
         description: 'Zigbee AC in wall switch',
         supports: 'on/off',
-		fromZigbee: [fz.on_off, fz.ignore_genOta],
-        toZigbee: [tz.on_off, ],
-		meta: {configureKey: 1},
+        fromZigbee: [fz.on_off, fz.ignore_genOta],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
