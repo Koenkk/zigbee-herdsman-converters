@@ -1271,7 +1271,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
-            {vendor: 'binthen', model: 'BCM100D tuya-zigbee'},
+            {vendor: 'Binthen', model: 'BCM100D'},
         ],
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
