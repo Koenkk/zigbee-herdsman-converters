@@ -1263,14 +1263,15 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3','aabybja'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'}],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
         description: 'Curtain motor',
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
-            {vendor: 'Zemismart', model: 'ZM79E-DT'},
+            { vendor: 'Zemismart', model: 'ZM79E-DT' },
+            { vendor: 'binthen', model: 'BCM100D tuya-zigbee' },
         ],
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
