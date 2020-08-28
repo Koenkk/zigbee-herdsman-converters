@@ -250,8 +250,9 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     switch (dp) {
     case 104: // 0x6800 window params
         return {
+            window_detection: data[0] ? 'ON' : 'OFF',
             window_detection_params: {
-                valve: data[0] ? 'ON' : 'OFF',
+                // valve: data[0] ? 'ON' : 'OFF',
                 temperature: data[1],
                 minutes: data[2],
             },
@@ -307,17 +308,25 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {eco_temperature: dataAsDecNumber};
     case 621: // 0x6d02 valve position
         return {position: dataAsDecNumber};
-    case 626: // 0x7202 preset temp ?
-        return {preset_temperature: dataAsDecNumber};
-    case 629: // 0x7502 preset ?
-        return {preset: dataAsDecNumber};
-    case 1028: // 0x0404 Mode changed
-        if (utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber)) {
-            return {system_mode: utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber]};
+    case 626: // 0x7202 away preset temperature
+        return {away_preset_temperature: dataAsDecNumber};
+    case 629: // 0x7502 away preset number of days
+        return {away_preset_days: dataAsDecNumber};
+    case 1028: {// 0x0404 Preset changed
+        const ret = {};
+        const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(dataAsDecNumber);
+        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber);
+        if (presetOk) {
+            ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber];
+        }
+        if (modeOk) {
+            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber];
         } else {
-            console.log(`TRV system mode ${dataAsDecNumber} is not recognized.`);
+            console.log(`TRV preset/mode ${dataAsDecNumber} is not recognized.`);
             return;
         }
+        return ret;
+    }
     case 1029: // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
         return {fan_mode: common.TuyaFanModes[dataAsDecNumber]};
     case 1130: // 0x6a04 force mode 0 - normal, 1 - open, 2 - close
@@ -442,7 +451,7 @@ const converters = {
                 // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
-                if (model.meta && model.meta.batery && model.meta.battery.voltageToPercentage) {
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     if (model.meta.battery.voltageToPercentage === 'CR2032') {
                         payload.battery = toPercentageCR2032(payload.voltage);
                     }
@@ -502,7 +511,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
+            const illuminanceLux = Math.pow(10, (illuminance - 1) / 10000);
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
@@ -515,6 +524,13 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const pressure = parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    co2: {
+        cluster: 'msCO2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {co2: Math.floor(msg.data.measuredValue * 1000000)};
         },
     },
     occupancy: {
@@ -593,7 +609,13 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 const property = postfixWithEndpointName('brightness', msg, model);
-                return {[property]: msg.data['currentLevel']};
+                let value = msg.data['currentLevel'];
+
+                if (meta.state && meta.state.state === 'OFF') {
+                    value = 0;
+                }
+
+                return {[property]: value};
             }
         },
     },
@@ -848,14 +870,15 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            const lookup = {
-                0: 'disarm',
-                1: 'arm_day_zones',
-                2: 'arm_night_zones',
-                3: 'arm_all_zones',
+            const payload = {
+                action: postfixWithEndpointName(common.armMode[msg.data['armmode']], msg, model),
+                action_code: msg.data.code,
+                action_zone: msg.data.zoneid,
             };
-            const payload = {action: postfixWithEndpointName(lookup[msg.data['armmode']], msg, model)};
-            addActionGroup(payload, msg, model);
+            if (model.meta && model.meta.commandArmIncludeTransaction) {
+                payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
+            }
+            if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
     },
@@ -1074,6 +1097,22 @@ const converters = {
             return payload;
         },
     },
+    command_on_state: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const property = postfixWithEndpointName('state', msg, model);
+            return {[property]: 'ON'};
+        },
+    },
+    command_off_state: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            const property = postfixWithEndpointName('state', msg, model);
+            return {[property]: 'OFF'};
+        },
+    },
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
@@ -1131,7 +1170,7 @@ const converters = {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && !msg.data['61440']) {
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
                 return;
             }
 
@@ -2441,13 +2480,19 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const data = msg.data['65281'];
-                return {
+                const payload = {
                     state: data['100'] === 1 ? 'ON' : 'OFF',
                     power: precisionRound(data['152'], 2),
-                    voltage: precisionRound(data['150'] * 0.1, 1),
                     consumption: precisionRound(data['149'], 2),
                     temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
                 };
+
+                if (data.hasOwnProperty('150')) {
+                    // Not all support voltage: https://github.com/Koenkk/zigbee2mqtt/issues/4092
+                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
+                }
+
+                return payload;
             }
         },
     },
@@ -2855,6 +2900,28 @@ const converters = {
     STS_PRS_251_presence: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+            const deviceID = msg.device.ieeeAddr;
+
+            // Stop existing timer because presence is detected and set a new one.
+            if (store.hasOwnProperty(deviceID)) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            store[deviceID] = setTimeout(() => {
+                publish({presence: false});
+                store[deviceID] = null;
+            }, timeout * 1000);
+
+            return {presence: true};
+        },
+    },
+    PGC410EU_presence: {
+        cluster: 'manuSpecificSmartThingsArrivalSensor',
+        type: 'commandArrivalSensorNotify',
         convert: (model, msg, publish, options, meta) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
@@ -3478,11 +3545,13 @@ const converters = {
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            return {
+            const payload = {
                 action: `brightness_${direction}_click`,
                 step_size: msg.data.stepsize,
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_brightness_updown_hold: {
@@ -3498,10 +3567,12 @@ const converters = {
             }
             store[deviceID].movemode = direction;
 
-            return {
+            const payload = {
                 action: `brightness_${direction}_hold`,
                 rate: msg.data.rate,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_brightness_updown_release: {
@@ -3514,9 +3585,9 @@ const converters = {
             }
 
             const direction = store[deviceID].movemode;
-            return {
-                action: `brightness_${direction}_release`,
-            };
+            const payload = {action: `brightness_${direction}_release`};
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     SA003_on_off: {
@@ -3547,25 +3618,29 @@ const converters = {
         cluster: 'genBasic',
         type: 'write',
         convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data['16389']}`};
+            const payload = {action: `scene_${msg.data['16389']}`};
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action: `color_temp`,
                 action_color_temperature: msg.data.colortemp,
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     tint404011_move_to_color: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            return {
+            const payload = {
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
@@ -3573,6 +3648,8 @@ const converters = {
                 action: 'color_wheel',
                 transition_time: msg.data.transtime,
             };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     E1524_E1810_toggle: {
