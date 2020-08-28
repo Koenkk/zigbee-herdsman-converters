@@ -9154,6 +9154,14 @@ const devices = [
 
     // Sunricher
     {
+        zigbeeModel: ['ZGRC-TEUR-005'],
+        model: 'SR-ZG9001T4-DIM-EU',
+        vendor: 'Sunricher',
+        description: 'ZigBee wireless touch dimmer switch',
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['CCT Lighting'],
         model: 'ZG192910-4',
         vendor: 'Sunricher',
