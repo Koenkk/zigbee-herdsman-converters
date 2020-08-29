@@ -225,6 +225,7 @@ const generic = {
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_colortemp_step,
         ],
     },
     light_onoff_brightness_colorxy: {
@@ -233,6 +234,7 @@ const generic = {
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_alert,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
@@ -241,6 +243,7 @@ const generic = {
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.light_alert, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
 };

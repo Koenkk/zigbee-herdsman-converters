@@ -357,6 +357,29 @@ const converters = {
             }
         },
     },
+    light_colortemp_step: {
+        key: ['color_temp_step'],
+        convertSet: async (entity, key, value, meta) => {
+            value = Number(value);
+            if (isNaN(value)) {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+
+            const mode = value > 0 ? 1 : 3;
+            const transition = getTransition(entity, key, meta).time;
+            const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition, minimum: 0, maximum: 600};
+            await entity.command('lightingColorCtrl', 'stepColorTemp', payload, getOptions(meta.mapped, entity));
+
+            // We cannot determine the color temperature from the current state so we read it, because
+            // - We don't know the max/min valus
+            // - Color mode could have been swithed (x/y or hue/saturation)
+            const entityToRead = getEntityOrFirstGroupMember(entity);
+            if (entityToRead) {
+                await wait(100 + (transition * 100));
+                await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
+            }
+        },
+    },
     light_colortemp_move: {
         key: ['colortemp_move', 'color_temp_move'],
         convertSet: async (entity, key, value, meta) => {
@@ -375,9 +398,11 @@ const converters = {
 
                 // As we cannot determine the new brightness state, we read it from the device
                 if (value === 'stop' || value === 0) {
-                    await wait(500);
-                    const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
-                    await target.read('lightingColorCtrl', ['colorTemperature']);
+                    const entityToRead = getEntityOrFirstGroupMember(entity);
+                    if (entityToRead) {
+                        await wait(100);
+                        await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
+                    }
                 }
             } else {
                 // Deprecated
@@ -393,6 +418,62 @@ const converters = {
                     payload.movemode=arr.filter(up).length ? 1 : 3;
                 }
                 await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped, entity));
+            }
+        },
+    },
+    light_hue_saturation_step: {
+        key: ['hue_step', 'saturation_step'],
+        convertSet: async (entity, key, value, meta) => {
+            value = Number(value);
+            if (isNaN(value)) {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+
+            const command = key === 'hue_step' ? 'stepHue' : 'stepSaturation';
+            const attribute = key === 'hue_step' ? 'currentHue' : 'currentSaturation';
+            const mode = value > 0 ? 1 : 3;
+            const transition = getTransition(entity, key, meta).time;
+            const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
+            await entity.command('lightingColorCtrl', command, payload, getOptions(meta.mapped, entity));
+
+            // We cannot determine the hue/saturation from the current state so we read it, because
+            // - Color mode could have been swithed (x/y or colortemp)
+            const entityToRead = getEntityOrFirstGroupMember(entity);
+            if (entityToRead) {
+                await wait(100 + (transition * 100));
+                await entityToRead.read('lightingColorCtrl', [attribute]);
+            }
+        },
+    },
+    light_hue_saturation_move: {
+        key: ['hue_move', 'saturation_move'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value === 'stop' ? value : Number(value);
+            if (isNaN(value) && value !== 'stop') {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+
+            const command = key === 'hue_move' ? 'moveHue' : 'moveSaturation';
+            const attribute = key === 'hue_move' ? 'currentHue' : 'currentSaturation';
+
+            const payload = {};
+            if (value === 'stop' || value === 0) {
+                payload.rate = 1;
+                payload.movemode = 0;
+            } else {
+                payload.rate = Math.abs(value);
+                payload.movemode = value > 0 ? 1 : 3;
+            }
+
+            await entity.command('lightingColorCtrl', command, payload, getOptions(meta.mapped, entity));
+
+            // As we cannot determine the new brightness state, we read it from the device
+            if (value === 'stop' || value === 0) {
+                const entityToRead = getEntityOrFirstGroupMember(entity);
+                if (entityToRead) {
+                    await wait(100);
+                    await entityToRead.read('lightingColorCtrl', [attribute]);
+                }
             }
         },
     },
