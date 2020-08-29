@@ -6001,7 +6001,7 @@ const devices = [
         ],
     },
     {
-        zigbeeModel: ['Motor Controller'],
+        zigbeeModel: ['Motor Controller', 'ROB_200-010-0'],
         model: 'ROB_200-010-0',
         vendor: 'ROBB',
         description: 'Zigbee curtain motor controller',
