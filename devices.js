@@ -6143,7 +6143,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['PGC410EU'],
+        zigbeeModel: ['PGC410EU', 'PGC410'],
         model: 'STSS-PRES-001',
         vendor: 'SmartThings',
         description: 'Presence sensor',
