@@ -5905,6 +5905,82 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
+    scene_add: {
+        cluster: 'genScenes',
+        type: 'commandSceneAddRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandSceneAddRsp',
+                status: msg.data['status'],
+                groupId: msg.data['groupId'],
+                sceneId: msg.data['sceneId'],
+            };
+        },
+    },
+    scene_view: {
+        cluster: 'genScenes',
+        type: 'commandSceneViewRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandSceneViewRsp',
+                status: msg.data['status'],
+                groupId: msg.data['groupid'],
+                sceneId: msg.data['sceneid'],
+                transtime: msg.data['transtime'],
+                scenename: msg.data['scenename'],
+                extensionfieldsets: msg.data['extensionfieldsets'],
+            };
+        },
+    },
+    scene_remove: {
+        cluster: 'genScenes',
+        type: 'commandSceneRemoveRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandSceneRemoveRsp',
+                status: msg.data['status'],
+                groupId: msg.data['groupid'],
+                sceneId: msg.data['sceneid'],
+            };
+        },
+    },
+    scene_remove_all: {
+        cluster: 'genScenes',
+        type: 'commandSceneRemoveAllRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandSceneRemoveAllRsp',
+                status: msg.data['status'],
+                groupId: msg.data['groupid'],
+            };
+        },
+    },
+    scene_store: {
+        cluster: 'genScenes',
+        type: 'commandSceneStoreRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandSceneStoreRsp',
+                status: msg.data['status'],
+                groupId: msg.data['groupid'],
+                sceneId: msg.data['sceneid'],
+            };
+        },
+    },
+    scene_get_scene_membership: {
+        cluster: 'genScenes',
+        type: 'commandScenegetSceneMembershipRsp',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                event: 'commandScenegetSceneMembershipRsp',
+                status: msg.data['status'],
+                capacity: msg.data['capacity'],
+                groupId: msg.data['groupid'],
+                sceneCount: msg.data['scenecount'],
+                sceneList: msg.data['scenelist'],
+            };
+        },
+    },
 };
 
 module.exports = converters;
