@@ -5792,7 +5792,14 @@ const devices = [
         zigbeeModel: ['GL-D-005Z'],
         model: 'GL-D-005Z',
         vendor: 'Gledopto',
-        description: 'LED RGB + CCT downlight ',
+        description: 'LED RGB + CCT downlight',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['GL-D-005ZS'],
+        model: 'GL-D-005ZS',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
