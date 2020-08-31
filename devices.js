@@ -9999,6 +9999,7 @@ const devices = [
         supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
         fromZigbee: [
             fz.thermostat_att_report,
+            fz.ignore_temperature_report,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
