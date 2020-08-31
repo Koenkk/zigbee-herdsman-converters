@@ -8770,7 +8770,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
+        zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc', '700ae5aab3414ec09c1872efe7b8755a'],
         model: 'LVS-SN10ZW_SN11',
         vendor: 'LivingWise',
         description: 'Occupancy sensor',
