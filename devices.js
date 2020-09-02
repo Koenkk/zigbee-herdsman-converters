@@ -5383,15 +5383,15 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-                return {'light': 1, 'fan_high': 2, 'fan_med': 3, 'fan_low': 4};
-            },
+            return {'light': 1, 'fan_high': 2, 'fan_med': 3, 'fan_low': 4};
+        },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            }
+        },
     },
     // Feibit
     {
