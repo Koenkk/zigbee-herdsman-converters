@@ -12343,6 +12343,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+
     // Niko
     {
         zigbeeModel: ['Connected socket outlet'],
