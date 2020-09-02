@@ -12328,7 +12328,21 @@ const devices = [
             await configureReporting.onOff(endpoint1);
         },
     },
-
+    {
+        zigbeeModel: ['43084'],
+        model: '43084',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
     // Niko
     {
         zigbeeModel: ['Connected socket outlet'],
