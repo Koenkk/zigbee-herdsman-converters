@@ -2136,6 +2136,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA010'],
+        model: '929002335001',
+        vendor: 'Philips',
+        description: 'Hue white A21 bulb B22 with Bluetooth (1600 Lumen)',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC012'],
         model: '3306431P7',
         vendor: 'Philips',
