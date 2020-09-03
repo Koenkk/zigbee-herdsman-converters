@@ -12344,6 +12344,29 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
         },
     },
+
+    {
+        zigbeeModel: ['lumi.switch.n3acn3'],
+        model: 'QBKG26LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(device.getEndpoint(1));
+            await configureReporting.onOff(device.getEndpoint(2));
+            await configureReporting.onOff(device.getEndpoint(3));
+        },
+        onEvent: xiaomi.prevent_reset,
+    },
 ];
 
 module.exports = devices.map((device) =>
