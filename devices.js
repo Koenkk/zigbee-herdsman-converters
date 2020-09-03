@@ -2136,6 +2136,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA010'],
+        model: '929002335001',
+        vendor: 'Philips',
+        description: 'Hue white A21 bulb B22 with Bluetooth (1600 Lumen)',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC012'],
         model: '3306431P7',
         vendor: 'Philips',
@@ -5893,7 +5901,7 @@ const devices = [
 
     // YSRSAI
     {
-        zigbeeModel: ['ZB-CL01'],
+        zigbeeModel: ['ZB-CL01', 'FB56-ZCW20FB1.2'],
         model: 'YSR-MINI-01',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
@@ -8770,7 +8778,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc'],
+        zigbeeModel: ['895a2d80097f4ae2b2d40500d5e03dcc', '700ae5aab3414ec09c1872efe7b8755a'],
         model: 'LVS-SN10ZW_SN11',
         vendor: 'LivingWise',
         description: 'Occupancy sensor',
@@ -12326,6 +12334,21 @@ const devices = [
             await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint1);
+        },
+    },
+    {
+        zigbeeModel: ['43084'],
+        model: '43084',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart switch',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
     },
 
