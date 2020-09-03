@@ -12353,7 +12353,7 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-        meta: {multiEndpoint: true},
+        meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
         },
