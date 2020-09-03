@@ -12394,7 +12394,7 @@ const devices = [
         model: 'WSP404',
         vendor: 'OWON',
         description: 'Smart plug',
-        supports: 'on/off, power and energy measurement', 
+        supports: 'on/off, power and energy measurement',
         fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
@@ -12404,7 +12404,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
-       },
+        },
     },
 ];
 
