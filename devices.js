@@ -7224,8 +7224,11 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
-            try {await configureReporting.brightness(endpoint);} catch (e) {}
+            try {
+                await configureReporting.brightness(endpoint);
+            } catch (e) {
+                // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
+            }
         },
     },
 
