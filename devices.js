@@ -1180,6 +1180,28 @@ const devices = [
 
     // TuYa
     {
+        zigbeeModel: ['qnazj70'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
+        model: 'TS0601_switch',
+        vendor: 'TuYa',
+        description: '1, 2, 3 or 4 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {configureKey: 1, multiEndpoint: true},
+        whiteLabel: [
+            {vendor: 'Norklmes', model: 'MKS-CM-W5'},
+            {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+    },
+    {
         zigbeeModel: ['TS0215A'],
         model: 'TS0215A',
         vendor: 'TuYa',
@@ -1615,26 +1637,6 @@ const devices = [
         supports: 'temperature, humidity, alarm',
         fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
         toZigbee: [tz.neo_t_h_alarm],
-    },
-
-    // Norklmes
-    {
-        zigbeeModel: ['qnazj70'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
-        model: 'MKS-CM-W5',
-        vendor: 'Norklmes',
-        description: '1, 2, 3 or 4 gang switch',
-        supports: 'on/off',
-        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
-        endpoint: (device) => {
-            // Endpoint selection is made in tuya_switch_state
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
-        },
     },
 
     // Lonsonho

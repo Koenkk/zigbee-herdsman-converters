@@ -2367,7 +2367,7 @@ const converters = {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
             const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            sendTuyaCommand(entity, 256 + keyid, 0, [1, value === 'ON' ? 1 : 0]);
+            await sendTuyaCommand(entity, 256 + keyid, 0, [1, value === 'ON' ? 1 : 0]);
             return {state: {state: value.toUpperCase()}};
         },
     },
@@ -2477,20 +2477,20 @@ const converters = {
     tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
+            await sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
         },
     },
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
-            sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
+            await sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
+            await sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
     tuya_thermostat_valve_detection: {
         key: ['valve_detection'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 276, 0, [1, value==='ON' ? 1 : 0]);
+            await sendTuyaCommand(entity, 276, 0, [1, value==='ON' ? 1 : 0]);
         },
     },
     tuya_thermostat_current_heating_setpoint: {
@@ -2498,7 +2498,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            sendTuyaCommand(entity, 514, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 514, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_system_mode: {
@@ -2506,7 +2506,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
             if (modeId !== null) {
-                sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
+                await sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV system mode ${value} is not recognized.`);
             }
@@ -2517,7 +2517,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
-                sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+                await sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
             } else {
                 console.log(`TRV preset ${value} is not recognized.`);
             }
@@ -2528,7 +2528,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(common.TuyaFanModes, value, null);
             if (modeId !== null) {
-                sendTuyaCommand(entity, 1029, 0, [1, parseInt(modeId)]);
+                await sendTuyaCommand(entity, 1029, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV fan mode ${value} is not recognized.`);
             }
@@ -2537,7 +2537,7 @@ const converters = {
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 372, 0, [1, value==='AUTO' ? 1 : 0]);
+            await sendTuyaCommand(entity, 372, 0, [1, value==='AUTO' ? 1 : 0]);
         },
     },
     tuya_thermostat_calibration: {
@@ -2545,42 +2545,42 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            sendTuyaCommand(entity, 556, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 556, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_min_temp: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_max_temp: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_boost_time: {
         key: ['boost_time'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_comfort_temp: {
         key: ['comfort_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_eco_temp: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     tuya_thermostat_force: {
@@ -2588,7 +2588,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(common.TuyaThermostatForceMode, value, null);
             if (modeId !== null) {
-                sendTuyaCommand(entity, 1130, 0, [1, parseInt(modeId)]);
+                await sendTuyaCommand(entity, 1130, 0, [1, parseInt(modeId)]);
             } else {
                 console.log(`TRV force mode ${value} is not recognized.`);
             }
@@ -2605,7 +2605,7 @@ const converters = {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
                     value = invert ? 100 - value : value;
-                    sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
+                    await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
                 } else {
                     meta.logger.debug('owvfni3: Curtain motor position is out of range');
                 }
@@ -2614,13 +2614,13 @@ const converters = {
 
                 switch (value) {
                 case 'open':
-                    sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
+                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
                     break;
                 case 'close':
-                    sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
+                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
                     break;
                 case 'stop':
-                    sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
+                    await sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
                     break;
                 default:
                     meta.logger.debug('owvfni3: Invalid command received');
@@ -2635,10 +2635,10 @@ const converters = {
             if (value.reverse_direction != undefined) {
                 if (value.reverse_direction) {
                     meta.logger.info('Motor direction reverse');
-                    sendTuyaCommand(entity, 1029, 0, [1, 1]); // 0x04 0x05: Set motor direction to reverse
+                    await sendTuyaCommand(entity, 1029, 0, [1, 1]); // 0x04 0x05: Set motor direction to reverse
                 } else {
                     meta.logger.info('Motor direction forward');
-                    sendTuyaCommand(entity, 1029, 0, [1, 0]); // 0x04 0x05: Set motor direction to forward (default)
+                    await sendTuyaCommand(entity, 1029, 0, [1, 0]); // 0x04 0x05: Set motor direction to forward (default)
                 }
             }
         },
@@ -2696,34 +2696,34 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'alarm':
-                sendTuyaCommand(entity, 360, 0, [1, value ? 1 : 0]);
+                await sendTuyaCommand(entity, 360, 0, [1, value ? 1 : 0]);
                 break;
             case 'melody':
-                sendTuyaCommand(entity, 1126, 0, [1, parseInt(value, 10)]);
+                await sendTuyaCommand(entity, 1126, 0, [1, parseInt(value, 10)]);
                 break;
             case 'volume':
-                sendTuyaCommand(entity, 1140, 0, [1, {'low': 2, 'medium': 1, 'high': 0}[value]]);
+                await sendTuyaCommand(entity, 1140, 0, [1, {'low': 2, 'medium': 1, 'high': 0}[value]]);
                 break;
             case 'duration':
-                sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_max':
-                sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_min':
-                sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_max':
-                sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_min':
-                sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_alarm':
-                sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
+                await sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
                 break;
             case 'humidity_alarm':
-                sendTuyaCommand(entity, 370, 0, [1, value ? 1 : 0]);
+                await sendTuyaCommand(entity, 370, 0, [1, value ? 1 : 0]);
                 break;
             default: // Unknown key
                 console.log(`Unhandled key ${key}`);
