@@ -12388,6 +12388,7 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
         },
     },
+
     // OWON
     {
         zigbeeModel: ['WSP404'],
