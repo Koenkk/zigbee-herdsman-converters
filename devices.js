@@ -12411,6 +12411,25 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
         },
     },
+
+    // OWON
+    {
+        zigbeeModel: ['WSP404'],
+        model: 'WSP404',
+        vendor: 'OWON',
+        description: 'Smart plug',
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
