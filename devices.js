@@ -3022,6 +3022,22 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LOM003'],
+        model: '8718699689308',
+        vendor: 'Philips',
+        description: 'Hue smart plug - UK',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LOM005'],
         model: '9290022408',
         vendor: 'Philips',
