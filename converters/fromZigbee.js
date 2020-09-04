@@ -2247,6 +2247,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options, meta) => {
+            if (msg.data.ctrlbits === 1) return;
+
             const timeout = msg.data.ontime / 10;
             const deviceID = msg.device.ieeeAddr;
 
