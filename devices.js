@@ -7170,9 +7170,9 @@ const devices = [
         },
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
-                globalStore.hasValue(device.ieeeAddr, 'panelStatus')) {
+                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')) {
                 const payload = {
-                    panelstatus: globalStore.getValue(device.ieeeAddr, 'panelStatus'),
+                    panelstatus: globalStore.getValue(device.getEndpoint(1), 'panelStatus'),
                     secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
                 };
                 await device.getEndpoint(1).commandResponse(

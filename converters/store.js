@@ -1,29 +1,47 @@
 'use strict';
 
-const store = new Map();
+let store = new Map();
 
-function hasValue(deviceKey, key) {
-    return store.has(deviceKey) && store.get(deviceKey).hasOwnProperty(key);
+function getEntityKey(entity) {
+    if (entity.constructor.name === 'Group') {
+        return entity.groupID;
+    } else if (entity.constructor.name === 'Endpoint') {
+        return `${entity.deviceIeeeAddress}_${entity.ID}`;
+    } else {
+        throw new Error(`Invalid entity type: '${entity.constructor.name }'`);
+    }
 }
 
-function getValue(deviceKey, key) {
-    if (store.has(deviceKey)) {
-        return store.get(deviceKey)[key];
-    }
-
-    return undefined;
+function hasValue(entity, key) {
+    const entityKey = getEntityKey(entity);
+    return store.has(entityKey) && store.get(entityKey).hasOwnProperty(key);
 }
 
-function putValue(deviceKey, key, value) {
-    if (!store.has(deviceKey)) {
-        store.set(deviceKey, {});
+function getValue(entity, key, default_=undefined) {
+    const entityKey = getEntityKey(entity);
+    if (store.has(entityKey)) {
+        return store.get(entityKey)[key];
     }
 
-    store.get(deviceKey)[key] = value;
+    return default_;
+}
+
+function putValue(entity, key, value) {
+    const entityKey = getEntityKey(entity);
+    if (!store.has(entityKey)) {
+        store.set(entityKey, {});
+    }
+
+    store.get(entityKey)[key] = value;
+}
+
+function clear() {
+    store = new Map();
 }
 
 module.exports = {
     hasValue,
     getValue,
     putValue,
+    clear,
 };
