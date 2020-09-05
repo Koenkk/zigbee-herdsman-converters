@@ -8532,8 +8532,8 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(1);
-        const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.temperature(endpoint);
             await configureReporting.humidity(endpoint);
