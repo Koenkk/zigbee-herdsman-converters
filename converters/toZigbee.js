@@ -2730,56 +2730,6 @@ const converters = {
             }
         },
     },
-    scene_add: {
-        key: ['scene_add'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'genScenes', 'add', {
-                    'groupid': value.groupid,
-                    'sceneid': value.sceneid,
-                    'scenename': value.scenename,
-                    'transtime': value.transtime,
-                    'extensionfieldsets': value.extensionfieldsets,
-                }, getOptions(meta.mapped),
-            );
-        },
-    },
-    scene_view: {
-        key: ['scene_view'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'view', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
-        },
-    },
-    scene_remove: {
-        key: ['scene_remove'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'remove', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
-        },
-    },
-    scene_remove_all: {
-        key: ['scene_remove_all'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'removeAll', {'groupid': value.groupid}, getOptions(meta.mapped));
-        },
-    },
-    scene_store: {
-        key: ['scene_store'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'store', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
-        },
-    },
-    scene_recall: {
-        key: ['scene_recall'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'recall', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
-        },
-    },
-    scene_get_scene_membership: {
-        key: ['scene_get_scene_membership'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'getSceneMembership', {'groupid': value.groupid}, getOptions(meta.mapped));
-        },
-    },
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
