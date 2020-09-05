@@ -8518,26 +8518,26 @@ const devices = [
         description: 'Neo SMART LED E27 9W RGB + CCT, dimmable, Zigbee 3.0',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
-	{
+    {
         zigbeeModel: ['4in1-Sensor-ZB3.0'],
         model: '07047L',
         vendor: 'Immax',
         description: 'Intelligent motion sensor',
         supports: 'occupancy, temperature, illuminance, humidity',
         fromZigbee: [
-			fz.ias_occupancy_alarm_1_with_timeout,
-			fz.battery, fz.temperature, fz.illuminance, fz.humidity,
-            fz.ignore_iaszone_report
+            fz.ias_occupancy_alarm_1_with_timeout,
+            fz.battery, fz.temperature, fz.illuminance, fz.humidity,
+            fz.ignore_iaszone_report,
         ],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
         const endpoint = device.getEndpoint(1);
-        const binds = ['msTemperatureMeasurement', 'msRelativeHumidity','msIlluminanceMeasurement'];
+        const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.temperature(endpoint);
-            await configureReporting.humidity(endpoint); 
-            await configureReporting.illuminance(endpoint); 
+            await configureReporting.humidity(endpoint);
+            await configureReporting.illuminance(endpoint);
         },
     },
 
