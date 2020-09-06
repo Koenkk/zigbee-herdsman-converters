@@ -8525,7 +8525,7 @@ const devices = [
         description: 'Intelligent motion sensor',
         supports: 'occupancy, temperature, illuminance, humidity',
         fromZigbee: [
-            fz.ias_occupancy_alarm_1_with_timeout,
+            fz.ias_occupancy_alarm_1,
             fz.battery, fz.temperature, fz.illuminance, fz.humidity,
             fz.ignore_iaszone_report,
         ],
