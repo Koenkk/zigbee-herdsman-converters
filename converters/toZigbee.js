@@ -2803,6 +2803,34 @@ const converters = {
             return ({state: response});
         },
     },
+    scene_enhanced_add: {
+        key: ['scene_enhanced_add'],
+        convertSet: async (entity, key, value, meta) => {
+            const response = await entity.command(
+                'genScenes', 'enhancedAdd', {
+                    'groupid': value.groupid,
+                    'sceneid': value.sceneid,
+                    'scenename': value.scenename,
+                    'transtime': value.transtime,
+                    'extensionfieldsets': value.extensionfieldsets,
+                }, getOptions(meta.mapped),
+            );
+            console.log(response);
+            if ( response.status != 0 ) {
+                throw new Error(`Scene not added. Return status is '${response.status}'.`);
+            }
+        },
+    },
+    scene_enhanced_view: {
+        key: ['scene_enhanced_view'],
+        convertSet: async (entity, key, value, meta) => {
+            const response = await entity.command('genScenes', 'enhancedView', {
+                'groupid': value.groupid,
+                'sceneid': value.sceneid,
+            }, getOptions(meta.mapped));
+            return ({state: response});
+        },
+    },
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
