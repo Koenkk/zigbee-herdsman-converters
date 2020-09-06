@@ -481,27 +481,23 @@ const converters = {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
-            let hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
-            const brightnessValue = message.hasOwnProperty('brightness') ?
-                Number(message.brightness) : Number(message.brightness_percent);
-            let hasState = message.hasOwnProperty('state');
-            let state = hasState ? message.state.toLowerCase() : null;
-            const entityID = entity.constructor.name === 'Group' ? entity.groupID : entity.deviceIeeeAddress;
+            const transition = getTransition(entity, 'brightness', meta);
+            const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1');
+            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
+            let brightness = undefined;
+            if (message.hasOwnProperty('brightness')) brightness = Number(message.brightness);
+            else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
 
-            if (hasBrightness && (isNaN(brightnessValue) || brightnessValue < 0 || brightnessValue > 255)) {
+            if (brightness !== undefined && (isNaN(brightness) || brightness < 0 || brightness > 255)) {
                 // Allow 255 value, changing this to 254 would be a breaking change.
                 throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
             }
 
-            if (!hasState && hasBrightness && brightnessValue === 0) {
-                // Translate to an OFF.
-                hasBrightness = false;
-                hasState = true;
-                state = 'off';
+            if (state !== undefined && ['on', 'off', 'toggle'].includes(state) === false) {
+                throw new Error(`State value of message: '${JSON.stringify(message)}' invalid, must be 'ON', 'OFF' or 'TOGGLE'`);
             }
 
-            if (state === 'toggle' || state === 'off' || (!hasBrightness && state === 'on')) {
-                const transition = getTransition(entity, 'brightness', meta);
+            if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
                 if (transition.specified && (state === 'off' || state === 'on')) {
                     if (state === 'off' && meta.state.brightness) {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
@@ -509,94 +505,66 @@ const converters = {
                         // it once we turn it on again.
                         // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
                         // it brightness while decreasing the brightness.
-                        store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: true};
+                        globalStore.putValue(entity, 'brightness', meta.state.brightness);
+                        globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
 
-                    const level = state === 'off' ? 0 : (store[entityID] ? store[entityID].brightness : 254);
+                    let level = state === 'off' ? 0 : globalStore.getValue(entity, 'brightness', 254);
+                    if (state === 'on' && level === 0) level = turnsOffAtBrightness1 ? 2 : 1;
+
                     const payload = {level, transtime: transition.time};
-                    await entity.command(
-                        'genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity),
-                    );
-                    return {state: {state: state.toUpperCase(), brightness: state === 'on' ? level : 0}};
+                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
+                    const result = {state: {state: state.toUpperCase()}};
+                    if (state === 'on') result.state.brightness = level;
+                    return result;
                 } else {
-                    if (hasState && state === 'on' && store.hasOwnProperty(entityID) &&
-                        store[entityID].turnedOffWithTransition) {
+                    if (state === 'on' && globalStore.getValue(entity, 'turnedOffWithTransition') === true) {
                         /**
                          * In case the bulb it turned OFF with a transition and turned ON WITHOUT
                          * a transition, the brightness is not recovered as it turns on with brightness 1.
                          * https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
                          */
-                        const brightness = store[entityID].brightness;
-                        store[entityID].turnedOffWithTransition = false;
+                        globalStore.putValue(entity, 'turnedOffWithTransition', false);
                         await entity.command(
                             'genLevelCtrl',
                             'moveToLevelWithOnOff',
-                            {level: Number(brightness), transtime: 0},
+                            {level: globalStore.getValue(entity, 'brightness'), transtime: 0},
                             getOptions(meta.mapped, entity),
                         );
-                        return {
-                            state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                            readAfterWriteTime: transition * 100,
-                        };
+                        return {state: {state: 'ON'}, readAfterWriteTime: transition * 100};
                     } else {
                         // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                         // with transition.
-                        if (meta.state.hasOwnProperty('brightness') && state === 'off' && meta.state.brightness !== 0) {
-                            store[entityID] = {brightness: meta.state.brightness, turnedOffWithTransition: false};
+                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                            globalStore.putValue(entity, 'brightness', meta.state.brightness);
+                            globalStore.putValue(entity, 'turnedOffWithTransition', false);
                         }
 
                         const result = await converters.on_off.convertSet(entity, 'state', state, meta);
-                        if (result.state) {
-                            if (result.state.state === 'ON') {
-                                result.readAfterWriteTime = 0;
-                                if (store.hasOwnProperty(entityID)) {
-                                    result.state.brightness = store[entityID].brightness;
-                                } else if (meta.state.brightness === 0) {
-                                    /**
-                                     * In case bulb is turned off and the store is reset (because of application
-                                     * restart) we don't know the previous brightness when on. Therefore retrieve
-                                     * it from the bulb.
-                                     * https://github.com/Koenkk/zigbee2mqtt/issues/3736
-                                     */
-                                    const entityToRead = getEntityOrFirstGroupMember(entity);
-                                    if (entityToRead) {
-                                        const readData = await entityToRead.read('genLevelCtrl', ['currentLevel']);
-                                        result.state.brightness = readData.currentLevel;
-                                    }
-                                }
-                            } else {
-                                // off = brightness 0
-                                result.state.brightness = 0;
-                            }
+                        result.readAfterWriteTime = 0;
+                        if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
+                            result.state.brightness = 1;
                         }
 
                         return result;
                     }
                 }
             } else {
-                const transition = getTransition(entity, 'brightness', meta).time;
-                let brightness = 0;
-
-                if (message.hasOwnProperty('brightness')) {
-                    brightness = message.brightness;
-                } else if (message.hasOwnProperty('brightness_percent')) {
-                    brightness = Math.round(Number(message.brightness_percent) * 2.55).toString();
-                }
                 brightness = Math.min(254, brightness);
-                if (brightness === 1 && utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1') === true) {
+                if (brightness === 1 && turnsOffAtBrightness1) {
                     brightness = 2;
                 }
 
-                store[entityID] = {...store[entityID], brightness};
+                globalStore.putValue(entity, 'brightness', brightness);
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(brightness), transtime: transition},
+                    {level: Number(brightness), transtime: transition.time},
                     getOptions(meta.mapped, entity),
                 );
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
-                    readAfterWriteTime: transition * 100,
+                    readAfterWriteTime: transition.time * 100,
                 };
             }
         },
@@ -1173,7 +1141,7 @@ const converters = {
             }
 
             const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
-            globalStore.putValue(entity.deviceIeeeAddress, 'panelStatus', panelStatus);
+            globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
@@ -2735,6 +2703,8 @@ const converters = {
         for (const key of Object.keys(store)) {
             delete store[key];
         }
+
+        globalStore.clear();
     },
 };
 
