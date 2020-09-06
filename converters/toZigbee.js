@@ -2733,7 +2733,7 @@ const converters = {
     scene_add: {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
+            const response = await entity.command(
                 'genScenes', 'add', {
                     'groupid': value.groupid,
                     'sceneid': value.sceneid,
@@ -2742,30 +2742,52 @@ const converters = {
                     'extensionfieldsets': value.extensionfieldsets,
                 }, getOptions(meta.mapped),
             );
+            if ( response.status != 0 ) {
+                throw new Error(`Scene not added. Return status is '${response.status}'.`);
+            }
         },
     },
     scene_view: {
         key: ['scene_view'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'view', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'view', {
+                'groupid': value.groupid,
+                'sceneid': value.sceneid,
+            }, getOptions(meta.mapped));
+            return ({state: response});
         },
     },
     scene_remove: {
         key: ['scene_remove'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'remove', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'remove', {
+                'groupid': value.groupid,
+                'sceneid': value.sceneid,
+            }, getOptions(meta.mapped));
+            if ( response.status != 0 ) {
+                throw new Error(`Scene remove not succesfull. Return status is '${response.status}'.`);
+            }
         },
     },
     scene_remove_all: {
         key: ['scene_remove_all'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'removeAll', {'groupid': value.groupid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'removeAll', {'groupid': value.groupid}, getOptions(meta.mapped));
+            if ( response.status != 0 ) {
+                throw new Error(`Scene remove_all not succesfull. Return status is '${response.status}'.`);
+            }
         },
     },
     scene_store: {
         key: ['scene_store'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'store', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'store', {
+                'groupid': value.groupid,
+                'sceneid': value.sceneid,
+            }, getOptions(meta.mapped));
+            if ( response.status != 0 ) {
+                throw new Error(`Scene store not succesfull. Return status is '${response.status}'.`);
+            }
         },
     },
     scene_recall: {
@@ -2777,7 +2799,8 @@ const converters = {
     scene_get_scene_membership: {
         key: ['scene_get_scene_membership'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genScenes', 'getSceneMembership', {'groupid': value.groupid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'getSceneMembership', {'groupid': value.groupid}, getOptions(meta.mapped));
+            return ({state: response});
         },
     },
     // Not a converter, can be used by tests to clear the store.
