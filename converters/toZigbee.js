@@ -2767,7 +2767,7 @@ const converters = {
             );
 
             if ( response.status != 0 ) {
-                throw new Error(`Scene not added. Return status is '${response.status}'.`);
+                throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
             }
         },
     },
@@ -2789,7 +2789,7 @@ const converters = {
                 'sceneid': value.sceneid,
             }, getOptions(meta.mapped));
             if ( response.status != 0 ) {
-                throw new Error(`Scene remove not succesfull. Return status is '${response.status}'.`);
+                throw new Error(`Scene remove not succesfull. Return status is '${common.zclStatus[response.status]}'.`);
             }
         },
     },
@@ -2798,7 +2798,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const response = await entity.command('genScenes', 'removeAll', {'groupid': value.groupid}, getOptions(meta.mapped));
             if ( response.status != 0 ) {
-                throw new Error(`Scene remove_all not succesfull. Return status is '${response.status}'.`);
+                throw new Error(`Scene remove_all not succesfull. Return status is '${common.zclStatus[response.status]}'.`);
             }
         },
     },
@@ -2810,7 +2810,7 @@ const converters = {
                 'sceneid': value.sceneid,
             }, getOptions(meta.mapped));
             if ( response.status != 0 ) {
-                throw new Error(`Scene store not succesfull. Return status is '${response.status}'.`);
+                throw new Error(`Scene store not succesfull. Return status is '${common.zclStatus[response.status]}'.`);
             }
         },
     },
@@ -2862,9 +2862,8 @@ const converters = {
                     'extensionfieldsets': extensionfieldsets,
                 }, getOptions(meta.mapped),
             );
-            console.log(response);
             if ( response.status != 0 ) {
-                throw new Error(`Scene not added. Return status is '${response.status}'.`);
+                throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
             }
         },
     },
