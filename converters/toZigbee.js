@@ -2733,15 +2733,39 @@ const converters = {
     scene_add: {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
+            const addCmdLookup = {
+                'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
+                'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
+                'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
+            };
+
+            if ( 'extensionfieldsets' in value && 'attributes' in value ) {
+                throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
+            }
+
+            let extensionfieldsets = [];
+            if ( 'extensionfieldsets' in value ) {
+                extensionfieldsets = value.extensionfieldsets;
+            } else {
+                for ( const attribute of value.attributes ) {
+                    if (attribute.toLowerCase() in addCmdLookup ) {
+                        extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
+                    } else {
+                        meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
+                    }
+                }
+            }
+
             const response = await entity.command(
                 'genScenes', 'add', {
                     'groupid': value.groupid,
                     'sceneid': value.sceneid,
                     'scenename': value.scenename,
                     'transtime': value.transtime,
-                    'extensionfieldsets': value.extensionfieldsets,
+                    'extensionfieldsets': extensionfieldsets,
                 }, getOptions(meta.mapped),
             );
+
             if ( response.status != 0 ) {
                 throw new Error(`Scene not added. Return status is '${response.status}'.`);
             }
@@ -2806,13 +2830,36 @@ const converters = {
     scene_enhanced_add: {
         key: ['scene_enhanced_add'],
         convertSet: async (entity, key, value, meta) => {
+            const addCmdLookup = {
+                'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
+                'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
+                'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
+            };
+
+            if ( 'extensionfieldsets' in value && 'attributes' in value ) {
+                throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
+            }
+
+            let extensionfieldsets = [];
+            if ( 'extensionfieldsets' in value ) {
+                extensionfieldsets = value.extensionfieldsets;
+            } else {
+                for ( const attribute of value.attributes ) {
+                    if (attribute.toLowerCase() in addCmdLookup ) {
+                        extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
+                    } else {
+                        meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
+                    }
+                }
+            }
+
             const response = await entity.command(
                 'genScenes', 'enhancedAdd', {
                     'groupid': value.groupid,
                     'sceneid': value.sceneid,
                     'scenename': value.scenename,
                     'transtime': value.transtime,
-                    'extensionfieldsets': value.extensionfieldsets,
+                    'extensionfieldsets': extensionfieldsets,
                 }, getOptions(meta.mapped),
             );
             console.log(response);
