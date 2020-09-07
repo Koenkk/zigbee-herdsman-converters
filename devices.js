@@ -5439,7 +5439,7 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'light': 1, 'fan_high': 2, 'fan_med': 3, 'fan_low': 4};
+            return {'button_light': 1, 'button_fan_high': 2, 'button_fan_med': 3, 'button_fan_low': 4};
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
