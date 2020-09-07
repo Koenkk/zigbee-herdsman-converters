@@ -223,7 +223,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     const data = msg.data.data;
     const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     let temperature;
-    /*See tuyaThermostat above for message structure comment */
+    // See tuyaThermostat above for message structure comment
     switch (dp) {
     case 257: // 0x0101 Thermostat on standby = OFF, running = ON
         return {running: dataAsDecNumber ? 'ON' : 'OFF'};
@@ -239,6 +239,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {local_temperature: temperature};
     case 556: // 0x2c02 Temperature calibration
         temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature_calibration: temperature};
     case 1026: // 0x0204 Changed program mode for moes thermostat
         return {program_mode: dataAsDecNumber ? 'ON' : 'OFF'};
     case 1027: // 0x0304 Changed manual mode status for moes thermostat
