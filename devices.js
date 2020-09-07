@@ -1395,20 +1395,22 @@ const devices = [
                 acPowerDivisor: 1,
             });
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, options) => {
             // This device doesn't support reporting correctly.
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
                 clearInterval(store[device.ieeeAddr]);
             } else if (!store[device.ieeeAddr]) {
+                const interval = options && options.measurement_poll_interval ?
+                    options.measurement_poll_interval : 10;
                 store[device.ieeeAddr] = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
                     } catch (error) {
                         // Do nothing
                     }
-                }, 10*1000); // Every 10 seconds
+                }, interval*1000); // Every 10 seconds
             }
         },
     },
