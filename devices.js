@@ -11291,6 +11291,15 @@ const devices = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'}],
+        model: 'BHT-002-GCLZB',
+        vendor: 'Moes',
+        description: 'Room thermostat water/gas boiler',
+        supports: 'thermostat, temperature',
+        fromZigbee: [fz.moes_thermostat],
+        toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint],
+    },
 
     // Schneider Electric
     {

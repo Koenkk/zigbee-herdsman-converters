@@ -2442,6 +2442,20 @@ const converters = {
     },
 
     // Tuya Thermostat
+    moes_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 296, 0, [1, value==='LOCK' ? 1 : 0]);
+        },
+    },
+    moes_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
     tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
