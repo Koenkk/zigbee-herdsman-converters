@@ -2384,6 +2384,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LDD002'],
+        model: '8718696153062',
+        vendor: 'Philips',
+        description: 'Hue Muscari floor light',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA001'],
         model: '8718699673147',
         vendor: 'Philips',
