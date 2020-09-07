@@ -5009,6 +5009,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['E1F-N5E'],
+        model: 'E1F-N5E',
+        vendor: 'Sengled',
+        description: 'Element color plus E12',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['E12-N14'],
         model: 'E12-N14',
         vendor: 'Sengled',
