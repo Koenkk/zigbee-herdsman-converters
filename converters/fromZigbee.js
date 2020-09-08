@@ -2554,7 +2554,7 @@ const converters = {
                     result.consumption = precisionRound(data['149'], 2);           
                 }                                                                  
                 if (data['3']) {                                                   
-                    result.temperature = calibrateAndPrecisionRoundOptions(data['3'
+                    result.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
                 }                                                                  
                 return result;                                                     
             }                                                                      
