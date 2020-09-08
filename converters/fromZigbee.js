@@ -2540,26 +2540,26 @@ const converters = {
             }
         },
     },
-    xiaomi_power_from_basic: {                                                     
-        cluster: 'genBasic',                                                       
-        type: ['attributeReport', 'readResponse'],                                 
-        convert: (model, msg, publish, options, meta) => {                         
-            if (msg.data['65281']) {                                               
-                const data = msg.data['65281'];                                    
-                const result = {};                                                 
-                if (data['152']) {                                                 
-                    result.power = precisionRound(data['152'], 2);                 
-                }                                                                  
-                if (data['149']) {                                                 
-                    result.consumption = precisionRound(data['149'], 2);           
-                }                                                                  
-                if (data['3']) {                                                   
+    xiaomi_power_from_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
+                const result = {};
+                if (data['152']) {
+                    result.power = precisionRound(data['152'], 2);
+                }
+                if (data['149']) {
+                    result.consumption = precisionRound(data['149'], 2);
+                }
+                if (data['3']) {
                     result.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
-                }                                                                  
-                return result;                                                     
-            }                                                                      
-        },                                                                         
-    },   
+                }
+                return result;
+            }
+        },
+    },
     QBKG04LM_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
