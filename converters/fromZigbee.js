@@ -5613,9 +5613,10 @@ const converters = {
     },
     greenpower_on_off_switch: {
         cluster: 'greenPower',
-        type: 'commandNotification',
+        type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (commandID === 224) return; // Skip commisioning command.
             const lookup = {
                 0x00: 'identify',
                 0x10: 'recall_scene_0',
@@ -5654,9 +5655,10 @@ const converters = {
     },
     greenpower_7: {
         cluster: 'greenPower',
-        type: 'commandNotification',
+        type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (commandID === 224) return; // Skip commisioning command.
             let postfix = '';
 
             if (msg.data.commandFrame && msg.data.commandFrame.raw) {
