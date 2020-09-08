@@ -617,7 +617,7 @@ const devices = [
             fz.xiaomi_on_off_action,
             /* check these */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.xiaomi_operation_mode_basic, fz.xiaomi_power_from_basic
+            fz.xiaomi_operation_mode_basic, fz.xiaomi_power_from_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true, configureKey: 1},
