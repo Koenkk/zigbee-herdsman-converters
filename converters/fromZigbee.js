@@ -2546,11 +2546,17 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const data = msg.data['65281'];
-                return {
-                    power: precisionRound(data['152'], 2),
-                    consumption: precisionRound(data['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
-                };
+                const result = {};
+                if (data['152']) {
+                    result.power = precisionRound(data['152'], 2);
+                }
+                if (data['149']) {
+                    result.consumption = precisionRound(data['149'], 2);
+                }
+                if (data['3']) {
+                    result.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
+                }
+                return result;
             }
         },
     },
