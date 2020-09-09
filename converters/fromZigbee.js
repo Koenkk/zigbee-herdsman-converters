@@ -4484,7 +4484,7 @@ const converters = {
             if (msg.data['65281']) {
                 voltage = msg.data['65281']['1'];
             }
-            // lumi.lock.acn02 use 4 LR6 AA 1.5v battery (total 6v) 
+            // lumi.lock.acn02 use 4 LR6 AA 1.5v battery (total 6v)
             // when voltage equal 3369 (real 4.9v), device warning to replace battery
             if (voltage) {
                 return {
