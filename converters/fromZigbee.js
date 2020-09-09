@@ -4459,6 +4459,41 @@ const converters = {
             return result;
         },
     },
+    ZNMS12LM_low_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (typeof msg.data['batteryAlarmMask'] == 'number') {
+                const battLow = msg.data['batteryAlarmMask'];
+                if (battLow==1) {
+                    result['battery_low'] = true;
+                } else {
+                    result['battery_low'] = false;
+                }
+            }
+            return result;
+        },
+    },
+    ZNMS12LM_battery: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let voltage = null;
+
+            if (msg.data['65281']) {
+                voltage = msg.data['65281']['1'];
+            }
+            // lumi.lock.acn02 use 4 LR6 AA 1.5v battery (total 6v) 
+            // when voltage equal 3369 (real 4.9v), device warning to replace battery
+            if (voltage) {
+                return {
+                    battery: toPercentage(voltage, 3000, 4200),
+                    voltage: voltage,
+                };
+            }
+        },
+    },
     DTB190502A1_parse: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

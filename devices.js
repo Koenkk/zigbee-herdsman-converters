@@ -1053,7 +1053,7 @@ const devices = [
         description: 'Aqara S2 lock',
         supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
+        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.ZNMS12LM_battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
