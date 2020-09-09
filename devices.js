@@ -437,7 +437,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
         supports: 'single, double, triple, quadruple, many, long, long_release click',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
         toZigbee: [],
     },
     {
@@ -446,9 +447,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
             fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action,
-            /* check these: */ fz.xiaomi_battery_3v, fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
+            /* check these: */ fz.xiaomi_battery, fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -458,8 +460,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch (with gyroscope)',
         supports: 'single, double, shake, hold, release',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_multistate_action, fz.legacy_WXKG12LM_action_click_multistate,
+            fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy_WXKG12LM_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -469,10 +472,11 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         supports: 'single (and double, hold, release and long click depending on model)',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.xiaomi_battery_3v, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
+            fz.xiaomi_battery, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
     },
@@ -482,10 +486,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 single key wireless wall switch',
         supports: 'action',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: 'CR2032'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.endpoints[1];
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
@@ -497,9 +501,10 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right, both click (and double, long click for left, right and both depending on model)',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
-            /* check these: */ fz.xiaomi_battery_3v, fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
+            /* check these: */ fz.xiaomi_battery, fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
         ],
         toZigbee: [],
         endpoint: (device) => {
@@ -657,7 +662,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 double key wireless wall switch',
         supports: 'action',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.legacy_xiaomi_on_off_action, fz.legacy_xiaomi_multistate_action],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.legacy_xiaomi_on_off_action, fz.legacy_xiaomi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -767,7 +773,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia temperature & humidity sensor',
         supports: 'temperature and humidity',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity],
         toZigbee: [],
     },
     {
@@ -776,8 +783,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
+            fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
             fz.WSDCGQ01LM_WSDCGQ11LM_interval,
         ],
         toZigbee: [],
@@ -788,9 +796,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.temperature, fz.humidity, fz.pressure],
+        fromZigbee: [fz.xiaomi_battery, fz.temperature, fz.humidity, fz.pressure],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: 'CR2032'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
@@ -803,7 +811,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia human body movement sensor',
         supports: 'occupancy',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.occupancy_with_timeout],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout],
         toZigbee: [],
     },
     {
@@ -812,8 +821,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance,
+            fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance,
             fz.RTCGQ11LM_interval,
         ],
         toZigbee: [],
@@ -824,10 +834,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia door & window contact sensor',
         supports: 'contact',
-        fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_contact,
-
-        ],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
         toZigbee: [],
     },
     {
@@ -836,8 +844,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara door & window contact sensor',
         supports: 'contact',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.xiaomi_contact, fz.xiaomi_contact_interval,
+            fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval,
 
         ],
         toZigbee: [],
@@ -848,7 +857,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.SJCGQ11LM_water_leak_iaszone],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.SJCGQ11LM_water_leak_iaszone],
         toZigbee: [],
     },
     {
@@ -857,7 +867,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.ias_water_leak_alarm_1],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
     {
@@ -866,8 +877,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Mi/Aqara smart home cube',
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
         fromZigbee: [
-            fz.xiaomi_battery_3v, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
+            fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
         ],
         toZigbee: [],
     },
@@ -964,7 +976,8 @@ const devices = [
         description: 'MiJia Honeywell smoke detector',
         supports: 'smoke',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
     },
     {
@@ -991,7 +1004,8 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara vibration sensor',
         supports: 'drop, tilt and touch',
-        fromZigbee: [fz.xiaomi_battery_3v, fz.DJT11LM_vibration],
+        meta: {battery: {voltageToPercentage: 'CR2032'}},
+        fromZigbee: [fz.xiaomi_battery, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
     },
     {
@@ -1053,9 +1067,9 @@ const devices = [
         description: 'Aqara S2 lock',
         supports: 'open, close, operation (reporting only)',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.ZNMS12LM_battery],
+        fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.xiaomi_battery],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
         configure: async (device, coordinatorEndpoint) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
