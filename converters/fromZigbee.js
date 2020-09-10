@@ -1194,6 +1194,35 @@ const converters = {
     /**
      * Non-generic converters, re-use if possible
      */
+    xiaomi_battery: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let voltage = null;
+            if (msg.data['65281']) {
+                voltage = msg.data['65281']['1'];
+            } else if (msg.data['65282']) {
+                voltage = msg.data['65282']['1'].elmVal;
+            }
+
+            if (voltage) {
+                const payload = {
+                    voltage: voltage, // @deprecated
+                    // voltage: voltage / 1000.0,
+                };
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
+                        payload.battery = toPercentageCR2032(payload.voltage);
+                    } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
+                        payload.battery = toPercentage(voltage, 3000, 4200);
+                    }
+                }
+
+                return payload;
+            }
+        },
+    },
     xiaomi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
@@ -2122,27 +2151,6 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data.zonestatus === 48};
-        },
-    },
-    xiaomi_battery_3v: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let voltage = null;
-
-            if (msg.data['65281']) {
-                voltage = msg.data['65281']['1'];
-            } else if (msg.data['65282']) {
-                voltage = msg.data['65282']['1'].elmVal;
-            }
-
-            if (voltage) {
-                return {
-                    battery: toPercentageCR2032(voltage),
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-            }
         },
     },
     RTCGQ11LM_interval: {
@@ -4457,6 +4465,15 @@ const converters = {
                 result.repeat = null;
             }
             return result;
+        },
+    },
+    ZNMS12LM_low_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (typeof msg.data['batteryAlarmMask'] == 'number') {
+                return {battery_low: msg.data['batteryAlarmMask'] === 1};
+            }
         },
     },
     DTB190502A1_parse: {
