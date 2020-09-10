@@ -1214,7 +1214,7 @@ const converters = {
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     if (model.meta.battery.voltageToPercentage === 'CR2032') {
                         payload.battery = toPercentageCR2032(payload.voltage);
-                    } else if (model.meta.battery.voltageToPercentage = '4LR6AA1_5v') {
+                    } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
                         payload.battery = toPercentage(voltage, 3000, 4200);
                     }
                 }
