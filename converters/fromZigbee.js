@@ -218,6 +218,40 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
     }
 };
 
+const moesThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+    // See tuyaThermostat above for message structure comment
+    switch (dp) {
+    case 257: // 0x0101 Thermostat on standby = OFF, running = ON
+        return {running: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 296: // 0x2801 Changed child lock status for moes thermostat
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 263: // 0x0701 Changed child lock status
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 528: // 0x1002 set temperature
+        temperature = dataAsDecNumber;
+        return {current_heating_setpoint: temperature};
+    case 536: // 0x1802 moes room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 556: // 0x2c02 Temperature calibration
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature_calibration: temperature};
+    case 1026: // 0x0204 Changed program mode for moes thermostat
+        return {program_mode: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 1027: // 0x0304 Changed manual mode status for moes thermostat
+        return {manual_mode: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 1060: // 0x2404 Moes Thermostat is Open or Closed
+        return {Heat: dataAsDecNumber ? 'OFF' : 'ON'};
+    default: // The purpose of the codes 1041 & 1043 are still unknown
+        console.log(`zigbee-herdsman-converters:Moes BHT-002-GCLZB: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
 const tuyaThermostat = (model, msg, publish, options, meta) => {
     const dp = msg.data.dp;
     const data = msg.data.data;
@@ -609,13 +643,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 const property = postfixWithEndpointName('brightness', msg, model);
-                let value = msg.data['currentLevel'];
-
-                if (meta.state && meta.state.state === 'OFF') {
-                    value = 0;
-                }
-
-                return {[property]: value};
+                return {[property]: msg.data['currentLevel']};
             }
         },
     },
@@ -2247,6 +2275,8 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options, meta) => {
+            if (msg.data.ctrlbits === 1) return;
+
             const timeout = msg.data.ontime / 10;
             const deviceID = msg.device.ieeeAddr;
 
@@ -2516,11 +2546,17 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const data = msg.data['65281'];
-                return {
-                    power: precisionRound(data['152'], 2),
-                    consumption: precisionRound(data['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
-                };
+                const result = {};
+                if (data['152']) {
+                    result.power = precisionRound(data['152'], 2);
+                }
+                if (data['149']) {
+                    result.consumption = precisionRound(data['149'], 2);
+                }
+                if (data['3']) {
+                    result.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
+                }
+                return result;
             }
         },
     },
@@ -5240,6 +5276,16 @@ const converters = {
             }
         },
     },
+    moes_thermostat_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: moesThermostat,
+    },
+    moes_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandGetData',
+        convert: moesThermostat,
+    },
     tuya_thermostat_on_set_data: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandSetDataResponse',
@@ -5573,9 +5619,10 @@ const converters = {
     },
     greenpower_on_off_switch: {
         cluster: 'greenPower',
-        type: 'commandNotification',
+        type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (commandID === 224) return; // Skip commisioning command.
             const lookup = {
                 0x00: 'identify',
                 0x10: 'recall_scene_0',
@@ -5614,9 +5661,10 @@ const converters = {
     },
     greenpower_7: {
         cluster: 'greenPower',
-        type: 'commandNotification',
+        type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (commandID === 224) return; // Skip commisioning command.
             let postfix = '';
 
             if (msg.data.commandFrame && msg.data.commandFrame.raw) {
