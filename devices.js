@@ -1321,8 +1321,8 @@ const devices = [
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
-            { vendor: 'Binthen', model: 'BCM100D'},
-            { vendor: 'Binthen', model: 'CV01A'},
+            {vendor: 'Binthen', model: 'BCM100D'},
+            {vendor: 'Binthen', model: 'CV01A'},
             {vendor: 'Zemismart', model: 'M515EGB'},
         ],
         supports: 'open, close, stop, position',
