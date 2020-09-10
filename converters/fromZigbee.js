@@ -4471,16 +4471,9 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
             if (typeof msg.data['batteryAlarmMask'] == 'number') {
-                const battLow = msg.data['batteryAlarmMask'];
-                if (battLow==1) {
-                    result['battery_low'] = true;
-                } else {
-                    result['battery_low'] = false;
-                }
+                return {battery_low: msg.data['batteryAlarmMask'] === 1};
             }
-            return result;
         },
     },
     DTB190502A1_parse: {
