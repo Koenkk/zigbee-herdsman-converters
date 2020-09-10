@@ -1310,7 +1310,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja', 'TS0601'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
@@ -1321,7 +1321,8 @@ const devices = [
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
-            {vendor: 'Binthen', model: 'BCM100D'},
+            { vendor: 'Binthen', model: 'BCM100D'},
+            { vendor: 'Binthen', model: 'CV01A'},
             {vendor: 'Zemismart', model: 'M515EGB'},
         ],
         supports: 'open, close, stop, position',
