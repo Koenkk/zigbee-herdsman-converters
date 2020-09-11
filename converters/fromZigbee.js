@@ -3499,6 +3499,29 @@ const converters = {
             return result;
         },
     },
+    sinope_GFCi_status: {
+        // TH1300ZB specific
+        cluster: 'manuSpecificSinope',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on'};
+            if (msg.data.hasOwnProperty('GFCiStatus')) {
+                return {gfci_status: lookup[msg.data['GFCiStatus']]};
+            }
+        },
+    },
+    sinope_floor_limit_status: {
+        // TH1300ZB specific
+        cluster: 'manuSpecificSinope',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on'};
+            if (msg.data.hasOwnProperty('floorLimitStatus')) {
+                return {floor_limit_status: lookup[msg.data['floorLimitStatus']]};
+            }
+        },
+    },
+
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],

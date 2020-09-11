@@ -1867,6 +1867,78 @@ const converters = {
             }
         },
     },
+    sinope_floor_control_mode: {
+        // TH1300ZB specific
+        key: ['floor_control_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+            const lookup = {'ambiant': 1, 'floor': 2};
+            value = value.toLowerCase();
+            if (lookup.hasOwnProperty(value)) {
+                await entity.write('manuSpecificSinope', {floorControlMode: lookup[value]});
+            }
+        },
+    },
+    sinope_ambiant_max_heat_setpoint: {
+        // TH1300ZB specific
+        key: ['ambiant_max_heat_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 5 && value <= 36) {
+                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value * 100});
+            }
+        },
+    },
+    sinope_floor_min_heat_setpoint: {
+        // TH1300ZB specific
+        key: ['floor_min_heat_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 5 && value <= 36) {
+                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value * 100});
+            }
+        },
+    },
+    sinope_floor_max_heat_setpoint: {
+        // TH1300ZB specific
+        key: ['floor_max_heat_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 5 && value <= 36) {
+                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value * 100});
+            }
+        },
+    },
+    sinope_temperature_sensor: {
+        // TH1300ZB specific
+        key: ['floor_temperature_sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+            const lookup = {'10k': 0, '12k': 1};
+            value = value.toLowerCase();
+            if (lookup.hasOwnProperty(value)) {
+                await entity.write('manuSpecificSinope', {temperatureSensor: lookup[value]});
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['temperatureSensor']);
+        },
+    },
+    sinope_time_format: {
+        // TH1300ZB specific
+        key: ['time_format'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+            const lookup = {'24h': 0, '12h': 1};
+            value = value.toLowerCase();
+            if (lookup.hasOwnProperty(value)) {
+                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+            }
+        },
+    },
     stelpro_thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
