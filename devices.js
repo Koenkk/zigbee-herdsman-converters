@@ -1649,6 +1649,28 @@ const devices = [
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state,
         ],
     },
+    {
+        zigbeeModel: ['E220-KR4N0Z0-HA'],
+        model: 'E220-KR4N0Z0-HA',
+        vendor: 'TuYa',
+        description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        whiteLabel: [
+            {vendor: 'LEELKI', model: 'WP33-EU'},
+        ],
+        meta: {multiEndpoint: true, configureKey: 1},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Neo
     {
