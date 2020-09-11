@@ -1328,6 +1328,7 @@ const devices = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1336,6 +1337,7 @@ const devices = [
             {vendor: 'Yushun', model: 'YS-MT750'},
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
             {vendor: 'Binthen', model: 'BCM100D'},
+            {vendor: 'Binthen', model: 'CV01A'},
             {vendor: 'Zemismart', model: 'M515EGB'},
         ],
         supports: 'open, close, stop, position',
