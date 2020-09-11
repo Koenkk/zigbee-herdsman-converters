@@ -1390,7 +1390,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'BlitzWolf', model: 'BW-SHP13'},
         ],
-        supports: 'on/off',
+        supports: 'on/off, power measurements',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
