@@ -12526,6 +12526,30 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
         },
     },
+    
+    // TUYA
+    {
+        zigbeeModel: ['E220-KR4N0Z0-HA'], 
+        model: 'E220-KR4N0Z0-HA', 
+        vendor: 'TuYa',
+        description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        whiteLabel: [
+            {vendor: 'LELLKI', model: 'WP33-EU'},
+        ],
+        meta: {multiEndpoint: true, configureKey: 1},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
 
 module.exports = devices.map((device) =>
