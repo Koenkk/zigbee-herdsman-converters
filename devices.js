@@ -1310,10 +1310,11 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja', 'TS0601'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
