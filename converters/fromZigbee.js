@@ -3462,7 +3462,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const lookup = {0: 'off', 1: 'on'};
             if (msg.data.hasOwnProperty('GFCiStatus')) {
-                return {GFCi_status: lookup[msg.data['GFCiStatus']]};
+                return {gfci_status: lookup[msg.data['GFCiStatus']]};
             }
         },
     },
