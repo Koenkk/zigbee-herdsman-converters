@@ -1416,17 +1416,24 @@ const devices = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
-                clearInterval(store[device.ieeeAddr]);
+                clearTimeout(store[device.ieeeAddr]);
             } else if (!store[device.ieeeAddr]) {
                 const interval = options && options.measurement_poll_interval ?
                     options.measurement_poll_interval : 10;
-                store[device.ieeeAddr] = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, interval*1000); // Every 10 seconds
+
+                const read = () => {
+                    store[device.ieeeAddr] = setTimeout(async () => {
+                        try {
+                            await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                        } catch (error) {
+                            // Do nothing
+                        }
+
+                        read();
+                    }, interval*1000);
+                };
+
+                read();
             }
         },
     },
