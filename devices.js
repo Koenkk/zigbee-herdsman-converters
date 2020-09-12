@@ -11198,6 +11198,13 @@ const devices = [
         },
     },
     {
+        fingerprint: [
+            // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
+            // https://github.com/Koenkk/zigbee2mqtt/issues/4338
+            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+            ]},
+        ],
         zigbeeModel: ['TH01'],
         model: 'SNZB-02',
         vendor: 'SONOFF',
