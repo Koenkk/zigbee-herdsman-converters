@@ -5434,7 +5434,7 @@ const devices = [
         zigbeeModel: ['LXN56-1S27LX1.2'],
         model: 'NUE-ZBFLB',
         vendor: 'Nue / 3A',
-        description: 'Smart Fan Light Switch',
+        description: 'Smart fan light switch',
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -5449,6 +5449,7 @@ const devices = [
             await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
+
     // Feibit
     {
         zigbeeModel: ['FZB56+ZSW2FYM1.1'],
