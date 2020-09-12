@@ -11544,7 +11544,7 @@ const devices = [
         vendor: 'Schneider Electric',
         description: 'Merten PlusLink Shutter insert with Merten Wiser System M Push Button',
         supports: 'open,close,position,stop,linkquality',
-        fromZigbee: [fz.cover_position_tilt,fz.command_cover_close,fz.command_cover_open,fz.command_cover_stop],
+        fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         toZigbee: [tz.cover_position_tilt, tz.cover_state],
         meta: {configureKey: 1, coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {
