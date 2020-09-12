@@ -545,7 +545,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.pow(10, (illuminance - 1) / 10000);
+            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
