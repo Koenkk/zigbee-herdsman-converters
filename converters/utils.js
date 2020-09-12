@@ -270,6 +270,16 @@ function getMetaValue(entity, definition, key, groupStrategy='first') {
     return undefined;
 }
 
+function filterObject(obj, keys) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (keys.includes(key)) {
+            result[key] = value;
+        }
+    }
+    return result;
+}
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -289,4 +299,5 @@ module.exports = {
     replaceInArray,
     getDoorLockPinCode,
     getMetaValue,
+    filterObject,
 };
