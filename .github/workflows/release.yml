@@ -33,6 +33,7 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        tags: true
     - name: Publish to npm
       run: npm publish
       env:
