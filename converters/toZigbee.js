@@ -2725,47 +2725,50 @@ const converters = {
             return {state: entity.meta.scenes[value].state};
         },
     },
-    // scene_add: {
-    //     key: ['scene_add'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const addCmdLookup = {
-    //             'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
-    //             'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
-    //             'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
-    //         };
+     scene_add: {
+         key: ['scene_add'],
+         convertSet: async (entity, key, value, meta) => {
+             const addCmdLookup = {
+                 'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
+                 'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
+                 'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
+             };
 
-    //         if ( 'extensionfieldsets' in value && 'attributes' in value ) {
-    //             throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
-    //         }
+             if ( 'extensionfieldsets' in value && 'attributes' in value ) {
+                 throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
+             }
 
-    //         let extensionfieldsets = [];
-    //         if ( 'extensionfieldsets' in value ) {
-    //             extensionfieldsets = value.extensionfieldsets;
-    //         } else {
-    //             for ( const attribute of value.attributes ) {
-    //                 if (attribute.toLowerCase() in addCmdLookup ) {
-    //                     extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
-    //                 } else {
-    //                     meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
-    //                 }
-    //             }
-    //         }
+             let extensionfieldsets = [];
+             if ( 'extensionfieldsets' in value ) {
+                 extensionfieldsets = value.extensionfieldsets;
+             } else {
+                 for ( const attribute of value.attributes ) {
+                     if (attribute.toLowerCase() in addCmdLookup ) {
+                         extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
+                     } else {
+                         meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
+                     }
+                 }
+             }
 
-    //         const response = await entity.command(
-    //             'genScenes', 'add', {
-    //                 'groupid': value.groupid,
-    //                 'sceneid': value.sceneid,
-    //                 'scenename': value.scenename,
-    //                 'transtime': value.transtime,
-    //                 'extensionfieldsets': extensionfieldsets,
-    //             }, getOptions(meta.mapped),
-    //         );
+            const isGroup = entity.constructor.name === 'Group';
+            const groupid = isGroup ? entity.groupID : 0;
+             
+             const response = await entity.command(
+                 'genScenes', 'add', {
+                     'groupid': groupid,
+                     'sceneid': value.sceneid,
+                     'scenename': value.scenename,
+                     'transtime': value.transtime,
+                     'extensionfieldsets': extensionfieldsets,
+                 }, getOptions(meta.mapped),
+             );
 
-    //         if ( response.status != 0 ) {
-    //             throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
-    //         }
-    //     },
-    // },
+             if ( response.status != 0 ) {
+                 throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
+             }
+         },
+     },
     // scene_view: {
     //     key: ['scene_view'],
     //     convertSet: async (entity, key, value, meta) => {

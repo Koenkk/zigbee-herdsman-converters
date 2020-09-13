@@ -12490,8 +12490,8 @@ module.exports = devices.map((device) => {
     }
 
     device.toZigbee.push(
-        tz.scene_store, tz.scene_recall,
-        // tz.scene_add, tz.scene_view, tz.scene_remove, tz.scene_remove_all, tz.scene_store, tz.scene_recall,
+        tz.scene_store, tz.scene_recall, tz.scene_add,
+        //tz.scene_view, tz.scene_remove, tz.scene_remove_all, tz.scene_store, tz.scene_recall,
         // tz.scene_get_scene_membership, tz.scene_enhanced_view, tz.scene_enhanced_add,
     );
 
