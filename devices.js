@@ -7784,6 +7784,15 @@ const devices = [
             {vendor: 'Piri', model: 'HSIO18008'},
         ],
     },
+    {
+        fingerprint: [{modelID: 'Vibration-N', manufacturerName: 'HEIMAN'}],
+        model: 'HS1VS-N',
+        vendor: 'HEIMAN',
+        description: 'Vibration sensor',
+        supports: 'vibration',
+        fromZigbee: [fz.ias_vibration_alarm_1],
+        toZigbee: [],
+    },
 
     // GS
     {
