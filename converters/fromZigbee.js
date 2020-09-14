@@ -2362,37 +2362,38 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
-            if (msg.data['colorTemperature']) {
+            if (msg.data.hasOwnProperty('colorTemperature')) {
                 result.color_temp = msg.data['colorTemperature'];
             }
 
-            if (msg.data['colorMode']) {
+            if (msg.data.hasOwnProperty('colorMode')) {
                 result.color_mode = msg.data['colorMode'];
             }
 
             if (
-                msg.data['currentX'] || msg.data['currentY'] || msg.data['currentSaturation'] ||
-                msg.data['currentHue'] || msg.data['enhancedCurrentHue']
+                msg.data.hasOwnProperty('currentX') || msg.data.hasOwnProperty('currentY') ||
+                msg.data.hasOwnProperty('currentSaturation') || msg.data.hasOwnProperty('currentHue') ||
+                msg.data.hasOwnProperty('enhancedCurrentHue')
             ) {
                 result.color = {};
 
-                if (msg.data['currentX']) {
+                if (msg.data.hasOwnProperty('currentX')) {
                     result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
                 }
 
-                if (msg.data['currentY']) {
+                if (msg.data.hasOwnProperty('currentY')) {
                     result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
                 }
 
-                if (msg.data['currentSaturation']) {
+                if (msg.data.hasOwnProperty('currentSaturation')) {
                     result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
                 }
 
-                if (msg.data['currentHue']) {
+                if (msg.data.hasOwnProperty('currentHue')) {
                     result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
                 }
 
-                if (msg.data['enhancedCurrentHue']) {
+                if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
                     result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
