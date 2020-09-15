@@ -7659,6 +7659,22 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
     },
+    {
+        fingerprint: [{ modelID: 'WaterSensor-N-3.0', manufacturerName: 'HEIMAN' }],
+        model: 'HS1WL-N',
+        vendor: 'HEIMAN',
+        description: 'Water leakage sensor',
+        supports: 'water leak',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    },
     // Removed support due to:
     // - https://github.com/Koenkk/zigbee2mqtt/issues/2750
     // - https://github.com/Koenkk/zigbee2mqtt/issues/1957
