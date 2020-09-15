@@ -7771,6 +7771,27 @@ const devices = [
         },
     },
     {
+        fingerprint: [{ modelID: 'HT-N', manufacturerName: 'HEIMAN' }],
+        model: 'HS1HT-N',
+        vendor: 'HEIMAN',
+        description: 'Smart temperature & humidity Sensor',
+        supports: 'temperature and humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement','genPowerCfg']);
+            await configureReporting.temperature(endpoint1);
+            await configureReporting.batteryPercentageRemaining(endpoint1, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
+            await configureReporting.humidity(endpoint2);
+        },
+    },
+    {
         zigbeeModel: ['SKHMP30-I1'],
         model: 'SKHMP30-I1',
         description: 'Smart metering plug',
