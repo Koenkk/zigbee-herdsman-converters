@@ -1196,7 +1196,10 @@ const devices = [
     // TuYa
     {
         zigbeeModel: ['qnazj70'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'}
+        ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
         description: '1, 2, 3 or 4 gang switch',
