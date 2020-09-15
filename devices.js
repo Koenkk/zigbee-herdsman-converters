@@ -7642,6 +7642,22 @@ const devices = [
         toZigbee: [],
     },
     {
+        fingerprint: [{ modelID: 'DoorSensor-N-3.0', manufacturerName: 'HEIMAN' }],
+        model: 'HS3DS',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    },
+    {
         zigbeeModel: ['WaterSensor-N'],
         model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
