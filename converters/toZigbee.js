@@ -338,7 +338,7 @@ const converters = {
     light_brightness_move: {
         key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
-            if (value === 'stop') {
+            if (value === 'stop' || value === 0) {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
