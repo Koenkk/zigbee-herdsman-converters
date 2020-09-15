@@ -7790,8 +7790,15 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Vibration sensor',
         supports: 'vibration',
-        fromZigbee: [fz.ias_vibration_alarm_1],
+        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
     },
 
     // GS
