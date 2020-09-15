@@ -7888,13 +7888,20 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SOS-EM'],
-        model: 'HS1EB',
+        fingerprint: [{ modelID: 'SOS-EM', manufacturerName: 'HEIMAN' }],
+        model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        supports: 'click',
-        fromZigbee: [fz.command_status_change_notification_action, fz.legacy_st_button_state],
+        supports: 'action',
+        fromZigbee: [ fz.command_status_change_notification_action, fz.legacy_st_button_state, fz.battery ],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
     },
     {
         zigbeeModel: ['GASSensor-EM'],
