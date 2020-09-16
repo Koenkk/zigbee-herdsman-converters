@@ -1198,7 +1198,7 @@ const devices = [
         zigbeeModel: ['qnazj70'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'}
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
