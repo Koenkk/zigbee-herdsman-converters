@@ -545,7 +545,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.pow(10, (illuminance - 1) / 10000);
+            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
@@ -742,6 +742,18 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_vibration_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                vibration: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
@@ -1194,6 +1206,35 @@ const converters = {
     /**
      * Non-generic converters, re-use if possible
      */
+    xiaomi_battery: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let voltage = null;
+            if (msg.data['65281']) {
+                voltage = msg.data['65281']['1'];
+            } else if (msg.data['65282']) {
+                voltage = msg.data['65282']['1'].elmVal;
+            }
+
+            if (voltage) {
+                const payload = {
+                    voltage: voltage, // @deprecated
+                    // voltage: voltage / 1000.0,
+                };
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
+                        payload.battery = toPercentageCR2032(payload.voltage);
+                    } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
+                        payload.battery = toPercentage(voltage, 3000, 4200);
+                    }
+                }
+
+                return payload;
+            }
+        },
+    },
     xiaomi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
@@ -2124,27 +2165,6 @@ const converters = {
             return {contact: msg.data.zonestatus === 48};
         },
     },
-    xiaomi_battery_3v: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let voltage = null;
-
-            if (msg.data['65281']) {
-                voltage = msg.data['65281']['1'];
-            } else if (msg.data['65282']) {
-                voltage = msg.data['65282']['1'].elmVal;
-            }
-
-            if (voltage) {
-                return {
-                    battery: toPercentageCR2032(voltage),
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-            }
-        },
-    },
     RTCGQ11LM_interval: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -2354,37 +2374,38 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
-            if (msg.data['colorTemperature']) {
+            if (msg.data.hasOwnProperty('colorTemperature')) {
                 result.color_temp = msg.data['colorTemperature'];
             }
 
-            if (msg.data['colorMode']) {
+            if (msg.data.hasOwnProperty('colorMode')) {
                 result.color_mode = msg.data['colorMode'];
             }
 
             if (
-                msg.data['currentX'] || msg.data['currentY'] || msg.data['currentSaturation'] ||
-                msg.data['currentHue'] || msg.data['enhancedCurrentHue']
+                msg.data.hasOwnProperty('currentX') || msg.data.hasOwnProperty('currentY') ||
+                msg.data.hasOwnProperty('currentSaturation') || msg.data.hasOwnProperty('currentHue') ||
+                msg.data.hasOwnProperty('enhancedCurrentHue')
             ) {
                 result.color = {};
 
-                if (msg.data['currentX']) {
+                if (msg.data.hasOwnProperty('currentX')) {
                     result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
                 }
 
-                if (msg.data['currentY']) {
+                if (msg.data.hasOwnProperty('currentY')) {
                     result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
                 }
 
-                if (msg.data['currentSaturation']) {
+                if (msg.data.hasOwnProperty('currentSaturation')) {
                     result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
                 }
 
-                if (msg.data['currentHue']) {
+                if (msg.data.hasOwnProperty('currentHue')) {
                     result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
                 }
 
-                if (msg.data['enhancedCurrentHue']) {
+                if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
                     result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
                 }
             }
@@ -3491,6 +3512,29 @@ const converters = {
             return result;
         },
     },
+    sinope_GFCi_status: {
+        // TH1300ZB specific
+        cluster: 'manuSpecificSinope',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on'};
+            if (msg.data.hasOwnProperty('GFCiStatus')) {
+                return {gfci_status: lookup[msg.data['GFCiStatus']]};
+            }
+        },
+    },
+    sinope_floor_limit_status: {
+        // TH1300ZB specific
+        cluster: 'manuSpecificSinope',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on'};
+            if (msg.data.hasOwnProperty('floorLimitStatus')) {
+                return {floor_limit_status: lookup[msg.data['floorLimitStatus']]};
+            }
+        },
+    },
+
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -4457,6 +4501,15 @@ const converters = {
                 result.repeat = null;
             }
             return result;
+        },
+    },
+    ZNMS12LM_low_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (typeof msg.data['batteryAlarmMask'] == 'number') {
+                return {battery_low: msg.data['batteryAlarmMask'] === 1};
+            }
         },
     },
     DTB190502A1_parse: {

@@ -14,7 +14,6 @@ async function getImageMeta(current, logger, device) {
     assert(image !== undefined, `No image available for imageType '${imageType}'`);
     return {
         fileVersion: (image.fw_file_version_MSB << 16) | image.fw_file_version_LSB,
-        fileSize: image.fw_filesize,
         url: image.fw_binary_url.replace(/^http:\/\//, 'https://'),
     };
 }
