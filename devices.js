@@ -7209,10 +7209,10 @@ const devices = [
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                    acCurrentDivisor: 10,
+                    acCurrentDivisor: 1000,
                     acCurrentMultiplier: 1,
-                    powerMultiplier: 1,
-                    powerDivisor: 10,
+                    acPowerMultiplier: 1,
+                    acPowerDivisor: 10,
                 });
             }
             await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
