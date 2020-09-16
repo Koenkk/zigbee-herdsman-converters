@@ -1248,7 +1248,7 @@ const devices = [
         zigbeeModel: ['TS0505A'],
         model: 'TS0505A',
         vendor: 'TuYa',
-        description: 'RGB+CCT Light controller',
+        description: 'RGB+CCT light controller',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
