@@ -1697,6 +1697,17 @@ const devices = [
     // Lonsonho
     {
         fingerprint: [
+            {modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'},
+        ],
+        model: '11830304',
+        vendor: 'Lonsonho',
+        description: 'Curtain switch',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+    },
+    {
+        fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'},
         ],
