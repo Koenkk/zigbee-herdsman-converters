@@ -6147,6 +6147,9 @@ const devices = [
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
+        whiteLabel: [
+            {vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'},
+        ],
     },
     {
         zigbeeModel: ['ZG2833K4_EU06'],
