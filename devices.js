@@ -1245,6 +1245,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['TS0505A'],
+        model: 'TS0505A',
+        vendor: 'TuYa',
+        description: 'RGB+CCT light controller',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
         vendor: 'TuYa',
