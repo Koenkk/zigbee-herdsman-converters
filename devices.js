@@ -11944,7 +11944,7 @@ const devices = [
         description: '910 SmartCode traditional electronic deadbolt',
         supports: 'lock/unlock, battery',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_rep],
-        toZigbee: [tz.generic_lock, , tz.pincode_lock],
+        toZigbee: [tz.generic_lock, tz.pincode_lock],
         meta: {configureKey: 4, pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
