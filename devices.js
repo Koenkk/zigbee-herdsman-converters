@@ -1195,7 +1195,7 @@ const devices = [
 
     // TuYa
     {
-        zigbeeModel: ['qnazj70'],
+        zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
