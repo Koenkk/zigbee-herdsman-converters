@@ -11938,6 +11938,24 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SMARTCODE_DEADBOLT_5'],
+        model: '99100-045',
+        vendor: 'Kwikset',
+        description: '910 SmartCode traditional electronic deadbolt',
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_rep],
+        toZigbee: [tz.generic_lock, , tz.pincode_lock],
+        meta: {configureKey: 4, pinCodeCount: 30},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            console.log(device);
+            console.log(endpoint.clusters);
+            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await configureReporting.lockState(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5_L'],
         model: '99100-006',
         vendor: 'Kwikset',
