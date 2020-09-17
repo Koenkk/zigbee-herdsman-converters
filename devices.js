@@ -1199,6 +1199,8 @@ const devices = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
