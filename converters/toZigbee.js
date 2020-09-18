@@ -51,6 +51,14 @@ async function sendTuyaCommand(entity, dp, fn, data) {
     );
 }
 
+function saveSceneState(entity, sceneID, groupID, state) {
+    const attributes = ['state', 'color_temp', 'brightness', 'color'];
+    if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
+    const metaKey = `${sceneID}_${groupID}`;
+    entity.meta.scenes[metaKey] = {state: utils.filterObject(state, attributes)};
+    entity.save();
+}
+
 function getEntityOrFirstGroupMember(entity) {
     if (entity.constructor.name === 'Group') {
         return entity.members.length > 0 ? entity.members[0] : null;
@@ -2706,14 +2714,19 @@ const converters = {
             const sceneid = value;
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, getOptions(meta.mapped));
 
-            if (isGroup || response.status === 0 ) {
-                if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
-                entity.meta.scenes[value] = {state: utils.filterObject(meta.state, ['state', 'color_temp', 'brightness', 'color'])};
-                entity.save();
-                return {state: {}};
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, meta.state);
             } else {
-                throw new Error(`Scene store not succesfull ('${common.zclStatus[response.status]}')`);
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
             }
+
+            return {state: {}};
         },
     },
     scene_recall: {
@@ -2722,147 +2735,76 @@ const converters = {
             const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
             const sceneid = value;
             await entity.command('genScenes', 'recall', {groupid, sceneid}, getOptions(meta.mapped));
-            return {state: entity.meta.scenes[value].state};
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                const membersState = {};
+                for (const member of entity.members) {
+                    membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                }
+
+                return {membersState};
+            } else {
+                return {state: entity.meta.scenes[metaKey].state};
+            }
         },
     },
-     scene_add: {
-         key: ['scene_add'],
-         convertSet: async (entity, key, value, meta) => {
-             const addCmdLookup = {
-                 'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
-                 'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
-                 'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
-             };
+    scene_add: {
+        key: ['scene_add'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
+                throw new Error('Invalid payload');
+            }
 
-             if ( 'extensionfieldsets' in value && 'attributes' in value ) {
-                 throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
-             }
-
-             let extensionfieldsets = [];
-             if ( 'extensionfieldsets' in value ) {
-                 extensionfieldsets = value.extensionfieldsets;
-             } else {
-                 for ( const attribute of value.attributes ) {
-                     if (attribute.toLowerCase() in addCmdLookup ) {
-                         extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
-                     } else {
-                         meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
-                     }
-                 }
-             }
+            if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
+                throw new Error(`Don't specify both 'color_temp' and 'color'`);
+            }
 
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
-             
-             const response = await entity.command(
-                 'genScenes', 'add', {
-                     'groupid': groupid,
-                     'sceneid': value.sceneid,
-                     'scenename': value.scenename,
-                     'transtime': value.transtime,
-                     'extensionfieldsets': extensionfieldsets,
-                 }, getOptions(meta.mapped),
-             );
+            const sceneid = value.ID;
+            const scenename = '';
+            const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
-             if ( response.status != 0 ) {
-                 throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
-             }
-         },
-     },
-    // scene_view: {
-    //     key: ['scene_view'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const response = await entity.command('genScenes', 'view', {
-    //             'groupid': value.groupid,
-    //             'sceneid': value.sceneid,
-    //         }, getOptions(meta.mapped));
-    //         return ({state: response});
-    //     },
-    // },
-    // scene_remove: {
-    //     key: ['scene_remove'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const response = await entity.command('genScenes', 'remove', {
-    //             'groupid': value.groupid,
-    //             'sceneid': value.sceneid,
-    //         }, getOptions(meta.mapped));
-    //         if ( response.status != 0 ) {
-    //             throw new Error(`Scene remove not succesfull. Return status is '${common.zclStatus[response.status]}'.`);
-    //         }
-    //     },
-    // },
-    // scene_remove_all: {
-    //     key: ['scene_remove_all'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const response = await entity.command('genScenes', 'removeAll', {'groupid': value.groupid}, getOptions(meta.mapped));
-    //         if ( response.status != 0 ) {
-    //             throw new Error(`Scene remove_all not succesfull. Return status is '${common.zclStatus[response.status]}'.`);
-    //         }
-    //     },
-    // },
-    // scene_recall: {
-    //     key: ['scene_recall'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         await entity.command('genScenes', 'recall', {'groupid': value.groupid, 'sceneid': value.sceneid}, getOptions(meta.mapped));
-    //     },
-    // },
-    // scene_get_scene_membership: {
-    //     key: ['scene_get_scene_membership'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const response = await entity.command('genScenes', 'getSceneMembership', {'groupid': value.groupid}, getOptions(meta.mapped));
-    //         return ({state: response});
-    //     },
-    // },
-    // scene_enhanced_add: {
-    //     key: ['scene_enhanced_add'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const addCmdLookup = {
-    //             'onoff': {'clstId': 6, 'len': 1, 'extField': [0]},
-    //             'brightness': {'clstId': 8, 'len': 1, 'extField': [0]},
-    //             'color': {'clstId': 768, 'len': 2, 'extField': [3, 4]},
-    //         };
+            const state = {};
+            const extensionfieldsets = [];
+            for (const [attribute, val] of Object.entries(value)) {
+                if (attribute === 'state') {
+                    extensionfieldsets.push({'clstId': 6, 'len': 1, 'extField': [val.toLowerCase() === 'on' ? 1 : 0]});
+                    state['state'] = val.toUpperCase();
+                } else if (attribute === 'brightness') {
+                    extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
+                    state['brightness'] = val;
+                } else if (attribute === 'color_temp') {
+                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    state['color_temp'] = val;
+                } else if (attribute === 'color') {
+                    const xy = utils.hexToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
+                    state['color'] = xy;
+                }
+            }
 
-    //         if ( 'extensionfieldsets' in value && 'attributes' in value ) {
-    //             throw new Error(`Specify either 'extensionfieldsets' or 'attributes', not both.`);
-    //         }
+            const response = await entity.command(
+                'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+            );
 
-    //         let extensionfieldsets = [];
-    //         if ( 'extensionfieldsets' in value ) {
-    //             extensionfieldsets = value.extensionfieldsets;
-    //         } else {
-    //             for ( const attribute of value.attributes ) {
-    //                 if (attribute.toLowerCase() in addCmdLookup ) {
-    //                     extensionfieldsets.push(addCmdLookup[attribute.toLowerCase()]);
-    //                 } else {
-    //                     meta.logger.debug(`Attribute '${attribute}' unknown, skipping. Valid attributes: ${Object.keys(addCmdLookup)}`);
-    //                 }
-    //             }
-    //         }
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, state);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, state);
+            } else {
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+            }
 
-    //         const response = await entity.command(
-    //             'genScenes', 'enhancedAdd', {
-    //                 'groupid': value.groupid,
-    //                 'sceneid': value.sceneid,
-    //                 'scenename': value.scenename,
-    //                 'transtime': value.transtime,
-    //                 'extensionfieldsets': extensionfieldsets,
-    //             }, getOptions(meta.mapped),
-    //         );
-    //         if ( response.status != 0 ) {
-    //             throw new Error(`Scene not added. Return status is '${common.zclStatus[response.status]}'.`);
-    //         }
-    //     },
-    // },
-    // scene_enhanced_view: {
-    //     key: ['scene_enhanced_view'],
-    //     convertSet: async (entity, key, value, meta) => {
-    //         const response = await entity.command('genScenes', 'enhancedView', {
-    //             'groupid': value.groupid,
-    //             'sceneid': value.sceneid,
-    //         }, getOptions(meta.mapped));
-    //         return ({state: response});
-    //     },
-    // },
+            return {state: {}};
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
