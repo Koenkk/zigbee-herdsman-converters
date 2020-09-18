@@ -56,6 +56,18 @@ const readMeteringPowerConverterAttributes = async (endpoint) => {
     await endpoint.read('seMetering', ['multiplier', 'divisor']);
 };
 
+const writeCurrentTime = async (endpoint) => {
+    const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+
+    const time = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+    const values = {
+        timeStatus: 3, // Time-master + synchronised
+        time: time,
+        timeZone: ((new Date()).getTimezoneOffset() * -1) * 60,
+    };
+    endpoint.write('genTime',values);
+}
+
 const configureReportingPayload = (attribute, min, max, change, overrides) => {
     const payload = {
         attribute: attribute,
@@ -375,6 +387,35 @@ const livolo = {
         }
     },
 };
+
+const heiman = {
+    configureReporting: {
+        pm25MeasuredValue: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
+        },
+        formAldehydeMeasuredValue: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+        },
+        batteryState: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('batteryState', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+        },
+        pm10measuredValue: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('pm10measuredValue', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+        },
+        tvocMeasuredValue: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('tvocMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+        },
+        aqiMeasuredValue: async (endpoint, overrides) => {
+            const payload = configureReportingPayload('aqiMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+        },
+    }
+}
 
 const pincodeLock = {
     readPinCodeAfterProgramming: async (type, data, device) => {
@@ -7930,6 +7971,43 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
+    },
+    {
+        fingerprint: [{ modelID: 'HS2AQ-EM', manufacturerName: 'HEIMAN' }],
+        model: 'HS2AQ-EM',
+        vendor: 'HEIMAN',
+        description: 'Air quality monitor',
+        supports: 'air quality',
+        fromZigbee: [
+            fz.battery, fz.temperature, fz.humidity,
+            fz.heiman_pm5, fz.heiman_hcho, fz.heiman_air_quality
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg','genTime','msTemperatureMeasurement','msRelativeHumidity'
+                ,'heimanSpecificPM25Measurement','heimanSpecificFormaldehydeMeasurement','heimanSpecificAirQuality'
+            ]);
+
+            await configureReporting.batteryPercentageRemaining(endpoint);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+
+            await heiman.configureReporting.pm25MeasuredValue(endpoint);
+            await heiman.configureReporting.formAldehydeMeasuredValue(endpoint);
+            await heiman.configureReporting.batteryState(endpoint);
+            await heiman.configureReporting.pm10measuredValue(endpoint);
+            await heiman.configureReporting.tvocMeasuredValue(endpoint);
+            await heiman.configureReporting.aqiMeasuredValue(endpoint);
+
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+
+            // Seems that it is bug in HEIMAN, device does not asks for the time with binding
+            // So, we need to write time during configure
+            await writeCurrentTime(endpoint);
+       },
     },
 
     // GS
