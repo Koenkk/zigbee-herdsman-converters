@@ -65,8 +65,8 @@ const writeCurrentTime = async (endpoint) => {
         time: time,
         timeZone: ((new Date()).getTimezoneOffset() * -1) * 60,
     };
-    endpoint.write('genTime',values);
-}
+    endpoint.write('genTime', values);
+};
 
 const configureReportingPayload = (attribute, min, max, change, overrides) => {
     const payload = {
@@ -414,8 +414,8 @@ const heiman = {
             const payload = configureReportingPayload('aqiMeasuredValue', 0, repInterval.HOUR, 1, overrides);
             await endpoint.configureReporting('heimanSpecificAirQuality', payload);
         },
-    }
-}
+    },
+};
 
 const pincodeLock = {
     readPinCodeAfterProgramming: async (type, data, device) => {
@@ -7683,7 +7683,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        fingerprint: [{ modelID: 'DoorSensor-N-3.0', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'DoorSensor-N-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS3DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
@@ -7717,7 +7717,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        fingerprint: [{ modelID: 'WaterSensor-N-3.0', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'WaterSensor-N-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1WL-N',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
@@ -7748,12 +7748,12 @@ const devices = [
     //     toZigbee: [],
     // },
     {
-        fingerprint: [{ modelID: 'RC-N', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'RC-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
         supports: 'action',
-        fromZigbee: [ fz.battery, fz.heiman_smart_controller_armmode, fz.command_emergency ],
+        fromZigbee: [fz.battery, fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7844,7 +7844,7 @@ const devices = [
         },
     },
     {
-        fingerprint: [{ modelID: 'HT-N', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'HT-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1HT-N',
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
@@ -7854,7 +7854,7 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement','genPowerCfg']);
+            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await configureReporting.temperature(endpoint1);
             await configureReporting.batteryPercentageRemaining(endpoint1, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
@@ -7929,12 +7929,12 @@ const devices = [
         },
     },
     {
-        fingerprint: [{ modelID: 'SOS-EM', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
         supports: 'action',
-        fromZigbee: [ fz.command_status_change_notification_action, fz.legacy_st_button_state, fz.battery ],
+        fromZigbee: [fz.command_status_change_notification_action, fz.legacy_st_button_state, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7973,22 +7973,22 @@ const devices = [
         },
     },
     {
-        fingerprint: [{ modelID: 'HS2AQ-EM', manufacturerName: 'HEIMAN' }],
+        fingerprint: [{modelID: 'HS2AQ-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS2AQ-EM',
         vendor: 'HEIMAN',
         description: 'Air quality monitor',
         supports: 'air quality',
         fromZigbee: [
             fz.battery, fz.temperature, fz.humidity,
-            fz.heiman_pm5, fz.heiman_hcho, fz.heiman_air_quality
+            fz.heiman_pm5, fz.heiman_hcho, fz.heiman_air_quality,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg','genTime','msTemperatureMeasurement','msRelativeHumidity'
-                ,'heimanSpecificPM25Measurement','heimanSpecificFormaldehydeMeasurement','heimanSpecificAirQuality'
+                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity',
+                'heimanSpecificPM25Measurement', 'heimanSpecificFormaldehydeMeasurement', 'heimanSpecificAirQuality',
             ]);
 
             await configureReporting.batteryPercentageRemaining(endpoint);
@@ -8007,7 +8007,7 @@ const devices = [
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
             await writeCurrentTime(endpoint);
-       },
+        },
     },
 
     // GS

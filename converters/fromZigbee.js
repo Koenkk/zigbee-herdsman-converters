@@ -2715,7 +2715,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            if (msg.data['batteryState']){
+            if (msg.data['batteryState']) {
                 const lookup = {
                     0: 'not_charging',
                     1: 'charging',
