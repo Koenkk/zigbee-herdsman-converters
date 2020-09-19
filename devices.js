@@ -7980,7 +7980,7 @@ const devices = [
         supports: 'air quality',
         fromZigbee: [
             fz.battery, fz.temperature, fz.humidity,
-            fz.heiman_pm5, fz.heiman_hcho, fz.heiman_air_quality,
+            fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality,
         ],
         toZigbee: [],
         meta: {configureKey: 1},

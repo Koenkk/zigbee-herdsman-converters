@@ -2692,7 +2692,7 @@ const converters = {
             }
         },
     },
-    heiman_pm5: {
+    heiman_pm25: {
         cluster: 'heimanSpecificPM25Measurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
