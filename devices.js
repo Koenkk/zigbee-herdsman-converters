@@ -1708,8 +1708,9 @@ const devices = [
         vendor: 'Lonsonho',
         description: 'Curtain switch',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+        fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {configureKey: 1, coverInverted: true},
     },
     {
         fingerprint: [
