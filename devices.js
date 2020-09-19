@@ -5747,6 +5747,9 @@ const devices = [
             ]},
         ],
         model: 'GL-C-007-1ID', // 1 ID controls white and color together
+        // Only enable disableDefaultResponse for the second fingerprint:
+        // https://github.com/Koenkk/zigbee2mqtt/issues/3813#issuecomment-694922037
+        meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGBW (1 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
