@@ -2692,6 +2692,43 @@ const converters = {
             }
         },
     },
+    heiman_pm25: {
+        cluster: 'heimanSpecificPM25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['measuredValue']) result['pm25'] = msg.data['measuredValue'];
+            return result;
+        },
+    },
+    heiman_hcho: {
+        cluster: 'heimanSpecificFormaldehydeMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['measuredValue']) result['hcho'] = parseFloat(msg.data['measuredValue']) / 100.0;
+            return result;
+        },
+    },
+    heiman_air_quality: {
+        cluster: 'heimanSpecificAirQuality',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['batteryState']) {
+                const lookup = {
+                    0: 'not_charging',
+                    1: 'charging',
+                    2: 'charged',
+                };
+                result['battery_state'] = lookup[msg.data['batteryState']];
+            }
+            if (msg.data['tvocMeasuredValue']) result['voc'] = msg.data['tvocMeasuredValue'];
+            if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
+            if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
+            return result;
+        },
+    },
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
