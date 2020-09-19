@@ -388,34 +388,6 @@ const livolo = {
     },
 };
 
-const heiman = {
-    configureReporting: {
-        pm25MeasuredValue: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
-        },
-        formAldehydeMeasuredValue: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
-        },
-        batteryState: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('batteryState', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
-        },
-        pm10measuredValue: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('pm10measuredValue', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
-        },
-        tvocMeasuredValue: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('tvocMeasuredValue', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
-        },
-        aqiMeasuredValue: async (endpoint, overrides) => {
-            const payload = configureReportingPayload('aqiMeasuredValue', 0, repInterval.HOUR, 1, overrides);
-            await endpoint.configureReporting('heimanSpecificAirQuality', payload);
-        },
-    },
-};
 
 const pincodeLock = {
     readPinCodeAfterProgramming: async (type, data, device) => {
@@ -7985,6 +7957,35 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
+            const heiman = {
+                configureReporting: {
+                    pm25MeasuredValue: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
+                    },
+                    formAldehydeMeasuredValue: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+                    },
+                    batteryState: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('batteryState', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+                    },
+                    pm10measuredValue: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('pm10measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+                    },
+                    tvocMeasuredValue: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('tvocMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+                    },
+                    aqiMeasuredValue: async (endpoint, overrides) => {
+                        const payload = configureReportingPayload('aqiMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
+                    },
+                },
+            };
+
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity',
