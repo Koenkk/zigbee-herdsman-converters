@@ -10790,9 +10790,16 @@ const devices = [
         model: 'PM-C150-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT remote control smart buried-type 16A outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        supports: 'on/off, power and energy measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.instantaneousDemand(endpoint);
+        },
     },
 
     // CREE
