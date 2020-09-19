@@ -3265,6 +3265,15 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5041131P9'],
+        model: '5041131P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Milliskin',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
 
     // Belkin
     {
