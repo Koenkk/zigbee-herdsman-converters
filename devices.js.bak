@@ -10784,7 +10784,7 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
-    },
+	},
     {
         zigbeeModel: ['PM-C150-ZB'],
         model: 'PM-C150-ZB',
