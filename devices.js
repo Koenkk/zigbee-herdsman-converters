@@ -9196,7 +9196,7 @@ const devices = [
 
     // Vimar
     {
-        zigbeeModel: ['2_Way_Switch_v1.0'],
+        zigbeeModel: ['2_Way_Switch_v1.0', 'On_Off_Switch_v1.0'],
         model: '14592.0',
         vendor: 'Vimar',
         description: '2-way switch IoT connected mechanism',
