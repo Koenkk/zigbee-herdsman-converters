@@ -12982,6 +12982,15 @@ const devices = [
     },
 ];
 
-module.exports = devices.map((device) =>
-    device.extend ? Object.assign({}, device.extend, device) : device,
-);
+
+module.exports = devices.map((device) => {
+    if (device.extend) {
+        device = Object.assign({}, device.extend, device);
+    }
+
+    if (device.toZigbee.length > 0) {
+        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add);
+    }
+
+    return device;
+});

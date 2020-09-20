@@ -51,6 +51,14 @@ async function sendTuyaCommand(entity, dp, fn, data) {
     );
 }
 
+function saveSceneState(entity, sceneID, groupID, state) {
+    const attributes = ['state', 'color_temp', 'brightness', 'color'];
+    if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
+    const metaKey = `${sceneID}_${groupID}`;
+    entity.meta.scenes[metaKey] = {state: utils.filterObject(state, attributes)};
+    entity.save();
+}
+
 function getEntityOrFirstGroupMember(entity) {
     if (entity.constructor.name === 'Group') {
         return entity.members.length > 0 ? entity.members[0] : null;
@@ -2791,6 +2799,106 @@ const converters = {
             }
         },
     },
+    scene_store: {
+        key: ['scene_store'],
+        convertSet: async (entity, key, value, meta) => {
+            const isGroup = entity.constructor.name === 'Group';
+            const groupid = isGroup ? entity.groupID : 0;
+            const sceneid = value;
+            const response = await entity.command('genScenes', 'store', {groupid, sceneid}, getOptions(meta.mapped));
+
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, meta.state);
+            } else {
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+            }
+
+            return {state: {}};
+        },
+    },
+    scene_recall: {
+        key: ['scene_recall'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'recall', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                const membersState = {};
+                for (const member of entity.members) {
+                    membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                }
+
+                return {membersState};
+            } else {
+                return {state: entity.meta.scenes[metaKey].state};
+            }
+        },
+    },
+    scene_add: {
+        key: ['scene_add'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
+                throw new Error('Invalid payload');
+            }
+
+            if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
+                throw new Error(`Don't specify both 'color_temp' and 'color'`);
+            }
+
+            const isGroup = entity.constructor.name === 'Group';
+            const groupid = isGroup ? entity.groupID : 0;
+            const sceneid = value.ID;
+            const scenename = '';
+            const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
+
+            const state = {};
+            const extensionfieldsets = [];
+            for (const [attribute, val] of Object.entries(value)) {
+                if (attribute === 'state') {
+                    extensionfieldsets.push({'clstId': 6, 'len': 1, 'extField': [val.toLowerCase() === 'on' ? 1 : 0]});
+                    state['state'] = val.toUpperCase();
+                } else if (attribute === 'brightness') {
+                    extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
+                    state['brightness'] = val;
+                } else if (attribute === 'color_temp') {
+                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    state['color_temp'] = val;
+                } else if (attribute === 'color') {
+                    const xy = utils.hexToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
+                    state['color'] = xy;
+                }
+            }
+
+            const response = await entity.command(
+                'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+            );
+
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, state);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, state);
+            } else {
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+            }
+
+            return {state: {}};
+        },
+    },
+
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
