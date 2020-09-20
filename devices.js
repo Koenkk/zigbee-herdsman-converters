@@ -2246,10 +2246,10 @@ const devices = [
     },
     {
         zigbeeModel: ['LTD011'],
-        model: 'LTD011',
+        model: '5110131H5',
         vendor: 'Philips',
-        description: 'Garnea Downlight',
-        supports: 'on/off, brightness, color temperature, power-on behavior',
+        description: 'Garnea downlight',
+        meta: {turnsOffAtBrightness1: true},
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
