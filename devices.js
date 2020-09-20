@@ -12901,6 +12901,35 @@ const devices = [
         },
     },
 
+    // QMotion products - http://www.qmotionshades.com/
+    {
+        zigbeeModel: ['Rollershade QdR'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'QZR-ZIG2400', // Vendor model number, look on the device for a model number
+        vendor: 'Qmotion', // Vendor of the device (only used for documentation and startup logging)
+        description: '5 channel remote', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        supports: 'Up/Down', // Actions this device supports (only used for documentation)
+        fromZigbee: [fz.identify,fz.cover_position_tilt], // We will add this later
+        toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
+    },
+    {
+        zigbeeModel: ['Honeycomb Internal Battery'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        // model: 'HDM40PV620', // Vendor model number, look on the device for a model number
+        vendor: 'Qmotion', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Motorized roller blind (short)', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        supports: 'Open, close, stop, position', // Actions this device supports (only used for documentation)
+        fromZigbee: [fz.identify], // We will add this later
+        toZigbee: [tz.cover_state,tz.cover_position_tilt], // Should be empty, unless device can be controlled (e.g. lights, switches).
+    },
+    {
+        zigbeeModel: ['Rollershade Internal Battery'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        // model: 'HDM40PV620', // Vendor model number, look on the device for a model number
+        vendor: 'Qmotion', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Motorized roller blind (long)', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        supports: 'Open, close, stop, position', // Actions this device supports (only used for documentation)
+        fromZigbee: [fz.identify], // We will add this later
+        toZigbee: [tz.cover_state,tz.cover_position_tilt], // Should be empty, unless device can be controlled (e.g. lights, switches).
+    },
+
     // Titan Products
     {
         zigbeeModel: ['TPZRCO2HT-Z3'],
