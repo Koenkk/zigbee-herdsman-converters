@@ -12915,7 +12915,7 @@ const devices = [
         zigbeeModel: ['Honeycomb Internal Battery', 'Rollershade Internal Battery'],
         model: 'HDM40PV620',
         vendor: 'Qmotion',
-        description: 'Motorized roller blind (short)',
+        description: 'Motorized roller blind',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.identify],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
