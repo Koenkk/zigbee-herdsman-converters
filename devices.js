@@ -11522,7 +11522,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['MS01'],
+        zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
         vendor: 'SONOFF',
         whiteLabel: [
