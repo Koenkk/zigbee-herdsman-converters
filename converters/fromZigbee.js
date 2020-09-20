@@ -1261,9 +1261,9 @@ const converters = {
     },
     scene_get_scene_membership: {
         cluster: 'genScenes',
-        type: 'commandScenegetSceneMembershipRsp',
+        type: 'commandSceneGetSceneMembershipRsp',
         convert: (model, msg, publish, options, meta) => {
-            return {event:'commandScenegetSceneMembershipRsp',
+            return {event:'commandSceneGetSceneMembershipRsp',
 		    status: msg.data['status'],
 		    capacity: msg.data['capacity'],
 		    groupId: msg.data['groupid'],
