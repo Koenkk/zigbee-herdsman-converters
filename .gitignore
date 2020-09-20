@@ -3,3 +3,4 @@ node_modules/
 .vs/ProjectSettings.json
 .idea
 .DS_Store
+.remote-sync.json
