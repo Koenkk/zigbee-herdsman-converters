@@ -245,7 +245,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case 1027: // 0x0304 Changed manual mode status for moes thermostat
         return {manual_mode: dataAsDecNumber ? 'ON' : 'OFF'};
     case 1060: // 0x2404 Moes Thermostat is Open or Closed
-        return {Heat: dataAsDecNumber ? 'OFF' : 'ON'};
+        return {heating: dataAsDecNumber ? 'OFF' : 'ON'};
     default: // The purpose of the codes 1041 & 1043 are still unknown
         console.log(`zigbee-herdsman-converters:Moes BHT-002-GCLZB: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(data)}`);
