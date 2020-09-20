@@ -12910,6 +12910,26 @@ const devices = [
         },
     },
 
+    // QMotion products - http://www.qmotionshades.com/
+    {
+        zigbeeModel: ['Rollershade QdR'],
+        model: 'QZR-ZIG2400',
+        vendor: 'Qmotion',
+        description: '5 channel remote',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.identify, fz.cover_position_tilt],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['Honeycomb Internal Battery', 'Rollershade Internal Battery'],
+        model: 'HDM40PV620',
+        vendor: 'Qmotion',
+        description: 'Motorized roller blind',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.identify],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+    },
+
     // Titan Products
     {
         zigbeeModel: ['TPZRCO2HT-Z3'],
