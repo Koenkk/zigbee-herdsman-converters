@@ -12488,8 +12488,10 @@ module.exports = devices.map((device) => {
     if (device.extend) {
         device = Object.assign({}, device.extend, device);
     }
-
-    device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add);
+    
+    if (device.toZigbee.length > 0) {
+        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add);
+    }
 
     return device;
 });
