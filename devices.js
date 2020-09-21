@@ -7379,7 +7379,7 @@ const devices = [
         zigbeeModel: ['4200-C'],
         model: '4200-C',
         vendor: 'Centralite',
-        description: 'Smart Outlet',
+        description: 'Smart outlet',
         supports: 'on/off',
         fromZigbee: [fz.on_off, fz.ignore_genOta],
         toZigbee: [tz.on_off],
