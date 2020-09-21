@@ -2729,6 +2729,20 @@ const converters = {
             return result;
         },
     },
+    heiman_scenes: {
+        cluster: 'heimanSpecificScenes',
+        type: ['commandAtHome', 'commandGoOut', 'commandCinema', 'commandRepast', 'commandSleep'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                'commandCinema': 'cinema',
+                'commandAtHome': 'at_home',
+                'commandSleep': 'sleep',
+                'commandGoOut': 'go_out',
+                'repast': 'repast',
+            };
+            if (lookup.hasOwnProperty(msg.type)) return {action: lookup[msg.type]};
+        },
+    },
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',

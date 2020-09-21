@@ -7971,6 +7971,21 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'SceneSwitch-EM-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS2SS',
+        vendor: 'HEIMAN',
+        description: 'Smart scene switch',
+        supports: 'action',
+        fromZigbee: [fz.battery, fz.heiman_scenes],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+        },
+    },
+    {
         zigbeeModel: ['GASSensor-EM'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
