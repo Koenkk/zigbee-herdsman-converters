@@ -7375,6 +7375,20 @@ const devices = [
             await configureReporting.fanMode(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4200-C'],
+        model: '4200-C',
+        vendor: 'Centralite',
+        description: 'Smart outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off, fz.ignore_genOta],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Blaupunkt
     {
