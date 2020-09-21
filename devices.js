@@ -1214,6 +1214,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -1225,6 +1226,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Norklmes', model: 'MKS-CM-W5'},
             {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
+            {vendor: 'Moes', model: 'WS-EUB1-ZG'},
         ],
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
