@@ -1674,7 +1674,7 @@ const devices = [
         description: 'HVAC controller',
         supports: 'temperature, heating/cooling system control, fan mode',
         fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report, fz.tuya_dimmer],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2},
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state,
@@ -12633,7 +12633,7 @@ const devices = [
             fz.tuya_thermostat_on_set_data,
             fz.ignore_basic_report,
         ],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes},
+        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_window_detection,
