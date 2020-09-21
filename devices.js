@@ -6046,7 +6046,7 @@ const devices = [
         model: 'GL-S-005Z',
         vendor: 'Gledopto',
         description: 'Smart RGBW MR16',
-        extend: gledopto.light_onoff_brightness_colorxy,
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['HOMA2023'],
