@@ -1333,6 +1333,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Smart9', model: 'S9TSZGB'},
             {vendor: 'Lonsonho', model: 'TS0043'},
+            {vendor: 'LoraTap', model: 'SS600ZB'},
         ],
         supports: 'action',
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
