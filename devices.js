@@ -11693,6 +11693,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
+        model: 'TS0207_repeater',
+        vendor: 'Tuya',
+        description: 'Repeater',
+        supports: 'linkquality',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+    },        
+    {
         zigbeeModel: ['TS0218'],
         model: 'TS0218',
         vendor: 'CR Smart Home',
