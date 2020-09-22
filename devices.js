@@ -11127,6 +11127,7 @@ const devices = [
         supports: 'open, close, stop, position, tilt',
         fromZigbee: [fz.cover_position_tilt, fz.metering_power],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
