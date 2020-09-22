@@ -2799,6 +2799,34 @@ const converters = {
             }
         },
     },
+    heiman_ir_remote: {
+        key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'send_key':
+                await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'create':
+                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']},
+                    getOptions(meta.mapped, entity));
+                break;
+            case 'learn':
+                await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'delete':
+                await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'get_list':
+                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, getOptions(meta.mapped, entity));
+                break;
+            default: // Unknown key
+                console.log(`Unhandled key ${key}`);
+            }
+        },
+    },
     scene_store: {
         key: ['scene_store'],
         convertSet: async (entity, key, value, meta) => {

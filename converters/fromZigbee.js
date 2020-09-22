@@ -2773,6 +2773,61 @@ const converters = {
             return results;
         },
     },
+    heiman_ir_remote: {
+        cluster: 'heimanSpecificInfraRedRemote',
+        type: ['commandStudyKeyRsp', 'commandCreateIdRsp', 'commandGetIdAndKeyCodeListRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            switch (msg.type) {
+            case 'commandStudyKeyRsp':
+                return {
+                    learn: {
+                        result: msg.data.result === 1 ? 'success' : 'error',
+                        key_code: msg.data.keyCode,
+                        id: msg.data.result === 1 ? msg.data.id : undefined,
+                    },
+                };
+            case 'commandCreateIdRsp':
+                return {
+                    create: {
+                        result: msg.data.id === 0xFF ? 'error' : 'success',
+                        model_type: msg.data.modelType,
+                        id: msg.data.id !== 0xFF ? msg.data.id : undefined,
+                    },
+                };
+            case 'commandGetIdAndKeyCodeListRsp': {
+                // See cluster.js with data format description
+                if (msg.data.packetNumber === 1) {
+                    // start to collect and merge list
+                    // so, we use device instance for temp storage during merging
+                    msg.device.heimanIrDb = [];
+                }
+                const buffer = msg.data.learnedDevicesList;
+                for (let i = 0; i < msg.data.packetLength;) {
+                    const modelDescription = {
+                        id: buffer[i],
+                        model_type: buffer[i + 1],
+                        key_codes: [],
+                    };
+                    const numberOfKeys = buffer[i + 2];
+                    for (let j = i + 3; j < i + 3 + numberOfKeys; j++) {
+                        modelDescription.key_codes.push(buffer[j]);
+                    }
+                    i = i + 3 + numberOfKeys;
+                    msg.device.heimanIrDb.push(modelDescription);
+                }
+                if (msg.data.packetNumber === msg.data.packetsTotal) {
+                    // last packet, all data collected, can publish
+                    const result = {
+                        'devices': msg.device.heimanIrDb,
+                    };
+                    msg.device.heimanIrDb = undefined;
+                    return result;
+                }
+                break;
+            }
+            }
+        },
+    },
     JTQJBF01LMBW_gas: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

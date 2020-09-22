@@ -8084,6 +8084,21 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
+        model: 'HS2IRC',
+        vendor: 'HEIMAN',
+        description: 'Smart IR Control',
+        supports: 'ir control',
+        fromZigbee: [fz.battery, fz.heiman_ir_remote],
+        toZigbee: [tz.heiman_ir_remote],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+        },
+    },
+    {
         zigbeeModel: ['BDHM8E27W70-I1'],
         model: 'BDHM8E27W70-I1',
         vendor: 'GS', // actually it is HEIMAN.
