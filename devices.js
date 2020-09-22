@@ -11700,7 +11700,7 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-    },      
+    },
     {
         zigbeeModel: ['TS0218'],
         model: 'TS0218',
