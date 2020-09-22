@@ -125,6 +125,10 @@ const configureReporting = {
         const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 100, overrides);
         await endpoint.configureReporting('msTemperatureMeasurement', payload);
     },
+    deviceTemperature: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('currentTemperature', 10, repInterval.HOUR, 1, overrides);
+        await endpoint.configureReporting('genDeviceTempCfg', payload);
+    },
     pressure: async (endpoint, overrides) => {
         const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 5, overrides);
         await endpoint.configureReporting('msPressureMeasurement', payload);
@@ -8079,65 +8083,74 @@ const devices = [
             await writeCurrentTime(endpoint);
         },
     },
-
-    // GS
     {
         zigbeeModel: ['BDHM8E27W70-I1'],
         model: 'BDHM8E27W70-I1',
-        vendor: 'GS',
+        vendor: 'GS', // actually it is HEIMAN.
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: generic.light_onoff_brightness_colortemp,
     },
-
     {
         zigbeeModel: ['HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
-        model: 'HS2SW1A-N',
+        fingerprint: [
+            {modelID: 'HS2SW1A-EFR-3.0', manufacturerName: 'HEIMAN'},
+        ],
+        model: 'HS2SW1A/HS2SW1A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 1 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        supports: 'on/off, temperature',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await configureReporting.onOff(endpoint);
+            await configureReporting.deviceTemperature(endpoint);
         },
     },
     {
         zigbeeModel: ['HS2SW2L-EFR-3.0', 'HS2SW2A-N'],
-        model: 'HS2SW2A-N',
+        fingerprint: [
+            {modelID: 'HS2SW2A-EFR-3.0', manufacturerName: 'HEIMAN'},
+        ],
+        model: 'HS2SW2A/HS2SW2A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 2 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        supports: 'on/off, temperature',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
     },
 
     {
         zigbeeModel: ['HS2SW3L-EFR-3.0', 'HS2SW3A-N'],
-        model: 'HS2SW3A-N',
+        fingerprint: [
+            {modelID: 'HS2SW3A-EFR-3.0', manufacturerName: 'HEIMAN'},
+        ],
+        model: 'HS2SW3A/HS2SW3A-N',
         vendor: 'HEIMAN',
         description: 'Smart switch - 3 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        supports: 'on/off, temperature',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, center: 2, right: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
     },
 

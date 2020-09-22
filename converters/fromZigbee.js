@@ -525,6 +525,13 @@ const converters = {
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    device_temperature: {
+        cluster: 'genDeviceTempCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {temperature: parseInt(msg.data['currentTemperature'])};
+        },
+    },
     humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
