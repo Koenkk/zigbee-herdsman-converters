@@ -529,7 +529,7 @@ const converters = {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {temperature: parseInt(msg.data['currentTemperature'])};
+            return {device_temperature: parseInt(msg.data['currentTemperature'])};
         },
     },
     humidity: {
