@@ -2780,19 +2780,17 @@ const converters = {
             switch (msg.type) {
             case 'commandStudyKeyRsp':
                 return {
-                    learn: {
-                        result: msg.data.result === 1 ? 'success' : 'error',
-                        key_code: msg.data.keyCode,
-                        id: msg.data.result === 1 ? msg.data.id : undefined,
-                    },
+                    action: 'learn',
+                    action_result: msg.data.result === 1 ? 'success' : 'error',
+                    action_key_code: msg.data.keyCode,
+                    action_id: msg.data.result === 1 ? msg.data.id : undefined,
                 };
             case 'commandCreateIdRsp':
                 return {
-                    create: {
-                        result: msg.data.id === 0xFF ? 'error' : 'success',
-                        model_type: msg.data.modelType,
-                        id: msg.data.id !== 0xFF ? msg.data.id : undefined,
-                    },
+                    action: 'create',
+                    action_result: msg.data.id === 0xFF ? 'error' : 'success',
+                    action_model_type: msg.data.modelType,
+                    action_id: msg.data.id !== 0xFF ? msg.data.id : undefined,
                 };
             case 'commandGetIdAndKeyCodeListRsp': {
                 // See cluster.js with data format description
