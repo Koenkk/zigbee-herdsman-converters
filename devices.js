@@ -10610,6 +10610,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SP2600ZB'],
+        model: 'SP2600ZB',
+        vendor: 'Sinope',
+        description: 'Zigbee smart plug',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['DM2500ZB'],
         model: 'DM2500ZB',
         vendor: 'Sinope',
