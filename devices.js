@@ -11149,8 +11149,18 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Shutter control J1',
         supports: 'open, close, stop, position, tilt',
-        fromZigbee: [fz.cover_position_tilt],
+        fromZigbee: [fz.cover_position_tilt, fz.metering_power],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint3 = device.getEndpoint(3);
+            await bind(endpoint3, coordinatorEndpoint, ['seMetering']);
+            await readMeteringPowerConverterAttributes(endpoint3);
+            await configureReporting.instantaneousDemand(endpoint3);
+            await bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await configureReporting.currentPositionLiftPercentage(endpoint1);
+        },
         ota: ota.ubisys,
     },
     {
