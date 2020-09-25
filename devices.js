@@ -4824,7 +4824,7 @@ const devices = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Flex XL RGBW'],
+        zigbeeModel: ['Flex XL RGBW', 'Flex RGBW Pro'],
         model: '73773',
         vendor: 'Sylvania',
         description: 'SMART+ Flex XL RGBW strip',
