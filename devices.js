@@ -10389,7 +10389,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
