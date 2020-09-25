@@ -525,6 +525,13 @@ const converters = {
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    device_temperature: {
+        cluster: 'genDeviceTempCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {device_temperature: parseInt(msg.data['currentTemperature'])};
+        },
+    },
     humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -2729,6 +2736,20 @@ const converters = {
             return result;
         },
     },
+    heiman_scenes: {
+        cluster: 'heimanSpecificScenes',
+        type: ['commandAtHome', 'commandGoOut', 'commandCinema', 'commandRepast', 'commandSleep'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                'commandCinema': 'cinema',
+                'commandAtHome': 'at_home',
+                'commandSleep': 'sleep',
+                'commandGoOut': 'go_out',
+                'repast': 'repast',
+            };
+            if (lookup.hasOwnProperty(msg.type)) return {action: lookup[msg.type]};
+        },
+    },
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -2750,6 +2771,59 @@ const converters = {
             }
             results['zone_id'] = zoneId;
             return results;
+        },
+    },
+    heiman_ir_remote: {
+        cluster: 'heimanSpecificInfraRedRemote',
+        type: ['commandStudyKeyRsp', 'commandCreateIdRsp', 'commandGetIdAndKeyCodeListRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            switch (msg.type) {
+            case 'commandStudyKeyRsp':
+                return {
+                    action: 'learn',
+                    action_result: msg.data.result === 1 ? 'success' : 'error',
+                    action_key_code: msg.data.keyCode,
+                    action_id: msg.data.result === 1 ? msg.data.id : undefined,
+                };
+            case 'commandCreateIdRsp':
+                return {
+                    action: 'create',
+                    action_result: msg.data.id === 0xFF ? 'error' : 'success',
+                    action_model_type: msg.data.modelType,
+                    action_id: msg.data.id !== 0xFF ? msg.data.id : undefined,
+                };
+            case 'commandGetIdAndKeyCodeListRsp': {
+                // See cluster.js with data format description
+                if (msg.data.packetNumber === 1) {
+                    // start to collect and merge list
+                    // so, we use device instance for temp storage during merging
+                    msg.device.heimanIrDb = [];
+                }
+                const buffer = msg.data.learnedDevicesList;
+                for (let i = 0; i < msg.data.packetLength;) {
+                    const modelDescription = {
+                        id: buffer[i],
+                        model_type: buffer[i + 1],
+                        key_codes: [],
+                    };
+                    const numberOfKeys = buffer[i + 2];
+                    for (let j = i + 3; j < i + 3 + numberOfKeys; j++) {
+                        modelDescription.key_codes.push(buffer[j]);
+                    }
+                    i = i + 3 + numberOfKeys;
+                    msg.device.heimanIrDb.push(modelDescription);
+                }
+                if (msg.data.packetNumber === msg.data.packetsTotal) {
+                    // last packet, all data collected, can publish
+                    const result = {
+                        'devices': msg.device.heimanIrDb,
+                    };
+                    msg.device.heimanIrDb = undefined;
+                    return result;
+                }
+                break;
+            }
+            }
         },
     },
     JTQJBF01LMBW_gas: {
