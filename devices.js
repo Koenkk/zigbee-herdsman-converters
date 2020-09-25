@@ -7089,7 +7089,7 @@ const devices = [
         description: 'Optical smoke detector (hardware version v2)',
         supports: 'smoke, tamper and battery',
         fromZigbee: [fz.ias_smoke_alarm_1],
-        toZigbee: [],
+        toZigbee: [tz.warning],
     },
     {
         zigbeeModel: ['902010/24'],
