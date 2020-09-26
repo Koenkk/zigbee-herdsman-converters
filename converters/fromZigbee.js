@@ -3417,6 +3417,7 @@ const converters = {
 
             return {
                 action: `brightness_${direction}_hold`,
+                hold: `${direction}`,
                 rate: msg.data.rate,
             };
         },
@@ -3433,6 +3434,7 @@ const converters = {
             const direction = store[deviceID].direction;
             return {
                 action: `brightness_${direction}_release`,
+                hold: ``,
             };
         },
     },
