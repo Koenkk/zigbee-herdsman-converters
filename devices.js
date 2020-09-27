@@ -13159,6 +13159,15 @@ const devices = [
             return {'up': 4, 'down': 2, 'left': 5, 'right': 3, 'center': 8, 'back': 1, 'play': 7, 'voice': 6};
         },
     },
+
+    // CY-LIGHTING
+    {
+        zigbeeModel: ['DM A60F'],
+        model: 'DM A60F',
+        vendor: 'CY-LIGHTING',
+        description: '6W smart dimmable E27 lamp 2700K',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 
