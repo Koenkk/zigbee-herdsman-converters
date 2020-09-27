@@ -13155,9 +13155,7 @@ const devices = [
         description: '8key switch',
         supports: 'action',
         fromZigbee: [fz.qlwz_letv8key_switch],
-        endpoint: (device) => {
-            return {'up': 4, 'down': 2, 'left': 5, 'right': 3, 'center': 8, 'back': 1, 'play': 7, 'voice': 6};
-        },
+        toZigbee: [],
     },
 
     // CY-LIGHTING
