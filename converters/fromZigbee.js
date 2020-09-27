@@ -1502,6 +1502,19 @@ const converters = {
             }
         },
     },
+    qlwz_letv8key_switch: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {4: 'up', 2: 'down', 5: 'left', 3: 'right', 8: 'center', 1: 'back', 7: 'play', 6: 'voice'};
+            const actionLookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'tripple'};
+            const button = buttonLookup[msg.endpoint.ID];
+            const action = actionLookup[msg.data['presentValue']] || msg.data['presentValue'];
+            if (button) {
+                return {action: `${action}_${button}`};
+            }
+        },
+    },
 
     /**
      * Legacy: DONT RE-USE!!
@@ -5977,29 +5990,6 @@ const converters = {
                 return {volume: {2: 'low', 1: 'medium', 0: 'high'}[dataAsDecNumber]};
             default: // Unknown code
                 console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
-            }
-        },
-    },
-
-    // LeTV
-    qlwz_letv8key_switch: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const value = msg.data['presentValue'];
-
-            const actionLookup = {
-                0: 'hold',
-                1: 'single',
-                2: 'double',
-                3: 'tripple',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                return {click: button + (action ? `_${action}` : `_${value}`)};
             }
         },
     },
