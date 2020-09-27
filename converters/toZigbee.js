@@ -2890,7 +2890,7 @@ const converters = {
 
             const state = {};
             const extensionfieldsets = [];
-            for (const [attribute, val] of Object.entries(value)) {
+            for (let [attribute, val] of Object.entries(value)) {
                 if (attribute === 'state') {
                     extensionfieldsets.push({'clstId': 6, 'len': 1, 'extField': [val.toLowerCase() === 'on' ? 1 : 0]});
                     state['state'] = val.toUpperCase();
@@ -2901,7 +2901,12 @@ const converters = {
                     extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
-                    const xy = utils.hexToXY(val);
+                    try {
+                        val = JSON.parse(val);
+                    } catch (e) {
+                        e;
+                    }
+                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color'] = xy;
                 }
