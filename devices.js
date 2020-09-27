@@ -13146,6 +13146,15 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
         },
     },
+
+    // CY-LIGHTING
+    {
+        zigbeeModel: ['DM A60F'],
+        model: 'DM A60F',
+        vendor: 'CY-LIGHTING',
+        description: '6W smart dimmable E27 lamp 2700K',
+        extend: generic.light_onoff_brightness,
+    },
 ];
 
 
