@@ -13146,6 +13146,19 @@ const devices = [
             await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
         },
     },
+
+    // LeTV
+    {
+        zigbeeModel: ['qlwz.letv8key.10'],
+        model: 'LeTV.8KEY',
+        vendor: 'LeTV',
+        description: 'LeTV 8key',
+        supports: 'hold, single, double and triple click',
+        fromZigbee: [fz.qlwz_letv8key_switch],
+        endpoint: (device) => {
+            return {'up': 4, 'down': 2, 'left': 5, 'right': 3, 'center': 8, 'back': 1, 'play': 7, 'voice': 6};
+        },
+    },
 ];
 
 

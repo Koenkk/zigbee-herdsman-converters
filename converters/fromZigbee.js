@@ -5981,6 +5981,29 @@ const converters = {
         },
     },
 
+    // LeTV
+    qlwz_letv8key_switch: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const value = msg.data['presentValue'];
+
+            const actionLookup = {
+                0: 'hold',
+                1: 'single',
+                2: 'double',
+                3: 'tripple',
+            };
+
+            const action = actionLookup[value];
+
+            if (button) {
+                return {click: button + (action ? `_${action}` : `_${value}`)};
+            }
+        },
+    },
+
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
