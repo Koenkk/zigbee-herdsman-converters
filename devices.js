@@ -13147,6 +13147,17 @@ const devices = [
         },
     },
 
+    // LeTV
+    {
+        zigbeeModel: ['qlwz.letv8key.10'],
+        model: 'LeTV.8KEY',
+        vendor: 'LeTV',
+        description: '8key switch',
+        supports: 'action',
+        fromZigbee: [fz.qlwz_letv8key_switch],
+        toZigbee: [],
+    },
+
     // CY-LIGHTING
     {
         zigbeeModel: ['DM A60F'],
