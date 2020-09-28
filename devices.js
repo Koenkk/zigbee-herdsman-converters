@@ -3052,6 +3052,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5055148P7'],
+        model: '5055148P7',
+        vendor: 'Philips',
+        description: 'Hue Centura (square)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
