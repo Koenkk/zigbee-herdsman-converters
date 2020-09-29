@@ -2612,9 +2612,8 @@ const converters = {
                         `provided ${numoftrans} for device ${meta.options.friendlyName}`);
                 }
                 if (transitions.length > maxTransitions) {
-                    meta.logger.warn(`Reducing number of transitions from ${transitions.length} ` +
-                        `to ${maxTransitions} for device ${meta.options.friendlyName}`);
-                    transitions = transitions.slice(4);
+                    throw new Error(`Too more transitions provided. Provided: ${transitions.length} ` +
+                        `but supports only ${numoftrans} for device ${meta.options.friendlyName}`);
                 }
                 if (transitions.length < maxTransitions) {
                     meta.logger.warn(`Padding transitions from ${transitions.length} ` +
