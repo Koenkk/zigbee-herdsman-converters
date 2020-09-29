@@ -8177,7 +8177,6 @@ const devices = [
             await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
     },
-
     {
         zigbeeModel: ['CurtainMo-EF'],
         model: 'HS2CM-N-DC',
