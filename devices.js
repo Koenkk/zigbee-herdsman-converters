@@ -1353,6 +1353,18 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['TS0044'],
+        model: 'TS0044',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 4 buttons',
+        whiteLabel: [
+            {vendor: 'Lonsonho', model: 'TS0044'},
+        ],
+        supports: 'action',
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
         vendor: 'TuYa',

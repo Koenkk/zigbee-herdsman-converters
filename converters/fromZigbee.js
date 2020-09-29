@@ -3729,6 +3729,8 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            } else if (model.model === 'TS0044') {
+                buttonMapping = {1: 'left_bottom', 2: 'right_bottom', 3: 'right_top', 4: 'left_top'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             return {action: `${button}${clickMapping[msg.data[3]]}`};
