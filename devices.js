@@ -26,6 +26,7 @@ const tz = require('./converters/toZigbee');
 const utils = require('./converters/utils');
 const globalStore = require('./converters/store');
 const ota = require('./ota');
+const exposes = require('./lib/exposes');
 
 const store = {};
 
@@ -229,6 +230,7 @@ const configureReporting = {
 
 const generic = {
     light_onoff_brightness: {
+        exposes: [exposes.light_state_brightness()],
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -237,6 +239,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp: {
+        exposes: [exposes.light_state_brightness_colortemp()],
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -246,6 +249,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colorxy: {
+        exposes: [exposes.light_state_brightness_colorxy()],
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -255,6 +259,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
+        exposes: [exposes.light_state_brightness_colortemp_colorxy()],
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -305,47 +310,48 @@ const tzHuePowerOnBehavior = [
 ];
 const hue = {
     light_onoff_brightness: {
+        ...generic.light_onoff_brightness,
         supports: generic.light_onoff_brightness.supports + ', power-on behavior',
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
         toZigbee: generic.light_onoff_brightness.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colortemp: {
+        ...generic.light_onoff_brightness_colortemp,
         supports: generic.light_onoff_brightness_colortemp.supports + ', power-on behavior',
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colorxy: {
+        ...generic.light_onoff_brightness_colorxy,
         supports: generic.light_onoff_brightness_colorxy.supports + ', power-on behavior',
-        fromZigbee: generic.light_onoff_brightness_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colorxy.toZigbee.concat(tzHuePowerOnBehavior),
     },
     light_onoff_brightness_colortemp_colorxy: {
+        ...generic.light_onoff_brightness_colortemp_colorxy,
         supports: generic.light_onoff_brightness_colortemp_colorxy.supports + ', power-on behavior',
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat(tzHuePowerOnBehavior),
     },
 };
 
 const ledvance = {
     light_onoff_brightness: {
-        supports: generic.light_onoff_brightness.supports,
-        fromZigbee: generic.light_onoff_brightness.fromZigbee,
+        ...generic.light_onoff_brightness,
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.ledvance_commands]),
     },
     light_onoff_brightness_colortemp: {
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        ...generic.light_onoff_brightness_colortemp,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.ledvance_commands]),
     },
     light_onoff_brightness_colorxy: {
-        supports: generic.light_onoff_brightness_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colorxy.fromZigbee,
+        ...generic.light_onoff_brightness_colorxy,
         toZigbee: generic.light_onoff_brightness_colorxy.toZigbee.concat([tz.ledvance_commands]),
     },
     light_onoff_brightness_colortemp_colorxy: {
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        ...generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
+    },
+    light_onoff_brightness_colortemp_colorhs: {
+        ...generic.light_onoff_brightness_colortemp_colorxy,
+        toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
+        exposes: [exposes.light_state_brightness_colortemp_colorhs()],
     },
 };
 
@@ -1750,6 +1756,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+        exposes: [exposes.light_state_brightness()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1935,6 +1942,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
         extend: generic.light_onoff_brightness,
+        exposes: [exposes.light_state_brightness('l1'), exposes.light_state_brightness('l2')],
         meta: {multiEndpoint: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3495,11 +3503,7 @@ const devices = [
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
-        fromZigbee: [
-            fz.brightness, fz.on_off,
-        ],
-        supports: generic.light_onoff_brightness.supports,
-        toZigbee: generic.light_onoff_brightness.toZigbee,
+        extend: generic.light_onoff_brightness,
     },
 
     // EDP
@@ -3894,7 +3898,7 @@ const devices = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: ledvance.light_onoff_brightness_colortemp_colorhs,
         ota: ota.ledvance,
     },
     {
@@ -3926,7 +3930,7 @@ const devices = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: ledvance.light_onoff_brightness_colortemp_colorhs,
         ota: ota.ledvance,
     },
     {
@@ -5162,9 +5166,7 @@ const devices = [
         model: '45852GE',
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5209,9 +5211,7 @@ const devices = [
         model: '45857GE',
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5990,6 +5990,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGBW (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        exposes: [exposes.light_state_brightness_colortemp_colorxy('rgb'), exposes.light_state_brightness('white')],
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
                 return {rgb: 11, white: 10};
@@ -6034,6 +6035,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        exposes: [exposes.light_state_brightness_colorxy('rgb'), exposes.light_state_brightness_colortemp('cct')],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
@@ -6336,6 +6338,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+        exposes: [exposes.light_state_brightness()],
     },
 
     // ROBB
@@ -7406,6 +7409,7 @@ const devices = [
         description: 'ZigBee Light Link wireless electronic ballast',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
+        exposes: [exposes.light_state_brightness_colortemp_colorxy('rgb'), exposes.light_state_brightness('white')],
         endpoint: (device) => {
             return {rgb: 10, white: 11};
         },
@@ -8721,8 +8725,7 @@ const devices = [
         model: '404000/404005/404012',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -8730,8 +8733,7 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        extend: generic.light_onoff_brightness_colortemp,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -8739,8 +8741,7 @@ const devices = [
         model: '44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Stripe, color, opal white',
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -8748,8 +8749,7 @@ const devices = [
         model: '404028',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
-        supports: generic.light_onoff_brightness_colortemp_colorxy.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp_colorxy.fromZigbee,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -8785,8 +8785,7 @@ const devices = [
         model: '404037',
         vendor: 'Müller Licht',
         description: 'Tint retro filament LED-bulb E27, Edison bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
-        supports: generic.light_onoff_brightness_colortemp.supports,
-        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee,
+        extend: generic.light_onoff_brightness_colortemp,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -9401,9 +9400,7 @@ const devices = [
         model: '316GLEDRF',
         vendor: 'ELKO',
         description: 'ZigBee in-wall smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.on_off],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        extend: generic.light_onoff_brightness,
         meta: {disableDefaultResponse: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9419,11 +9416,7 @@ const devices = [
         vendor: 'LivingWise',
         description: 'ZigBee smart dimmer switch',
         supports: 'on/off, brightness',
-        toZigbee: [tz.light_onoff_brightness],
-        fromZigbee: [
-            fz.on_off, fz.brightness, fz.ignore_light_brightness_report,
-            fz.ignore_genIdentify,
-        ],
+        extend: generic.light_onoff_brightness,
     },
     {
         zigbeeModel: ['545df2981b704114945f6df1c780515a'],
@@ -12093,7 +12086,7 @@ const devices = [
         model: 'Aj_Zigbee_Led_Strip',
         vendor: 'Ajax Online',
         description: 'LED Strip',
-        extend: generic.light_onoff_brightness_colorxy,
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Moes
@@ -12194,6 +12187,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        exposes: [exposes.light_state_brightness()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
@@ -12343,10 +12337,8 @@ const devices = [
         zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
         model: '067771',
         vendor: 'Legrand',
-        // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
+        extend: generic.light_onoff_brightness,
         toZigbee: [
             tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
@@ -13420,6 +13412,7 @@ const devices = [
 module.exports = devices.map((device) => {
     if (device.extend) {
         device = Object.assign({}, device.extend, device);
+        delete device.extend;
     }
 
     if (device.toZigbee.length > 0) {

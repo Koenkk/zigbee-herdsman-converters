@@ -131,6 +131,7 @@ function fingerprintMatch(fingerprint, device) {
 
 module.exports = {
     devices: definitions,
+    definitions,
     findByZigbeeModel, // Legacy method, use findByDevice instead.
     findByDevice,
     toZigbeeConverters: toZigbee,
