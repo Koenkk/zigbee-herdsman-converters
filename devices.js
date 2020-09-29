@@ -9784,9 +9784,9 @@ const devices = [
         model: 'ZG2835',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        supports: generic.light_onoff_brightness.supports,
+        supports: 'action',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
-        toZigbee: []
+        toZigbee: [],
     },
 
     // Samotech
