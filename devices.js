@@ -3742,14 +3742,14 @@ const devices = [
         extend: ledvance.light_onoff_brightness_colortemp_colorxy,
         ota: ota.ledvance,
     },
-    {                                                             
-        zigbeeModel: ['CLA60 RGBW OSRAM'],                        
-        model: '4058075816596',                                   
-        vendor: 'OSRAM',                                          
-        description: 'Classic A60 RGBW B22',                      
+    {
+        zigbeeModel: ['CLA60 RGBW OSRAM'],
+        model: '4058075816596',
+        vendor: 'OSRAM',
+        description: 'Classic A60 RGBW B22',
         extend: ledvance.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.ledvance,                                        
-    },  
+        ota: ota.ledvance,
+    },
     {
         zigbeeModel: ['A60 TW Z3'],
         model: 'AC10787',
