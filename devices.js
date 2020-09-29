@@ -12386,6 +12386,17 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['ZBT-OnOffPlug-D0011'],
+        model: 'ZS190000118',
+        vendor: 'Linkind',
+        description: 'control outlet',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+
+    },
+
 
     // BlitzWolf
     {
