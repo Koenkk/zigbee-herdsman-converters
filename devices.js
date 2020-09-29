@@ -8207,6 +8207,21 @@ const devices = [
             await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
     },
+    {
+        zigbeeModel: ['CurtainMo-EF'],
+        model: 'HS2CM-N-DC',
+        vendor: 'HEIMAN',
+        description: 'Gear window shade motor',
+        supports: 'open, close, position',
+        fromZigbee: [fz.cover_position_via_brightness],
+        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
+            await configureReporting.brightness(endpoint);
+        },
+    },
 
     // Oujiabao
     {
