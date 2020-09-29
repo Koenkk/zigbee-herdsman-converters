@@ -10513,7 +10513,7 @@ const devices = [
             tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature,
         ],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -10522,19 +10522,26 @@ const devices = [
             ];
 
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
             await configureReporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
-            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
 
             await readMeteringPowerConverterAttributes(endpoint);
 
             try {
                 await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
-                await configureReporting.instantaneousDemand(endpoint);
+                await configureReporting.instantaneousDemand(endpoint, {min: 10, max: 303, change: 1});
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
+
+            // Disable default reporting
+            await configureReporting.temperature(endpoint, {min: 1, max: 0xFFFF});
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF,
+                reportableChange: 1,
+            }]);
         },
     },
     {
@@ -10545,27 +10552,53 @@ const devices = [
         supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
         fromZigbee: [
             fz.thermostat_att_report,
+            fz.hvac_user_interface,
+            fz.metering_power,
             fz.ignore_temperature_report,
+            fz.sinope_thermostat_state,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
-            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.sinope_thermostat_occupancy,
+            tz.sinope_thermostat_backlight_autodim_param,
+            tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature,
+            tz.sinope_thermostat_outdoor_temperature,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement',
+                'msTemperatureMeasurement', 'seMetering',
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
-            await configureReporting.thermostatTemperature(endpoint);
-            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatPIHeatingDemand(endpoint);
+            await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
+            await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+
+            try {
+                await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+                await configureReporting.instantaneousDemand(endpoint, {min: 10, max: 303, change: 1});
+            } catch (error) {
+                // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
+            }
+
+            // Disable default reporting
+            await configureReporting.temperature(endpoint, {min: 1, max: 0xFFFF});
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF,
+                reportableChange: 1,
+            }]);
         },
     },
     {
@@ -10602,7 +10635,7 @@ const devices = [
             tz.sinope_temperature_sensor,
             tz.sinope_time_format,
         ],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -10611,8 +10644,14 @@ const devices = [
             ];
             await bind(endpoint, coordinatorEndpoint, binds);
             await configureReporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
-            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 301, change: 5});
+            await configureReporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+
+            try {
+                await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+            } catch (error) {
+                // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
+            }
 
             await endpoint.configureReporting('manuSpecificSinope', [{
                 attribute: 'GFCiStatus',
