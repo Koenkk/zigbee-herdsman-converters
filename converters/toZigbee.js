@@ -2683,10 +2683,10 @@ const converters = {
 
                 switch (value) {
                 case 'close':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
+                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Close
                     break;
                 case 'open':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
+                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Open
                     break;
                 case 'stop':
                     await sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
