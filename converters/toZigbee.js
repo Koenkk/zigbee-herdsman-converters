@@ -2581,9 +2581,10 @@ const converters = {
     tuya_thermostat_weekly_schedule: {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
-            const maxTransitions = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleMaxTransitions');
-            const supportedModes = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleSupportedModes');
-            const firstDayDpId = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleFirstDayDpId');
+            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
 
             function transitionToData(transition) {
                 // Later it is possible to move converter to meta or to other place outside if other type of converter

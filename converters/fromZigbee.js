@@ -5544,8 +5544,9 @@ const converters = {
             const dp = msg.data.dp;
             const data = msg.data.data;
 
-            const firstDayDpId = utils.getMetaValue(msg.endpoint, model, 'weeklyScheduleFirstDayDpId');
-            const maxTransitions = utils.getMetaValue(msg.endpoint, model, 'weeklyScheduleMaxTransitions');
+            const thermostatMeta = utils.getMetaValue(msg.endpoint, model, 'thermostat');
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
 
             function dataToTransitions(data) {
                 // Later it is possible to move converter to meta or to other place outside if other type of converter
