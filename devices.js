@@ -40,6 +40,8 @@ const repInterval = {
 
 const defaultBindGroup = 901;
 
+const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+
 const bind = async (endpoint, target, clusters) => {
     for (const cluster of clusters) {
         await endpoint.bind(cluster, target);
@@ -57,8 +59,6 @@ const readMeteringPowerConverterAttributes = async (endpoint) => {
 };
 
 const writeCurrentTime = async (endpoint) => {
-    const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-
     const time = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
     const values = {
         timeStatus: 3, // Time-master + synchronised
@@ -388,6 +388,24 @@ const livolo = {
             await endpoint.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         } catch (error) {
             // device is lost, need to permit join
+        }
+    },
+};
+
+const tuya = {
+    setTime: async (type, data, device) => {
+        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuyaDimmer') {
+            const utcTime = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+            const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
+            const endpoint = device.getEndpoint(1);
+            const payload = {
+                payloadSize: 8,
+                payload: [
+                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                ],
+            };
+            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
         }
     },
 };
@@ -1440,6 +1458,31 @@ const devices = [
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force, tz.tuya_thermostat_preset,
         ],
+    },
+    {
+        fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
+        model: 'HT-08',
+        vendor: 'ETOP',
+        description: 'Wall-mount thermostat',
+        supports: 'thermostat, temperature',
+        fromZigbee: [
+            fz.tuya_thermostat_weekly_schedule,
+            fz.etop_thermostat,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [
+            tz.etop_thermostat_system_mode,
+            tz.etop_thermostat_away,
+            tz.tuya_thermostat_child_lock,
+            tz.tuya_thermostat_current_heating_setpoint,
+            tz.tuya_thermostat_weekly_schedule,
+        ],
+        onEvent: tuya.setTime,
+        meta: {
+            weeklyScheduleMaxTransitions: 4,
+            weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+            weeklyScheduleFirstDayDpId: 101,
+        },
     },
     {
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],

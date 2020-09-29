@@ -2543,6 +2543,94 @@ const converters = {
             sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
         },
     },
+    etop_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await sendTuyaCommand(entity, 257, 0, [1, 0/* off */]);
+                break;
+            case 'heat':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                break;
+            case 'auto':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 2/* auto */]);
+                break;
+            }
+        },
+    },
+    etop_thermostat_away: {
+        key: ['away'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'ON':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 1/* away */]);
+                break;
+            case 'OFF':
+                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                break;
+            }
+        },
+    },
+    tuya_thermostat_weekly_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const maxTransitions = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleMaxTransitions');
+            const supportedModes = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleSupportedModes');
+            const firstDayDpId = utils.getMetaValue(entity, meta.mapped, 'weeklyScheduleFirstDayDpId');
+
+            function transitionToData(transition) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also fromZigbee.tuya_thermostat_weekly_schedule()
+                const minutesSinceMidnight = transition.transitionTime;
+                const heatSetpoint = Math.floor(transition.heatSetpoint * 10);
+                return [
+                    (minutesSinceMidnight & 0xff00) >> 8,
+                    minutesSinceMidnight & 0xff,
+                    (heatSetpoint & 0xff00) >> 8,
+                    heatSetpoint & 0xff,
+                ];
+            }
+            for (const [, daySchedule] of Object.entries(value)) {
+                const dayofweek = parseInt(daySchedule.dayofweek);
+                const numoftrans = parseInt(daySchedule.numoftrans);
+                let transitions = [...daySchedule.transitions];
+                const mode = parseInt(daySchedule.mode);
+                if (!supportedModes.includes(mode)) {
+                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendlyName}`);
+                }
+                if (numoftrans != transitions.length) {
+                    meta.logger.warn(`Invalid numoftrans provided. Real: ${transitions.length} ` +
+                        `provided ${numoftrans} for device ${meta.options.friendlyName}`);
+                }
+                if (transitions.length > maxTransitions) {
+                    meta.logger.warn(`Reducing number of transitions from ${transitions.length} ` +
+                        `to ${maxTransitions} for device ${meta.options.friendlyName}`);
+                    transitions = transitions.slice(4);
+                }
+                if (transitions.length < maxTransitions) {
+                    meta.logger.warn(`Padding transitions from ${transitions.length} ` +
+                        `to ${maxTransitions} with last item for device ${meta.options.friendlyName}`);
+                    const lastTransition = transitions[transitions.length-1];
+                    while (transitions.length != maxTransitions) {
+                        transitions = [...transitions, lastTransition];
+                    }
+                }
+                const payload = [];
+                transitions.forEach((transition) => {
+                    payload.push(...transitionToData(transition));
+                });
+                await sendTuyaCommand(entity, firstDayDpId - 1 + dayofweek, 0, [payload.length, ...payload]);
+            }
+        },
+    },
     tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
