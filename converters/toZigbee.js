@@ -2563,8 +2563,8 @@ const converters = {
             }
         },
     },
-    etop_thermostat_away: {
-        key: ['away'],
+    etop_thermostat_away_mode: {
+        key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'ON':

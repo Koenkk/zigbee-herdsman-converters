@@ -280,11 +280,11 @@ const eTopThermostat = (model, msg, publish, options, meta) => {
     case 1028:
         switch (dataAsDecNumber) {
         case 0: // manual
-            return {system_mode: 'heat', away: 'OFF', preset: 'none'};
+            return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
         case 1: // away
-            return {system_mode: 'heat', away: 'ON', preset: 'away'};
+            return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
         case 2: // auto
-            return {system_mode: 'auto', away: 'OFF', preset: 'none'};
+            return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
         default:
             meta.logger.warn('zigbee-herdsman-converters:eTopThermostat: ' +
                 'preset ${dataAsDecNumber} is not recognized.');

@@ -1472,7 +1472,7 @@ const devices = [
         ],
         toZigbee: [
             tz.etop_thermostat_system_mode,
-            tz.etop_thermostat_away,
+            tz.etop_thermostat_away_mode,
             tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_weekly_schedule,
