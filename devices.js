@@ -10180,7 +10180,7 @@ const devices = [
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF,
                 reportableChange: 1,
-           }]);
+            }]);
         },
     },
     {
@@ -10223,7 +10223,7 @@ const devices = [
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
 
             await readMeteringPowerConverterAttributes(endpoint);
-            await configureReporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1,1]});
+            await configureReporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
 
             try {
                 await configureReporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
@@ -10237,7 +10237,7 @@ const devices = [
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF,
                 reportableChange: 1,
-           }]);
+            }]);
         },
     },
     {
