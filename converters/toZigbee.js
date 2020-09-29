@@ -2608,7 +2608,7 @@ const converters = {
                     throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendlyName}`);
                 }
                 if (numoftrans != transitions.length) {
-                    meta.logger.warn(`Invalid numoftrans provided. Real: ${transitions.length} ` +
+                    throw new Error(`Invalid numoftrans provided. Real: ${transitions.length} ` +
                         `provided ${numoftrans} for device ${meta.options.friendlyName}`);
                 }
                 if (transitions.length > maxTransitions) {
