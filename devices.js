@@ -8303,10 +8303,10 @@ const devices = [
     },
     {
         zigbeeModel: ['ZBT-Remote-EU-DIMV2A2'],
-        model: 'AIRAM-CTR.UBX',
+        model: 'CTR.UBX',
         vendor: 'Airam',
         description: 'CTR.U remote BX',
-        supports: 'on/off, brightness up/down and click/hold/release',
+        supports: 'action',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.command_step, fz.command_move,
             fz.command_stop, fz.command_recall, fz.ignore_basic_report,
