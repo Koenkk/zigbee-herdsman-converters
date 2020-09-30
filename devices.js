@@ -13411,7 +13411,7 @@ const devices = [
         supports: 'open, close, stop',
         fromZigbee: [fz.tuya_curtain],
         toZigbee: [tz.tuya_curtain_control],
-    },    
+    },
 ];
 module.exports = devices.map((device) => {
     if (device.extend) {
