@@ -1469,6 +1469,7 @@ const devices = [
             fz.tuya_thermostat_weekly_schedule,
             fz.etop_thermostat,
             fz.ignore_basic_report,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
         ],
         toZigbee: [
             tz.etop_thermostat_system_mode,
@@ -1479,6 +1480,35 @@ const devices = [
         ],
         onEvent: tuya.setTime,
         meta: {
+            thermostat: {
+                weeklyScheduleMaxTransitions: 4,
+                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                weeklyScheduleFirstDayDpId: 101,
+            },
+        },
+    },
+    {
+        fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
+        model: 'HT-10',
+        vendor: 'ETOP',
+        description: 'Radiator valve',
+        supports: 'thermostat, temperature',
+        fromZigbee: [
+            fz.tuya_thermostat_weekly_schedule,
+            fz.etop_thermostat,
+            fz.ignore_basic_report,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
+        ],
+        toZigbee: [
+            tz.etop_thermostat_system_mode,
+            tz.etop_thermostat_away_mode,
+            tz.tuya_thermostat_child_lock,
+            tz.tuya_thermostat_current_heating_setpoint,
+            tz.tuya_thermostat_weekly_schedule,
+        ],
+        onEvent: tuya.setTime,
+        meta: {
+            timeout: 20000, // TRV wakes up every 10sec
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)

@@ -5582,6 +5582,11 @@ const converters = {
             }
         },
     },
+    tuya_ignore_set_time_request: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetTimeRequest'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'raw',
