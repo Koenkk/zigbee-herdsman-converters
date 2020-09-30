@@ -5763,6 +5763,40 @@ const converters = {
             }
         },
     },
+    diyruz_flower_extended_pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // non standart attribute, max precision
+            const ATTRID_MS_PRESSURE_MEASUREMENT_MEASURED_VALUE_HPA = 0x0200;
+            const strAttrID = ATTRID_MS_PRESSURE_MEASUREMENT_MEASURED_VALUE_HPA.toString();
+            let pressure = 0;
+            if (msg.data[strAttrID]) {
+                pressure = msg.data[strAttrID] / 100.0;
+            } else {
+                pressure = msg.data.measuredValue;
+            }
+            return {
+                pressure,
+            };
+        },
+    },
+    diyruz_flower_extended_humidity: {
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_RAW_ADC = 0x0200;
+            const ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_BATTERY_RAW_ADC = 0x0201;
+            const strAttrID = ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_RAW_ADC.toString();
+            const strVoltageADC = ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_BATTERY_RAW_ADC.toString();
+            if (msg.data[strAttrID]) {
+                return {
+                    raw_humidity_adc: msg.data[strAttrID],
+                    raw_battery_adc: msg.data[strVoltageADC]
+                };
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {

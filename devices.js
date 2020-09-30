@@ -390,6 +390,19 @@ const pincodeLock = {
     },
 };
 
+const withEpSuffix = (converter) => ({
+    ...converter,
+    convert: (model, msg, publish, options, meta) => {
+        const epID = msg.endpoint.ID;
+        const converterResults = converter.convert(model, msg, publish, options, meta) || {};
+        return Object.keys(converterResults)
+            .reduce((result, key) => {
+                result[`${key}_${epID}`] = converterResults[key];
+                return result;
+            }, {});
+    },
+});
+
 const devices = [
     // Xiaomi
     {
@@ -3455,6 +3468,99 @@ const devices = [
         supports: 'on/off, temperature',
         fromZigbee: [fz.on_off, fz.temperature],
         toZigbee: [tz.on_off],
+    },
+    {
+        zigbeeModel: ['DIYRuZ_Flower'],
+        model: 'DIYRuZ_Flower',
+        vendor: 'DIYRuZ',
+        description: '[Flower sensor](https://modkam.ru/?p=1700)',
+        supports: '',
+        fromZigbee: [
+            withEpSuffix(fz.temperature),
+            withEpSuffix(fz.humidity),
+            withEpSuffix(fz.illuminance),
+            withEpSuffix(fz.diyruz_flower_extended_pressure),
+            withEpSuffix(fz.diyruz_flower_extended_humidity),
+            fz.battery,
+        ],
+        toZigbee: [
+            tz.factory_reset,
+        ],
+        meta: {
+            configureKey: 1,
+            disableDefaultResponse: true,
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const firstEndpoint = device.getEndpoint(1);
+            const secondEndpoint = device.getEndpoint(2);
+            await bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+                'msPressureMeasurement',
+                'msIlluminanceMeasurement',
+            ]);
+            await bind(secondEndpoint, coordinatorEndpoint, [
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+            ]);
+            await configureReporting.batteryVoltage(firstEndpoint);
+            await configureReporting.batteryPercentageRemaining(firstEndpoint);
+            await configureReporting.temperature(firstEndpoint);
+            await configureReporting.humidity(firstEndpoint);
+            await configureReporting.illuminance(firstEndpoint);
+
+            // non standart attribute, max precision
+            const ATTRID_MS_PRESSURE_MEASUREMENT_MEASURED_VALUE_HPA = 0x0200;
+            const ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_RAW_ADC = 0x0200;
+            const ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_BATTERY_RAW_ADC = 0x0201;
+            const ZCL_DATATYPE_UINT32 = 0x23;
+            const ZCL_DATATYPE_UINT16 = 0x21;
+
+            const msBindPayload = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 0,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            }];
+            const pressureBindPayload = [
+                ...msBindPayload,
+                {
+                    attribute: {
+                        ID: ATTRID_MS_PRESSURE_MEASUREMENT_MEASURED_VALUE_HPA,
+                        type: ZCL_DATATYPE_UINT32,
+                    },
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
+            await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
+
+            await configureReporting.temperature(secondEndpoint);
+            const msRelativeHumidityBindPayload = [
+                ...msBindPayload,
+                {
+                    attribute: {
+                        ID: ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_RAW_ADC,
+                        type: ZCL_DATATYPE_UINT16,
+                    },
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: {
+                        ID: ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE_BATTERY_RAW_ADC,
+                        type: ZCL_DATATYPE_UINT16,
+                    },
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
+            await secondEndpoint.configureReporting('msRelativeHumidity', msRelativeHumidityBindPayload);
+        },
     },
 
     // eCozy
