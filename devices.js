@@ -13413,7 +13413,6 @@ const devices = [
         toZigbee: [tz.tuya_curtain_control],
     },    
 ];
-
 module.exports = devices.map((device) => {
     if (device.extend) {
         device = Object.assign({}, device.extend, device);
