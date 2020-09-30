@@ -3019,7 +3019,7 @@ const converters = {
             return {state: {}};
         },
     },
-    //support Zemismart curtain switch - Garage controller
+    // support Zemismart curtain switch - Garage controller
     zemismart_curtain: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -3046,7 +3046,6 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
-    
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
