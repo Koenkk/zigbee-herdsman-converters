@@ -13360,6 +13360,7 @@ const devices = [
         description: '6W smart dimmable E27 lamp 2700K',
         extend: generic.light_onoff_brightness,
     },
+
     // Zemismart curtain switch (garage controller)
     {
         zigbeeModel: ['TS0003_curtain'],
@@ -13380,6 +13381,37 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+
+    // Larkkey dimmer
+    {
+        zigbeeModel: ['TS0601_Dimmer'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'}],
+        model: 'TS0601_Dimmer',
+        vendor: 'Larkkey',
+        description: 'Zigbee smart dimmer',
+        supports: 'on/off, brightness',
+        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+    
+    //Larkkey curtain switch
+    {
+        zigbeeModel: ['TS0601_Curtain_Switch'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
+        model: 'TS0601_Curtain_Switch',
+        vendor: 'Larkkey',
+        description: 'Curtain switch',
+        supports: 'open, close, stop',
+        fromZigbee: [fz.tuya_curtain],
+        toZigbee: [tz.tuya_curtain_control],
+    },    
+
 ];
 
 module.exports = devices.map((device) => {
