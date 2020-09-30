@@ -8317,7 +8317,6 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
         },
-
     },
     {
         zigbeeModel: ['Dimmable-GU10-4713404'],
