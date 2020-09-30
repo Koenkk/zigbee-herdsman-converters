@@ -2673,7 +2673,7 @@ const converters = {
                 if (value >= 0 && value <= 100) {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
-                    value = invert ? 100 - value : value;
+                    value = invert ? value : 100 - value;
                     await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
                 } else {
                     meta.logger.debug('owvfni3: Curtain motor position is out of range');
@@ -2682,11 +2682,11 @@ const converters = {
                 value = value.toLowerCase();
 
                 switch (value) {
-                case 'open':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
-                    break;
                 case 'close':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
+                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Close
+                    break;
+                case 'open':
+                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Open
                     break;
                 case 'stop':
                     await sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
