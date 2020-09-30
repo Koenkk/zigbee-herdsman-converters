@@ -2717,6 +2717,21 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // HA has special behavior for the away mode
+            const awayPresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
+            if (awayPresetId !== null) {
+                if (value == 'ON') {
+                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(awayPresetId)]);
+                }
+                // In case 'OFF' tuya_thermostat_preset() should be called with another preset
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    },
     tuya_thermostat_fan_mode: {
         key: ['fan_mode'],
         convertSet: async (entity, key, value, meta) => {

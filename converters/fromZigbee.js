@@ -436,6 +436,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber);
         if (presetOk) {
             ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber];
+            ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
         }
         if (modeOk) {
             ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber];
