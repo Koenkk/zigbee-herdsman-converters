@@ -13360,6 +13360,27 @@ const devices = [
         description: '6W smart dimmable E27 lamp 2700K',
         extend: generic.light_onoff_brightness,
     },
+    //Zemismart curtain switch (garage controller)
+    {
+        zigbeeModel: ['TS0003_curtain'],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_fr1lzwta'}],
+        model: 'TS0003_curtain',
+        vendor: 'Zemismart',
+        description: 'Curtain Switch - Garage controller',
+        supports: 'open, close, stop',
+        fromZigbee: [fz.zemismart_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.zemismart_curtain],
+        meta: {configureKey: 1, multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    
 ];
 
 

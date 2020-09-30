@@ -6097,7 +6097,18 @@ const converters = {
             }
         },
     },
-
+    //Zemismart curtain switch - Garage controller
+    zemismart_curtain: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const property = postfixWithEndpointName('state', msg, model);
+                return {'running': msg.data['onOff'] === 1 ? true : false};
+            }
+        },
+    },
+    
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
