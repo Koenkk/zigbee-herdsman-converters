@@ -13389,7 +13389,7 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
         },
-    },ts
+    },
 
     // LeTV
     {
@@ -13411,6 +13411,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 ];
+
 
 module.exports = devices.map((device) => {
     if (device.extend) {
