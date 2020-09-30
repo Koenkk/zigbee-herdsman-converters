@@ -247,7 +247,54 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case 1060: // 0x2404 Moes Thermostat is Open or Closed
         return {heating: dataAsDecNumber ? 'OFF' : 'ON'};
     default: // The purpose of the codes 1041 & 1043 are still unknown
-        console.log(`zigbee-herdsman-converters:Moes BHT-002-GCLZB: NOT RECOGNIZED DP #${
+        console.log(`zigbee-herdsman-converters:moesThermostat: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
+const eTopThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+
+    if (dp >= 101 && dp <=107) return; // handled by tuya_thermostat_weekly_schedule
+
+    switch (dp) {
+    case 257: // on/off
+        return !dataAsDecNumber ? {system_mode: 'off'} : {};
+    case 1293: // errors status
+        return {
+            high_temperature: (dataAsDecNumber & 1<<0) > 0 ? 'ON' : 'OFF',
+            low_temperature: (dataAsDecNumber & 1<<1) > 0 ? 'ON' : 'OFF',
+            internal_sensor_error: (dataAsDecNumber & 1<<2) > 0 ? 'ON' : 'OFF',
+            external_sensor_error: (dataAsDecNumber & 1<<3) > 0 ? 'ON' : 'OFF',
+            battery_low: (dataAsDecNumber & 1<<4) > 0 ? 'ON' : 'OFF',
+            device_offline: (dataAsDecNumber & 1<<5) > 0 ? 'ON' : 'OFF',
+        };
+    case 263:
+        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+    case 514:
+        return {current_heating_setpoint: (dataAsDecNumber / 10).toFixed(1)};
+    case 515:
+        return {local_temperature: (dataAsDecNumber / 10).toFixed(1)};
+    case 1028:
+        switch (dataAsDecNumber) {
+        case 0: // manual
+            return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
+        case 1: // away
+            return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
+        case 2: // auto
+            return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
+        default:
+            meta.logger.warn('zigbee-herdsman-converters:eTopThermostat: ' +
+                'preset ${dataAsDecNumber} is not recognized.');
+            break;
+        }
+        break;
+    case 1038:
+        return {running_state: dataAsDecNumber ? 'heat' : 'idle'};
+    default:
+        meta.logger.warn(`zigbee-herdsman-converters:eTopThermostat: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(data)}`);
     }
 };
@@ -368,7 +415,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case 1135: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
         return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
     default: // The purpose of the codes 1041 & 1043 are still unknown
-        console.log(`zigbee-herdsman-converters:siterwell_gs361: NOT RECOGNIZED DP #${
+        console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(data)}`);
     }
 };
@@ -3729,6 +3776,8 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+            } else if (model.model === 'TS0044') {
+                buttonMapping = {1: 'left_bottom', 2: 'right_bottom', 3: 'right_top', 4: 'left_top'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             return {action: `${button}${clickMapping[msg.data[3]]}`};
@@ -5468,6 +5517,11 @@ const converters = {
         type: 'commandGetData',
         convert: moesThermostat,
     },
+    etop_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: eTopThermostat,
+    },
     tuya_thermostat_on_set_data: {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandSetDataResponse',
@@ -5482,6 +5536,56 @@ const converters = {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: tuyaThermostat,
+    },
+    tuya_thermostat_weekly_schedule: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandGetData', 'commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const data = msg.data.data;
+
+            const thermostatMeta = utils.getMetaValue(msg.endpoint, model, 'thermostat');
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+
+            function dataToTransitions(data) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also toZigbee.tuya_thermostat_weekly_schedule()
+                function dataToTransition(data, index) {
+                    return {
+                        transitionTime: (data[index+0] << 8) + data [index+1],
+                        heatSetpoint: (parseFloat((data[index+2] << 8) + data [index+3]) / 10.0).toFixed(1),
+                    };
+                }
+                return [
+                    dataToTransition(data, 0),
+                    dataToTransition(data, 4),
+                    dataToTransition(data, 8),
+                    dataToTransition(data, 12),
+                ];
+            }
+
+            if (dp >= firstDayDpId && dp < firstDayDpId+7) {
+                const dayOfWeek = dp - firstDayDpId + 1;
+                return {
+                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
+                    weekly_schedule: {
+                        [dayOfWeek]: {
+                            dayofweek: dayOfWeek,
+                            numoftrans: maxTransitions,
+                            mode: 1, // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                            transitions: dataToTransitions(data),
+                        },
+                    },
+                };
+            }
+        },
+    },
+    tuya_ignore_set_time_request: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetTimeRequest'],
+        convert: (model, msg, publish, options, meta) => null,
     },
     tuya_switch: {
         cluster: 'manuSpecificTuyaDimmer',
