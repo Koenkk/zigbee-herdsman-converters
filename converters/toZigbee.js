@@ -3019,33 +3019,19 @@ const converters = {
             return {state: {}};
         },
     },
-    // support Zemismart curtain switch - Garage controller
-    zemismart_curtain: {
+    TS0003_curtain_switch: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            switch (value) {
-            case 'close':
-                entity.ID = 3;
-                await entity.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
-                break;
-            case 'open':
-                entity.ID = 1;
-                await entity.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
-                break;
-            case 'stop':
-                entity.ID = 2;
-                await entity.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
-                break;
-            default:
-                await entity.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
-                break;
-            }
+            const lookup = {'close': 1, 'stop': 2, 'open': 1};
+            const endpointID = lookup[value.toLowerCase()];
+            const endpoint = entity.getDevice().getEndpoint(endpointID);
+            await endpoint.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
     },
+
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
