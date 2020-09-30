@@ -8347,6 +8347,23 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['ZBT-Remote-EU-DIMV2A2'],
+        model: 'CTR.UBX',
+        vendor: 'Airam',
+        description: 'CTR.U remote BX',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_step, fz.command_move,
+            fz.command_stop, fz.command_recall, fz.ignore_basic_report,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
+        },
+    },
+    {
         zigbeeModel: ['Dimmable-GU10-4713404'],
         model: '4713406',
         vendor: 'Airam',
