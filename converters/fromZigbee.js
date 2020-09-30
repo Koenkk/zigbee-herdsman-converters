@@ -1056,10 +1056,27 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandMove', 'commandMoveWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) store[deviceID] = {};
+            if (!store[deviceID].timers) store[deviceID].timers = [];
+
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
+
+            if (options.hasOwnProperty('repeat_brightness_move_event') &&
+            options.repeat_brightness_move_event) {
+                // We need a list, because multiple events are comming in
+                // and we like to cancel all in stop call
+                store[deviceID].timers.push(setInterval(() => {
+                    publish(payload);
+                },
+                options.hasOwnProperty('repeat_brightness_move_event_ms') ?
+                    options.repeat_brightness_move_event_ms : 500),
+                );
+            }
+
             return payload;
         },
     },
@@ -1081,6 +1098,15 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
+            const deviceID = msg.device.ieeeAddr;
+            if (!store[deviceID]) store[deviceID] = {};
+
+            if (options.hasOwnProperty('repeat_brightness_move_event') &&
+                options.repeat_brightness_move_event) {
+                store[deviceID].timers.forEach((timer) => clearInterval(timer));
+                store[deviceID].timers = [];
+            }
+
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
