@@ -585,6 +585,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.b1naus01'],
+        model: 'WS-USC03',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch (neutral, single rocker)',
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.b2naus01'],
         model: 'WS-USC04',
         vendor: 'Xiaomi',
@@ -1274,7 +1289,6 @@ const devices = [
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
         ],
@@ -1319,6 +1333,26 @@ const devices = [
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1};
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
+        ],
+        model: 'TS0601_switch_3_gang',
+        vendor: 'TuYa',
+        description: '3 gang switch',
+        supports: 'on/off',
+        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1};
         },
     },
     {
@@ -1468,7 +1502,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja', 'u1rkty3'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
@@ -1483,6 +1517,7 @@ const devices = [
             {vendor: 'Binthen', model: 'BCM100D'},
             {vendor: 'Binthen', model: 'CV01A'},
             {vendor: 'Zemismart', model: 'M515EGB'},
+            {vendor: 'Tuya', model: 'DT82LEMA-1.2N'},
         ],
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
@@ -2007,6 +2042,14 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
         extend: generic.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+    },
+    {
+        zigbeeModel: ['TRADFRI Light Engine'],
+        model: 'T2011',
+        description: 'Osvalla panel round',
+        vendor: 'IKEA',
+        ota: ota.tradfri,
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
@@ -11103,6 +11146,16 @@ const devices = [
             await bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
         },
+    },
+
+    // Ecolink
+    {
+        zigbeeModel: ['4655BC0-R'],
+        model: '4655BC0-R',
+        vendor: 'Ecolink',
+        description: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
     },
 
     // Dawon DNS
