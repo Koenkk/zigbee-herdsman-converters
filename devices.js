@@ -13385,8 +13385,10 @@ const devices = [
     // Larkkey dimmer
     {
         zigbeeModel: ['TS0601_Dimmer'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'}],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
+        ],
         model: 'TS0601_Dimmer',
         vendor: 'Larkkey',
         description: 'Zigbee smart dimmer',
@@ -13399,8 +13401,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
-    
-    //Larkkey curtain switch
+    // Larkkey curtain switch
     {
         zigbeeModel: ['TS0601_Curtain_Switch'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
@@ -13411,7 +13412,6 @@ const devices = [
         fromZigbee: [fz.tuya_curtain],
         toZigbee: [tz.tuya_curtain_control],
     },    
-
 ];
 
 module.exports = devices.map((device) => {
