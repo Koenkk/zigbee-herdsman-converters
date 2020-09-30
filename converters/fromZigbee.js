@@ -5792,7 +5792,7 @@ const converters = {
             if (msg.data[strAttrID]) {
                 return {
                     raw_humidity_adc: msg.data[strAttrID],
-                    raw_battery_adc: msg.data[strVoltageADC]
+                    raw_battery_adc: msg.data[strVoltageADC],
                 };
             }
         },
