@@ -218,6 +218,15 @@ const convertDecimalValueTo2ByteHexArray = (value) => {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 };
 
+const convertDecimalValueTo4ByteHexArray = (value) => {
+    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const chunk1 = hexValue.substr(0, 2);
+    const chunk2 = hexValue.substr(2, 2);
+    const chunk3 = hexValue.substr(4, 2);
+    const chunk4 = hexValue.substr(6);
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+};
+
 const replaceInArray = (arr, oldElements, newElements) => {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
@@ -280,6 +289,10 @@ function filterObject(obj, keys) {
     return result;
 }
 
+const sleepMs = async (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -296,8 +309,10 @@ module.exports = {
     isInRange,
     convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
+    convertDecimalValueTo4ByteHexArray,
     replaceInArray,
     getDoorLockPinCode,
     getMetaValue,
     filterObject,
+    sleepMs,
 };
