@@ -11090,6 +11090,16 @@ const devices = [
         },
     },
 
+    // Ecolink
+    {
+        zigbeeModel: ['4655BC0-R'],
+        model: '4655BC0-R',
+        vendor: 'Ecolink',
+        description: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
+
     // Dawon DNS
     {
         zigbeeModel: ['PM-C140-ZB'],
