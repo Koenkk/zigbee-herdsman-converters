@@ -8308,9 +8308,8 @@ const devices = [
         description: 'CTR.U remote BX',
         supports: 'on/off, brightness up/down and click/hold/release',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.CTR_U_brightness_updown_click,
-            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
-            fz.ignore_basic_report,
+            fz.command_on, fz.command_off, fz.command_step,fz.command_move,
+            fz.commandstop, fz.command_recall,fz.ignore_basic_report,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
