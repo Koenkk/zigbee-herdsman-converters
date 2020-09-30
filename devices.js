@@ -1994,6 +1994,14 @@ const devices = [
         ota: ota.tradfri,
     },
     {
+        zigbeeModel: ['TRADFRI Light Engine'],
+        model: 'T2011',
+        description: 'Osvalla panel round',
+        vendor: 'IKEA',
+        ota: ota.tradfri,
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
