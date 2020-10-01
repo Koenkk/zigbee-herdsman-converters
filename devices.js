@@ -1753,7 +1753,6 @@ const devices = [
         model: 'gq8b1uv',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         exposes: [exposes.light().withBrightness()],
@@ -6341,7 +6340,6 @@ const devices = [
         model: 'ZSTY-SM-1DMZG-US-W',
         vendor: 'Somgoms',
         description: 'Dimmer switch',
-        supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         exposes: [exposes.light().withBrightness()],
@@ -9409,7 +9407,6 @@ const devices = [
         model: 'LVS-ZB500D',
         vendor: 'LivingWise',
         description: 'ZigBee smart dimmer switch',
-        supports: 'on/off, brightness',
         extend: generic.light_onoff_brightness,
     },
     {
@@ -12178,10 +12175,7 @@ const devices = [
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.on_off, fz.brightness],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        exposes: [exposes.light().withBrightness()],
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
@@ -12331,8 +12325,10 @@ const devices = [
         zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
         model: '067771',
         vendor: 'Legrand',
+        // led blink RED when battery is low
         description: 'Wired switch without neutral',
         extend: generic.light_onoff_brightness,
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [
             tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_settingEnableDimmer, tz.legrand_identify,
