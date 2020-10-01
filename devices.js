@@ -133,6 +133,10 @@ const configureReporting = {
         const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 5, overrides);
         await endpoint.configureReporting('msPressureMeasurement', payload);
     },
+    pressureExtended: async (endpoint, overrides) => {
+        const scaledValuePayload = configureReportingPayload('scaledValue', 10, repInterval.HOUR, 5, overrides);
+        await endpoint.configureReporting('msPressureMeasurement', scaledValuePayload);
+    },
     illuminance: async (endpoint, overrides) => {
         const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 5, overrides);
         await endpoint.configureReporting('msIlluminanceMeasurement', payload);
@@ -224,6 +228,10 @@ const configureReporting = {
     fanMode: async (endpoint, overrides) => {
         const payload = configureReportingPayload('fanMode', 0, repInterval.HOUR, 0, overrides);
         await endpoint.configureReporting('hvacFanCtrl', payload);
+    },
+    soil_moisture: async (endpoint, overrides) => {
+        const payload = configureReportingPayload('measuredValue', 10, repInterval.HOUR, 100, overrides);
+        await endpoint.configureReporting('msSoilMoisture', payload);
     },
 };
 
@@ -3807,7 +3815,59 @@ const devices = [
         fromZigbee: [fz.on_off, fz.temperature],
         toZigbee: [tz.on_off],
     },
-
+    {
+        zigbeeModel: ['DIYRuZ_Flower'],
+        model: 'DIYRuZ_Flower',
+        vendor: 'DIYRuZ',
+        description: '[Flower sensor](http://modkam.ru/?p=1700)',
+        supports: 'temperature, humidity, illuminance, soil_moisture, pressure, battery',
+        fromZigbee: [
+            fz.temperature,
+            fz.humidity,
+            fz.illuminance,
+            fz.soil_moisture,
+            fz.pressure,
+            fz.battery,
+        ],
+        toZigbee: [
+            tz.factory_reset,
+        ],
+        meta: {
+            configureKey: 1,
+            multiEndpoint: true,
+        },
+        endpoint: (device) => {
+            return {
+                'bme': 1,
+                'ds': 2,
+            };
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const firstEndpoint = device.getEndpoint(1);
+            const secondEndpoint = device.getEndpoint(2);
+            await bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+                'msPressureMeasurement',
+                'msIlluminanceMeasurement',
+                'msSoilMoisture',
+            ]);
+            await bind(secondEndpoint, coordinatorEndpoint, [
+                'msTemperatureMeasurement',
+            ]);
+            const overides = {min: 0, max: 3600, change: 0};
+            await configureReporting.batteryVoltage(firstEndpoint, overides);
+            await configureReporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await configureReporting.temperature(firstEndpoint, overides);
+            await configureReporting.humidity(firstEndpoint, overides);
+            await configureReporting.pressureExtended(firstEndpoint, overides);
+            await configureReporting.illuminance(firstEndpoint, overides);
+            await configureReporting.soil_moisture(firstEndpoint, overides);
+            await configureReporting.temperature(secondEndpoint, overides);
+            await firstEndpoint.read('msPressureMeasurement', ['scale']);
+        },
+    },
     // eCozy
     {
         zigbeeModel: ['Thermostat'],
