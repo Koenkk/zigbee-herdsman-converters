@@ -1755,7 +1755,7 @@ const devices = [
         description: 'Zigbee smart dimmer',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        exposes: [exposes.light().withBrightness()],
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -6342,7 +6342,7 @@ const devices = [
         description: 'Dimmer switch',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        exposes: [exposes.light().withBrightness()],
+        extend: generic.light_onoff_brightness,
     },
 
     // ROBB
