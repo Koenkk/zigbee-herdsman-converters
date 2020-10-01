@@ -5990,7 +5990,10 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGBW (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withEndpoint('white')],
+        exposes: [
+            exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'),
+            exposes.light().withBrightness().withEndpoint('white'),
+        ],
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
                 return {rgb: 11, white: 10};
@@ -6035,7 +6038,10 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        exposes: [exposes.light().withBrightness().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withColorTemp().withEndpoint('cct')],
+        exposes: [
+            exposes.light().withBrightness().withColorXY().withEndpoint('rgb'),
+            exposes.light().withBrightness().withColorTemp().withEndpoint('cct'),
+        ],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
@@ -7409,7 +7415,10 @@ const devices = [
         description: 'ZigBee Light Link wireless electronic ballast',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
-        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withEndpoint('white')],
+        exposes: [
+            exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'),
+            exposes.light().withBrightness().withEndpoint('white'),
+        ],
         endpoint: (device) => {
             return {rgb: 10, white: 11};
         },
