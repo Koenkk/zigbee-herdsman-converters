@@ -230,7 +230,7 @@ const configureReporting = {
 
 const generic = {
     light_onoff_brightness: {
-        exposes: [exposes.light_state_brightness()],
+        exposes: [exposes.light().withBrightness()],
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -239,7 +239,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp: {
-        exposes: [exposes.light_state_brightness_colortemp()],
+        exposes: [exposes.light().withBrightness().withColorTemp()],
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -249,7 +249,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colorxy: {
-        exposes: [exposes.light_state_brightness_colorxy()],
+        exposes: [exposes.light().withBrightness().withColorXY()],
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -259,7 +259,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
-        exposes: [exposes.light_state_brightness_colortemp_colorxy()],
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY()],
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -351,7 +351,7 @@ const ledvance = {
     light_onoff_brightness_colortemp_colorhs: {
         ...generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-        exposes: [exposes.light_state_brightness_colortemp_colorhs()],
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorHS()],
     },
 };
 
@@ -1756,7 +1756,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        exposes: [exposes.light_state_brightness()],
+        exposes: [exposes.light().withBrightness()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1942,7 +1942,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
         extend: generic.light_onoff_brightness,
-        exposes: [exposes.light_state_brightness('l1'), exposes.light_state_brightness('l2')],
+        exposes: [exposes.light().withBrightness().withEndpoint('l1'), exposes.light().withBrightness().withEndpoint('l2')],
         meta: {multiEndpoint: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5990,7 +5990,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGBW (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        exposes: [exposes.light_state_brightness_colortemp_colorxy('rgb'), exposes.light_state_brightness('white')],
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withEndpoint('white')],
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
                 return {rgb: 11, white: 10};
@@ -6035,7 +6035,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT (2 ID)',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        exposes: [exposes.light_state_brightness_colorxy('rgb'), exposes.light_state_brightness_colortemp('cct')],
+        exposes: [exposes.light().withBrightness().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withColorTemp().withEndpoint('cct')],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
@@ -6338,7 +6338,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        exposes: [exposes.light_state_brightness()],
+        exposes: [exposes.light().withBrightness()],
     },
 
     // ROBB
@@ -7409,7 +7409,7 @@ const devices = [
         description: 'ZigBee Light Link wireless electronic ballast',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
-        exposes: [exposes.light_state_brightness_colortemp_colorxy('rgb'), exposes.light_state_brightness('white')],
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withEndpoint('rgb'), exposes.light().withBrightness().withEndpoint('white')],
         endpoint: (device) => {
             return {rgb: 10, white: 11};
         },
@@ -7923,21 +7923,6 @@ const devices = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
-    // Removed support due to:
-    // - https://github.com/Koenkk/zigbee2mqtt/issues/2750
-    // - https://github.com/Koenkk/zigbee2mqtt/issues/1957
-    // {
-    //     zigbeeModel: ['RC_V14', 'RC-EM'],
-    //     model: 'HS1RC-M',
-    //     vendor: 'HEIMAN',
-    //     description: 'Smart remote controller',
-    //     supports: 'action',
-    //     fromZigbee: [
-    //         fz.battery,
-    //         fz.heiman_smart_controller_armmode, fz.command_emergency,
-    //     ],
-    //     toZigbee: [],
-    // },
     {
         fingerprint: [{modelID: 'RC-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1RC-N',
@@ -12187,7 +12172,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
-        exposes: [exposes.light_state_brightness()],
+        exposes: [exposes.light().withBrightness()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);

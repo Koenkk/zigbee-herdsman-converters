@@ -1,6 +1,7 @@
 'use strict';
 
 const devices = require('./devices');
+const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
 
@@ -131,6 +132,7 @@ function fingerprintMatch(fingerprint, device) {
 
 module.exports = {
     devices: definitions,
+    exposes,
     definitions,
     findByZigbeeModel, // Legacy method, use findByDevice instead.
     findByDevice,
