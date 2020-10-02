@@ -232,7 +232,7 @@ const generic = {
     switch: {
         exposes: [exposes.switch()],
         supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
     },
     light_onoff_brightness: {
