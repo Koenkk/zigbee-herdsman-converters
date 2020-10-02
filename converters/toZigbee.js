@@ -3019,6 +3019,18 @@ const converters = {
             return {state: {}};
         },
     },
+    TS0003_curtain_switch: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'close': 1, 'stop': 2, 'open': 1};
+            const endpointID = lookup[value.toLowerCase()];
+            const endpoint = entity.getDevice().getEndpoint(endpointID);
+            await endpoint.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {

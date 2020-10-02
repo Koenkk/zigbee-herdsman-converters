@@ -6097,6 +6097,15 @@ const converters = {
             }
         },
     },
+    TS0003_curtain_switch: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {'running': msg.data['onOff'] === 1 ? true : false};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
