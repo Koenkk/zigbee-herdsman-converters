@@ -223,24 +223,25 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     const data = msg.data.data;
     const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     let temperature;
-    /*See tuyaThermostat above for message structure comment */
+    /* See tuyaThermostat above for message structure comment */
     switch (dp) {
     case 101:
-    return {Program: [
-        {p1: data[0]+'h:'+data[1]+'m '+data[2]+'°C'},
-        {p2: data[3]+'h:'+data[4]+'m '+data[5]+'°C'},
-        {p3: data[6]+'h:'+data[7]+'m '+data[8]+'°C'},
-        {p4: data[9]+'h:'+data[10]+'m '+data[11]+'°C'},
-        {sa1: data[12]+'h:'+data[13]+'m '+data[14]+'°C'},
-        {sa2: data[15]+'h:'+data[16]+'m '+data[17]+'°C'},
-        {sa3: data[18]+'h:'+data[19]+'m '+data[20]+'°C'},
-        {sa4: data[21]+'h:'+data[22]+'m '+data[23]+'°C'},
-        {su1: data[24]+'h:'+data[25]+'m '+data[26]+'°C'},
-        {su2: data[27]+'h:'+data[28]+'m '+data[29]+'°C'},
-        {su3: data[30]+'h:'+data[31]+'m '+data[32]+'°C'},
-        {su4: data[33]+'h:'+data[34]+'m '+data[35]+'°C'},
-        ]
-    };
+        return {
+            program: [
+                {p1: data[0] + 'h:' + data[1] + 'm ' + data[2] + '°C'},
+                {p2: data[3] + 'h:' + data[4] + 'm ' + data[5] + '°C'},
+                {p3: data[6] + 'h:' + data[7] + 'm ' + data[8] + '°C'},
+                {p4: data[9] + 'h:' + data[10] + 'm ' + data[11] + '°C'},
+                {sa1: data[12] + 'h:' + data[13] + 'm ' + data[14] + '°C'},
+                {sa2: data[15] + 'h:' + data[16] + 'm ' + data[17] + '°C'},
+                {sa3: data[18] + 'h:' + data[19] + 'm ' + data[20] + '°C'},
+                {sa4: data[21] + 'h:' + data[22] + 'm ' + data[23] + '°C'},
+                {su1: data[24] + 'h:' + data[25] + 'm ' + data[26] + '°C'},
+                {su2: data[27] + 'h:' + data[28] + 'm ' + data[29] + '°C'},
+                {su3: data[30] + 'h:' + data[31] + 'm ' + data[32] + '°C'},
+                {su4: data[33] + 'h:' + data[34] + 'm ' + data[35] + '°C'},
+            ],
+        };
     case 257: // 0x0101 Thermostat on standby = OFF, running = ON
         return {system_mode: dataAsDecNumber ? 'heat' : 'off'};
     case 296: // 0x2801 Changed child lock status for moes thermostat
@@ -250,7 +251,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {current_heating_setpoint: temperature};
     case 530: // 0x1002 set temperature
         temperature = dataAsDecNumber;
-        return {max_temperature_limit: temperature};    
+        return {max_temperature_limit: temperature};
     case 531: // 0x1002 set temperature
         temperature = dataAsDecNumber;
         return {max_temperature: temperature};
@@ -262,26 +263,23 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {local_temperature: temperature};
     case 539: // Calibration
         temperature = dataAsDecNumber;
-        //for negative values produce complimentary hex (equivalent to negative values)
-        if (temperature > 4000){ temperature = temperature-4096} 
+        // for negative values produce complimentary hex (equivalent to negative values)
+        if (temperature > 4000) temperature = temperature - 4096;
         return {local_temperature_calibration: temperature};
     case 1026: // 0x0204 Changed program mode for moes thermostat *1026/1027 flip states inversely
-        return {preset_mode: dataAsDecNumber ? 'program' : 'hold'};          
+        return {preset_mode: dataAsDecNumber ? 'program' : 'hold'};
     case 1027: // 0x0304 Changed manual mode status for moes thermostat
         return {preset_mode: dataAsDecNumber ? 'hold' : 'program'};
     case 1060: // 0x2404 Moes Thermostat is Open or Closed
         return {Heat: dataAsDecNumber ? 'OFF' : 'ON'};
     case 1067: // 0x2b04 Temperature sensor selected
-    switch (dataAsDecNumber) {
+        switch (dataAsDecNumber) {
         case 0:
             return {sensor: 'IN'};
-            break;
         case 1:
             return {sensor: 'AL'};
-            break;
         case 2:
             return {sensor: 'OU'};
-            break;
         default:
             return {sensor: 'Not supported'};
         }
