@@ -2551,12 +2551,12 @@ const converters = {
             sendTuyaCommand(entity, 532, 0, [4, 0, 0, ...payloadValue]);
         },
     },
-    moes_thermostat_calibration: { 
+    moes_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            if (value < 0){ value = 4096+value}
+            if (value < 0) value = 4096 + value;
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]); 
+            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]);
         },
     },
     moes_thermostat_mode: {
@@ -2573,8 +2573,8 @@ const converters = {
             sendTuyaCommand(entity, 257, 0, [1, value === 'off' ? 0 : 1]);
         },
     },
-    //send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
-    moes_thermostat_sensor: {  
+    // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
+    moes_thermostat_sensor: {
         key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
             sendTuyaCommand(entity, 1067, 0, [1, value]);
