@@ -2528,7 +2528,7 @@ const converters = {
         },
     },
 
-    // Tuya Thermostat
+    // Moes Thermostat
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -2541,6 +2541,43 @@ const converters = {
             const temp = value;
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
             sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 532, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value < 0) value = 4096 + value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1026, 0, [1, value === 'hold' ? 0 : 1]);
+            sendTuyaCommand(entity, 1027, 0, [1, value === 'program' ? 0 : 1]);
+        },
+    },
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 257, 0, [1, value === 'heat' ? 1 : 0]);
+            sendTuyaCommand(entity, 257, 0, [1, value === 'off' ? 0 : 1]);
+        },
+    },
+    // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1067, 0, [1, value]);
         },
     },
     etop_thermostat_system_mode: {
