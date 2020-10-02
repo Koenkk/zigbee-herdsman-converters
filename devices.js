@@ -4386,6 +4386,13 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['TWBulb02UK'],
+        model: 'HV-GSCXZB229B',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (E27 & B22)',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
         model: '1613V',
         vendor: 'Hive',
