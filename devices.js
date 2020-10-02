@@ -4570,6 +4570,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withColorHS()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4602,7 +4603,8 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorXY().withColorHS()],
+        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 285 C'],
