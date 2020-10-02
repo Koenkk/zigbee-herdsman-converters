@@ -1270,7 +1270,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         whiteLabel: [
-            {vendor: 'Larkkey', model: 'TS0601_dimmer'},
+            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
         ],
     },
     {
@@ -1282,7 +1282,7 @@ const devices = [
         fromZigbee: [fz.tuya_curtain],
         toZigbee: [tz.tuya_curtain_control],
         whiteLabel: [
-            {vendor: 'Larkkey', model: 'TS0601_curtain_switch'},
+            {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
         ],
     },
     {
