@@ -1267,7 +1267,7 @@ const devices = [
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        supports: 'on/off, brightness',
+        extend: generic.light_onoff_brightness,
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         meta: {configureKey: 1},
@@ -1376,6 +1376,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Led strip controller HSB',
         supports: 'on/off, color (hue/saturation)',
+        exposes: [exposes.light().withColorHS()],
         fromZigbee: [fz.on_off, fz.tuya_led_controller],
         toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
     },
@@ -12202,9 +12203,8 @@ const devices = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.on_off, fz.brightness],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition],
+        extends: generic.light_onoff_brightness,
+        exposes: [exposes.light().withBrightness().withEndpoint('l1'), exposes.light().withBrightness().withEndpoint('l2')],
         meta: {configureKey: 2, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(10);
