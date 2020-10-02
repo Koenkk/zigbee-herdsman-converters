@@ -229,6 +229,12 @@ const configureReporting = {
 };
 
 const generic = {
+    switch: {
+        exposes: [exposes.switch()],
+        supports: 'on/off',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+    },
     light_onoff_brightness: {
         exposes: [exposes.light().withBrightness()],
         supports: 'on/off, brightness',
@@ -559,9 +565,7 @@ const devices = [
         model: 'WS-USC01',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, single rocker)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -574,9 +578,8 @@ const devices = [
         model: 'WS-USC02',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, double rocker)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -595,9 +598,7 @@ const devices = [
         model: 'WS-USC03',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (neutral, single rocker)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -610,9 +611,8 @@ const devices = [
         model: 'WS-USC04',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (neutral, double rocker)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -779,9 +779,8 @@ const devices = [
         model: 'QBKG26LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('right')],
         meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
@@ -1302,6 +1301,10 @@ const devices = [
         vendor: 'TuYa',
         description: '1, 2, 3 or 4 gang switch',
         supports: 'on/off',
+        exposes: [
+            exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'),
+            exposes.switch().withEndpoint('l3'), exposes.switch().withEndpoint('l4'),
+        ],
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
@@ -1329,6 +1332,7 @@ const devices = [
         vendor: 'TuYa',
         description: '2 gang switch',
         supports: 'on/off',
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
@@ -1349,6 +1353,7 @@ const devices = [
         vendor: 'TuYa',
         description: '3 gang switch',
         supports: 'on/off',
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3')],
         fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
@@ -1460,14 +1465,12 @@ const devices = [
         model: 'TS0001',
         vendor: 'TuYa',
         description: '1 gang switch',
-        supports: 'on/off',
+        extend: generic.switch,
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'},
             {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
         ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['TS0002'],
@@ -1478,9 +1481,8 @@ const devices = [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
         ],
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -1612,13 +1614,11 @@ const devices = [
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],
         model: 'TS0121_switch',
         description: 'Smart light switch module (1 gang)',
-        supports: 'on/off',
         vendor: 'TuYa',
         whiteLabel: [
             {vendor: 'Moes', model: 'MS-104Z-1'},
         ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1712,9 +1712,11 @@ const devices = [
         model: 'TS0115',
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (10A or 16A)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3'),
+            exposes.switch().withEndpoint('l4'), exposes.switch().withEndpoint('l5'),
+        ],
         whiteLabel: [
             {vendor: 'UseeLink', model: 'SM-SO306E/K/M'},
         ],
@@ -1746,9 +1748,7 @@ const devices = [
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
@@ -1760,13 +1760,12 @@ const devices = [
         model: 'TS0012',
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang without neutral wire',
-        supports: 'on/off',
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
         ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1781,9 +1780,8 @@ const devices = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -1836,9 +1834,11 @@ const devices = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'),
+            exposes.switch().withEndpoint('l3'), exposes.switch().withEndpoint('l4'),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
@@ -1897,9 +1897,11 @@ const devices = [
         model: 'E220-KR4N0Z0-HA',
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'),
+            exposes.switch().withEndpoint('l3'), exposes.switch().withEndpoint('l4'),
+        ],
         whiteLabel: [
             {vendor: 'LEELKI', model: 'WP33-EU'},
         ],
@@ -1947,7 +1949,7 @@ const devices = [
         model: 'X711A',
         vendor: 'Lonsonho',
         description: '1 gang switch',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
     },
@@ -1956,7 +1958,8 @@ const devices = [
         model: 'X712A',
         vendor: 'Lonsonho',
         description: '2 gang switch',
-        supports: 'on/off',
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -1970,7 +1973,8 @@ const devices = [
         model: 'X713A',
         vendor: 'Lonsonho',
         description: '3 gang switch',
-        supports: 'on/off',
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3')],
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -2011,9 +2015,7 @@ const devices = [
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
@@ -2026,9 +2028,8 @@ const devices = [
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang switch module with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2266,12 +2267,8 @@ const devices = [
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603/E1702',
         description: 'TRADFRI control outlet',
-        supports: 'on/off',
         vendor: 'IKEA',
-        fromZigbee: [
-            fz.on_off, fz.ignore_genLevelCtrl_report, fz.ignore_basic_report,
-        ],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3370,8 +3367,7 @@ const devices = [
         model: '929002240401',
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        extend: generic.switch,
         toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3386,8 +3382,7 @@ const devices = [
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        extend: generic.switch,
         toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3402,8 +3397,7 @@ const devices = [
         model: '8718699689308',
         vendor: 'Philips',
         description: 'Hue smart plug - UK',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        extend: generic.switch,
         toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3418,8 +3412,7 @@ const devices = [
         model: '9290022408',
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
+        extend: generic.switch,
         toZigbee: [tz.on_off].concat(tzHuePowerOnBehavior),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3579,9 +3572,7 @@ const devices = [
         model: 'SWITCH EDP RE:DY',
         vendor: 'EDP',
         description: 're:dy switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(85);
@@ -3633,9 +3624,7 @@ const devices = [
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['DNCKAT_S002'],
@@ -3644,7 +3633,8 @@ const devices = [
         description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -3656,7 +3646,8 @@ const devices = [
         description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right'), exposes.switch().withEndpoint('center')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -3668,7 +3659,11 @@ const devices = [
         description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
         supports: 'hold/release, on/off',
         fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('bottom_left'), exposes.switch().withEndpoint('bottom_right'),
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('top_right'),
+        ],
         endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
         },
@@ -3681,13 +3676,14 @@ const devices = [
         supports: 'relais, RGB-stripe, sensors, S0-counter, ADC, digital I/O',
         fromZigbee: [fz.ZigUP_parse],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
+        exposes: [exposes.switch()],
     },
     {
         zigbeeModel: ['ZWallRemote0'],
         model: 'ZWallRemote0',
         vendor: 'Custom devices (DiY)',
         description: '[Matts Wall Switch Remote](https://github.com/mattlokes/ZWallRemote)',
-        supports: 'on/off',
+        supports: 'action',
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
     },
@@ -3707,9 +3703,7 @@ const devices = [
         model: 'ED2004-012',
         vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch (https://databyte.ch/?post_type=portfolio&p=1818)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
 
     // DIYRuZ
@@ -3718,9 +3712,13 @@ const devices = [
         model: 'DIYRuZ_R4_5',
         vendor: 'DIYRuZ',
         description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
-        supports: 'on/off',
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('bottom_left'), exposes.switch().withEndpoint('bottom_right'),
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('top_right'),
+            exposes.switch().withEndpoint('center'),
+        ],
         fromZigbee: [fz.DNCKAT_S00X_state],
-        toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
@@ -3844,7 +3842,13 @@ const devices = [
         fromZigbee: [
             fz.ptvo_switch_state, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
         ],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'),
+            exposes.switch().withEndpoint('l3'), exposes.switch().withEndpoint('l4'),
+            exposes.switch().withEndpoint('l5'), exposes.switch().withEndpoint('l6'),
+            exposes.switch().withEndpoint('l7'), exposes.switch().withEndpoint('l8'),
+        ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
@@ -4052,10 +4056,8 @@ const devices = [
         zigbeeModel: ['Plug 01'],
         model: 'AB3257001NJ',
         description: 'Smart+ plug',
-        supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
@@ -4068,10 +4070,8 @@ const devices = [
         zigbeeModel: ['Plug Z3'],
         model: 'AC10691',
         description: 'Smart+ plug',
-        supports: 'on/off',
         vendor: 'OSRAM',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
@@ -4259,10 +4259,8 @@ const devices = [
         zigbeeModel: ['GWA1521_Actuator_1_CH_PF'],
         model: 'GWA1521',
         description: 'Switch actuator 1 channel with input',
-        supports: 'on/off',
         vendor: 'Gewiss',
-        fromZigbee: [fz.on_off, fz.ignore_genOta],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4274,10 +4272,9 @@ const devices = [
         zigbeeModel: ['GWA1522_Actuator_2_CH'],
         model: 'GWA1522',
         description: 'Switch actuator 2 channels with input',
-        supports: 'on/off',
         vendor: 'Gewiss',
-        toZigbee: [tz.on_off],
-        fromZigbee: [fz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -4287,7 +4284,7 @@ const devices = [
         zigbeeModel: ['GWA1531_Shutter'],
         model: 'GWA1531',
         description: 'Shutter actuator',
-        supports: 'on/off',
+        supports: 'position',
         vendor: 'Gewiss',
         fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
@@ -4889,9 +4886,7 @@ const devices = [
         model: 'SP 220',
         vendor: 'Innr',
         description: 'Smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4904,9 +4899,7 @@ const devices = [
         model: 'SP 222',
         vendor: 'Innr',
         description: 'Smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4919,9 +4912,7 @@ const devices = [
         model: 'SP 224',
         vendor: 'Innr',
         description: 'Smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5067,9 +5058,7 @@ const devices = [
         model: '72922-A',
         vendor: 'Sylvania',
         description: 'SMART+ Smart Plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5149,9 +5138,7 @@ const devices = [
         model: 'DL15S-1BZ',
         vendor: 'Leviton',
         description: 'Lumina RF 15A switch, 120/277V',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5246,9 +5233,7 @@ const devices = [
         model: '45856GE',
         vendor: 'GE',
         description: 'In-wall smart switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off, tz.ignore_transition],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5274,9 +5259,7 @@ const devices = [
         model: 'PTAPT-WH02',
         vendor: 'GE',
         description: 'Quirky smart switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -5408,9 +5391,7 @@ const devices = [
         model: 'E1C-NB6',
         vendor: 'Sengled',
         description: 'Smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5516,9 +5497,7 @@ const devices = [
         model: '98423051',
         vendor: 'Nordtronic',
         description: 'Zigbee switch 400W',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -5533,9 +5512,8 @@ const devices = [
         model: 'LXN59-2S7LX1.0',
         vendor: 'Nue / 3A',
         description: 'Smart light relay - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZW-EU-02'},
         ],
@@ -5591,9 +5569,8 @@ const devices = [
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
@@ -5609,9 +5586,8 @@ const devices = [
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom'), exposes.switch().withEndpoint('center')],
         endpoint: (device) => {
             return {'top': 16, 'center': 17, 'bottom': 18};
         },
@@ -5627,9 +5603,11 @@ const devices = [
         model: 'HGZB-44',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 4 gang v2.0',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('top_right'),
+            exposes.switch().withEndpoint('bottom_left'), exposes.switch().withEndpoint('bottom_right'),
+        ],
         endpoint: (device) => {
             return {'top_left': 16, 'top_right': 17, 'bottom_right': 18, 'bottom_left': 19};
         },
@@ -5653,9 +5631,8 @@ const devices = [
         model: 'HGZB-042',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
@@ -5670,9 +5647,8 @@ const devices = [
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang v2.0',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 11, 'bottom': 12};
         },
@@ -5687,9 +5663,7 @@ const devices = [
         model: 'HGZB-20A',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
@@ -5700,18 +5674,15 @@ const devices = [
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
         model: 'MG-AUWS01',
         vendor: 'Nue / 3A',
         description: 'Smart Double GPO',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {left: 12, right: 11};
@@ -5729,9 +5700,7 @@ const devices = [
         model: 'HGZB-01A',
         vendor: 'Nue / 3A',
         description: 'Smart in-wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2', 'FB56+ZSC04HG1.0'],
@@ -5745,9 +5714,7 @@ const devices = [
         model: 'HGZB-42-UK / HGZB-41 / HGZB-41-UK',
         description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['FNB56-ZCW25FB1.6', 'FNB56-ZCW25FB2.1'],
@@ -5761,9 +5728,7 @@ const devices = [
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['NUET56-DL27LX1.2'],
@@ -5795,18 +5760,18 @@ const devices = [
         model: 'HGZB-20-DE',
         vendor: 'Smart Home Pty',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['LXN56-1S27LX1.2'],
         model: 'NUE-ZBFLB',
         vendor: 'Nue / 3A',
         description: 'Smart fan light switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('button_light'), exposes.switch().withEndpoint('button_fan_high'),
+            exposes.switch().withEndpoint('button_fan_med'), exposes.switch().withEndpoint('button_fan_low'),
+        ],
         endpoint: (device) => {
             return {'button_light': 1, 'button_fan_high': 2, 'button_fan_med': 3, 'button_fan_low': 4};
         },
@@ -5825,9 +5790,8 @@ const devices = [
         model: 'TZSW22FW-L4',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
@@ -5935,18 +5899,15 @@ const devices = [
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ2.2'],
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 16, 'right': 17};
         },
@@ -5961,9 +5922,8 @@ const devices = [
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right'), exposes.switch().withEndpoint('center')],
         endpoint: (device) => {
             return {'left': 16, 'center': 17, 'right': 18};
         },
@@ -6323,9 +6283,7 @@ const devices = [
         model: 'GL-W-001Z',
         vendor: 'Gledopto',
         description: 'Zigbee ON/OFF Wall Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         onEvent: async (type, data, device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
@@ -6373,7 +6331,7 @@ const devices = [
         model: 'ZSTY-SM-11ZG-US-W',
         vendor: ' Somgoms',
         description: '1 gang switch',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.tuya_switch2, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
     },
@@ -6415,9 +6373,7 @@ const devices = [
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -6505,9 +6461,7 @@ const devices = [
         model: '4512704',
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -6705,9 +6659,7 @@ const devices = [
         model: 'IM6001-OTP05',
         vendor: 'SmartThings',
         description: 'Outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7105,9 +7057,7 @@ const devices = [
         model: '50043',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['Dimmablelight '],
@@ -7408,9 +7358,7 @@ const devices = [
         vendor: 'Ksentry Electronics',
         description: '[Zigbee OnOff Controller](http://ksentry.manufacturer.globalsources.com/si/6008837134660'+
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
@@ -7634,9 +7582,7 @@ const devices = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_genOta],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7704,9 +7650,7 @@ const devices = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 chanel relay',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7718,9 +7662,8 @@ const devices = [
         model: '12127',
         vendor: 'Lupus',
         description: '2 chanel relay',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.linkquality_from_basic],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true, configureKey: 2},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -7739,9 +7682,7 @@ const devices = [
         model: 'PSS-23ZBS',
         vendor: 'Climax',
         description: 'Power plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['SCM-3_00.00.03.15'],
@@ -8580,9 +8521,7 @@ const devices = [
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
         description: 'Q-PLUG adapter plug with night orientation light',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['JZ-CT-Z01'],
@@ -8621,9 +8560,7 @@ const devices = [
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 AC switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -8682,9 +8619,7 @@ const devices = [
         model: '6717-84',
         vendor: 'Busch-Jaeger',
         description: 'Adaptor plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter) and
@@ -8812,10 +8747,8 @@ const devices = [
         zigbeeModel: ['tint Smart Switch'],
         model: '404021',
         description: 'Tint smart switch',
-        supports: 'on/off',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -8968,7 +8901,8 @@ const devices = [
         // eslint-disable-next-line
         description: 'Zigbee switch (1 and 2 gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
         vendor: 'Livolo',
-        supports: 'on/off',
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right')],
         fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
         toZigbee: [tz.livolo_switch_on_off],
         endpoint: (device) => {
@@ -8998,7 +8932,7 @@ const devices = [
         // eslint-disable-next-line
         description: 'New Zigbee Switch [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.livolo_new_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
         meta: {configureKey: 1},
@@ -9025,7 +8959,7 @@ const devices = [
         // eslint-disable-next-line
         description: 'New Zigbee Socket [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
         vendor: 'Livolo',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.livolo_socket_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
         meta: {configureKey: 1},
@@ -9465,9 +9399,7 @@ const devices = [
         model: 'LVS-ZB15S',
         vendor: 'LivingWise',
         description: 'ZigBee smart in-wall switch',
-        supports: 'on/off',
-        toZigbee: [tz.on_off],
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
@@ -9492,9 +9424,7 @@ const devices = [
         model: 'LVS-ZB15R',
         vendor: 'LivingWise',
         description: 'Zigbee smart outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['75d430d66c164c26ac8601c05932dc94'],
@@ -9512,9 +9442,7 @@ const devices = [
         model: '14592.0',
         vendor: 'Vimar',
         description: '2-way switch IoT connected mechanism',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
@@ -9907,9 +9835,7 @@ const devices = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -9965,9 +9891,7 @@ const devices = [
         model: 'SM308',
         vendor: 'Samotech',
         description: 'Zigbee AC in wall switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_genOta],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10022,9 +9946,8 @@ const devices = [
         model: 'HLC614-ZLL',
         vendor: 'Shenzhen Homa',
         description: '3 channel relay module',
-        supports: 'on/off',
-        fromZigbee: [],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
@@ -10044,9 +9967,8 @@ const devices = [
         model: 'U86K31ND6',
         vendor: 'Honyar',
         description: '3 gang switch ',
-        supports: 'on/off',
-        fromZigbee: [],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('right'), exposes.switch().withEndpoint('center')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -10122,9 +10044,7 @@ const devices = [
         model: '3RSS007Z',
         vendor: 'Third Reality',
         description: 'Smart light switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off, tz.ignore_transition],
+        extend: generic.switch,
         meta: {disableDefaultResponse: true, configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10215,9 +10135,7 @@ const devices = [
         model: '511.202',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 Schalt-Aktor mini 1x230V, 200W/400W',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
@@ -10270,10 +10188,8 @@ const devices = [
         zigbeeModel: ['FB56-SKT17AC1.4'],
         model: '67200BL',
         description: 'Vetaar smart plug',
-        supports: 'on/off',
         vendor: 'Anchor',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
@@ -10650,9 +10566,8 @@ const devices = [
         model: 'ZM-L03E-Z',
         vendor: 'Zemismart',
         description: 'Smart light switch - 3 gang with neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('left'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -10914,9 +10829,7 @@ const devices = [
         model: 'SW2500ZB',
         vendor: 'Sinope',
         description: 'Zigbee smart light switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10929,9 +10842,7 @@ const devices = [
         model: 'SP2600ZB',
         vendor: 'Sinope',
         description: 'Zigbee smart plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11030,18 +10941,15 @@ const devices = [
         model: 'GLSK3ZB-1711',
         vendor: 'Hej',
         description: 'Goqual 1 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['HejSW02'],
         model: 'GLSK3ZB-1712',
         vendor: 'Hej',
         description: 'Goqual 2 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
@@ -11056,9 +10964,8 @@ const devices = [
         model: 'GLSK3ZB-1713',
         vendor: 'Hej',
         description: 'Goqual 3 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
@@ -11074,9 +10981,11 @@ const devices = [
         model: 'GLSK6ZB-1714',
         vendor: 'Hej',
         description: 'Goqual 4 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('bottom_left'),
+            exposes.switch().withEndpoint('top_right'), exposes.switch().withEndpoint('bottom_right'),
+        ],
         endpoint: (device) => {
             return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
         },
@@ -11093,9 +11002,12 @@ const devices = [
         model: 'GLSK6ZB-1715',
         vendor: 'Hej',
         description: 'Goqual 5 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('top_right'),
+            exposes.switch().withEndpoint('center_left'),
+            exposes.switch().withEndpoint('bottom_left'), exposes.switch().withEndpoint('bottom_right'),
+        ],
         endpoint: (device) => {
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
         },
@@ -11113,9 +11025,12 @@ const devices = [
         model: 'GLSK6ZB-1716',
         vendor: 'Hej',
         description: 'Goqual 6 gang Switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [
+            exposes.switch().withEndpoint('top_left'), exposes.switch().withEndpoint('bottom_left'),
+            exposes.switch().withEndpoint('center_left'), exposes.switch().withEndpoint('center_right'),
+            exposes.switch().withEndpoint('top_right'), exposes.switch().withEndpoint('bottom_right'),
+        ],
         endpoint: (device) => {
             return {
                 'top_left': 1, 'center_left': 2, 'bottom_left': 3,
@@ -11218,9 +11133,7 @@ const devices = [
         model: 'PM-S140-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11233,9 +11146,8 @@ const devices = [
         model: 'PM-S240-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
@@ -11252,9 +11164,8 @@ const devices = [
         model: 'PM-S340-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
@@ -11273,9 +11184,7 @@ const devices = [
         model: 'PM-S140R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11288,9 +11197,8 @@ const devices = [
         model: 'PM-S240R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
@@ -11307,9 +11215,8 @@ const devices = [
         model: 'PM-S340R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
@@ -11328,9 +11235,7 @@ const devices = [
         model: 'PM-S150-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11343,9 +11248,8 @@ const devices = [
         model: 'PM-S250-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
@@ -11362,9 +11266,8 @@ const devices = [
         model: 'PM-S350-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
@@ -11629,9 +11532,8 @@ const devices = [
         model: 'T18W3Z',
         vendor: 'ORVIBO',
         description: 'Neutral smart switch 3 gang',
-        supports: 'on/off',
-        fromZigbee: [],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3')],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -11669,9 +11571,8 @@ const devices = [
         model: 'RL804QZB',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2'), exposes.switch().withEndpoint('l3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
@@ -11730,9 +11631,8 @@ const devices = [
         model: 'T30W3Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 3 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -11751,9 +11651,8 @@ const devices = [
         model: 'T21W2Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
@@ -11768,9 +11667,7 @@ const devices = [
         model: 'T21W1Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 1 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11791,9 +11688,8 @@ const devices = [
         model: 'R11W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -11808,9 +11704,8 @@ const devices = [
         model: 'R20W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -11872,18 +11767,16 @@ const devices = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        toZigbee: [tz.on_off],
     },
     {
         zigbeeModel: ['S31 Lite zb'],
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11987,9 +11880,8 @@ const devices = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.SA003_on_off],
-        toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -12039,9 +11931,7 @@ const devices = [
         model: 'TS0111',
         vendor: 'CR Smart Home',
         description: 'Socket',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['TS0207'],
@@ -12137,9 +12027,7 @@ const devices = [
         model: 'ZK-EU-2U',
         vendor: 'Moes',
         description: 'ZigBee3.0 dual USB wireless socket plug',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'}],
@@ -12203,7 +12091,7 @@ const devices = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extends: generic.light_onoff_brightness,
+        extend: generic.light_onoff_brightness,
         exposes: [exposes.light().withBrightness().withEndpoint('l1'), exposes.light().withBrightness().withEndpoint('l2')],
         meta: {configureKey: 2, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -12239,9 +12127,7 @@ const devices = [
         model: 'U201SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
@@ -12254,9 +12140,8 @@ const devices = [
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(10);
@@ -12416,7 +12301,7 @@ const devices = [
         model: '064888',
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
         meta: {configureKey: 2},
@@ -12578,9 +12463,7 @@ const devices = [
         model: 'ZS190000118',
         vendor: 'Linkind',
         description: 'Control outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
 
     // BlitzWolf
@@ -13154,9 +13037,8 @@ const devices = [
         model: 'ECW-100-A03',
         vendor: 'eZEX',
         description: 'Zigbee switch 3 gang',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('top'), exposes.switch().withEndpoint('center'), exposes.switch().withEndpoint('bottom')],
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
@@ -13271,9 +13153,7 @@ const devices = [
         model: '43076',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13299,18 +13179,15 @@ const devices = [
         model: '43102',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall outlet',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
     {
         zigbeeModel: ['43100'],
         model: '43100',
         vendor: 'Enbrighten',
         description: 'Plug-in Zigbee outdoor smart switch',
-        supports: 'on/off',
+        extend: generic.switch,
         fromZigbee: [fz.command_on_state, fz.command_off_state],
-        toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -13325,9 +13202,7 @@ const devices = [
         model: '43084',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
-        supports: 'on/off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
