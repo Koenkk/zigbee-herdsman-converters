@@ -12026,8 +12026,17 @@ const devices = [
         zigbeeModel: ['TS0112'],
         model: 'ZK-EU-2U',
         vendor: 'Moes',
-        description: 'ZigBee3.0 dual USB wireless socket plug',
+        description: 'Zigbee 3.0 dual USB wireless socket plug',
         extend: generic.switch,
+        exposes: [exposes.switch().withEndpoint('l1'), exposes.switch().withEndpoint('l2')],
+        meta: {multiEndpoint: true, configureKey: 1},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'}],
