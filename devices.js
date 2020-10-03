@@ -2886,6 +2886,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTE002'],
+        model: '9290022944',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E14 (with Bluetooth)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWE002'],
         model: '9290020399',
         vendor: 'Philips',
