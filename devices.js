@@ -6888,7 +6888,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Water leak sensor (2018 model)',
         supports: 'water leak and temperature',
-        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery_3V],
+        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery_3V, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
