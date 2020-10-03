@@ -271,7 +271,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case 1027: // 0x0304 Changed manual mode status for moes thermostat
         return {preset_mode: dataAsDecNumber ? 'hold' : 'program'};
     case 1060: // 0x2404 Moes Thermostat is Open or Closed
-        return {Heat: dataAsDecNumber ? 'OFF' : 'ON'};
+        return {heat: dataAsDecNumber ? 'OFF' : 'ON'};
     case 1067: // 0x2b04 Temperature sensor selected
         switch (dataAsDecNumber) {
         case 0:
