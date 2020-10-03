@@ -17,8 +17,8 @@ function rgbToXY(red, green, blue) {
 
     // RGB values to XYZ using the Wide RGB D65 conversion formula
     const X = rgb.r * 0.664511 + rgb.g * 0.154324 + rgb.b * 0.162028;
-    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + blue * 0.047685;
-    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + blue * 0.986039;
+    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + rgb.b * 0.047685;
+    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + rgb.b * 0.986039;
 
     // Calculate the xy values from the XYZ values
     let x = (X / (X + Y + Z)).toFixed(4);
