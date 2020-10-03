@@ -6569,6 +6569,15 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['PGC314'],
+        model: 'STSS-IRM-001',
+        vendor: 'SmartThings',
+        description: 'Motion sensor (2013 model)',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['tagv4'],
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
