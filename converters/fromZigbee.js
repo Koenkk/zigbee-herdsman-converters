@@ -1129,15 +1129,24 @@ const converters = {
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
 
-            if (options.hasOwnProperty('repeat_brightness_move_event') &&
-            options.repeat_brightness_move_event) {
+            if (options.hasOwnProperty('periodic_brightness_updates') &&
+            options.periodic_brightness_updates) {
+                let brightness = direction === 'up' ? 0 : 255;
+                const brightnessDelta = direction === 'up' ? 0.5 : -0.5;
+
+                publish({brightness: brightness, direction: direction});
+                brightness += brightnessDelta;
+
                 // We need a list, because multiple events are comming in
                 // and we like to cancel all in stop call
                 store[deviceID].timers.push(setInterval(() => {
-                    publish(payload);
+                    if (brightness > 0 && brightness < 255) {
+                        brightness += brightnessDelta;
+                    }
+                    publish({brightness: brightness, direction: direction});
                 },
-                options.hasOwnProperty('repeat_brightness_move_event_ms') ?
-                    options.repeat_brightness_move_event_ms : 500),
+                options.hasOwnProperty('periodic_brightness_updates_interval') ?
+                    options.periodic_brightness_updates_interval : 200),
                 );
             }
 
@@ -1165,8 +1174,8 @@ const converters = {
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) store[deviceID] = {};
 
-            if (options.hasOwnProperty('repeat_brightness_move_event') &&
-                options.repeat_brightness_move_event) {
+            if (options.hasOwnProperty('periodic_brightness_updates') &&
+                options.periodic_brightness_updates) {
                 store[deviceID].timers.forEach((timer) => clearInterval(timer));
                 store[deviceID].timers = [];
             }
