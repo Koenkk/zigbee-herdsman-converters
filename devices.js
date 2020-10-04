@@ -4560,7 +4560,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['SLR2'],
+	zigbeeModel: ['SLR2'],
         model: 'SLR2',
         vendor: 'Hive',
         description: 'Dual channel heating and hot water thermostat',
@@ -4572,11 +4572,12 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration,
         ],
-        endpoint: (device) => {return {'heat': 5, 'water': 6};
+        endpoint: (device) => {
+		return {'heat': 5, 'water': 6};
         },
         meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            const heatEndpoint = device.getEndpoint(5);
+	    const heatEndpoint = device.getEndpoint(5);
 	    const waterEndpoint = device.getEndpoint(6);
             const binds = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
@@ -4587,14 +4588,12 @@ const devices = [
             await configureReporting.thermostatOccupiedHeatingSetpoint(heatEndpoint);
             await configureReporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await configureReporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
-
 	    await bind(waterEndpoint, coordinatorEndpoint, binds);
             await configureReporting.thermostatRunningState(waterEndpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
             await configureReporting.thermostatTemperatureSetpointHold(waterEndpoint);
             await configureReporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
-	
     },
 
     {
