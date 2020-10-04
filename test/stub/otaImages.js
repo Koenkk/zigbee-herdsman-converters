@@ -33,7 +33,14 @@ const otaImagesFilesWithMeta = {
         minimumHardwareVersion: 0,
         maximumHardwareVersion: 4,
         elements: 1
-    }
+    },
+    "ncp-uart-61.ota": {
+        manufacturer: "",
+        headerField: 0,
+        minimumHardwareVersion: undefined,
+        maximumHardwareVersion: undefined,
+        elements: 1
+    },
 };
 
 const otaImages = Object.entries(otaImagesFilesWithMeta).map(
