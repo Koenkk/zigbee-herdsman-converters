@@ -12942,9 +12942,9 @@ const devices = [
     },
     {
         zigbeeModel: ['SmartPlug51AU'],
-        model: 'SmartPlug51AU',
+        model: 'AU-A1ZBPIA',
         vendor: 'Aurora Lighting',
-        description: 'Aurora Smart plug',
+        description: 'Aurora smart plug',
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature],
         toZigbee: [tz.on_off],
