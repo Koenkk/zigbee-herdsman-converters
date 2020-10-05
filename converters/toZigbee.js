@@ -968,11 +968,17 @@ const converters = {
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
-            await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
+            const epId = parseInt(key.substr(1,1));
+            if ( utils.hasEndpoints(meta.device, [epId]) ) {
+                  const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                  await endpoint.write('hvacThermostat', {occupiedHeatingSetpoint});
+            }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+            const epId = parseInt(key.substr(1,1));
+            if ( utils.hasEndpoints(meta.device, [epId]) ) {
+                  await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+            }
         },
     },
     thermostat_unoccupied_heating_setpoint: {
