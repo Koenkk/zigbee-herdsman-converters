@@ -12948,33 +12948,33 @@ const devices = [
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature, fz.occupancy],
         toZigbee: [tz.on_off],
-        meta: { configureKey: 6, multiEndpoint: true },
+        meta: {configureKey: 6, multiEndpoint: true},
         endpoint: (device) => {
-          return {
-            default: 2,
-            ep1: 1,
-            ep2: 2,
-          };
+            return {
+                default: 2,
+                ep1: 1,
+                ep2: 2,
+            };
         },
         configure: async (device, coordinatorEndpoint) => {
-          const endpoint = device.getEndpoint(2);
-          await bind(endpoint, coordinatorEndpoint, [
-            'genOnOff',
-            'genIdentify',
-            'haElectricalMeasurement',
-            'seMetering',
-            'genDeviceTempCfg'
-          ]);
-    
-          await configureReporting.deviceTemperature(endpoint);
-    
-          await readEletricalMeasurementPowerConverterAttributes(endpoint);
-          await configureReporting.rmsVoltage(endpoint, { change: 100 });
-          await configureReporting.rmsCurrent(endpoint);
-          await configureReporting.activePower(endpoint);
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, [
+                'genOnOff',
+                'genIdentify',
+                'haElectricalMeasurement',
+                'seMetering',
+                'genDeviceTempCfg',
+            ]);
+
+            await configureReporting.deviceTemperature(endpoint);
+
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.rmsVoltage(endpoint, {change: 100});
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.activePower(endpoint);
         },
-      },
-    
+    },
+
     // Wally
     {
         zigbeeModel: ['MultiSensor'],
