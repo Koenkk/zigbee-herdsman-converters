@@ -7427,8 +7427,8 @@ const devices = [
         model: 'iL07_1',
         vendor: 'Iris',
         description: 'Motion Sensor',
-        supports: 'motion, tamper and battery',
-        fromZigbee: [fz.ias_occupancy_alarm_2],
+        supports: 'motion, tamper, temperature, humidity and battery',
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
     },
     {
