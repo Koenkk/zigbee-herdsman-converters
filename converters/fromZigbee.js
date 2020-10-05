@@ -3577,75 +3577,74 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (typeof msg.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+                result[postfixWithEndpointName('local_temperature', msg, model)] = precisionRound(msg.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
+                result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (typeof msg.data['occupancy'] == 'number') {
-                result.occupancy = msg.data['occupancy'];
+                result[postfixWithEndpointName('occupancy', msg, model)] = msg.data['occupancy'];
             }
             if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                const ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-                if (ohs < -250) {
-                    // Stelpro will return -325.65 when set to off
-                    result.occupied_heating_setpoint = 0;
-                } else {
-                    result.occupied_heating_setpoint = ohs;
-                }
+                let ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                // Stelpro will return -325.65 when set to off
+                ohs = ohs < - 250 ? 0 : ohs;
+                result[postfixWithEndpointName('occupied_heating_setpoint', msg, model)] = ohs;
             }
             if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint =
+                result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model)] =
                     precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['occupiedCoolingSetpoint'] == 'number') {
-                result.occupied_cooling_setpoint =
+                result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model)] =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['unoccupiedCoolingSetpoint'] == 'number') {
-                result.unoccupied_cooling_setpoint =
+                result[postfixWithEndpointName('unoccupied_cooling_setpoint', msg, model)] =
                     precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule = msg.data['weeklySchedule'];
+                result[postfixWithEndpointName('weekly_schedule', msg, model)] = msg.data['weeklySchedule'];
             }
             if (typeof msg.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount = msg.data['setpointChangeAmount'] / 100;
+                result[postfixWithEndpointName('setpoint_change_amount', msg, model)] = msg.data['setpointChangeAmount'] / 100;
             }
             if (typeof msg.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source = msg.data['setpointChangeSource'];
+                result[postfixWithEndpointName('setpoint_change_source', msg, model)] = msg.data['setpointChangeSource'];
             }
             if (typeof msg.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp = msg.data['setpointChangeSourceTimeStamp'];
+                result[postfixWithEndpointName('setpoint_change_source_timestamp', msg, model)] = msg.data['setpointChangeSourceTimeStamp'];
             }
             if (typeof msg.data['remoteSensing'] == 'number') {
-                result.remote_sensing = msg.data['remoteSensing'];
+                result[postfixWithEndpointName('remote_sensing', msg, model)] = msg.data['remoteSensing'];
             }
             const ctrl = msg.data['ctrlSeqeOfOper'];
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
+                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
+                    common.thermostatControlSequenceOfOperations[ctrl];
             }
             const smode = msg.data['systemMode'];
             if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
-                result.system_mode = common.thermostatSystemModes[smode];
+                result[postfixWithEndpointName('system_mode', msg, model)] = common.thermostatSystemModes[smode];
             }
             const rmode = msg.data['runningMode'];
             if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
-                result.running_mode = common.thermostatSystemModes[rmode];
+                result[postfixWithEndpointName('running_mode', msg, model)] = common.thermostatSystemModes[rmode];
             }
             const state = msg.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
-                result.running_state = common.thermostatRunningStates[state];
+                result[postfixWithEndpointName('running_state', msg, model)] = common.thermostatRunningStates[state];
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
+                result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
+                    precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
             }
             if (typeof msg.data['tempSetpointHold'] == 'number') {
-                result.temperature_setpoint_hold = msg.data['tempSetpointHold'];
+                result[postfixWithEndpointName('temperature_setpoint_hold', msg, model)] = msg.data['tempSetpointHold'];
             }
             if (typeof msg.data['tempSetpointHoldDuration'] == 'number') {
-                result.temperature_setpoint_hold_duration = msg.data['tempSetpointHoldDuration'];
+                result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
             }
             return result;
         },
@@ -3655,10 +3654,11 @@ const converters = {
         type: ['commandGetWeeklyScheduleRsp'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            result.weekly_schedule = {};
+            const key = postfixWithEndpointName('weekly_schedule', msg, model);
+            result[key] = {};
             if (typeof msg.data['dayofweek'] == 'number') {
-                result.weekly_schedule[msg.data['dayofweek']] = msg.data;
-                for (const elem of result.weekly_schedule[msg.data['dayofweek']]['transitions']) {
+                result[key][msg.data['dayofweek']] = msg.data;
+                for (const elem of result[key][msg.data['dayofweek']]['transitions']) {
                     if (typeof elem['heatSetpoint'] == 'number') {
                         elem['heatSetpoint'] /= 100;
                     }
