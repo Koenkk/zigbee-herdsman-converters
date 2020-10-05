@@ -6653,6 +6653,13 @@ const devices = [
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
     },
+    {
+        zigbeeModel: ['3802964'],
+        model: '3802964',
+        vendor: 'Namron',
+        description: 'LED 5,3W CCT E14',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // SmartThings
     {
