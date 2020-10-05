@@ -12940,7 +12940,41 @@ const devices = [
         description: 'AOne 250W smart rotary dimmer module',
         extend: generic.light_onoff_brightness,
     },
-
+    {
+        zigbeeModel: ['SmartPlug51AU'],
+        model: 'SmartPlug51AU',
+        vendor: 'Aurora Lighting',
+        description: 'Aurora Smart plug',
+        supports: 'on/off, power measurement, temperature',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature, fz.occupancy],
+        toZigbee: [tz.on_off],
+        meta: { configureKey: 6, multiEndpoint: true },
+        endpoint: (device) => {
+          return {
+            default: 2,
+            ep1: 1,
+            ep2: 2,
+          };
+        },
+        configure: async (device, coordinatorEndpoint) => {
+          const endpoint = device.getEndpoint(2);
+          await bind(endpoint, coordinatorEndpoint, [
+            'genOnOff',
+            'genIdentify',
+            'haElectricalMeasurement',
+            'seMetering',
+            'genDeviceTempCfg'
+          ]);
+    
+          await configureReporting.deviceTemperature(endpoint);
+    
+          await readEletricalMeasurementPowerConverterAttributes(endpoint);
+          await configureReporting.rmsVoltage(endpoint, { change: 100 });
+          await configureReporting.rmsCurrent(endpoint);
+          await configureReporting.activePower(endpoint);
+        },
+      },
+    
     // Wally
     {
         zigbeeModel: ['MultiSensor'],
