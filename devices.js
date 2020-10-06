@@ -7914,6 +7914,15 @@ const devices = [
         },
     },
 
+    // Niviss
+    {
+        zigbeeModel: ['NIV-ZC-OFD'],
+        model: 'PS-ZIGBEE-SMART-CONTROLER-1CH-DIMMABLE',
+        vendor: 'Niviss',
+        description: 'Zigbee smart controller',
+        extend: generic.light_onoff_brightness,
+    },
+
     // HEIMAN
     {
         zigbeeModel: ['CO_V15', 'CO_YDLV10'],
