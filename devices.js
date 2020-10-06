@@ -1304,6 +1304,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}, // 4 gang
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
