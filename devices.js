@@ -6074,6 +6074,13 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['GL-C-006S'],
+        model: 'GL-C-006S',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller WW/CW plus model',
+        extend: gledopto.light_onoff_brightness_colortemp,
+    },
+    {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
                 {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
