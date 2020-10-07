@@ -1416,7 +1416,10 @@ const devices = [
         supports: 'temperature and humidity',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%')],
+        exposes: [
+            exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('humidity').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['TS0041'],
@@ -1753,7 +1756,10 @@ const devices = [
             fz.humidity, fz.temperature, fz.battery,
         ],
         toZigbee: [],
-        exposes: [exposes.numeric('humidity').withUnit('%'), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('humidity').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['TS0011'],
@@ -3975,7 +3981,12 @@ const devices = [
             await configureReporting.temperature(secondEndpoint, overides);
             await firstEndpoint.read('msPressureMeasurement', ['scale']);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%'), exposes.numeric('illuminance'), exposes.numeric('illuminance_lux').withUnit('lx'), exposes.numeric('soil_moisture').withUnit('%'), exposes.numeric('pressure').withUnit('hPa'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%'),
+            exposes.numeric('illuminance'), exposes.numeric('illuminance_lux').withUnit('lx'),
+            exposes.numeric('soil_moisture').withUnit('%'), exposes.numeric('pressure').withUnit('hPa'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     // eCozy
     {
@@ -4282,7 +4293,9 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.boolean('occupancy'),
+            exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
     {
         zigbeeModel: ['MR16 TW OSRAM'],
@@ -4475,7 +4488,10 @@ const devices = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.boolean('contact'), exposes.boolean('battery_low'),
+            exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['FWBulb01'],
@@ -5936,7 +5952,10 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
 
     // Smart Home Pty
@@ -6017,7 +6036,10 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.batteryAlarmState(endpoint);
         },
-        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['FNB56-THM14FB2.4'],
@@ -6077,7 +6099,10 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['FNB56-DOS07FB2.4'],
@@ -6087,7 +6112,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['FB56+SKT14AL2.1'],
@@ -6812,7 +6840,9 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.boolean('occupancy'),
+            exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
     {
         zigbeeModel: ['3321-S'],
@@ -7034,7 +7064,10 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.boolean('contact'), exposes.boolean('battery_low'),
+            exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['3310-S'],
@@ -7203,7 +7236,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -7254,7 +7290,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['CSW_ADUROLIGHT'],
@@ -7273,7 +7312,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
 
     // Paulmann
@@ -7737,7 +7779,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await configureReporting.temperature(endpoint);
         },
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('temperature').withUnit('°C')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('temperature').withUnit('°C'),
+        ],
     },
     {
         zigbeeModel: ['3400-D'],
@@ -8129,7 +8174,10 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['WaterSensor-N'],
@@ -8166,7 +8214,10 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         fingerprint: [{modelID: 'RC-N', manufacturerName: 'HEIMAN'}],
@@ -8288,7 +8339,10 @@ const devices = [
             await bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
             await configureReporting.humidity(endpoint2);
         },
-        exposes: [exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['SKHMP30-I1'],
@@ -8412,7 +8466,10 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
-        exposes: [exposes.boolean('vibration'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('vibration'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         fingerprint: [{modelID: 'HS2AQ-EM', manufacturerName: 'HEIMAN'}],
@@ -9360,7 +9417,11 @@ const devices = [
             await configureReporting.humidity(endpoint);
             await configureReporting.illuminance(endpoint);
         },
-        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('illuminance'), exposes.numeric('illuminance_lux').withUnit('lx'), exposes.numeric('humidity').withUnit('%')],
+        exposes: [
+            exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('illuminance'), exposes.numeric('illuminance_lux').withUnit('lx'), exposes.numeric('humidity').withUnit('%'),
+        ],
     },
 
     // Yale
@@ -9916,7 +9977,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['3043'],
@@ -11692,7 +11756,10 @@ const devices = [
         supports: 'temperature and humidity',
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [exposes.numeric('humidity').withUnit('%'), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.numeric('humidity').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['113C'],
@@ -11722,7 +11789,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['HORN-PIR--A3.9-E'],
@@ -11824,7 +11894,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['8643db61de35494d93e72c1289b526a3'],
@@ -12178,7 +12251,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['TS0204'],
@@ -12213,7 +12289,10 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['TS0218'],
@@ -12762,7 +12841,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ignore_time_read],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['5j6ifxj'],
@@ -12898,7 +12980,10 @@ const devices = [
         supports: 'water leak',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('water_leak'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['Door_Sensor'],
@@ -12908,7 +12993,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['vivi ZLight'],
@@ -13088,7 +13176,10 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await configureReporting.illuminance(endpoint);
         },
-        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('illuminance'), exposes.numeric('illuminance_lux').withUnit('lx')],
+        exposes: [
+            exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('illuminance'),
+            exposes.numeric('illuminance_lux').withUnit('lx'),
+        ],
     },
     {
         zigbeeModel: ['SingleSocket50AU'],
@@ -13113,7 +13204,10 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'), exposes.numeric('battery').withUnit('%')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
     },
     {
         zigbeeModel: ['WallDimmerMaster'],
@@ -13215,7 +13309,10 @@ const devices = [
         supports: 'temperature and humidity',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('humidity').withUnit('%')],
+        exposes: [
+            exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('humidity').withUnit('%'),
+        ],
     },
 
     // Siterwell
