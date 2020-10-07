@@ -1526,6 +1526,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
