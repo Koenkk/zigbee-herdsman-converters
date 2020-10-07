@@ -5080,7 +5080,7 @@ const converters = {
             if (store[deviceID]) {
                 clearTimeout(store[deviceID]);
                 store[deviceID] = null;
-            };
+            }
 
             // 0 = hold
             if (value === 0) {
