@@ -5075,6 +5075,22 @@ const converters = {
             };
             const btn = msg.endpoint.ID;
             const value = msg.data.presentValue;
+            const deviceID = msg.device.ieeeAddr;
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            // 0 = hold
+            if (value === 0) {
+                // Aqara Opple does not generate a release event when pressed for more than 5 seconds
+                // After 5 seconds of not releasing we assume release.
+                store[deviceID] = setTimeout(() => {
+                    publish({action: `button_${btn}_release`});
+                    clearTimeout(store[deviceID]);
+                    store[deviceID] = null;
+                }, 5000);
+            }
             return {action: `button_${btn}_${actionLookup[value]}`};
         },
     },
