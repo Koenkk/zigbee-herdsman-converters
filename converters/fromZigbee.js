@@ -527,7 +527,7 @@ const converters = {
             }
         },
     },
-    lock_pin_code_rep: {
+    lock_pin_code_response: {
         cluster: 'closuresDoorLock',
         type: ['commandGetPinCodeRsp'],
         convert: (model, msg, publish, options, meta) => {
@@ -1300,7 +1300,6 @@ const converters = {
             return result;
         },
     },
-
     cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
