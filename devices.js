@@ -87,6 +87,22 @@ const configureReportingPayload = (attribute, min, max, change, overrides) => {
     return [payload];
 };
 
+async function setupHaElectricalMeasurementPolling(type, data, device, options) {
+    const endpoint = device.getEndpoint(1);
+    if (type === 'stop') {
+        clearInterval(store[device.ieeeAddr]);
+    } else if (!store[device.ieeeAddr]) {
+        const interval = options && options.measurement_poll_interval ? options.measurement_poll_interval : 10;
+        store[device.ieeeAddr] = setInterval(async () => {
+            try {
+                await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+            } catch (error) {
+                // Do nothing
+            }
+        }, interval*1000); // Every 10 seconds
+    }
+}
+
 const configureReporting = {
     currentPositionLiftPercentage: async (endpoint, overrides) => {
         const payload = configureReportingPayload('currentPositionLiftPercentage', 1, repInterval.MAX, 1, overrides);
@@ -1668,24 +1684,9 @@ const devices = [
                 acPowerDivisor: 1,
             });
         },
-        onEvent: async (type, data, device, options) => {
-            // This device doesn't support reporting correctly.
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
-            const endpoint = device.getEndpoint(1);
-            if (type === 'stop') {
-                clearInterval(store[device.ieeeAddr]);
-            } else if (!store[device.ieeeAddr]) {
-                const interval = options && options.measurement_poll_interval ?
-                    options.measurement_poll_interval : 10;
-                store[device.ieeeAddr] = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, interval*1000); // Every 10 seconds
-            }
-        },
+        // This device doesn't support reporting correctly.
+        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+        onEvent: setupHaElectricalMeasurementPolling,
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
@@ -8042,14 +8043,14 @@ const devices = [
         exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
     {
-        zigbeeModel: ['SmartPlug', 'SmartPlug-N'],
+        zigbeeModel: ['SmartPlug'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         supports: 'on/off, power measurement',
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 4},
+        meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
@@ -8059,6 +8060,23 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'SmartPlug-N', manufacturerName: 'HEIMAN'}],
+        model: 'HS2SK_nxp',
+        description: 'Smart metering plug',
+        supports: 'on/off',
+        vendor: 'HEIMAN',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 5},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await configureReporting.onOff(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+        },
+        onEvent: setupHaElectricalMeasurementPolling,
     },
     {
         zigbeeModel: [
