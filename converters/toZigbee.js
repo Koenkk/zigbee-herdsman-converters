@@ -1332,6 +1332,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
+
+                // Xiaomi curtain does not send position update on stop, request this.
+                await entity.read('genAnalogOutput', [0x0055]);
             } else {
                 const lookup = {
                     'open': 100,
