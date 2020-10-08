@@ -11658,6 +11658,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S1',
         supports: 'on/off, power measurement',
+        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W')],
         fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         meta: {configureKey: 3},
