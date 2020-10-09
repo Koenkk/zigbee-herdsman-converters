@@ -1693,7 +1693,10 @@ const devices = [
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         onEvent: setupHaElectricalMeasurementPolling,
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V'), exposes.numeric('energy').withUnit('kWh')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'), exposes.numeric('energy').withUnit('kWh'),
+        ],
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
@@ -4547,7 +4550,10 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('energy').withUnit('kWh'), exposes.numeric('temperature').withUnit('°C')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('energy').withUnit('kWh'),
+            exposes.numeric('temperature').withUnit('°C'),
+        ],
     },
     {
         zigbeeModel: ['TWBulb01US'],
@@ -5078,7 +5084,10 @@ const devices = [
             });
             await configureReporting.currentSummDelivered(endpoint);
         },
-        exposes: [exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V'), exposes.switch(), exposes.numeric('energy').withUnit('kWh')],
+        exposes: [
+            exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V'),
+            exposes.switch(), exposes.numeric('energy').withUnit('kWh'),
+        ],
     },
     {
         zigbeeModel: ['SP 220'],
@@ -6896,7 +6905,10 @@ const devices = [
             // Limit updates to 4.0W and max 600s (10m)
             await configureReporting.activePower(endpoint, {max: 600, change: 40});
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['ZB-ONOFFPlug-D0005'],
@@ -6918,7 +6930,10 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V'), exposes.numeric('energy').withUnit('kWh')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'), exposes.numeric('energy').withUnit('kWh'),
+        ],
     },
     {
         zigbeeModel: ['outlet'],
@@ -6951,7 +6966,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.rmsVoltage(endpoint, {change: 10});
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['motion'],
@@ -7561,7 +7579,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await configureReporting.activePower(endpoint); // Power reports in 0.1W
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['3326-L'],
@@ -7783,7 +7804,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['3323-G'],
@@ -8080,7 +8104,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         fingerprint: [{modelID: 'SmartPlug-N', manufacturerName: 'HEIMAN'}],
@@ -8098,7 +8125,10 @@ const devices = [
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
         },
         onEvent: setupHaElectricalMeasurementPolling,
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: [
@@ -8424,7 +8454,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['SGMHM-I1'],
@@ -9434,7 +9467,10 @@ const devices = [
             await readEletricalMeasurementPowerConverterAttributes(endpoint);
             await configureReporting.activePower(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
@@ -13082,7 +13118,10 @@ const devices = [
                 }, 10*1000); // Every 10 seconds
             }
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
     {
         zigbeeModel: ['Motion_Sensor'],
@@ -13453,7 +13492,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
 
     // Zipato
@@ -13716,7 +13758,10 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.rmsVoltage(endpoint);
         },
-        exposes: [exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'), exposes.numeric('voltage').withUnit('V')],
+        exposes: [
+            exposes.switch(), exposes.numeric('power').withUnit('W'), exposes.numeric('current').withUnit('A'),
+            exposes.numeric('voltage').withUnit('V'),
+        ],
     },
 
     // QMotion products - http://www.qmotionshades.com/
