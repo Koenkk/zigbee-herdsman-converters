@@ -16,6 +16,11 @@ const exposes = {
     illuminance: `exposes.numeric('illuminance')`,
     illuminance_lux: `exposes.numeric('illuminance_lux').withUnit('lx')`,
     soil_moisture: `exposes.numeric('soil_moisture').withUnit('%')`,
+    power: `exposes.numeric('power').withUnit('W')`,
+    current: `exposes.numeric('current').withUnit('A')`,
+    voltage: `exposes.numeric('voltage').withUnit('V')`,
+    switch: `exposes.switch()`,
+    energy: `exposes.numeric('energy').withUnit('kWh')`,
 };
 
 const mapping = {
@@ -35,6 +40,9 @@ const mapping = {
     pressure: [exposes.pressure],
     soil_moisture: [exposes.soil_moisture],
     illuminance: [exposes.illuminance, exposes.illuminance_lux],
+    electrical_measurement_power: [exposes.power, exposes.current, exposes.voltage],
+    on_off: [exposes.switch],
+    metering_power: [exposes.power, exposes.energy],
 };
 
 module.exports = function(fileInfo, api, options) {
