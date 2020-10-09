@@ -8326,6 +8326,10 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
         supports: 'temperature and humidity',
+        exposes: [
+            exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('humidity').withUnit('%'),
+        ],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 2},
@@ -12212,6 +12216,10 @@ const devices = [
         ],
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
+        exposes: [
+            exposes.numeric('battery').withUnit('%'), exposes.numeric('temperature').withUnit('°C'),
+            exposes.numeric('humidity').withUnit('%'),
+        ],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery_3V],
         toZigbee: [],
         meta: {configureKey: 1},
