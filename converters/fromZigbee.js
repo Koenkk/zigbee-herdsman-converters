@@ -65,7 +65,7 @@ const toPercentage = (value, min, max) => {
     return Math.round(normalised * 100);
 };
 
-const toPercentageCR2032 = (voltage) => {
+const toPercentage3V = (voltage) => {
     let percentage = null;
 
     if (voltage < 2100) {
@@ -563,7 +563,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                payload.battery = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
@@ -571,8 +576,10 @@ const converters = {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
-                        payload.battery = toPercentageCR2032(payload.voltage);
+                    if (model.meta.battery.voltageToPercentage === '3V_2100') {
+                        payload.battery = toPercentage3V(payload.voltage);
+                    } else if (model.meta.battery.voltageToPercentage === '3V_2500') {
+                        payload.battery = toPercentage(payload.voltage, 2500, 3000);
                     }
                 }
             }
@@ -582,21 +589,6 @@ const converters = {
                 const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
                 const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
-            }
-
-            return payload;
-        },
-    },
-    battery_not_divided: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = converters.battery.convert(model, msg, publish, options, meta);
-
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                // Some devices do not comply to the ZCL and report a
-                // batteryPercentageRemaining of 100 when the battery is full.
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'], 2);
             }
 
             return payload;
@@ -1343,7 +1335,7 @@ const converters = {
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     if (model.meta.battery.voltageToPercentage === 'CR2032') {
-                        payload.battery = toPercentageCR2032(payload.voltage);
+                        payload.battery = toPercentage3V(payload.voltage);
                     } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
                         payload.battery = toPercentage(voltage, 3000, 4200);
                     }
@@ -3233,62 +3225,6 @@ const converters = {
             return {presence: true};
         },
     },
-    battery_3V: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                const battery = {max: 3000, min: 2500};
-                const voltage = msg.data['batteryVoltage'] * 100;
-                return {
-                    battery: toPercentage(voltage, battery.min, battery.max),
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-            }
-        },
-    },
-    battery_3V_2100: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                const battery = {max: 3000, min: 2100};
-                const voltage = msg.data['batteryVoltage'] * 100;
-                result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage / 1000.0;
-            }
-            if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                result.battery_alarm_state = msg.data['batteryAlarmState'];
-            }
-            return result;
-        },
-    },
-    battery_cr2032: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const voltage = msg.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentageCR2032(voltage),
-                voltage: voltage / 1000.0,
-            };
-        },
-    },
-    battery_cr2450: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const voltage = msg.data['batteryVoltage'] * 100;
-            const cr2450Max = 3000;
-            const cr2450Min = 2000;
-            return {
-                battery: (voltage - cr2450Min) / (cr2450Max - cr2450Min) * 100,
-                voltage: voltage / 1000.0,
-            };
-        },
-    },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
@@ -3430,15 +3366,6 @@ const converters = {
             }
 
             return {};
-        },
-    },
-    legacy_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data['batteryPercentageRemaining']};
-            }
         },
     },
     legacy_battery_voltage: {
@@ -5056,7 +4983,7 @@ const converters = {
 
             if (voltage) {
                 return {
-                    battery: toPercentageCR2032(voltage),
+                    battery: toPercentage3V(voltage),
                     voltage: voltage,
                 };
             }
