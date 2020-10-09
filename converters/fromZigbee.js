@@ -3839,7 +3839,7 @@ const converters = {
             } else if (model.model === 'TS0043' && msg.device.manufacturerName === '_TZ3000_bi6lpsew') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0043') {
-                buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+                buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0044') {
                 buttonMapping = {1: 'left_bottom', 2: 'right_bottom', 3: 'right_top', 4: 'left_top'};
             }
