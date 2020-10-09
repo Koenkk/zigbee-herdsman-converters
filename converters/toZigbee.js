@@ -563,6 +563,15 @@ const converters = {
                     brightness = 2;
                 }
 
+                // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
+                // that device won't change state with the moveToLevelWithOnOff command.
+                // Therefore send the genOnOff command also.
+                if (entity.constructor.name === 'Group' && state !== undefined) {
+                    if (entity.members.filter((e) => !e.supportsInputCluster('genLevelCtrl')).length !== 0) {
+                        await converters.on_off.convertSet(entity, 'state', 'ON', meta);
+                    }
+                }
+
                 globalStore.putValue(entity, 'brightness', brightness);
                 await entity.command(
                     'genLevelCtrl',
