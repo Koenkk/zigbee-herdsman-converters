@@ -13368,6 +13368,7 @@ const devices = [
             tz.tuya_thermostat_comfort_temp,
             tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force,
+            tz.tuya_thermostat_preset,
         ],
         whiteLabel: [
             {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
