@@ -63,9 +63,15 @@ module.exports = function(fileInfo, api, options) {
                     const converters = fromZigbee.value.elements.map((f) => f.property.name).filter((f) => !f.startsWith('ignore_'));
                     if (converters.every((c) => c in mapping)) {
                         const exposes = new Set();
+                        let exposesStr = '';
                         converters.forEach((c) => mapping[c].forEach((e) => exposes.add(e)));
-                        const exposesStr = [...exposes].join(', ');
-                        definition.properties.push(`exposes: [${exposesStr}],`);
+                        if (exposes.size > 3) {
+                            exposesStr = `exposes: [\n${[...exposes].map((e, i) => i !== 1 && i % 2 === 1 ? '\n' + e : e).join(', ')}\n]`;
+                        } else {
+                            exposesStr = `exposes: [${[...exposes].join(', ')}],`;
+                        }
+
+                        definition.properties.push(exposesStr);
                         console.log(`Migrated '${model}'`);
                         exposesProp = true;
                     }
