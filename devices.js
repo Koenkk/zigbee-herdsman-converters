@@ -13785,5 +13785,9 @@ module.exports = devices.map((device) => {
         device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add);
     }
 
+    if (device.exposes) {
+        device.exposes = device.exposes.concat([exposes.numeric('linkquality').withUnit('lqi')]);
+    }
+
     return device;
 });
