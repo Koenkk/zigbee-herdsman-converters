@@ -4699,7 +4699,7 @@ const devices = [
     },
     {
         zigbeeModel: ['SLT3B'],
-        model: 'SLT3',
+        model: 'SLT3B',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
         supports: 'none, communicate via thermostat',
