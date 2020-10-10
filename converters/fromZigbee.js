@@ -1359,8 +1359,10 @@ const converters = {
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
             if (mapping) {
-                const button = mapping[msg.endpoint.ID];
-                return {action: `single_${button}`};
+                if (mapping[msg.endpoint.ID]) {
+                    const button = mapping[msg.endpoint.ID];
+                    return {action: `single_${button}`};
+                }
             } else {
                 return {action: 'single'};
             }
