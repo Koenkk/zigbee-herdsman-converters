@@ -34,11 +34,9 @@ const otaImagesFilesWithMeta = {
         maximumHardwareVersion: 4,
         elements: 1
     },
-    "ncp-uart-61.ota": {
+    "10005778-10.1-TRADFRI-onoff-shortcut-control-2.2.010.ota.ota.signed": {
         manufacturer: "",
         headerField: 0,
-        minimumHardwareVersion: undefined,
-        maximumHardwareVersion: undefined,
         elements: 1
     },
 };
