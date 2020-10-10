@@ -7882,7 +7882,7 @@ const devices = [
         ],
     },
     {
-        zigbeeModel: ['3400-D'],
+        zigbeeModel: ['3400-D', '3400'],
         model: '3400-D',
         vendor: 'CentraLite',
         description: '3-Series security keypad',
