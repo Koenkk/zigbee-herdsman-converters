@@ -11,6 +11,7 @@
 
 const common = require('./common');
 const utils = require('./utils');
+const globalStore = require('./store');
 
 const occupancyTimeout = 90; // In seconds
 
@@ -228,18 +229,18 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case 101:
         return {
             program: [
-                {p1: data[0] + 'h:' + data[1] + 'm ' + data[2] + '°C'},
-                {p2: data[3] + 'h:' + data[4] + 'm ' + data[5] + '°C'},
-                {p3: data[6] + 'h:' + data[7] + 'm ' + data[8] + '°C'},
-                {p4: data[9] + 'h:' + data[10] + 'm ' + data[11] + '°C'},
-                {sa1: data[12] + 'h:' + data[13] + 'm ' + data[14] + '°C'},
-                {sa2: data[15] + 'h:' + data[16] + 'm ' + data[17] + '°C'},
-                {sa3: data[18] + 'h:' + data[19] + 'm ' + data[20] + '°C'},
-                {sa4: data[21] + 'h:' + data[22] + 'm ' + data[23] + '°C'},
-                {su1: data[24] + 'h:' + data[25] + 'm ' + data[26] + '°C'},
-                {su2: data[27] + 'h:' + data[28] + 'm ' + data[29] + '°C'},
-                {su3: data[30] + 'h:' + data[31] + 'm ' + data[32] + '°C'},
-                {su4: data[33] + 'h:' + data[34] + 'm ' + data[35] + '°C'},
+                {p1: data[0] + 'h:' + data[1] + 'm ' + data[2] + '°C'},
+                {p2: data[3] + 'h:' + data[4] + 'm ' + data[5] + '°C'},
+                {p3: data[6] + 'h:' + data[7] + 'm ' + data[8] + '°C'},
+                {p4: data[9] + 'h:' + data[10] + 'm ' + data[11] + '°C'},
+                {sa1: data[12] + 'h:' + data[13] + 'm ' + data[14] + '°C'},
+                {sa2: data[15] + 'h:' + data[16] + 'm ' + data[17] + '°C'},
+                {sa3: data[18] + 'h:' + data[19] + 'm ' + data[20] + '°C'},
+                {sa4: data[21] + 'h:' + data[22] + 'm ' + data[23] + '°C'},
+                {su1: data[24] + 'h:' + data[25] + 'm ' + data[26] + '°C'},
+                {su2: data[27] + 'h:' + data[28] + 'm ' + data[29] + '°C'},
+                {su3: data[30] + 'h:' + data[31] + 'm ' + data[32] + '°C'},
+                {su4: data[33] + 'h:' + data[34] + 'm ' + data[35] + '°C'},
             ],
         };
     case 257: // 0x0101 Thermostat on standby = OFF, running = ON
@@ -1120,36 +1121,30 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandMove', 'commandMoveWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) store[deviceID] = {};
-            if (!store[deviceID].timers) store[deviceID].timers = [];
-
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
 
-            if (options.hasOwnProperty('periodic_brightness_updates') &&
-            options.periodic_brightness_updates) {
-                let brightness = direction === 'up' ? 0 : 255;
-                const brightnessDeltaBase = options.hasOwnProperty('periodic_brightness_updates_delta') ?
-                    options.periodic_brightness_updates_delta : 0.5;
-                const brightnessDelta = direction === 'up' ? brightnessDeltaBase : -1 * brightnessDeltaBase;
+            if (options.simulated_brightness) {
+                const opts = options.simulated_brightness;
+                const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
+                const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
 
-                publish({brightness: brightness, direction: direction});
-                brightness += brightnessDelta;
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
+                if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
+                    const timer = setInterval(() => {
+                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                        const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
+                            deltaOpts : -1 * deltaOpts;
+                        brightness += delta;
+                        brightness = numberWithinRange(brightness, 0, 255);
+                        globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                        publish({brightness});
+                    }, intervalOpts);
 
-                // We need a list, because multiple events are comming in
-                // and we like to cancel all in stop call
-                store[deviceID].timers.push(setInterval(() => {
-                    if (brightness > 0 && brightness < 255) {
-                        brightness += brightnessDelta;
-                    }
-                    publish({brightness: brightness, direction: direction});
-                },
-                options.hasOwnProperty('periodic_brightness_updates_interval') ?
-                    options.periodic_brightness_updates_interval : 200),
-                );
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
+                }
             }
 
             return payload;
@@ -1173,13 +1168,9 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) store[deviceID] = {};
-
-            if (options.hasOwnProperty('periodic_brightness_updates') &&
-                options.periodic_brightness_updates) {
-                store[deviceID].timers.forEach((timer) => clearInterval(timer));
-                store[deviceID].timers = [];
+            if (options.simulated_brightness) {
+                clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
             }
 
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
