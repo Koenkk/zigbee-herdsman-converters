@@ -3098,6 +3098,30 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
+    saswell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    saswell_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            if ( value == 'auto' ) {
+                sendTuyaCommand(entity, 364, 0, [1, 1]);
+            } else {
+                sendTuyaCommand(entity, 364, 0, [1, 0]);
+            }
+        },
+    },
+    saswell_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 357, 0, [1, value === 'heat' ? 1 : 0]);
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
