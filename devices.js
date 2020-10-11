@@ -4698,6 +4698,16 @@ const devices = [
         exposes: [],
     },
     {
+        zigbeeModel: ['SLT3B'],
+        model: 'SLT3B',
+        vendor: 'Hive',
+        description: 'Heating thermostat remote control',
+        supports: 'none, communicate via thermostat',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ['SLB2'],
         model: 'SLB2',
         vendor: 'Hive',
