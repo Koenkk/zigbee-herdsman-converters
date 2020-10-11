@@ -1132,7 +1132,9 @@ const converters = {
             if (options.hasOwnProperty('periodic_brightness_updates') &&
             options.periodic_brightness_updates) {
                 let brightness = direction === 'up' ? 0 : 255;
-                const brightnessDelta = direction === 'up' ? 0.5 : -0.5;
+                const brightnessDeltaBase = options.hasOwnProperty('periodic_brightness_updates_delta') ?
+                    options.periodic_brightness_updates_delta : 0.5;
+                const brightnessDelta = direction === 'up' ? brightnessDeltaBase : -1 * brightnessDeltaBase;
 
                 publish({brightness: brightness, direction: direction});
                 brightness += brightnessDelta;
