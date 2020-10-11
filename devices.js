@@ -7569,6 +7569,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_system_mode,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
