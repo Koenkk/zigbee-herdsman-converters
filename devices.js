@@ -9547,7 +9547,7 @@ const devices = [
             exposes.numeric('voltage').withUnit('V'),
         ],
     },
-        {
+    {
         zigbeeModel: ['losfena'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
         model: '07703L',
         vendor: 'Immax',
