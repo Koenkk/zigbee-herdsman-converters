@@ -19,7 +19,7 @@ function hasValue(entity, key) {
 
 function getValue(entity, key, default_=undefined) {
     const entityKey = getEntityKey(entity);
-    if (store.has(entityKey)) {
+    if (store.has(entityKey) && store.get(entityKey).hasOwnProperty(key)) {
         return store.get(entityKey)[key];
     }
 
