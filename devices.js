@@ -12627,6 +12627,24 @@ const devices = [
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_min_temperature,
         ],
     },
+    {
+        fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'}],
+        model: 'GbxAXL2',
+        vendor: 'Saswell',
+        description: 'Saswell Thermostatic Radiator Valve',
+        supports: 'thermostat, temperature',
+        fromZigbee: [fz.saswell_thermostat],
+        toZigbee: [
+            tz.saswell_thermostat_current_heating_setpoint,
+            tz.saswell_thermostat_mode,
+            tz.saswell_thermostat_standby,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+    },
 
     // Schneider Electric
     {
