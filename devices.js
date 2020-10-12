@@ -10407,7 +10407,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Micro Smart Dimmer'],
+        zigbeeModel: ['Micro Smart Dimmer', 'SM311'],
         model: 'ZG2835RAC',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
