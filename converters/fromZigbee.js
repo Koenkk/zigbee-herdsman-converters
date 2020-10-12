@@ -459,6 +459,36 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     }
 };
 
+const saswellThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+    if (dp >= 110 && dp <=122) return; // set of 3 DP history data - hourly/daily/weekly/monthly sets
+    if (dp >= 123 && dp <=129) return;
+    /* The above DPs return program data for each day in format: [4, 1, 14, 0, 155, .....] */
+    /*  e.g time is (1*256+14) minutes,  set temp = (0*256+155)/10 */
+    switch (dp) {
+    case 357: // Thermostat [off = off, on = heat] to comply with HA standards
+        return {system_mode: dataAsDecNumber ? 'heat' : 'off'};
+    case 362: // away mode
+        return {preset_mode: dataAsDecNumber ? 'away' : 'auto'};
+    case 364: // Changed program mode
+        return {preset_mode: dataAsDecNumber ? 'auto' : 'manual'};
+    case 614: // MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 615: // set temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: temperature};
+    case 1385: // battery alert
+        return {battery_low: dataAsDecNumber ? 'true' : 'false'};
+    default:
+        meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
 const converters = {
     /**
      * Generic/recommended converters, re-use if possible.
@@ -5568,6 +5598,11 @@ const converters = {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: moesThermostat,
+    },
+    saswell_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: saswellThermostat,
     },
     etop_thermostat: {
         cluster: 'manuSpecificTuyaDimmer',
