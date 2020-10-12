@@ -457,6 +457,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
             dp} with data ${JSON.stringify(data)}`);
     }
 };
+
 const saswellThermostat = (model, msg, publish, options, meta) => {
     const dp = msg.data.dp;
     const data = msg.data.data;
@@ -486,6 +487,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
             dp} with data ${JSON.stringify(data)}`);
     }
 };
+
 const converters = {
     /**
      * Generic/recommended converters, re-use if possible.
