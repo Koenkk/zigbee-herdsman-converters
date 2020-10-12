@@ -9548,7 +9548,7 @@ const devices = [
         ],
     },
     {
-        zigbeeModel: ['losfena'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        zigbeeModel: ['losfena'],
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
