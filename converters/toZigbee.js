@@ -563,6 +563,15 @@ const converters = {
                     brightness = 2;
                 }
 
+                // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
+                // that device won't change state with the moveToLevelWithOnOff command.
+                // Therefore send the genOnOff command also.
+                if (entity.constructor.name === 'Group' && state !== undefined) {
+                    if (entity.members.filter((e) => !e.supportsInputCluster('genLevelCtrl')).length !== 0) {
+                        await converters.on_off.convertSet(entity, 'state', 'ON', meta);
+                    }
+                }
+
                 globalStore.putValue(entity, 'brightness', brightness);
                 await entity.command(
                     'genLevelCtrl',
@@ -1332,6 +1341,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
+
+                // Xiaomi curtain does not send position update on stop, request this.
+                await entity.read('genAnalogOutput', [0x0055]);
             } else {
                 const lookup = {
                     'open': 100,
@@ -2528,7 +2540,7 @@ const converters = {
         },
     },
 
-    // Tuya Thermostat
+    // Moes Thermostat
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -2541,6 +2553,43 @@ const converters = {
             const temp = value;
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
             sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 532, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value < 0) value = 4096 + value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1026, 0, [1, value === 'hold' ? 0 : 1]);
+            sendTuyaCommand(entity, 1027, 0, [1, value === 'program' ? 0 : 1]);
+        },
+    },
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 257, 0, [1, value === 'heat' ? 1 : 0]);
+            sendTuyaCommand(entity, 257, 0, [1, value === 'off' ? 0 : 1]);
+        },
+    },
+    // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1067, 0, [1, value]);
         },
     },
     etop_thermostat_system_mode: {
@@ -2675,6 +2724,24 @@ const converters = {
             const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
                 await sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // HA has special behavior for the away mode
+            const awayPresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
+            const schedulePresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
+            if (awayPresetId !== null) {
+                if (value == 'ON') {
+                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(awayPresetId)]);
+                } else if (schedulePresetId != null) {
+                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(schedulePresetId)]);
+                }
+                // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
                 console.log(`TRV preset ${value} is not recognized.`);
             }
@@ -2871,10 +2938,10 @@ const converters = {
                 await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_max':
-                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_min':
-                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_alarm':
                 await sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
@@ -3029,6 +3096,30 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
+        },
+    },
+    saswell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    saswell_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            if ( value == 'auto' ) {
+                sendTuyaCommand(entity, 364, 0, [1, 1]);
+            } else {
+                sendTuyaCommand(entity, 364, 0, [1, 0]);
+            }
+        },
+    },
+    saswell_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 357, 0, [1, value === 'heat' ? 1 : 0]);
         },
     },
 

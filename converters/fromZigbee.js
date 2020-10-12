@@ -11,6 +11,7 @@
 
 const common = require('./common');
 const utils = require('./utils');
+const globalStore = require('./store');
 
 const occupancyTimeout = 90; // In seconds
 
@@ -65,7 +66,7 @@ const toPercentage = (value, min, max) => {
     return Math.round(normalised * 100);
 };
 
-const toPercentageCR2032 = (voltage) => {
+const toPercentage3V = (voltage) => {
     let percentage = null;
 
     if (voltage < 2100) {
@@ -223,31 +224,68 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     const data = msg.data.data;
     const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     let temperature;
-    // See tuyaThermostat above for message structure comment
+    /* See tuyaThermostat above for message structure comment */
     switch (dp) {
+    case 101:
+        return {
+            program: [
+                {p1: data[0] + 'h:' + data[1] + 'm ' + data[2] + '°C'},
+                {p2: data[3] + 'h:' + data[4] + 'm ' + data[5] + '°C'},
+                {p3: data[6] + 'h:' + data[7] + 'm ' + data[8] + '°C'},
+                {p4: data[9] + 'h:' + data[10] + 'm ' + data[11] + '°C'},
+                {sa1: data[12] + 'h:' + data[13] + 'm ' + data[14] + '°C'},
+                {sa2: data[15] + 'h:' + data[16] + 'm ' + data[17] + '°C'},
+                {sa3: data[18] + 'h:' + data[19] + 'm ' + data[20] + '°C'},
+                {sa4: data[21] + 'h:' + data[22] + 'm ' + data[23] + '°C'},
+                {su1: data[24] + 'h:' + data[25] + 'm ' + data[26] + '°C'},
+                {su2: data[27] + 'h:' + data[28] + 'm ' + data[29] + '°C'},
+                {su3: data[30] + 'h:' + data[31] + 'm ' + data[32] + '°C'},
+                {su4: data[33] + 'h:' + data[34] + 'm ' + data[35] + '°C'},
+            ],
+        };
     case 257: // 0x0101 Thermostat on standby = OFF, running = ON
-        return {running: dataAsDecNumber ? 'ON' : 'OFF'};
+        return {system_mode: dataAsDecNumber ? 'heat' : 'off'};
     case 296: // 0x2801 Changed child lock status for moes thermostat
-        return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
-    case 263: // 0x0701 Changed child lock status
         return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
     case 528: // 0x1002 set temperature
         temperature = dataAsDecNumber;
         return {current_heating_setpoint: temperature};
+    case 530: // 0x1002 set temperature
+        temperature = dataAsDecNumber;
+        return {max_temperature_limit: temperature};
+    case 531: // 0x1002 set temperature
+        temperature = dataAsDecNumber;
+        return {max_temperature: temperature};
+    case 532: // 0x1002 set temperature
+        temperature = dataAsDecNumber;
+        return {min_temperature: temperature};
     case 536: // 0x1802 moes room temperature
         temperature = (dataAsDecNumber / 10).toFixed(1);
         return {local_temperature: temperature};
-    case 556: // 0x2c02 Temperature calibration
-        temperature = (dataAsDecNumber / 10).toFixed(1);
+    case 539: // Calibration
+        temperature = dataAsDecNumber;
+        // for negative values produce complimentary hex (equivalent to negative values)
+        if (temperature > 4000) temperature = temperature - 4096;
         return {local_temperature_calibration: temperature};
-    case 1026: // 0x0204 Changed program mode for moes thermostat
-        return {program_mode: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 1026: // 0x0204 Changed program mode for moes thermostat *1026/1027 flip states inversely
+        return {preset_mode: dataAsDecNumber ? 'program' : 'hold'};
     case 1027: // 0x0304 Changed manual mode status for moes thermostat
-        return {manual_mode: dataAsDecNumber ? 'ON' : 'OFF'};
+        return {preset_mode: dataAsDecNumber ? 'hold' : 'program'};
     case 1060: // 0x2404 Moes Thermostat is Open or Closed
-        return {heating: dataAsDecNumber ? 'OFF' : 'ON'};
+        return {heat: dataAsDecNumber ? 'OFF' : 'ON'};
+    case 1067: // 0x2b04 Temperature sensor selected
+        switch (dataAsDecNumber) {
+        case 0:
+            return {sensor: 'IN'};
+        case 1:
+            return {sensor: 'AL'};
+        case 2:
+            return {sensor: 'OU'};
+        default:
+            return {sensor: 'Not supported'};
+        }
     default: // The purpose of the codes 1041 & 1043 are still unknown
-        console.log(`zigbee-herdsman-converters:moesThermostat: NOT RECOGNIZED DP #${
+        console.log(`zigbee-herdsman-converters:Moes BHT-002: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(data)}`);
     }
 };
@@ -399,6 +437,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(dataAsDecNumber);
         if (presetOk) {
             ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[dataAsDecNumber];
+            ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
         }
         if (modeOk) {
             ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[dataAsDecNumber];
@@ -416,6 +455,36 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
     default: // The purpose of the codes 1041 & 1043 are still unknown
         console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
+            dp} with data ${JSON.stringify(data)}`);
+    }
+};
+
+const saswellThermostat = (model, msg, publish, options, meta) => {
+    const dp = msg.data.dp;
+    const data = msg.data.data;
+    const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+    let temperature;
+    if (dp >= 110 && dp <=122) return; // set of 3 DP history data - hourly/daily/weekly/monthly sets
+    if (dp >= 123 && dp <=129) return;
+    /* The above DPs return program data for each day in format: [4, 1, 14, 0, 155, .....] */
+    /*  e.g time is (1*256+14) minutes,  set temp = (0*256+155)/10 */
+    switch (dp) {
+    case 357: // Thermostat [off = off, on = heat] to comply with HA standards
+        return {system_mode: dataAsDecNumber ? 'heat' : 'off'};
+    case 362: // away mode
+        return {preset_mode: dataAsDecNumber ? 'away' : 'auto'};
+    case 364: // Changed program mode
+        return {preset_mode: dataAsDecNumber ? 'auto' : 'manual'};
+    case 614: // MCU reporting room temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {local_temperature: temperature};
+    case 615: // set temperature
+        temperature = (dataAsDecNumber / 10).toFixed(1);
+        return {current_heating_setpoint: temperature};
+    case 1385: // battery alert
+        return {battery_low: dataAsDecNumber ? 'true' : 'false'};
+    default:
+        meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(data)}`);
     }
 };
@@ -489,7 +558,7 @@ const converters = {
             }
         },
     },
-    lock_pin_code_rep: {
+    lock_pin_code_response: {
         cluster: 'closuresDoorLock',
         type: ['commandGetPinCodeRsp'],
         convert: (model, msg, publish, options, meta) => {
@@ -525,7 +594,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                payload.battery = precisionRound(msg.data['batteryPercentageRemaining'] / 2, 2);
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage')) {
@@ -533,8 +607,10 @@ const converters = {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
-                        payload.battery = toPercentageCR2032(payload.voltage);
+                    if (model.meta.battery.voltageToPercentage === '3V_2100') {
+                        payload.battery = toPercentage3V(payload.voltage);
+                    } else if (model.meta.battery.voltageToPercentage === '3V_2500') {
+                        payload.battery = toPercentage(payload.voltage, 2500, 3000);
                     }
                 }
             }
@@ -549,27 +625,13 @@ const converters = {
             return payload;
         },
     },
-    battery_not_divided: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = converters.battery.convert(model, msg, publish, options, meta);
-
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                // Some devices do not comply to the ZCL and report a
-                // batteryPercentageRemaining of 100 when the battery is full.
-                payload['battery'] = precisionRound(msg.data['batteryPercentageRemaining'], 2);
-            }
-
-            return payload;
-        },
-    },
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            const property = postfixWithEndpointName('temperature', msg, model);
+            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     device_temperature: {
@@ -593,13 +655,21 @@ const converters = {
             }
         },
     },
+    soil_moisture: {
+        cluster: 'msSoilMoisture',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const soilMoisture = parseFloat(msg.data['measuredValue']) / 100.0;
+            return {soil_moisture: calibrateAndPrecisionRoundOptions(soilMoisture, options, 'soil_moisture')};
+        },
+    },
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = Math.pow(10, illuminance / 10000) - 1;
+            const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             return {
                 illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
@@ -610,7 +680,13 @@ const converters = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const pressure = parseFloat(msg.data['measuredValue']);
+            let pressure = 0;
+            if (msg.data.hasOwnProperty('scaledValue')) {
+                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale');
+                pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
+            } else {
+                pressure = parseFloat(msg.data['measuredValue']);
+            }
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
@@ -794,6 +870,18 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_water_leak_alarm_1_report: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
@@ -1049,6 +1137,12 @@ const converters = {
                 action_transition_time: msg.data.transtime / 100,
             };
             addActionGroup(payload, msg, model);
+
+            if (options.simulated_brightness) {
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
+                payload.brightness = msg.data.level;
+            }
+
             return payload;
         },
     },
@@ -1060,6 +1154,28 @@ const converters = {
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
+
+            if (options.simulated_brightness) {
+                const opts = options.simulated_brightness;
+                const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
+                const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
+                if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
+                    const timer = setInterval(() => {
+                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                        const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
+                            deltaOpts : -1 * deltaOpts;
+                        brightness += delta;
+                        brightness = numberWithinRange(brightness, 0, 255);
+                        globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                        publish({brightness});
+                    }, intervalOpts);
+
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
+                }
+            }
+
             return payload;
         },
     },
@@ -1074,6 +1190,16 @@ const converters = {
                 action_transition_time: msg.data.transtime / 100,
             };
             addActionGroup(payload, msg, model);
+
+            if (options.simulated_brightness) {
+                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
+                brightness += delta;
+                brightness = numberWithinRange(brightness, 0, 255);
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                payload.brightness = brightness;
+            }
+
             return payload;
         },
     },
@@ -1081,6 +1207,11 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
+            if (options.simulated_brightness) {
+                clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
+            }
+
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1235,7 +1366,6 @@ const converters = {
             return result;
         },
     },
-
     cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1278,8 +1408,8 @@ const converters = {
                 };
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    if (model.meta.battery.voltageToPercentage === 'CR2032') {
-                        payload.battery = toPercentageCR2032(payload.voltage);
+                    if (model.meta.battery.voltageToPercentage === '3V_2100') {
+                        payload.battery = toPercentage3V(payload.voltage);
                     } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
                         payload.battery = toPercentage(voltage, 3000, 4200);
                     }
@@ -1303,8 +1433,10 @@ const converters = {
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
             if (mapping) {
-                const button = mapping[msg.endpoint.ID];
-                return {action: `single_${button}`};
+                if (mapping[msg.endpoint.ID]) {
+                    const button = mapping[msg.endpoint.ID];
+                    return {action: `single_${button}`};
+                }
             } else {
                 return {action: 'single'};
             }
@@ -1560,6 +1692,14 @@ const converters = {
             if (button) {
                 return {action: `${action}_${button}`};
             }
+        },
+    },
+    keen_home_smart_vent_pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
 
@@ -3169,62 +3309,6 @@ const converters = {
             return {presence: true};
         },
     },
-    battery_3V: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                const battery = {max: 3000, min: 2500};
-                const voltage = msg.data['batteryVoltage'] * 100;
-                return {
-                    battery: toPercentage(voltage, battery.min, battery.max),
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-            }
-        },
-    },
-    battery_3V_2100: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                const battery = {max: 3000, min: 2100};
-                const voltage = msg.data['batteryVoltage'] * 100;
-                result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage / 1000.0;
-            }
-            if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                result.battery_alarm_state = msg.data['batteryAlarmState'];
-            }
-            return result;
-        },
-    },
-    battery_cr2032: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const voltage = msg.data['batteryVoltage'] * 100;
-            return {
-                battery: toPercentageCR2032(voltage),
-                voltage: voltage / 1000.0,
-            };
-        },
-    },
-    battery_cr2450: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const voltage = msg.data['batteryVoltage'] * 100;
-            const cr2450Max = 3000;
-            const cr2450Min = 2000;
-            return {
-                battery: (voltage - cr2450Min) / (cr2450Max - cr2450Min) * 100,
-                voltage: voltage / 1000.0,
-            };
-        },
-    },
     STS_PRS_251_beeping: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
@@ -3368,15 +3452,6 @@ const converters = {
             return {};
         },
     },
-    legacy_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
-                return {battery: msg.data['batteryPercentageRemaining']};
-            }
-        },
-    },
     legacy_battery_voltage: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -3513,75 +3588,74 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (typeof msg.data['localTemp'] == 'number') {
-                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+                result[postfixWithEndpointName('local_temperature', msg, model)] = precisionRound(msg.data['localTemp'], 2) / 100;
             }
             if (typeof msg.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration =
+                result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (typeof msg.data['occupancy'] == 'number') {
-                result.occupancy = msg.data['occupancy'];
+                result[postfixWithEndpointName('occupancy', msg, model)] = msg.data['occupancy'];
             }
             if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                const ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-                if (ohs < -250) {
-                    // Stelpro will return -325.65 when set to off
-                    result.occupied_heating_setpoint = 0;
-                } else {
-                    result.occupied_heating_setpoint = ohs;
-                }
+                let ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                // Stelpro will return -325.65 when set to off
+                ohs = ohs < - 250 ? 0 : ohs;
+                result[postfixWithEndpointName('occupied_heating_setpoint', msg, model)] = ohs;
             }
             if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result.unoccupied_heating_setpoint =
+                result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model)] =
                     precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['occupiedCoolingSetpoint'] == 'number') {
-                result.occupied_cooling_setpoint =
+                result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model)] =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['unoccupiedCoolingSetpoint'] == 'number') {
-                result.unoccupied_cooling_setpoint =
+                result[postfixWithEndpointName('unoccupied_cooling_setpoint', msg, model)] =
                     precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
             if (typeof msg.data['weeklySchedule'] == 'number') {
-                result.weekly_schedule = msg.data['weeklySchedule'];
+                result[postfixWithEndpointName('weekly_schedule', msg, model)] = msg.data['weeklySchedule'];
             }
             if (typeof msg.data['setpointChangeAmount'] == 'number') {
-                result.setpoint_change_amount = msg.data['setpointChangeAmount'] / 100;
+                result[postfixWithEndpointName('setpoint_change_amount', msg, model)] = msg.data['setpointChangeAmount'] / 100;
             }
             if (typeof msg.data['setpointChangeSource'] == 'number') {
-                result.setpoint_change_source = msg.data['setpointChangeSource'];
+                result[postfixWithEndpointName('setpoint_change_source', msg, model)] = msg.data['setpointChangeSource'];
             }
             if (typeof msg.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result.setpoint_change_source_timestamp = msg.data['setpointChangeSourceTimeStamp'];
+                result[postfixWithEndpointName('setpoint_change_source_timestamp', msg, model)] = msg.data['setpointChangeSourceTimeStamp'];
             }
             if (typeof msg.data['remoteSensing'] == 'number') {
-                result.remote_sensing = msg.data['remoteSensing'];
+                result[postfixWithEndpointName('remote_sensing', msg, model)] = msg.data['remoteSensing'];
             }
             const ctrl = msg.data['ctrlSeqeOfOper'];
             if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result.control_sequence_of_operation = common.thermostatControlSequenceOfOperations[ctrl];
+                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
+                    common.thermostatControlSequenceOfOperations[ctrl];
             }
             const smode = msg.data['systemMode'];
             if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
-                result.system_mode = common.thermostatSystemModes[smode];
+                result[postfixWithEndpointName('system_mode', msg, model)] = common.thermostatSystemModes[smode];
             }
             const rmode = msg.data['runningMode'];
             if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
-                result.running_mode = common.thermostatSystemModes[rmode];
+                result[postfixWithEndpointName('running_mode', msg, model)] = common.thermostatSystemModes[rmode];
             }
             const state = msg.data['runningState'];
             if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
-                result.running_state = common.thermostatRunningStates[state];
+                result[postfixWithEndpointName('running_state', msg, model)] = common.thermostatRunningStates[state];
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
+                result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
+                    precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
             }
             if (typeof msg.data['tempSetpointHold'] == 'number') {
-                result.temperature_setpoint_hold = msg.data['tempSetpointHold'];
+                result[postfixWithEndpointName('temperature_setpoint_hold', msg, model)] = msg.data['tempSetpointHold'];
             }
             if (typeof msg.data['tempSetpointHoldDuration'] == 'number') {
-                result.temperature_setpoint_hold_duration = msg.data['tempSetpointHoldDuration'];
+                result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
             }
             return result;
         },
@@ -3591,10 +3665,11 @@ const converters = {
         type: ['commandGetWeeklyScheduleRsp'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            result.weekly_schedule = {};
+            const key = postfixWithEndpointName('weekly_schedule', msg, model);
+            result[key] = {};
             if (typeof msg.data['dayofweek'] == 'number') {
-                result.weekly_schedule[msg.data['dayofweek']] = msg.data;
-                for (const elem of result.weekly_schedule[msg.data['dayofweek']]['transitions']) {
+                result[key][msg.data['dayofweek']] = msg.data;
+                for (const elem of result[key][msg.data['dayofweek']]['transitions']) {
                     if (typeof elem['heatSetpoint'] == 'number') {
                         elem['heatSetpoint'] /= 100;
                     }
@@ -3771,13 +3846,11 @@ const converters = {
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             let buttonMapping = null;
             if (model.model === 'TS0042') {
-                buttonMapping = {1: 'left', 2: 'right'};
-            } else if (model.model === 'TS0043' && msg.device.manufacturerName === '_TZ3000_bi6lpsew') {
-                buttonMapping = {1: '1', 2: '2', 3: '3'};
+                buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
-                buttonMapping = {1: 'right', 2: 'middle', 3: 'left'};
+                buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0044') {
-                buttonMapping = {1: 'left_bottom', 2: 'right_bottom', 3: 'right_top', 4: 'left_top'};
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             return {action: `${button}${clickMapping[msg.data[3]]}`};
@@ -4124,15 +4197,6 @@ const converters = {
             if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupID};
             else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupID};
             return action ? action : null;
-        },
-    },
-    keen_home_smart_vent_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('measuredValue') ?
-                msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     osram_lightify_switch_cmdOn: {
@@ -4992,7 +5056,7 @@ const converters = {
 
             if (voltage) {
                 return {
-                    battery: toPercentageCR2032(voltage),
+                    battery: toPercentage3V(voltage),
                     voltage: voltage,
                 };
             }
@@ -5011,6 +5075,22 @@ const converters = {
             };
             const btn = msg.endpoint.ID;
             const value = msg.data.presentValue;
+            const deviceID = msg.device.ieeeAddr;
+            if (store[deviceID]) {
+                clearTimeout(store[deviceID]);
+                store[deviceID] = null;
+            }
+
+            // 0 = hold
+            if (value === 0) {
+                // Aqara Opple does not generate a release event when pressed for more than 5 seconds
+                // After 5 seconds of not releasing we assume release.
+                store[deviceID] = setTimeout(() => {
+                    publish({action: `button_${btn}_release`});
+                    clearTimeout(store[deviceID]);
+                    store[deviceID] = null;
+                }, 5000);
+            }
             return {action: `button_${btn}_${actionLookup[value]}`};
         },
     },
@@ -5516,6 +5596,11 @@ const converters = {
         cluster: 'manuSpecificTuyaDimmer',
         type: 'commandGetData',
         convert: moesThermostat,
+    },
+    saswell_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: saswellThermostat,
     },
     etop_thermostat: {
         cluster: 'manuSpecificTuyaDimmer',

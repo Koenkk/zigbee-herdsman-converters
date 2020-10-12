@@ -1,6 +1,7 @@
 const upgradeFileIdentifier = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
 const HttpsProxyAgent = require('https-proxy-agent');
 const assert = require('assert');
+const crc32 = require('buffer-crc32');
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup = {
@@ -14,6 +15,16 @@ const endRequestCodeLookup = {
     0x81: 'unsupported cluster command',
     0x99: 'requires more image files',
 };
+
+const validSilabsCrc = 0x2144DF1C;
+
+const eblTagHeader = 0x0;
+const eblTagEncHeader = 0xfb05;
+const eblTagEnd = 0xfc04;
+const eblPadding = 0xff;
+
+const gblTagHeader = 0xeb17a603;
+const gblTagEnd = 0xfc0404fc;
 
 function getOTAEndpoint(device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -69,6 +80,78 @@ function parseImage(buffer) {
 
     assert(position === header.totalImageSize, 'Size mismatch');
     return {header, elements, raw};
+}
+
+function validateImageData(image) {
+    for (const element of image.elements) {
+        const {data} = element;
+
+        if (data.readUInt32BE(0) === gblTagHeader) {
+            validateSilabsGbl(data);
+        } else {
+            const tag = data.readUInt16BE(0);
+
+            if (tag === eblTagHeader || tag === eblTagEncHeader ) {
+                validateSilabsEbl(data);
+            }
+        }
+    }
+}
+
+function validateSilabsEbl(data) {
+    const dataLength = data.length;
+
+    let position = 0;
+
+    while (position + 4 <= dataLength) {
+        const tag = data.readUInt16BE(position);
+        const len = data.readUInt16BE(position + 2);
+
+        position += 4 + len;
+
+        if (tag !== eblTagEnd) {
+            continue;
+        }
+
+        for (let position2 = position; position2 < dataLength; position2++) {
+            assert(data.readUInt8(position2) === eblPadding, `Image padding contains invalid bytes`);
+        }
+
+        const calculatedCrc32 = crc32.unsigned(data.slice(0, position));
+
+        assert(calculatedCrc32 === validSilabsCrc, `Image CRC-32 is invalid`);
+
+        return;
+    }
+
+    throw new Error(`Image is truncated: not long enough to contain a valid tag`);
+}
+
+function validateSilabsGbl(data) {
+    const dataLength = data.length;
+
+    let position = 0;
+
+    while (position + 8 <= dataLength) {
+        const tag = data.readUInt32BE(position);
+        const len = data.readUInt32LE(position + 4);
+
+        position += 8 + len;
+
+        if (tag !== gblTagEnd) {
+            continue;
+        }
+
+        assert(position === dataLength, `Image contains trailing data`);
+
+        const calculatedCrc32 = crc32.unsigned(data);
+
+        assert(calculatedCrc32 === validSilabsCrc, `Image CRC-32 is invalid`);
+
+        return;
+    }
+
+    throw new Error(`Image is truncated: not long enough to contain a valid tag`);
 }
 
 function cancelWaiters(waiters) {
@@ -339,6 +422,7 @@ async function getNewImage(current, logger, device, getImageMeta, downloadImage)
         assert(image.header.minimumHardwareVersion <= device.hardwareVersion &&
             device.hardwareVersion <= image.header.maximumHardwareVersion, 'Hardware version mismatch');
     }
+    validateImageData(image);
     return image;
 }
 
@@ -360,6 +444,7 @@ module.exports = {
     upgradeFileIdentifier,
     isUpdateAvailable,
     parseImage,
+    validateImageData,
     isNewImageAvailable,
     updateToLatest,
     getNewImage,
