@@ -2209,7 +2209,7 @@ const devices = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        supports: 'brightness [0-255] (quick rotate for instant 0/255), action',
+        supports: 'action',
         fromZigbee: [
             fz.legacy_cmd_move, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop, fz.legacy_cmd_stop_with_onoff,
             fz.legacy_cmd_move_to_level_with_onoff, fz.battery_not_divided,
