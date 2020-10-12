@@ -12628,7 +12628,10 @@ const devices = [
         ],
     },
     {
-        fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'}],
+        fingerprint: [
+            {modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
+            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
+        ],
         model: 'SEA801-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
