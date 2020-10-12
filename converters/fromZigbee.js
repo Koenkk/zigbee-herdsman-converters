@@ -1620,6 +1620,14 @@ const converters = {
             }
         },
     },
+    keen_home_smart_vent_pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
 
     /**
      * Legacy: DONT RE-USE!!
@@ -4117,15 +4125,6 @@ const converters = {
             if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupID};
             else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupID};
             return action ? action : null;
-        },
-    },
-    keen_home_smart_vent_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('measuredValue') ?
-                msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     osram_lightify_switch_cmdOn: {

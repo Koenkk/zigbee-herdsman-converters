@@ -21,6 +21,7 @@ const exposes = {
     voltage: `exposes.numeric('voltage').withUnit('V')`,
     switch: `exposes.switch()`,
     energy: `exposes.numeric('energy').withUnit('kWh')`,
+    cover_position: `exposes.cover().withPosition()`,
 };
 
 const mapping = {
@@ -43,6 +44,8 @@ const mapping = {
     electrical_measurement_power: [exposes.power, exposes.current, exposes.voltage],
     on_off: [exposes.switch],
     metering_power: [exposes.power, exposes.energy],
+    cover_position_via_brightness: [exposes.cover_position],
+    keen_home_smart_vent_pressure: [exposes.pressure],
 };
 
 module.exports = function(fileInfo, api, options) {

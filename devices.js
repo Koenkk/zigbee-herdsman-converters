@@ -8781,6 +8781,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await configureReporting.brightness(endpoint);
         },
+        exposes: [exposes.cover().withPosition()],
     },
 
     // Oujiabao
@@ -9798,6 +9799,10 @@ const devices = [
             await configureReporting.pressure(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [
+            exposes.cover().withPosition(), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('battery').withUnit('%'),
+            exposes.numeric('pressure').withUnit('hPa'),
+        ],
     },
     {
         zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3'],
@@ -9823,6 +9828,10 @@ const devices = [
             await configureReporting.pressure(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [
+            exposes.cover().withPosition(), exposes.numeric('temperature').withUnit('°C'), exposes.numeric('battery').withUnit('%'),
+            exposes.numeric('pressure').withUnit('hPa'),
+        ],
     },
 
     // AXIS
@@ -9841,6 +9850,7 @@ const devices = [
             await configureReporting.brightness(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [exposes.cover().withPosition(), exposes.numeric('battery').withUnit('%')],
     },
 
     // ELKO
