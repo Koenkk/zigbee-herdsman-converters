@@ -3835,7 +3835,7 @@ const converters = {
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             let buttonMapping = null;
             if (model.model === 'TS0042') {
-                buttonMapping = {1: '1', 2: '2'};             
+                buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (model.model === 'TS0044') {
