@@ -12629,9 +12629,9 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'}],
-        model: 'GbxAXL2',
+        model: 'SEA801-Zigbee',
         vendor: 'Saswell',
-        description: 'Saswell Thermostatic Radiator Valve',
+        description: 'Thermostatic radiator valve',
         supports: 'thermostat, temperature',
         fromZigbee: [fz.saswell_thermostat],
         toZigbee: [
