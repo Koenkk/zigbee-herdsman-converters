@@ -1114,6 +1114,12 @@ const converters = {
                 action_transition_time: msg.data.transtime / 100,
             };
             addActionGroup(payload, msg, model);
+
+            if (options.simulated_brightness) {
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
+                payload.brightness = msg.data.level;
+            }
+
             return payload;
         },
     },
@@ -1161,6 +1167,16 @@ const converters = {
                 action_transition_time: msg.data.transtime / 100,
             };
             addActionGroup(payload, msg, model);
+
+            if (options.simulated_brightness) {
+                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
+                brightness += delta;
+                brightness = numberWithinRange(brightness, 0, 255);
+                globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                payload.brightness = brightness;
+            }
+
             return payload;
         },
     },
