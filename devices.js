@@ -10736,10 +10736,14 @@ const devices = [
         zigbeeModel: [' Remote'],
         model: 'InstaRemote',
         vendor: 'Insta',
-        description: 'ZigBee Light Link wall transmitter',
+        description: 'ZigBee Light Link wall/handheld transmitter',
         whiteLabel: [
             {vendor: 'Gira', model: '2430-100'},
-            {vendor: 'Jung', model: 'ZLLxx5004M'},
+            {vendor: 'Gira', model: '2435-10'},
+            {vendor: 'Jung', model: 'ZLLCD5004M'},
+            {vendor: 'Jung', model: 'ZLLLS5004M'},
+            {vendor: 'Jung', model: 'ZLLA5004M'},
+            {vendor: 'Jung', model: 'ZLLHS4'},
         ],
         supports: 'action',
         fromZigbee: [
