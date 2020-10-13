@@ -955,6 +955,18 @@ const converters = {
             };
         },
     },
+    ias_contact_alarm_1_report: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     ias_carbon_monoxide_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

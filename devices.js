@@ -12515,7 +12515,7 @@ const devices = [
         vendor: 'CR Smart Home',
         description: 'Door sensor',
         supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [
             exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
