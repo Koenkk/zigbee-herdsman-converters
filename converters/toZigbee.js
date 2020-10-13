@@ -2368,29 +2368,29 @@ const converters = {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
             // transtime is ignored
-            const payload = { transtime: 0, hue: Math.round((meta.state.color.h * 254) / 360), saturation: Math.round(meta.state.color.s * 2.54), brightness: meta.state.brightness || 255 }
+            const payload = {transtime: 0, hue: Math.round((meta.state.color.h * 254) / 360), saturation: Math.round(meta.state.color.s * 2.54), brightness: meta.state.brightness || 255};
             if (value.h) {
-                payload.hue = Math.round((value.h * 254) / 360)
+                payload.hue = Math.round((value.h * 254) / 360);
             }
             if (value.s) {
-                payload.saturation = Math.round(value.s * 2.54)
+                payload.saturation = Math.round(value.s * 2.54);
             }
             if (value.b) {
-                payload.brightness = value.b
+                payload.brightness = value.b;
             }
             if (value.brightness) {
-                payload.brightness = value.brightness
+                payload.brightness = value.brightness;
             }
             if (typeof value === 'number') {
                 payload.brightness = value;
             }
             // if key is color -> make sure to switch to rgb mode
-            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true})
-            await entity.command('lightingColorCtrl', 'moveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true})
+            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
+            await entity.command('lightingColorCtrl', 'moveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
         },
         convertGet: async (entity, key, meta) => {
             if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode'])
+                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode']);
             }
         }
     },
@@ -2398,12 +2398,12 @@ const converters = {
         key: ['brightness'],
         convertSet: async (entity, key, value, meta) => {
             if (meta.state.tuyaMode === 0) {
-                await entity.command('genLevelCtrl', 'moveToLevel', { transtime: 0, level: value }, { disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, {disableDefaultResponse: true});
+                await entity.command('genLevelCtrl', 'moveToLevel', {transtime: 0, level: value}, {disableResponse: true, disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
             } else {
                 const payload = { transtime: 0, hue: Math.round((meta.state.color.h * 254) / 360), saturation: Math.round(meta.state.color.s * 2.54), brightness: value };
                 // if key is color -> make sure to switch to rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 1 }, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
                 await entity.command('lightingColorCtrl', 'moveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
             }
         }
@@ -2417,10 +2417,10 @@ const converters = {
             //
             value = Number(value);
             const mappedValue = Math.round(-0.734 * value + 367);
-            const payload = {colortemp: mappedValue, transtime: 0 };
+            const payload = {colortemp: mappedValue, transtime: 0};
             // disable tuya rgb mode
-            await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
-            await entity.command('lightingColorCtrl', 'moveToColorTemp', { ...payload, brightness: meta.state.brightness }, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', {...payload, brightness: meta.state.brightness}, getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
