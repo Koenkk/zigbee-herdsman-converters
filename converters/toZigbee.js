@@ -2245,22 +2245,210 @@ const converters = {
             ], options.ubisys));
         },
     },
+
     ubisys_device_setup: {
         key: ['configure_device_setup'],
+
         convertSet: async (entity, key, value, meta) => {
             const devMgmtEp = meta.device.getEndpoint(232);
+
             if (value.hasOwnProperty('inputConfigurations')) {
                 // example: [0, 0, 0, 0]
                 await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
                     {'inputConfigurations': {elementType: 'data8', elements: value.inputConfigurations}});
             }
+
             if (value.hasOwnProperty('inputActions')) {
                 // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
                 await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
                     {'inputActions': {elementType: 'octetStr', elements: value.inputActions}});
             }
+
+            if (value.hasOwnProperty('inputActionTemplates')) {
+                const templateTypes = {
+                    // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
+                    // (can be obtained directly from ubisys upon request)
+                    'toggle': {
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
+                        ],
+                    },
+                    'toggle_switch': {
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
+                            [input, 0x03, endpoint, 0x06, 0x00, 0x02],
+                        ],
+                    },
+                    'on_off_switch': {
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
+                            [input, 0x03, endpoint, 0x06, 0x00, 0x00],
+                        ],
+                    },
+                    'on': {
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
+                        ],
+                    },
+                    'off': {
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x06, 0x00, 0x00],
+                        ],
+                    },
+                    'dimmer_single': {
+                        getInputActions: (input, endpoint, template) => {
+                            const moveUpCmd = template.noOnOff || template.noOnOffUp ? 0x01 : 0x05;
+                            const moveDownCmd = template.noOnOff || template.noOnOffDown ? 0x01 : 0x05;
+                            const moveRate = template.rate || 50;
+                            return [
+                                [input, 0x07, endpoint, 0x06, 0x00, 0x02],
+                                [input, 0x86, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
+                                [input, 0xC6, endpoint, 0x08, 0x00, moveDownCmd, 0x01, moveRate],
+                                [input, 0x0B, endpoint, 0x08, 0x00, 0x03],
+                            ];
+                        },
+                    },
+                    'dimmer_double': {
+                        doubleInputs: true,
+                        getInputActions: (inputs, endpoint, template) => {
+                            const moveUpCmd = template.noOnOff || template.noOnOffUp ? 0x01 : 0x05;
+                            const moveDownCmd = template.noOnOff || template.noOnOffDown ? 0x01 : 0x05;
+                            const moveRate = template.rate || 50;
+                            return [
+                                [inputs[0], 0x07, endpoint, 0x06, 0x00, 0x01],
+                                [inputs[0], 0x06, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
+                                [inputs[0], 0x0B, endpoint, 0x08, 0x00, 0x03],
+                                [inputs[1], 0x07, endpoint, 0x06, 0x00, 0x00],
+                                [inputs[1], 0x06, endpoint, 0x08, 0x00, moveDownCmd, 0x01, moveRate],
+                                [inputs[1], 0x0B, endpoint, 0x08, 0x00, 0x03],
+                            ];
+                        },
+                    },
+                    'cover': {
+                        cover: true,
+                        doubleInputs: true,
+                        getInputActions: (inputs, endpoint) => [
+                            [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
+                            [inputs[0], 0x07, endpoint, 0x02, 0x01, 0x02],
+                            [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
+                            [inputs[1], 0x07, endpoint, 0x02, 0x01, 0x02],
+                        ],
+                    },
+                    'cover_switch': {
+                        cover: true,
+                        doubleInputs: true,
+                        getInputActions: (inputs, endpoint) => [
+                            [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
+                            [inputs[0], 0x03, endpoint, 0x02, 0x01, 0x02],
+                            [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
+                            [inputs[1], 0x03, endpoint, 0x02, 0x01, 0x02],
+                        ],
+                    },
+                    'cover_up': {
+                        cover: true,
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x02, 0x01, 0x00],
+                        ],
+                    },
+                    'cover_down': {
+                        cover: true,
+                        getInputActions: (input, endpoint) => [
+                            [input, 0x0D, endpoint, 0x02, 0x01, 0x01],
+                        ],
+                    },
+                    'scene': {
+                        scene: true,
+                        getInputActions: (input, endpoint, groupId, sceneId) => [
+                            [input, 0x07, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                        ],
+                        getInputActions2: (input, endpoint, groupId, sceneId) => [
+                            [input, 0x06, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                        ],
+                    },
+                    'scene_switch': {
+                        scene: true,
+                        getInputActions: (input, endpoint, groupId, sceneId) => [
+                            [input, 0x0D, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                        ],
+                        getInputActions2: (input, endpoint, groupId, sceneId) => [
+                            [input, 0x03, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                        ],
+                    },
+                };
+
+                // first input
+                let input = 0;
+                // first client endpoint - depends on actual device
+                let endpoint = {'S1': 2, 'S2': 3, 'D1': 2, 'J1': 2, 'C4': 1}[meta.mapped.model];
+                // default group id
+                let groupId = 0;
+
+                const templates = Array.isArray(value.inputActionTemplates) ? value.inputActionTemplates : [value.inputActionTemplates];
+                let resultingInputActions = [];
+                for (const template of templates) {
+                    const templateType = templateTypes[template.type];
+                    if (!templateType) {
+                        throw new Error(`inputActionTemplates: Template type '${template.type}' is not valid ` +
+                            `(valid types: ${Object.keys(templateTypes)})`);
+                    }
+
+                    if (template.hasOwnProperty('input')) {
+                        input = template.input;
+                    }
+                    if (template.hasOwnProperty('endpoint')) {
+                        endpoint = template.endpoint;
+                    }
+                    // C4 cover endpoints only start at 5
+                    if (templateType.cover && meta.mapped.model === 'C4' && endpoint < 5) {
+                        endpoint += 4;
+                    }
+
+                    let inputActions;
+                    if (!templateType.doubleInputs) {
+                        if (!templateType.scene) {
+                            // single input, no scene(s)
+                            inputActions = templateType.getInputActions(input, endpoint, template);
+                        } else {
+                            // scene(s) (always single input)
+                            if (!template.hasOwnProperty('sceneId')) {
+                                throw new Error(`inputActionTemplates: Need an attribute 'sceneId' for '${template.type}'`);
+                            }
+                            if (template.hasOwnProperty('groupId')) {
+                                groupId = template.groupId;
+                            }
+                            inputActions = templateType.getInputActions(input, endpoint, groupId, template.sceneId);
+
+                            if (template.hasOwnProperty('sceneId2')) {
+                                if (template.hasOwnProperty('groupId2')) {
+                                    groupId = template.groupId2;
+                                }
+                                inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId,
+                                    template.sceneId2));
+                            }
+                        }
+                    } else {
+                        // double inputs
+                        input = template.hasOwnProperty('inputs') ? template.inputs : [input, input + 1];
+                        inputActions = templateType.getInputActions(input, endpoint, template);
+                    }
+                    resultingInputActions = resultingInputActions.concat(inputActions);
+
+                    meta.logger.warn(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`);
+                    // input might by now be an array (in case of double inputs)
+                    input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
+                    endpoint += 1;
+                }
+
+                meta.logger.debug(`ubisys: inputActions to be sent to '${meta.options.friendlyName}': ` +
+                    JSON.stringify(resultingInputActions));
+                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}});
+            }
+
+            // re-read effective settings and dump them to the log
             converters.ubisys_device_setup.convertGet(entity, key, meta);
         },
+
         convertGet: async (entity, key, meta) => {
             const log = (json) => {
                 meta.logger.warn(
