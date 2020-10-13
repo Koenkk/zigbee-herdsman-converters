@@ -289,16 +289,16 @@ const moesThermostat = (model, msg, publish, options, meta) => {
             dp} with data ${JSON.stringify(data)}`);
     }
 };
-function utf8_from_str(s) {
-    for(var i=0, enc = encodeURIComponent(s), a = []; i < enc.length;) {
-        if(enc[i] === '%') {
-            a.push(parseInt(enc.substr(i+1, 2), 16))
-            i += 3
+function utf8FromStr(s) {
+    for (let i=0, enc = encodeURIComponent(s), a = []; i < enc.length;) {
+        if (enc[i] === '%') {
+            a.push(parseInt(enc.substr(i+1, 2), 16));
+            i += 3;
         } else {
-            a.push(enc.charCodeAt(i++))
+            a.push(enc.charCodeAt(i++));
         }
     }
-    return a
+    return a;
 }
 
 const eTopThermostat = (model, msg, publish, options, meta) => {
@@ -2877,9 +2877,9 @@ const converters = {
                 2: 'rfid_card_unlock',
                 3: 'touch_unlock',
             };
-            const data = utf8_from_str(msg['data']['16896']);
+            const data = utf8FromStr(msg['data']['16896']);
             return {
-                action: "unlock", 
+                action: 'unlock',
                 action_user: data[3], 
                 action_source: data[5],
                 action_source_name: lookup[data[5]],
