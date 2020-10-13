@@ -17,8 +17,8 @@ function rgbToXY(red, green, blue) {
 
     // RGB values to XYZ using the Wide RGB D65 conversion formula
     const X = rgb.r * 0.664511 + rgb.g * 0.154324 + rgb.b * 0.162028;
-    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + blue * 0.047685;
-    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + blue * 0.986039;
+    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + rgb.b * 0.047685;
+    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + rgb.b * 0.986039;
 
     // Calculate the xy values from the XYZ values
     let x = (X / (X + Y + Z)).toFixed(4);
@@ -218,6 +218,15 @@ const convertDecimalValueTo2ByteHexArray = (value) => {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 };
 
+const convertDecimalValueTo4ByteHexArray = (value) => {
+    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const chunk1 = hexValue.substr(0, 2);
+    const chunk2 = hexValue.substr(2, 2);
+    const chunk3 = hexValue.substr(4, 2);
+    const chunk4 = hexValue.substr(6);
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+};
+
 const replaceInArray = (arr, oldElements, newElements) => {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
@@ -270,6 +279,20 @@ function getMetaValue(entity, definition, key, groupStrategy='first') {
     return undefined;
 }
 
+function filterObject(obj, keys) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (keys.includes(key)) {
+            result[key] = value;
+        }
+    }
+    return result;
+}
+
+const sleepMs = async (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -286,7 +309,10 @@ module.exports = {
     isInRange,
     convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
+    convertDecimalValueTo4ByteHexArray,
     replaceInArray,
     getDoorLockPinCode,
     getMetaValue,
+    filterObject,
+    sleepMs,
 };

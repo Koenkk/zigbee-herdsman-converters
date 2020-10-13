@@ -51,6 +51,14 @@ async function sendTuyaCommand(entity, dp, fn, data) {
     );
 }
 
+function saveSceneState(entity, sceneID, groupID, state) {
+    const attributes = ['state', 'color_temp', 'brightness', 'color'];
+    if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
+    const metaKey = `${sceneID}_${groupID}`;
+    entity.meta.scenes[metaKey] = {state: utils.filterObject(state, attributes)};
+    entity.save();
+}
+
 function getEntityOrFirstGroupMember(entity) {
     if (entity.constructor.name === 'Group') {
         return entity.members.length > 0 ? entity.members[0] : null;
@@ -553,6 +561,15 @@ const converters = {
                 brightness = Math.min(254, brightness);
                 if (brightness === 1 && turnsOffAtBrightness1) {
                     brightness = 2;
+                }
+
+                // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
+                // that device won't change state with the moveToLevelWithOnOff command.
+                // Therefore send the genOnOff command also.
+                if (entity.constructor.name === 'Group' && state !== undefined) {
+                    if (entity.members.filter((e) => !e.supportsInputCluster('genLevelCtrl')).length !== 0) {
+                        await converters.on_off.convertSet(entity, 'state', 'ON', meta);
+                    }
                 }
 
                 globalStore.putValue(entity, 'brightness', brightness);
@@ -1220,6 +1237,13 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
+    xiaomi_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -1317,6 +1341,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
+
+                // Xiaomi curtain does not send position update on stop, request this.
+                await entity.read('genAnalogOutput', [0x0055]);
             } else {
                 const lookup = {
                     'open': 100,
@@ -2513,7 +2540,7 @@ const converters = {
         },
     },
 
-    // Tuya Thermostat
+    // Moes Thermostat
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -2526,6 +2553,131 @@ const converters = {
             const temp = value;
             const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
             sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            sendTuyaCommand(entity, 532, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value < 0) value = 4096 + value;
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
+            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1026, 0, [1, value === 'hold' ? 0 : 1]);
+            sendTuyaCommand(entity, 1027, 0, [1, value === 'program' ? 0 : 1]);
+        },
+    },
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 257, 0, [1, value === 'heat' ? 1 : 0]);
+            sendTuyaCommand(entity, 257, 0, [1, value === 'off' ? 0 : 1]);
+        },
+    },
+    // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 1067, 0, [1, value]);
+        },
+    },
+    etop_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await sendTuyaCommand(entity, 257, 0, [1, 0/* off */]);
+                break;
+            case 'heat':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                break;
+            case 'auto':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 2/* auto */]);
+                break;
+            }
+        },
+    },
+    etop_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'ON':
+                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await utils.sleepMs(500);
+                await sendTuyaCommand(entity, 1028, 0, [1, 1/* away */]);
+                break;
+            case 'OFF':
+                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                break;
+            }
+        },
+    },
+    tuya_thermostat_weekly_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+
+            function transitionToData(transition) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also fromZigbee.tuya_thermostat_weekly_schedule()
+                const minutesSinceMidnight = transition.transitionTime;
+                const heatSetpoint = Math.floor(transition.heatSetpoint * 10);
+                return [
+                    (minutesSinceMidnight & 0xff00) >> 8,
+                    minutesSinceMidnight & 0xff,
+                    (heatSetpoint & 0xff00) >> 8,
+                    heatSetpoint & 0xff,
+                ];
+            }
+            for (const [, daySchedule] of Object.entries(value)) {
+                const dayofweek = parseInt(daySchedule.dayofweek);
+                const numoftrans = parseInt(daySchedule.numoftrans);
+                let transitions = [...daySchedule.transitions];
+                const mode = parseInt(daySchedule.mode);
+                if (!supportedModes.includes(mode)) {
+                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendlyName}`);
+                }
+                if (numoftrans != transitions.length) {
+                    throw new Error(`Invalid numoftrans provided. Real: ${transitions.length} ` +
+                        `provided ${numoftrans} for device ${meta.options.friendlyName}`);
+                }
+                if (transitions.length > maxTransitions) {
+                    throw new Error(`Too more transitions provided. Provided: ${transitions.length} ` +
+                        `but supports only ${numoftrans} for device ${meta.options.friendlyName}`);
+                }
+                if (transitions.length < maxTransitions) {
+                    meta.logger.warn(`Padding transitions from ${transitions.length} ` +
+                        `to ${maxTransitions} with last item for device ${meta.options.friendlyName}`);
+                    const lastTransition = transitions[transitions.length-1];
+                    while (transitions.length != maxTransitions) {
+                        transitions = [...transitions, lastTransition];
+                    }
+                }
+                const payload = [];
+                transitions.forEach((transition) => {
+                    payload.push(...transitionToData(transition));
+                });
+                await sendTuyaCommand(entity, firstDayDpId - 1 + dayofweek, 0, [payload.length, ...payload]);
+            }
         },
     },
     tuya_thermostat_child_lock: {
@@ -2572,6 +2724,24 @@ const converters = {
             const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
                 await sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+            } else {
+                console.log(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // HA has special behavior for the away mode
+            const awayPresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
+            const schedulePresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
+            if (awayPresetId !== null) {
+                if (value == 'ON') {
+                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(awayPresetId)]);
+                } else if (schedulePresetId != null) {
+                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(schedulePresetId)]);
+                }
+                // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
                 console.log(`TRV preset ${value} is not recognized.`);
             }
@@ -2658,7 +2828,7 @@ const converters = {
                 if (value >= 0 && value <= 100) {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
-                    value = invert ? 100 - value : value;
+                    value = invert ? value : 100 - value;
                     await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
                 } else {
                     meta.logger.debug('owvfni3: Curtain motor position is out of range');
@@ -2667,11 +2837,11 @@ const converters = {
                 value = value.toLowerCase();
 
                 switch (value) {
-                case 'open':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Open
-                    break;
                 case 'close':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Close
+                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Close
+                    break;
+                case 'open':
+                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Open
                     break;
                 case 'stop':
                     await sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
@@ -2768,10 +2938,10 @@ const converters = {
                 await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_max':
-                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'humidity_min':
-                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
             case 'temperature_alarm':
                 await sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
@@ -2784,6 +2954,175 @@ const converters = {
             }
         },
     },
+    heiman_ir_remote: {
+        key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'send_key':
+                await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'create':
+                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']},
+                    getOptions(meta.mapped, entity));
+                break;
+            case 'learn':
+                await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'delete':
+                await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
+                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                break;
+            case 'get_list':
+                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, getOptions(meta.mapped, entity));
+                break;
+            default: // Unknown key
+                console.log(`Unhandled key ${key}`);
+            }
+        },
+    },
+    scene_store: {
+        key: ['scene_store'],
+        convertSet: async (entity, key, value, meta) => {
+            const isGroup = entity.constructor.name === 'Group';
+            const groupid = isGroup ? entity.groupID : 0;
+            const sceneid = value;
+            const response = await entity.command('genScenes', 'store', {groupid, sceneid}, getOptions(meta.mapped));
+
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, meta.state);
+            } else {
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+            }
+
+            return {state: {}};
+        },
+    },
+    scene_recall: {
+        key: ['scene_recall'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'recall', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                const membersState = {};
+                for (const member of entity.members) {
+                    membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                }
+
+                return {membersState};
+            } else {
+                return {state: entity.meta.scenes[metaKey].state};
+            }
+        },
+    },
+    scene_add: {
+        key: ['scene_add'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
+                throw new Error('Invalid payload');
+            }
+
+            if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
+                throw new Error(`Don't specify both 'color_temp' and 'color'`);
+            }
+
+            const isGroup = entity.constructor.name === 'Group';
+            const groupid = isGroup ? entity.groupID : 0;
+            const sceneid = value.ID;
+            const scenename = '';
+            const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
+
+            const state = {};
+            const extensionfieldsets = [];
+            for (let [attribute, val] of Object.entries(value)) {
+                if (attribute === 'state') {
+                    extensionfieldsets.push({'clstId': 6, 'len': 1, 'extField': [val.toLowerCase() === 'on' ? 1 : 0]});
+                    state['state'] = val.toUpperCase();
+                } else if (attribute === 'brightness') {
+                    extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
+                    state['brightness'] = val;
+                } else if (attribute === 'color_temp') {
+                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    state['color_temp'] = val;
+                } else if (attribute === 'color') {
+                    try {
+                        val = JSON.parse(val);
+                    } catch (e) {
+                        e;
+                    }
+                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
+                    state['color'] = xy;
+                }
+            }
+
+            const response = await entity.command(
+                'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+            );
+
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        saveSceneState(member, sceneid, groupid, state);
+                    }
+                }
+            } else if (response.status === 0) {
+                saveSceneState(entity, sceneid, groupid, state);
+            } else {
+                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+            }
+
+            return {state: {}};
+        },
+    },
+    TS0003_curtain_switch: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'close': 1, 'stop': 2, 'open': 1};
+            const endpointID = lookup[value.toLowerCase()];
+            const endpoint = entity.getDevice().getEndpoint(endpointID);
+            await endpoint.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
+    saswell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
+            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+        },
+    },
+    saswell_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            if ( value == 'auto' ) {
+                sendTuyaCommand(entity, 364, 0, [1, 1]);
+            } else {
+                sendTuyaCommand(entity, 364, 0, [1, 0]);
+            }
+        },
+    },
+    saswell_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            sendTuyaCommand(entity, 357, 0, [1, value === 'heat' ? 1 : 0]);
+        },
+    },
+
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {

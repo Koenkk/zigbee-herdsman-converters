@@ -1,4 +1,4 @@
-const url = 'https://fw.ota.homesmart.ikea.net/feed/version_info.json';
+const url = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const assert = require('assert');
 const common = require('./common');
 const axios = common.getAxios();
@@ -14,7 +14,7 @@ async function getImageMeta(current, logger, device) {
     assert(image !== undefined, `No image available for imageType '${imageType}'`);
     return {
         fileVersion: (image.fw_file_version_MSB << 16) | image.fw_file_version_LSB,
-        url: image.fw_binary_url.replace(/^http:\/\//, 'https://'),
+        url: image.fw_binary_url,
     };
 }
 
