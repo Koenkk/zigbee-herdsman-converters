@@ -1575,7 +1575,6 @@ const devices = [
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_roller_blind_control, tz.tuya_curtain_options],
     },
-    
     {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}],
@@ -9781,8 +9780,8 @@ const devices = [
         model: 'JAVISLOCK',
         vendor: 'JAVIS',
         description: 'Intelligent biometric digital lock',
-        supports: 'lock/unlock, battery', 
-        fromZigbee: [fz.javis_lock_report], 
+        supports: 'lock/unlock, battery',
+        fromZigbee: [fz.javis_lock_report],
         toZigbee: [],
     },
     // Weiser

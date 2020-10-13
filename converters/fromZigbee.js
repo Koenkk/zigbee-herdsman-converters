@@ -290,9 +290,10 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     }
 };
 function utf8FromStr(s) {
-    for (let i=0, enc = encodeURIComponent(s), a = []; i < enc.length;) {
+    const a = [];
+    for (let i = 0, enc = encodeURIComponent(s); i < enc.length;) {
         if (enc[i] === '%') {
-            a.push(parseInt(enc.substr(i+1, 2), 16));
+            a.push(parseInt(enc.substr(i + 1, 2), 16));
             i += 3;
         } else {
             a.push(enc.charCodeAt(i++));
@@ -2880,7 +2881,7 @@ const converters = {
             const data = utf8FromStr(msg['data']['16896']);
             return {
                 action: 'unlock',
-                action_user: data[3], 
+                action_user: data[3],
                 action_source: data[5],
                 action_source_name: lookup[data[5]],
             };

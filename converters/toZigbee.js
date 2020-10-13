@@ -2867,13 +2867,12 @@ const converters = {
                 }
             } else if (key === 'state') {
                 value = value.toLowerCase();
-                const device_manufacturerName = meta.device._manufacturerName;
                 switch (value) {
                 case 'close':
-                        await sendTuyaCommand(entity, 1025, 0, [1, 0]); // close
+                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // close
                     break;
                 case 'open':
-                        await sendTuyaCommand(entity, 1025, 0, [1, 2]); // open
+                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // open
                     break;
                 case 'stop':
                     await sendTuyaCommand(entity, 1025, 0, [1, 1]); // Stop
