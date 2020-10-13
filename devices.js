@@ -12435,6 +12435,9 @@ const devices = [
             {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
                 {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
             ]},
+            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+            ]},
         ],
         zigbeeModel: ['TH01'],
         model: 'SNZB-02',
