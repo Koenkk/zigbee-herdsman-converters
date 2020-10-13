@@ -5572,7 +5572,7 @@ const converters = {
             }
 
             return result;
-        }
+        },
     },
     tuya_color_colortemp: {
         cluster: 'lightingColorCtrl',
