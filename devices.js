@@ -1319,38 +1319,6 @@ const devices = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
-        ],
-        model: 'TS0601_dimmer',
-        vendor: 'TuYa',
-        description: 'Zigbee smart dimmer',
-        supports: 'on/off, brightness',
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        whiteLabel: [
-            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
-        ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
-        model: 'TS0601_curtain_switch',
-        vendor: 'TuYa',
-        description: 'Curtain switch',
-        supports: 'open, close, stop',
-        fromZigbee: [fz.tuya_curtain],
-        toZigbee: [tz.tuya_curtain_control],
-        whiteLabel: [
-            {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
-        ],
-    },
-    {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
