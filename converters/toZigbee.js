@@ -1165,6 +1165,45 @@ const converters = {
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
+    ballast_config: {
+        key: ['ballast_config'],
+        convertSet: async (entity, key, value, meta) => {
+            for (const [attrName, attrValue] of Object.entries(value)) {
+                const attributes = {};
+                attributes[attrName] = attrValue;
+                await entity.write('lightingBallastCfg', attributes);
+            }
+            converters.ballast_config.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            let result = {};
+            for (const attrName of [
+                'physicalMinLevel',
+                'physicalMaxLevel',
+                'ballastStatus',
+                'minLevel',
+                'maxLevel',
+                'powerOnLevel',
+                'powerOnFadeTime',
+                'intrinsicBallastFactor',
+                'ballastFactorAdjustment',
+                'lampQuantity',
+                'lampType',
+                'lampManufacturer',
+                'lampRatedHours',
+                'lampBurnHours',
+                'lampAlarmMode',
+                'lampBurnHoursTripPoint',
+            ]) {
+                try {
+                    result = {...result, ...(await entity.read('lightingBallastCfg', [attrName]))};
+                } catch (ex) {
+                    // continue regardless of error
+                }
+            }
+            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(result)}`);
+        },
+    },
 
     /**
      * Device specific
