@@ -1569,7 +1569,7 @@ const devices = [
         zigbeeModel: ['_TZE200_wmcdj3aq'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
         model: 'TS0601_roller_blind',
-        vendor: 'TuYa',
+        vendor: 'Zemismart',
         description: 'Roller blind motor',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
