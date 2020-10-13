@@ -2418,7 +2418,7 @@ const converters = {
                 // if key is color -> make sure to switch to rgb mode
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
                 await entity.command('lightingColorCtrl', 'moveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
-            },
+            }
         },
     },
     tuya_light_colortemp: {
