@@ -2372,7 +2372,7 @@ const converters = {
                 transtime: 0,
                 hue: Math.round((meta.state.color.h * 254) / 360),
                 saturation: Math.round(meta.state.color.s * 2.54),
-                brightness: meta.state.brightness || 255
+                brightness: meta.state.brightness || 255,
             };
             if (value.h) {
                 payload.hue = Math.round((value.h * 254) / 360);
@@ -2413,7 +2413,7 @@ const converters = {
                     transtime: 0,
                     hue: Math.round((meta.state.color.h * 254) / 360),
                     saturation: Math.round(meta.state.color.s * 2.54),
-                    brightness: value
+                    brightness: value,
                 };
                 // if key is color -> make sure to switch to rgb mode
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
@@ -2435,7 +2435,7 @@ const converters = {
             await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
             await entity.command('lightingColorCtrl', 'moveToColorTemp', {
                 ...payload,
-                brightness: meta.state.brightness
+                brightness: meta.state.brightness,
             }, getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
