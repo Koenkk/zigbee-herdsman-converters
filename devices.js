@@ -1549,7 +1549,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1566,6 +1565,17 @@ const devices = [
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
+    {
+        zigbeeModel: ['_TZE200_wmcdj3aq'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
+        model: 'TS0601_roller_blind',
+        vendor: 'TuYa',
+        description: 'Roller blind motor',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_roller_blind_control, tz.tuya_curtain_options],
+    },
+    
     {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}],
