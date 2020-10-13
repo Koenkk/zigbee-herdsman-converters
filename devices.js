@@ -9775,7 +9775,16 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
-
+    {
+        zigbeeModel: ['JAVISLOCK'],
+        fingerprint: [{modelID: 'doorlock_5001', manufacturerName: 'Lmiot'}],
+        model: 'JAVISLOCK',
+        vendor: 'JAVIS',
+        description: 'Intelligent biometric digital lock',
+        supports: 'lock/unlock, battery', 
+        fromZigbee: [fz.javis_lock_report], 
+        toZigbee: [],
+    },
     // Weiser
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10'],
