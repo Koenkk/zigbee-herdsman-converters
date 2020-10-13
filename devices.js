@@ -11143,7 +11143,7 @@ const devices = [
         description: 'Zigbee line volt thermostat',
         supports: 'local temp, units, keypad lockout, mode, state, backlight, outdoor temp, time',
         fromZigbee: [
-            fz.thermostat_att_report,
+            fz.sinope_thermostat_att_report,
             fz.hvac_user_interface,
             fz.metering_power,
             fz.ignore_temperature_report,
