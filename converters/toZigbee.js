@@ -563,15 +563,6 @@ const converters = {
                     brightness = 2;
                 }
 
-                // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
-                // that device won't change state with the moveToLevelWithOnOff command.
-                // Therefore send the genOnOff command also.
-                if (entity.constructor.name === 'Group' && state !== undefined) {
-                    if (entity.members.filter((e) => !e.supportsInputCluster('genLevelCtrl')).length !== 0) {
-                        await converters.on_off.convertSet(entity, 'state', 'ON', meta);
-                    }
-                }
-
                 globalStore.putValue(entity, 'brightness', brightness);
                 await entity.command(
                     'genLevelCtrl',
@@ -579,6 +570,17 @@ const converters = {
                     {level: Number(brightness), transtime: transition.time},
                     getOptions(meta.mapped, entity),
                 );
+
+                // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
+                // that device won't change state with the moveToLevelWithOnOff command.
+                // Therefore send the genOnOff command also.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/4558
+                if (entity.constructor.name === 'Group' && state !== undefined && transition.time === 0) {
+                    if (entity.members.filter((e) => !e.supportsInputCluster('genLevelCtrl')).length !== 0) {
+                        await converters.on_off.convertSet(entity, 'state', 'ON', meta);
+                    }
+                }
+
                 return {
                     state: {state: brightness === 0 ? 'OFF' : 'ON', brightness: Number(brightness)},
                     readAfterWriteTime: transition.time * 100,
