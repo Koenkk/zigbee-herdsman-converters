@@ -1274,6 +1274,23 @@ const devices = [
         description: 'Aqara zigbee LED-controller ',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['lumi.switch.n0agl1'],
+        model: 'SSM-U01',
+        vendor: 'LUMI',
+        description: 'Single Switch Module T1 (with neutral) with power consumption monitoring',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+        },
+    },
 
     // TuYa
     {
