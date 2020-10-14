@@ -2392,6 +2392,8 @@ const converters = {
             // if key is color -> make sure to switch to rgb mode
             await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
             await entity.command('lightingColorCtrl', 'moveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
+            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
+            return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             if (key === 'color') {

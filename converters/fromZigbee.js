@@ -5561,19 +5561,6 @@ const converters = {
             return payload;
         },
     },
-    tuya_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data['currentLevel']) {
-                result.brightness = msg.data['currentLevel'];
-            }
-
-            return result;
-        },
-    },
     tuya_color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
