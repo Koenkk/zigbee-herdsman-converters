@@ -1167,7 +1167,9 @@ const converters = {
     },
     ballast_config: {
         key: ['ballast_config'],
+        // zcl attribute names are camel case, but we want to use snake case in the outside communication
         convertSet: async (entity, key, value, meta) => {
+            value = utils.toCamelCase(value);
             for (const [attrName, attrValue] of Object.entries(value)) {
                 const attributes = {};
                 attributes[attrName] = attrValue;
@@ -1178,30 +1180,30 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             let result = {};
             for (const attrName of [
-                'physicalMinLevel',
-                'physicalMaxLevel',
-                'ballastStatus',
-                'minLevel',
-                'maxLevel',
-                'powerOnLevel',
-                'powerOnFadeTime',
-                'intrinsicBallastFactor',
-                'ballastFactorAdjustment',
-                'lampQuantity',
-                'lampType',
-                'lampManufacturer',
-                'lampRatedHours',
-                'lampBurnHours',
-                'lampAlarmMode',
-                'lampBurnHoursTripPoint',
+                'physical_min_level',
+                'physical_max_level',
+                'ballast_status',
+                'min_level',
+                'max_level',
+                'power_on_level',
+                'power_on_fade_time',
+                'intrinsic_ballast_factor',
+                'ballast_factor_adjustment',
+                'lamp_quantity',
+                'lamp_type',
+                'lamp_manufacturer',
+                'lamp_rated_hours',
+                'lamp_burn_hours',
+                'lamp_alarm_mode',
+                'lamp_burn_hours_trip_point',
             ]) {
                 try {
-                    result = {...result, ...(await entity.read('lightingBallastCfg', [attrName]))};
+                    result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
                 } catch (ex) {
                     // continue regardless of error
                 }
             }
-            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(result)}`);
+            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
         },
     },
 
