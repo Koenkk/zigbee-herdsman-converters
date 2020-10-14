@@ -922,23 +922,45 @@ const converters = {
             await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'colorTemperature']);
         },
     },
-    light_alert: {
-        key: ['alert', 'flash'],
+    identify: {
+        key: ['identify', 'alert', 'flash'], // alert and flash are deprecated.
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'select': 0x00,
-                'lselect': 0x01,
-                'none': 0xFF,
-            };
-            if (key === 'flash') {
-                if (value === 2) {
-                    value = 'select';
-                } else if (value === 10) {
-                    value = 'lselect';
+            let effectid = 0;
+            if (key === 'alert' || key === 'flash') {
+                const lookup = {
+                    'select': 0x00,
+                    'lselect': 0x01,
+                    'none': 0xFF,
+                };
+                if (key === 'flash') {
+                    if (value === 2) {
+                        value = 'select';
+                    } else if (value === 10) {
+                        value = 'lselect';
+                    }
                 }
+
+                effectid = lookup[value];
             }
 
-            const payload = {effectid: lookup[value.toLowerCase()], effectvariant: 0x01};
+            if (key === 'identify') {
+                const lookup = {
+                    blink: 0,
+                    breathe: 1,
+                    okay: 2,
+                    channel_change: 11,
+                    finish_effect: 254,
+                    stop_effect: 255,
+                };
+
+                if (!lookup.hasOwnProperty(value)) {
+                    throw new Error(`Effect '${value}' not supported`);
+                }
+
+                effectid = lookup[value];
+            }
+
+            const payload = {effectid, effectvariant: 0};
             await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
         },
     },
