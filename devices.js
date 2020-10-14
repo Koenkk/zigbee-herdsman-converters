@@ -1367,7 +1367,7 @@ const devices = [
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
