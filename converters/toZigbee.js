@@ -2245,10 +2245,8 @@ const converters = {
             ], options.ubisys));
         },
     },
-
     ubisys_device_setup: {
         key: ['configure_device_setup'],
-
         convertSet: async (entity, key, value, meta) => {
             const devMgmtEp = meta.device.getEndpoint(232);
 
