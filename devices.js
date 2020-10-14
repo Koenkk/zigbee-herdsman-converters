@@ -9129,7 +9129,7 @@ const devices = [
             fz.ignore_basic_report, fz.on_off, fz.brightness, fz.RM01_on_click, fz.RM01_off_click,
             fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
         ],
-        toZigbee: [tz.RM01_on_off, tz.RM01_light_brightness],
+        toZigbee: [tz.RM01_light_onoff_brightness],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
