@@ -1544,11 +1544,12 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja', 'u1rkty3'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_4vobcgd3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nogaemzt'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1566,8 +1567,11 @@ const devices = [
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
     {
-        zigbeeModel: ['_TZE200_wmcdj3aq'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
+        zigbeeModel: ['_TZE200_wmcdj3aq', 'aabybja'],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+        ],
         model: 'TS0601_roller_blind',
         vendor: 'Zemismart',
         description: 'Roller blind motor',
