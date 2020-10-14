@@ -5737,7 +5737,7 @@ const converters = {
             return null;
         },
     },
-    tuya_curtain: {
+    tuya_cover: {
         cluster: 'manuSpecificTuyaDimmer',
         type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
