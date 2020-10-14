@@ -2887,7 +2887,6 @@ const converters = {
             };
         },
     },
-
     curtain_position_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
