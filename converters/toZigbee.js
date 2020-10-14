@@ -2252,19 +2252,19 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const devMgmtEp = meta.device.getEndpoint(232);
 
-            if (value.hasOwnProperty('inputConfigurations')) {
+            if (value.hasOwnProperty('input_configurations')) {
                 // example: [0, 0, 0, 0]
                 await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputConfigurations': {elementType: 'data8', elements: value.inputConfigurations}});
+                    {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}});
             }
 
-            if (value.hasOwnProperty('inputActions')) {
+            if (value.hasOwnProperty('input_actions')) {
                 // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
                 await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputActions': {elementType: 'octetStr', elements: value.inputActions}});
+                    {'inputActions': {elementType: 'octetStr', elements: value.input_actions}});
             }
 
-            if (value.hasOwnProperty('inputActionTemplates')) {
+            if (value.hasOwnProperty('input_action_templates')) {
                 const templateTypes = {
                     // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                     // (can be obtained directly from ubisys upon request)
@@ -2297,8 +2297,8 @@ const converters = {
                     },
                     'dimmer_single': {
                         getInputActions: (input, endpoint, template) => {
-                            const moveUpCmd = template.noOnOff || template.noOnOffUp ? 0x01 : 0x05;
-                            const moveDownCmd = template.noOnOff || template.noOnOffDown ? 0x01 : 0x05;
+                            const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
+                            const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
                             const moveRate = template.rate || 50;
                             return [
                                 [input, 0x07, endpoint, 0x06, 0x00, 0x02],
@@ -2311,8 +2311,8 @@ const converters = {
                     'dimmer_double': {
                         doubleInputs: true,
                         getInputActions: (inputs, endpoint, template) => {
-                            const moveUpCmd = template.noOnOff || template.noOnOffUp ? 0x01 : 0x05;
-                            const moveDownCmd = template.noOnOff || template.noOnOffDown ? 0x01 : 0x05;
+                            const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
+                            const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
                             const moveRate = template.rate || 50;
                             return [
                                 [inputs[0], 0x07, endpoint, 0x06, 0x00, 0x01],
@@ -2383,12 +2383,13 @@ const converters = {
                 // default group id
                 let groupId = 0;
 
-                const templates = Array.isArray(value.inputActionTemplates) ? value.inputActionTemplates : [value.inputActionTemplates];
+                const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates :
+                    [value.input_action_templates];
                 let resultingInputActions = [];
                 for (const template of templates) {
                     const templateType = templateTypes[template.type];
                     if (!templateType) {
-                        throw new Error(`inputActionTemplates: Template type '${template.type}' is not valid ` +
+                        throw new Error(`input_action_templates: Template type '${template.type}' is not valid ` +
                             `(valid types: ${Object.keys(templateTypes)})`);
                     }
 
@@ -2410,20 +2411,20 @@ const converters = {
                             inputActions = templateType.getInputActions(input, endpoint, template);
                         } else {
                             // scene(s) (always single input)
-                            if (!template.hasOwnProperty('sceneId')) {
-                                throw new Error(`inputActionTemplates: Need an attribute 'sceneId' for '${template.type}'`);
+                            if (!template.hasOwnProperty('scene_id')) {
+                                throw new Error(`input_action_templates: Need an attribute 'scene_id' for '${template.type}'`);
                             }
-                            if (template.hasOwnProperty('groupId')) {
-                                groupId = template.groupId;
+                            if (template.hasOwnProperty('group_id')) {
+                                groupId = template.group_id;
                             }
-                            inputActions = templateType.getInputActions(input, endpoint, groupId, template.sceneId);
+                            inputActions = templateType.getInputActions(input, endpoint, groupId, template.scene_id);
 
-                            if (template.hasOwnProperty('sceneId2')) {
-                                if (template.hasOwnProperty('groupId2')) {
-                                    groupId = template.groupId2;
+                            if (template.hasOwnProperty('scene_id_2')) {
+                                if (template.hasOwnProperty('group_id_2')) {
+                                    groupId = template.group_id_2;
                                 }
                                 inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId,
-                                    template.sceneId2));
+                                    template.scene_id_2));
                             }
                         }
                     } else {
@@ -2439,7 +2440,7 @@ const converters = {
                     endpoint += 1;
                 }
 
-                meta.logger.debug(`ubisys: inputActions to be sent to '${meta.options.friendlyName}': ` +
+                meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
                     JSON.stringify(resultingInputActions));
                 await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
                     {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}});
@@ -2450,9 +2451,9 @@ const converters = {
         },
 
         convertGet: async (entity, key, meta) => {
-            const log = (json) => {
+            const log = (dataRead) => {
                 meta.logger.warn(
-                    `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(json)}`);
+                    `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
             };
             const devMgmtEp = meta.device.getEndpoint(232);
             log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations']));
