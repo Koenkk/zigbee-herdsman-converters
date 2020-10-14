@@ -9279,7 +9279,7 @@ const devices = [
 
     // AduroSmart
     {
-        zigbeeModel: ['ZLL-ExtendedColo'],
+        zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor'],
         model: '81809/81813',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
