@@ -1573,7 +1573,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
         ],
         model: 'TS0601_roller_blind',
-        vendor: 'Zemismart',
+        vendor: 'TuYa',
         description: 'Roller blind motor',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
