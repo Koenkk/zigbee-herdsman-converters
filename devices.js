@@ -11922,7 +11922,7 @@ const devices = [
         description: 'Universal dimmer D1',
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering_power],
-        toZigbee: [tz.light_onoff_brightness, tz.ubisys_device_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
