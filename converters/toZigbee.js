@@ -2828,7 +2828,7 @@ const converters = {
                 if (value >= 0 && value <= 100) {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
-                    value = invert ? 100 - value : value;
+                    value = invert ? value : 100 - value;
                     await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // Set position from 0 - 100%
                 } else {
                     meta.logger.debug('TuYa_cover_control: Curtain motor position is out of range');
