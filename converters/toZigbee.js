@@ -2416,7 +2416,7 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             if (key === 'color') {
                 await entity.read('lightingColorCtrl', [
-                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature'
+                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
                 ]);
             }
         },
