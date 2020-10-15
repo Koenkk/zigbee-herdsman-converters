@@ -1330,8 +1330,8 @@ const devices = [
         vendor: 'TuYa',
         description: 'Curtain switch',
         supports: 'open, close, stop',
-        fromZigbee: [fz.tuya_curtain],
-        toZigbee: [tz.tuya_curtain_control],
+        fromZigbee: [fz.tuya_cover],
+        toZigbee: [tz.tuya_cover_control],
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
         ],
@@ -1562,12 +1562,12 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'aabybja', 'u1rkty3'],
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_4vobcgd3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nogaemzt'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1581,8 +1581,21 @@ const devices = [
             {vendor: 'Tuya', model: 'DT82LEMA-1.2N'},
         ],
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+    },
+    {
+        zigbeeModel: ['aabybja'],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+        ],
+        model: 'TS0601_roller_blind',
+        vendor: 'TuYa',
+        description: 'Roller blind motor',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
     },
     {
         zigbeeModel: ['kud7u2l'],
@@ -1730,8 +1743,8 @@ const devices = [
             {vendor: 'Zemismart', model: 'ZM25TQ'},
         ],
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
     },
     {
         zigbeeModel: ['RH3001'],
@@ -6657,8 +6670,8 @@ const devices = [
         vendor: 'Somgoms',
         description: 'Curtain switch',
         supports: 'open, close, stop, position',
-        fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
     },
     {
         zigbeeModel: ['hpb9yts'],
@@ -9808,6 +9821,18 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+    },
+
+    // JAVIS
+    {
+        zigbeeModel: ['JAVISLOCK'],
+        fingerprint: [{modelID: 'doorlock_5001', manufacturerName: 'Lmiot'}],
+        model: 'JS-SLK2-ZB',
+        vendor: 'JAVIS',
+        description: 'Intelligent biometric digital lock',
+        supports: 'action',
+        fromZigbee: [fz.javis_lock_report],
+        toZigbee: [],
     },
 
     // Weiser

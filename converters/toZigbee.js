@@ -3051,7 +3051,7 @@ const converters = {
             }
         },
     },
-    tuya_curtain_control: {
+    tuya_cover_control: {
         key: ['state', 'position'],
         convertSet: async (entity, key, value, meta) => {
             // Protocol description
@@ -3061,32 +3061,32 @@ const converters = {
                 if (value >= 0 && value <= 100) {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
-                    value = invert ? value : 100 - value;
-                    await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // 0x02 0x02: Set position from 0 - 100%
+                    value = invert ? 100 - value : value;
+                    await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // Set position from 0 - 100%
                 } else {
-                    meta.logger.debug('owvfni3: Curtain motor position is out of range');
+                    meta.logger.debug('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
+                const isRoller = meta.mapped.model === 'TS0601_roller_blind';
                 value = value.toLowerCase();
-
                 switch (value) {
                 case 'close':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 2]); // 0x04 0x01: Close
+                    await sendTuyaCommand(entity, 1025, 0, [1, isRoller ? 0 : 2]); // close
                     break;
                 case 'open':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 0]); // 0x04 0x01: Open
+                    await sendTuyaCommand(entity, 1025, 0, [1, isRoller ? 2 : 0]); // open
                     break;
                 case 'stop':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 1]); // 0x04 0x01: Stop
+                    await sendTuyaCommand(entity, 1025, 0, [1, 1]); // Stop
                     break;
                 default:
-                    meta.logger.debug('owvfni3: Invalid command received');
+                    meta.logger.debug('TuYa_cover_control: Invalid command received');
                     break;
                 }
             }
         },
     },
-    tuya_curtain_options: {
+    tuya_cover_options: {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
             if (value.reverse_direction != undefined) {
