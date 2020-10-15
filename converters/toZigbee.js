@@ -2365,8 +2365,21 @@ const converters = {
         },
     },
     tuya_led_control: {
-        key: ['color', 'brightness'],
+        key: ['color', 'brightness', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
+            if (key === 'color_temp') {
+                value = Number(value);
+                const mappedValue = Math.round(-0.734 * value + 367);
+                const payload = {colortemp: mappedValue, transtime: 0};
+                // disable tuya rgb mode
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', {
+                    ...payload,
+                    brightness: meta.state.brightness,
+                }, getOptions(meta.mapped, entity));
+                return {state: {color_temp: mappedValue}};
+            }
+
             // transtime is ignored
             const payload = {
                 transtime: 0,
@@ -2406,30 +2419,10 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode']);
+                await entity.read('lightingColorCtrl', [
+                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature'
+                ]);
             }
-        },
-    },
-    tuya_light_colortemp: {
-        key: ['color_temp'],
-        convertSet: async (entity, key, value, meta) => {
-            // Mapping from
-            // Homeassistant: Coldwhite 153 -> 500 Warmwight
-            // Warmwhite 0 -> 255 Coldwhite
-            //
-            value = Number(value);
-            const mappedValue = Math.round(-0.734 * value + 367);
-            const payload = {colortemp: mappedValue, transtime: 0};
-            // disable tuya rgb mode
-            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-            await entity.command('lightingColorCtrl', 'moveToColorTemp', {
-                ...payload,
-                brightness: meta.state.brightness,
-            }, getOptions(meta.mapped, entity));
-            return {state: {color_temp: mappedValue }}
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['colorTemperature']);
         },
     },
     tuya_led_controller: {
