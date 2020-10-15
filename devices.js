@@ -13438,6 +13438,16 @@ const devices = [
         toZigbee: [],
         exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
+    {
+        zigbeeModel: ['MOSZB-140'],
+        model: 'MOSZB-140',
+        vendor: 'Develco',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+    },
 
     // Aurora Lighting
     {
