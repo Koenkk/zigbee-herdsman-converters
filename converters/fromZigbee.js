@@ -5753,7 +5753,7 @@ const converters = {
                 return {'running': true};
             case 515: { // 0x02 0x03: Arrived at position
                 let position = msg.data.data[3];
-                position = options.invert_cover ? 100 - position : position;
+                position = options.invert_cover ? position : 100 - position;
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
