@@ -1427,8 +1427,8 @@ const devices = [
         vendor: 'TuYa',
         description: 'RGB+CCT LED',
         supports: 'on/off, color (hue/saturation), brightness, color_temp',
-        toZigbee: [tz.tuya_light_colortemp, tz.on_off, tz.tuya_brightness_control, tz.tuya_led_control],
-        fromZigbee: [fz.tuya_color_colortemp, fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_light_colortemp, tz.on_off, tz.tuya_led_control],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
     },
     {
         zigbeeModel: ['TS0505A'],

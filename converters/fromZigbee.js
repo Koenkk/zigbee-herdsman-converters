@@ -5561,7 +5561,7 @@ const converters = {
             return payload;
         },
     },
-    tuya_color_colortemp: {
+    tuya_led_controller: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -5572,19 +5572,8 @@ const converters = {
                 // Mapping from
                 // Warmwhite 0 -> 255 Coldwhite
                 // to Homeassistant: Coldwhite 153 -> 500 Warmwight
-                //
-                //
                 result.color_temp = Math.round(-1.36 * value + 500);
             }
-
-            return result;
-        },
-    },
-    tuya_led_controller: {
-        cluster: 'lightingColorCtrl',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
 
             if (msg.data.hasOwnProperty('tuyaBrightness')) {
                 result.brightness = msg.data['tuyaBrightness'];

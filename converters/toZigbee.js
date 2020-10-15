@@ -2365,7 +2365,7 @@ const converters = {
         },
     },
     tuya_led_control: {
-        key: ['color'],
+        key: ['color', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
             // transtime is ignored
             const payload = {
@@ -2389,37 +2389,24 @@ const converters = {
             if (typeof value === 'number') {
                 payload.brightness = value;
             }
+            if (meta.state.tuyaMode === 0 && payload.brightness) {
+                await entity.command('genLevelCtrl',
+                    'moveToLevel',
+                    {transtime: 0, level: payload.brightness},
+                    {disableResponse: true, disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                return {state: {brightness: payload.brightness}};
+            }
+
             // if key is color -> make sure to switch to rgb mode
             await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
             await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
             // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
-            return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
+            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             if (key === 'color') {
                 await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode']);
-            }
-        },
-    },
-    tuya_brightness_control: {
-        key: ['brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            if (meta.state.tuyaMode === 0) {
-                await entity.command('genLevelCtrl',
-                    'moveToLevel',
-                    {transtime: 0, level: value},
-                    {disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-            } else {
-                const payload = {
-                    transtime: 0,
-                    hue: Math.round((meta.state.color.h * 254) / 360),
-                    saturation: Math.round(meta.state.color.s * 2.54),
-                    brightness: value,
-                };
-                // if key is color -> make sure to switch to rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
             }
         },
     },
@@ -2439,6 +2426,7 @@ const converters = {
                 ...payload,
                 brightness: meta.state.brightness,
             }, getOptions(meta.mapped, entity));
+            return {state: {color_temp: mappedValue }}
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
