@@ -6028,6 +6028,16 @@ const devices = [
             exposes.numeric('battery').withUnit('%'),
         ],
     },
+    {
+        zigbeeModel: ['FNB56-DOS07FB3.1'],
+        model: 'HGZB-13A',
+        vendor: 'Nue / 3A',
+        description: 'Door/window sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+    },
 
     // Smart Home Pty
     {
