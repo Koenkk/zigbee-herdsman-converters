@@ -1734,6 +1734,22 @@ const devices = [
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
     },
     {
+        zigbeeModel: ['RH3001'],
+        model: 'SNTZ007',
+        vendor: 'TuYa',
+        description: 'Rechargeable Zigbee contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ignore_time_read],
+        toZigbee: [],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
+        whiteLabel: [
+            {vendor: 'BlitzWolf', model: 'BW-IS2'},
+        ],
+    },
+    {
         zigbeeModel: ['RH3040'],
         model: 'RH3040',
         vendor: 'TuYa',
@@ -13145,19 +13161,6 @@ const devices = [
     },
 
     // BlitzWolf
-    {
-        zigbeeModel: ['RH3001'],
-        model: 'BW-IS2',
-        vendor: 'BlitzWolf',
-        description: 'Rechargeable Zigbee contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ignore_time_read],
-        toZigbee: [],
-        exposes: [
-            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
-            exposes.numeric('battery').withUnit('%'),
-        ],
-    },
     {
         zigbeeModel: ['5j6ifxj'],
         model: 'BW-IS3',
