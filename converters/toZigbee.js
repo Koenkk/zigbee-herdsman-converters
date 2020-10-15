@@ -2373,13 +2373,9 @@ const converters = {
                 const payload = {colortemp: mappedValue, transtime: 0};
                 // disable tuya rgb mode
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'moveToColorTemp', {
-                    ...payload,
-                    brightness: meta.state.brightness,
-                }, getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta.mapped, entity));
                 return {state: {color_temp: mappedValue}};
             }
-
             // transtime is ignored
             const payload = {
                 transtime: 0,
