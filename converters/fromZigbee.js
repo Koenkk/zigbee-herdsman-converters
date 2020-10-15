@@ -5567,7 +5567,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
-            if (msg.data.hasOwnProperty(['colorTemperature'])) {
+            if (msg.data.hasOwnProperty('colorTemperature')) {
                 const value = Number(msg.data['colorTemperature']);
                 // Mapping from
                 // Warmwhite 0 -> 255 Coldwhite
@@ -5586,8 +5586,8 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
-            if (msg.data['61441']) {
-                result.brightness = msg.data['61441'];
+            if (msg.data.hasOwnProperty('tuyaBrightness')) {
+                result.brightness = msg.data['tuyaBrightness'];
             }
 
             result.color = {};
@@ -5596,7 +5596,7 @@ const converters = {
                 result.color.h = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
             }
 
-            if (msg.data['currentSaturation']) {
+            if (msg.data.hasOwnProperty('currentSaturation')) {
                 result.color.s = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
             }
 
