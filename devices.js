@@ -1288,6 +1288,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await configureReporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on readEletricalMeasurementPowerConverterAttributes.
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
