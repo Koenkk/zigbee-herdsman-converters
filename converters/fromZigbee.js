@@ -5078,6 +5078,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const actionLookup = {
                 0: 'hold',
                 255: 'release',
@@ -5110,6 +5111,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -5117,6 +5119,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -5124,6 +5127,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -5132,6 +5136,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (store[deviceID]) {
                 const duration = Date.now() - store[deviceID].start;
@@ -5144,6 +5149,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             // store button and start moment
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
@@ -5159,6 +5165,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             let act;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -5174,6 +5181,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 store[deviceID] = {};
