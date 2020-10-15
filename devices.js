@@ -1277,10 +1277,11 @@ const devices = [
     {
         zigbeeModel: ['lumi.switch.n0agl1'],
         model: 'SSM-U01',
-        vendor: 'LUMI',
-        description: 'Single Switch Module T1 (with neutral) with power consumption monitoring',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (with neutral)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering_power],
+        exposes: [exposes.switch(), exposes.numeric('energy').withUnit('kWh')],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
