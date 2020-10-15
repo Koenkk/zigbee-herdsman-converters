@@ -13407,6 +13407,15 @@ const devices = [
         toZigbee: [],
         exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
+    {
+        zigbeeModel: ['WISZB-120'],
+        model: 'WISZB-120',
+        vendor: 'Develco',
+        description: 'Window sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+    },
 
     // Aurora Lighting
     {
