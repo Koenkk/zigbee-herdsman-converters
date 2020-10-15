@@ -2690,41 +2690,22 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
-    RM01_on_off: {
-        key: ['state'],
+    RM01_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.on_off.convertSet(endpoint, key, value, meta);
+                return await converters.light_onoff_brightness.convertSet(endpoint, key, value, meta);
             } else {
-                throw new Error('OnOff not supported on this RM01 device.');
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
             }
         },
         convertGet: async (entity, key, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.on_off.convertGet(endpoint, key, meta);
+                return await converters.light_onoff_brightness.convertGet(endpoint, key, meta);
             } else {
-                throw new Error('OnOff not supported on this RM01 device.');
-            }
-        },
-    },
-    RM01_light_brightness: {
-        key: ['brightness', 'brightness_percent'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness.convertGet(endpoint, key, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
             }
         },
     },

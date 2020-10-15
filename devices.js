@@ -1274,6 +1274,24 @@ const devices = [
         description: 'Aqara zigbee LED-controller ',
         extend: generic.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['lumi.switch.n0agl1'],
+        model: 'SSM-U01',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (with neutral)',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering_power],
+        exposes: [exposes.switch(), exposes.numeric('energy').withUnit('kWh')],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+        },
+    },
 
     // TuYa
     {
@@ -1714,6 +1732,22 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_curtain, fz.ignore_basic_report],
         toZigbee: [tz.tuya_curtain_control, tz.tuya_curtain_options],
+    },
+    {
+        zigbeeModel: ['RH3001'],
+        model: 'SNTZ007',
+        vendor: 'TuYa',
+        description: 'Rechargeable Zigbee contact sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ignore_time_read],
+        toZigbee: [],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('battery').withUnit('%'),
+        ],
+        whiteLabel: [
+            {vendor: 'BlitzWolf', model: 'BW-IS2'},
+        ],
     },
     {
         zigbeeModel: ['RH3040'],
@@ -5994,6 +6028,16 @@ const devices = [
             exposes.numeric('battery').withUnit('%'),
         ],
     },
+    {
+        zigbeeModel: ['FNB56-DOS07FB3.1'],
+        model: 'HGZB-13A',
+        vendor: 'Nue / 3A',
+        description: 'Door/window sensor',
+        supports: 'contact',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+    },
 
     // Smart Home Pty
     {
@@ -9129,7 +9173,7 @@ const devices = [
             fz.ignore_basic_report, fz.on_off, fz.brightness, fz.RM01_on_click, fz.RM01_off_click,
             fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
         ],
-        toZigbee: [tz.RM01_on_off, tz.RM01_light_brightness],
+        toZigbee: [tz.RM01_light_onoff_brightness],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
@@ -9279,7 +9323,7 @@ const devices = [
 
     // AduroSmart
     {
-        zigbeeModel: ['ZLL-ExtendedColo'],
+        zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor'],
         model: '81809/81813',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
@@ -13128,19 +13172,6 @@ const devices = [
 
     // BlitzWolf
     {
-        zigbeeModel: ['RH3001'],
-        model: 'BW-IS2',
-        vendor: 'BlitzWolf',
-        description: 'Rechargeable Zigbee contact sensor',
-        supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ignore_time_read],
-        toZigbee: [],
-        exposes: [
-            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
-            exposes.numeric('battery').withUnit('%'),
-        ],
-    },
-    {
         zigbeeModel: ['5j6ifxj'],
         model: 'BW-IS3',
         vendor: 'BlitzWolf',
@@ -13415,6 +13446,17 @@ const devices = [
         supports: 'contact',
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
+        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+    },
+    {
+        zigbeeModel: ['MOSZB-140'],
+        model: 'MOSZB-140',
+        vendor: 'Develco',
+        description: 'Motion sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [exposes.boolean('occupancy'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
     },
 
     // Aurora Lighting
