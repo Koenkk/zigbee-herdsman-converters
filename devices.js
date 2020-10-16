@@ -840,7 +840,7 @@ const devices = [
         description: 'Aqara D1 2 gang smart wall switch (with neutral wire)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
