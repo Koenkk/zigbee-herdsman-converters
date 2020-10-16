@@ -1292,7 +1292,7 @@ const devices = [
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
-            await configureReporting.activePower(endpoint);
+            await configureReporting.activePower(endpoint, {min: 5, max: 600, change: 10});
         },
     },
 
