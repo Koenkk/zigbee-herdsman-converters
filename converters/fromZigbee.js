@@ -289,6 +289,18 @@ const moesThermostat = (model, msg, publish, options, meta) => {
             dp} with data ${JSON.stringify(data)}`);
     }
 };
+function utf8FromStr(s) {
+    const a = [];
+    for (let i = 0, enc = encodeURIComponent(s); i < enc.length;) {
+        if (enc[i] === '%') {
+            a.push(parseInt(enc.substr(i + 1, 2), 16));
+            i += 3;
+        } else {
+            a.push(enc.charCodeAt(i++));
+        }
+    }
+    return a;
+}
 
 const eTopThermostat = (model, msg, publish, options, meta) => {
     const dp = msg.data.dp;
@@ -948,6 +960,18 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_contact_alarm_1_report: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
                 tamper: (zoneStatus & 1<<2) > 0,
@@ -2854,6 +2878,25 @@ const converters = {
                     }
                 }
             }
+        },
+    },
+    javis_lock_report: {
+        cluster: 'genBasic',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {
+                0: 'pairing',
+                1: 'keypad',
+                2: 'rfid_card_unlock',
+                3: 'touch_unlock',
+            };
+            const data = utf8FromStr(msg['data']['16896']);
+            return {
+                action: 'unlock',
+                action_user: data[3],
+                action_source: data[5],
+                action_source_name: lookup[data[5]],
+            };
         },
     },
     curtain_position_analog_output: {
@@ -5066,6 +5109,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const actionLookup = {
                 0: 'hold',
                 255: 'release',
@@ -5098,6 +5142,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -5105,6 +5150,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -5112,6 +5158,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -5120,6 +5167,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (store[deviceID]) {
                 const duration = Date.now() - store[deviceID].start;
@@ -5132,6 +5180,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             // store button and start moment
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
@@ -5147,6 +5196,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             let act;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -5162,6 +5212,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 store[deviceID] = {};
@@ -5706,7 +5757,7 @@ const converters = {
             return null;
         },
     },
-    tuya_curtain: {
+    tuya_cover: {
         cluster: 'manuSpecificTuyaDimmer',
         type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
