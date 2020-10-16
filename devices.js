@@ -1564,8 +1564,8 @@ const devices = [
     {
         zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja'],
         fingerprint: [
-            { modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
-            { modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_4vobcgd3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nogaemzt'},
