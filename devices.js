@@ -1423,12 +1423,13 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
-        model: 'TS0505A_LED',
+        model: 'TS0505A_led',
         vendor: 'TuYa',
         description: 'RGB+CCT LED',
         supports: 'on/off, color (hue/saturation), brightness, color_temp',
         toZigbee: [tz.on_off, tz.tuya_led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [exposes.light().withBrightness().withColorTemp().withColorHS()],
     },
     {
         zigbeeModel: ['TS0505A'],
