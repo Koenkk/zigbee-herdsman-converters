@@ -1280,16 +1280,19 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (with neutral)',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.on_off, fz.metering_power],
-        exposes: [exposes.switch(), exposes.numeric('energy').withUnit('kWh')],
+        fromZigbee: [fz.on_off, fz.metering_power, fz.electrical_measurement_power],
+        exposes: [exposes.switch(), exposes.numeric('energy').withUnit('kWh'), exposes.numeric('power').withUnit('W')],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await configureReporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on readEletricalMeasurementPowerConverterAttributes.
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
+            await configureReporting.activePower(endpoint, {min: 5, max: 600, change: 10});
         },
     },
 
