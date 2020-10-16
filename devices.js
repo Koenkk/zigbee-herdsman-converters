@@ -13480,10 +13480,19 @@ const devices = [
         model: 'WISZB-120',
         vendor: 'Develco',
         description: 'Window sensor',
-        supports: 'contact',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        supports: 'contact, temperature',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
         toZigbee: [],
-        exposes: [exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper')],
+        exposes: [
+            exposes.boolean('contact'), exposes.boolean('battery_low'), exposes.boolean('tamper'),
+            exposes.numeric('temperature').withUnit('°C'),
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(38);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint);
+        },
     },
     {
         zigbeeModel: ['MOSZB-140'],
