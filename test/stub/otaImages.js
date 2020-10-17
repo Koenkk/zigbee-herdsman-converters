@@ -33,7 +33,12 @@ const otaImagesFilesWithMeta = {
         minimumHardwareVersion: 0,
         maximumHardwareVersion: 4,
         elements: 1
-    }
+    },
+    "10005778-10.1-TRADFRI-onoff-shortcut-control-2.2.010.ota.ota.signed": {
+        manufacturer: "",
+        headerField: 0,
+        elements: 1
+    },
 };
 
 const otaImages = Object.entries(otaImagesFilesWithMeta).map(

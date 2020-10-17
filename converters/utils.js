@@ -293,6 +293,36 @@ const sleepMs = async (ms) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+function toSnakeCase(value) {
+    if (typeof value === 'object') {
+        for (const key of Object.keys(value)) {
+            const keySnakeCase = toSnakeCase(key);
+            if (key !== keySnakeCase) {
+                value[keySnakeCase] = value[key];
+                delete value[key];
+            }
+        }
+        return value;
+    } else {
+        return value.replace(/\.?([A-Z])/g, (x, y) => '_' + y.toLowerCase()).replace(/^_/, '').replace('_i_d', '_id');
+    }
+}
+
+function toCamelCase(value) {
+    if (typeof value === 'object') {
+        for (const key of Object.keys(value)) {
+            const keyCamelCase = toCamelCase(key);
+            if (key !== keyCamelCase) {
+                value[keyCamelCase] = value[key];
+                delete value[key];
+            }
+        }
+        return value;
+    } else {
+        return value.replace(/_([a-z])/g, (x, y) => y.toUpperCase());
+    }
+}
+
 module.exports = {
     rgbToXY,
     hexToXY,
@@ -315,4 +345,6 @@ module.exports = {
     getMetaValue,
     filterObject,
     sleepMs,
+    toSnakeCase,
+    toCamelCase,
 };
