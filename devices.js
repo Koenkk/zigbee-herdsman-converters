@@ -2009,6 +2009,20 @@ const devices = [
             await bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['TS0216'],
+        model: 'TS0216',
+        vendor: 'Tuya',
+        description: 'Sound and flash siren',
+        supports: 'alarm',
+        fromZigbee: [fz.ts0216_siren, fz.battery],
+        toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+    },
 
     // Neo
     {
