@@ -14061,6 +14061,19 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {   
+        zigbeeModel: ['43090'],
+        model: '43090',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Niko
     {
