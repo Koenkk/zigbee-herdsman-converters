@@ -2012,7 +2012,7 @@ const devices = [
     {
         zigbeeModel: ['TS0216'],
         model: 'TS0216',
-        vendor: 'Tuya',
+        vendor: 'TuYa',
         description: 'Sound and flash siren',
         supports: 'alarm',
         fromZigbee: [fz.ts0216_siren, fz.battery],
