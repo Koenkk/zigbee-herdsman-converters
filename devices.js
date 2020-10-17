@@ -3561,7 +3561,7 @@ const devices = [
         },
         ota: ota.zigbeeOTA,
     },
-     {
+    {
         zigbeeModel: ['LOM006'],
         model: '9290024426',
         vendor: 'Philips',
