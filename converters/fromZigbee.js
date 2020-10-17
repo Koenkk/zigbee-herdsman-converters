@@ -967,6 +967,18 @@ const converters = {
             };
         },
     },
+    ias_contact_alarm_1_report: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     ias_carbon_monoxide_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5097,6 +5109,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const actionLookup = {
                 0: 'hold',
                 255: 'release',
@@ -5129,6 +5142,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -5136,6 +5150,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -5143,6 +5158,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -5151,6 +5167,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (store[deviceID]) {
                 const duration = Date.now() - store[deviceID].start;
@@ -5163,6 +5180,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             // store button and start moment
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
@@ -5178,6 +5196,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             let act;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -5193,6 +5212,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const deviceID = msg.device.ieeeAddr;
             if (!store[deviceID]) {
                 store[deviceID] = {};
@@ -5582,12 +5602,20 @@ const converters = {
     },
     tuya_led_controller: {
         cluster: 'lightingColorCtrl',
-        type: ['attributeReport'],
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
-            if (msg.data['61441']) {
-                result.brightness = msg.data['61441'];
+            if (msg.data.hasOwnProperty('colorTemperature')) {
+                const value = Number(msg.data['colorTemperature']);
+                // Mapping from
+                // Warmwhite 0 -> 255 Coldwhite
+                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
+                result.color_temp = Math.round(-1.36 * value + 500);
+            }
+
+            if (msg.data.hasOwnProperty('tuyaBrightness')) {
+                result.brightness = msg.data['tuyaBrightness'];
             }
 
             result.color = {};
@@ -5596,7 +5624,7 @@ const converters = {
                 result.color.h = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
             }
 
-            if (msg.data['currentSaturation']) {
+            if (msg.data.hasOwnProperty('currentSaturation')) {
                 result.color.s = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
             }
 
