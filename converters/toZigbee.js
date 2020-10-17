@@ -3412,6 +3412,37 @@ const converters = {
             sendTuyaCommand(entity, 357, 0, [1, value === 'heat' ? 1 : 0]);
         },
     },
+    ts0216_duration: {
+        key: ['duration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasWd', {'maxDuration': value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasWd', ['maxDuration']);
+        },
+    },
+    ts0216_volume: {
+        key: ['volume'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasWd', {0x0002: {value: value, type: 0x20}});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasWd', [0x0002]);
+        },
+    },
+    ts0216_alarm: {
+        key: ['alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const info = (value) ? (2 << 4) + (1 << 2) + 0 : 0;
+
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: 0},
+                getOptions(meta.mapped, entity),
+            );
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {

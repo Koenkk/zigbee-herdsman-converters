@@ -6250,6 +6250,19 @@ const converters = {
             }
         },
     },
+    ts0216_siren: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['duration'] = msg.data.maxDuration;
+            if (msg.data.hasOwnProperty('2')) result['volume'] = msg.data['2'];
+            if (msg.data.hasOwnProperty('61440')) {
+                result['alarm'] = (msg.data['61440'] == 0) ? false : true;
+            }
+            return result;
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
