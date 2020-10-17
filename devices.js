@@ -14061,7 +14061,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    {   
+    {
         zigbeeModel: ['43090'],
         model: '43090',
         vendor: 'Enbrighten',
