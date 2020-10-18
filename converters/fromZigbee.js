@@ -1846,6 +1846,7 @@ const converters = {
                 const value = msg.data['presentValue'];
 
                 const actionLookup = {
+                    0: 'release',
                     1: 'single',
                     2: 'double',
                     3: 'tripple',
@@ -4886,16 +4887,42 @@ const converters = {
                     if (devid) {
                         payload['device'] = devid;
                     }
-                    if (unit === 'C') {
-                        payload['temperature'] = precisionRound(msg.data['presentValue'], 1);
-                    } else if (unit === '%') {
-                        payload['humidity'] = precisionRound(msg.data['presentValue'], 1);
-                    } else if (unit === 'Pa') {
-                        payload['pressure'] = precisionRound(msg.data['presentValue'], 1);
-                    } else if (unit === 'm') {
-                        payload['altitude'] = precisionRound(msg.data['presentValue'], 1);
-                    } else if (unit === 'ppm') {
-                        payload['quality'] = precisionRound(msg.data['presentValue'], 1);
+
+                    const valRaw = msg.data['presentValue'];
+                    if (unit) {
+                        let val = precisionRound(valRaw, 1);
+
+                        const nameLookup = {
+                            'C': 'temperature',
+                            '%': 'humidity',
+                            'm': 'altitude',
+                            'Pa': 'pressure',
+                            'ppm': 'quality',
+                            'psize': 'particle_size',
+                            'V': 'voltage',
+                            'A': 'current',
+                            'Wh': 'energy',
+                            'W': 'power',
+                            'Hz': 'frequency',
+                            'pf': 'power_factor',
+                            'lx': 'illuminance_lux',
+                        };
+
+                        let nameAlt = '';
+                        if (unit === 'A') {
+                            if (valRaw < 1) {
+                                val = precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith('mcpm') || unit.startsWith('ncpm')) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = (num === 'A')? unit.substr(0, 4) + '10': unit;
+                            val = precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+
+                        payload[nameAlt] = val;
                     }
                 }
             }
