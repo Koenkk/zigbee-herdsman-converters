@@ -998,6 +998,7 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 sos: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
@@ -1414,6 +1415,110 @@ const converters = {
     /**
      * Non-generic converters, re-use if possible
      */
+    xiaomi_power: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {power: precisionRound(msg.data['presentValue'], 2)};
+        },
+    },
+    xiaomi_switch_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65281']) {
+                const data = msg.data['65281'];
+                const payload = {};
+
+                if (data.hasOwnProperty('100')) {
+                    payload.state = data['100'] === 1 ? 'ON' : 'OFF';
+                }
+
+                if (data.hasOwnProperty('152')) {
+                    payload.power = precisionRound(data['152'], 2);
+                }
+
+                if (data.hasOwnProperty('149')) {
+                    // Consumption is deprecated
+                    payload.consumption = precisionRound(data['149'], 2);
+                    payload.energy = precisionRound(data['149'], 2);
+                }
+
+                if (data.hasOwnProperty('3')) {
+                    payload.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
+                }
+
+                if (data.hasOwnProperty('150')) {
+                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
+                }
+
+                return payload;
+            }
+        },
+    },
+    xiaomi_switch_opple_basic: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['247']) {
+                const data = msg.data['247'];
+                const payload = {};
+                // Xiaomi struct parsing
+                const length = data.length;
+                // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
+                for (let i=0; i < length; i++) {
+                    const index = data[i];
+                    let value = null;
+                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
+                    switch (data[i+1]) {
+                    case 16:
+                        // 0x10 ZclBoolean
+                        value = data.readUInt8(i+2);
+                        i += 2;
+                        break;
+                    case 32:
+                        // 0x20 Zcl8BitUint
+                        value = data.readUInt8(i+2);
+                        i += 2;
+                        break;
+                    case 33:
+                        // 0x21 Zcl16BitUint
+                        value = data.readUInt16LE(i+2);
+                        i += 3;
+                        break;
+                    case 39:
+                        // 0x27 Zcl64BitUint
+                        i += 9;
+                        break;
+                    case 40:
+                        // 0x28 Zcl8BitInt
+                        value = data.readInt8(i+2);
+                        i += 2;
+                        break;
+                    case 57:
+                        // 0x39 ZclSingleFloat
+                        value = data.readFloatLE(i+2);
+                        i += 5;
+                        break;
+                    default:
+                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
+                    }
+                    payload[index] = value;
+                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
+                }
+                return {
+                    state: payload['100'] === 1 ? 'ON' : 'OFF',
+                    power: precisionRound(payload['152'], 2),
+                    voltage: precisionRound(payload['150'] * 0.1, 1),
+                    current: precisionRound((payload['151'] * 0.001), 4),
+                    // Consumption is deprecated
+                    consumption: precisionRound(payload['149'], 2),
+                    energy: precisionRound(payload['149'], 2),
+                    temperature: calibrateAndPrecisionRoundOptions(payload['3'], options, 'temperature'),
+                };
+            }
+        },
+    },
     xiaomi_battery: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -1490,6 +1595,32 @@ const converters = {
             }
         },
     },
+    RTCGQ11LM_interval: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65281']) {
+                // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+                const illuminance = msg.data['65281']['11'];
+                return {
+                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+                };
+            }
+        },
+    },
+    RTCGQ11LM_illuminance: {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+            const illuminance = msg.data['measuredValue'];
+            return {
+                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
+            };
+        },
+    },
     xiaomi_WXKG01LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1527,6 +1658,75 @@ const converters = {
                 const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
                 const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
                 publish({action: payload});
+            }
+        },
+    },
+    xiaomi_contact: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: msg.data['onOff'] === 0};
+        },
+    },
+    xiaomi_contact_interval: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
+                return {contact: msg.data['65281']['100'] === 0};
+            }
+        },
+    },
+    WSDCGQ11LM_pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const pressure = msg.data.hasOwnProperty('16') ? parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
+            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    WSDCGQ01LM_WSDCGQ11LM_interval: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65281']) {
+                const result = {};
+                const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
+                const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
+
+                // https://github.com/Koenkk/zigbee2mqtt/issues/798
+                // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
+                // -20 till +60, don't produce messages beyond these values.
+                if (temperature > -25 && temperature < 65) {
+                    result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                }
+
+                // in the 0 - 100 range, don't produce messages beyond these values.
+                if (humidity >= 0 && humidity <= 100) {
+                    result.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
+                }
+
+                // Check if contains pressure (WSDCGQ11LM only)
+                if (msg.data['65281'].hasOwnProperty('102')) {
+                    const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
+                    result.pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
+                }
+
+                return result;
+            }
+        },
+    },
+    xiaomi_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
+            // -20 till +60, don't produce messages beyond these values.
+            if (temperature > -25 && temperature < 65) {
+                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
     },
@@ -1724,6 +1924,28 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    U02I007C01_contact: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 1) return;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+            };
+        },
+    },
+    U02I007C01_water_leak: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 2) return;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+            };
         },
     },
 
@@ -2397,77 +2619,6 @@ const converters = {
             return {contact: msg.data.zonestatus === 48};
         },
     },
-    RTCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-                const illuminance = msg.data['65281']['11'];
-                return {
-                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
-                };
-            }
-        },
-    },
-    RTCGQ11LM_illuminance: {
-        cluster: 'msIlluminanceMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
-            const illuminance = msg.data['measuredValue'];
-            return {
-                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
-            };
-        },
-    },
-    WSDCGQ01LM_WSDCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const result = {};
-                const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
-                const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
-
-                // https://github.com/Koenkk/zigbee2mqtt/issues/798
-                // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
-                // -20 till +60, don't produce messages beyond these values.
-                if (temperature > -25 && temperature < 65) {
-                    result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                }
-
-                // in the 0 - 100 range, don't produce messages beyond these values.
-                if (humidity >= 0 && humidity <= 100) {
-                    result.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
-                }
-
-                // Check if contains pressure (WSDCGQ11LM only)
-                if (msg.data['65281'].hasOwnProperty('102')) {
-                    const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
-                    result.pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
-                }
-
-                return result;
-            }
-        },
-    },
-    xiaomi_temperature: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
-            // -20 till +60, don't produce messages beyond these values.
-            if (temperature > -25 && temperature < 65) {
-                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-            }
-        },
-    },
     MFKZQ01LM_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -2584,22 +2735,6 @@ const converters = {
             }
         },
     },
-    xiaomi_contact: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data['onOff'] === 0};
-        },
-    },
-    xiaomi_contact_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
-                return {contact: msg.data['65281']['100'] === 0};
-            }
-        },
-    },
     color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -2645,15 +2780,6 @@ const converters = {
             return result;
         },
     },
-    WSDCGQ11LM_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('16') ?
-                parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
-        },
-    },
     immax_07046L_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -2682,103 +2808,6 @@ const converters = {
             return {action: modeLookup[action]};
         },
     },
-    SJCGQ11LM_water_leak_iaszone: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {water_leak: msg.data.zonestatus === 1};
-        },
-    },
-    xiaomi_power: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {power: precisionRound(msg.data['presentValue'], 2)};
-        },
-    },
-    xiaomi_plug_eu_state: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['247']) {
-                const data = msg.data['247'];
-                const payload = {};
-                // Xiaomi struct parsing
-                const length = data.length;
-                // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
-                for (let i=0; i < length; i++) {
-                    const index = data[i];
-                    let value = null;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
-                    switch (data[i+1]) {
-                    case 16:
-                        // 0x10 ZclBoolean
-                        value = data.readUInt8(i+2);
-                        i += 2;
-                        break;
-                    case 32:
-                        // 0x20 Zcl8BitUint
-                        value = data.readUInt8(i+2);
-                        i += 2;
-                        break;
-                    case 33:
-                        // 0x21 Zcl16BitUint
-                        value = data.readUInt16LE(i+2);
-                        i += 3;
-                        break;
-                    case 39:
-                        // 0x27 Zcl64BitUint
-                        i += 9;
-                        break;
-                    case 40:
-                        // 0x28 Zcl8BitInt
-                        value = data.readInt8(i+2);
-                        i += 2;
-                        break;
-                    case 57:
-                        // 0x39 ZclSingleFloat
-                        value = data.readFloatLE(i+2);
-                        i += 5;
-                        break;
-                    default:
-                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
-                    }
-                    payload[index] = value;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
-                }
-                return {
-                    state: payload['100'] === 1 ? 'ON' : 'OFF',
-                    power: precisionRound(payload['152'], 2),
-                    voltage: precisionRound(payload['150'] * 0.1, 1),
-                    current: precisionRound((payload['151'] * 0.001), 4),
-                    consumption: precisionRound(payload['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(payload['3'], options, 'temperature'),
-                };
-            }
-        },
-    },
-    xiaomi_plug_state: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const data = msg.data['65281'];
-                const payload = {
-                    state: data['100'] === 1 ? 'ON' : 'OFF',
-                    power: precisionRound(data['152'], 2),
-                    consumption: precisionRound(data['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature'),
-                };
-
-                if (data.hasOwnProperty('150')) {
-                    // Not all support voltage: https://github.com/Koenkk/zigbee2mqtt/issues/4092
-                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
-                }
-
-                return payload;
-            }
-        },
-    },
     xiaomi_bulb_interval: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -2790,26 +2819,6 @@ const converters = {
                     brightness: data['101'],
                     color_temp: data['102'],
                 };
-            }
-        },
-    },
-    xiaomi_power_from_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const data = msg.data['65281'];
-                const result = {};
-                if (data['152']) {
-                    result.power = precisionRound(data['152'], 2);
-                }
-                if (data['149']) {
-                    result.consumption = precisionRound(data['149'], 2);
-                }
-                if (data['3']) {
-                    result.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
-                }
-                return result;
             }
         },
     },
@@ -2907,13 +2916,6 @@ const converters = {
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
             return {position};
-        },
-    },
-    JTYJGD01LMBW_smoke: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {smoke: msg.data.zonestatus === 1};
         },
     },
     heiman_smoke: {
@@ -3068,13 +3070,6 @@ const converters = {
                 break;
             }
             }
-        },
-    },
-    JTQJBF01LMBW_gas: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {gas: msg.data.zonestatus === 1};
         },
     },
     JTQJBF01LMBW_gas_density: {
@@ -5943,28 +5938,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {moving: msg.data['acceleration'] === 1 ? true : false};
-        },
-    },
-    MultiSensor_ias_contact_alarm: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            if (msg.endpoint.ID != 1) return;
-            return {
-                contact: !((zoneStatus & 1) > 0),
-            };
-        },
-    },
-    MultiSensor_ias_water_leak_alarm: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            if (msg.endpoint.ID != 2) return;
-            return {
-                water_leak: (zoneStatus & 1) > 0,
-            };
         },
     },
     ZMCSW032D_cover_position_tilt: {

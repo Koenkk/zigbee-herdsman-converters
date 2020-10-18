@@ -22,6 +22,10 @@ const exposes = {
     switch: `e.switch()`,
     energy: `e.energy()`,
     cover_position: `e.cover_position()`,
+    smoke: `e.smoke()`,
+    gas: `e.gas()`,
+    sos: `e.sos()`,
+    carbon_monoxide: `e.carbon_monoxide()`,
 };
 
 const mapping = {
@@ -32,9 +36,15 @@ const mapping = {
     ias_water_leak_alarm_2: [exposes.water_leak, exposes.battery_low, exposes.tamper],
     ias_water_leak_alarm_1_report: [exposes.water_leak, exposes.battery_low, exposes.tamper],
     ias_vibration_alarm_1: [exposes.vibration, exposes.battery_low, exposes.tamper],
+    ias_occupancy_alarm_1_with_timeout: [exposes.occupancy, exposes.battery_low, exposes.tamper],
     ias_vibration_alarm_2: [exposes.vibration, exposes.battery_low, exposes.tamper],
     ias_contact_alarm_1: [exposes.contact, exposes.battery_low, exposes.tamper],
     ias_contact_alarm_2: [exposes.contact, exposes.battery_low, exposes.tamper],
+    ias_smoke_alarm_1: [exposes.smoke, exposes.battery_low, exposes.tamper],
+    ias_gas_alarm_1: [exposes.gas, exposes.battery_low, exposes.tamper],
+    ias_gas_alarm_2: [exposes.gas, exposes.battery_low, exposes.tamper],
+    ias_carbon_monoxide_alarm_1: [exposes.carbon_monoxide, exposes.battery_low, exposes.tamper],
+    ias_sos_alarm_2: [exposes.sos, exposes.battery_low, exposes.tamper],
     battery: [exposes.battery],
     temperature: [exposes.temperature],
     humidity: [exposes.humidity],
@@ -46,6 +56,20 @@ const mapping = {
     metering_power: [exposes.power, exposes.energy],
     cover_position_via_brightness: [exposes.cover_position],
     keen_home_smart_vent_pressure: [exposes.pressure],
+    xiaomi_battery: [exposes.battery],
+    xiaomi_temperature: [exposes.temperature],
+    WSDCGQ01LM_WSDCGQ11LM_interval: [],
+    WSDCGQ11LM_pressure: [exposes.pressure],
+    xiaomi_contact: [exposes.contact],
+    xiaomi_contact_interval: [exposes.contact],
+    occupancy: [exposes.occupancy],
+    occupancy_with_timeout: [exposes.occupancy],
+    RTCGQ11LM_interval: [],
+    RTCGQ11LM_illuminance: [exposes.illuminance, exposes.illuminance_lux],
+    xiaomi_power: [exposes.power],
+    xiaomi_plug_state: [exposes.power, exposes.temperature, exposes.voltage],
+    xiaomi_switch_basic: [exposes.power, exposes.energy, exposes.temperature, exposes.voltage],
+    xiaomi_switch_opple_basic: [exposes.power, exposes.energy, exposes.temperature, exposes.voltage, exposes.current],
 };
 
 module.exports = function(fileInfo, api, options) {
@@ -68,11 +92,7 @@ module.exports = function(fileInfo, api, options) {
                         const exposes = new Set();
                         let exposesStr = '';
                         converters.forEach((c) => mapping[c].forEach((e) => exposes.add(e)));
-                        if (exposes.size > 3) {
-                            exposesStr = `exposes: [\n${[...exposes].map((e, i) => i !== 1 && i % 2 === 1 ? '\n' + e : e).join(', ')}\n]`;
-                        } else {
-                            exposesStr = `exposes: [${[...exposes].join(', ')}],`;
-                        }
+                        exposesStr = `exposes: [${[...exposes].join(', ')}],`;
 
                         definition.properties.push(exposesStr);
                         console.log(`Migrated '${model}'`);

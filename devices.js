@@ -683,7 +683,7 @@ const devices = [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
-            fz.xiaomi_power_from_basic,
+            fz.xiaomi_switch_basic,
             fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
@@ -703,7 +703,7 @@ const devices = [
             fz.xiaomi_on_off_action,
             /* check these */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
-            fz.xiaomi_operation_mode_basic, fz.xiaomi_power_from_basic,
+            fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
         meta: {multiEndpoint: true, configureKey: 1},
@@ -727,7 +727,7 @@ const devices = [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
-            fz.xiaomi_power_from_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
+            fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
         meta: {multiEndpoint: true},
@@ -825,13 +825,14 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_power_from_basic],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_power],
         meta: {},
         endpoint: (device) => {
             return {'system': 1};
         },
         onEvent: xiaomi.prevent_reset,
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
@@ -856,6 +857,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity],
         toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
     },
     {
         zigbeeModel: ['lumi.weather'],
@@ -864,11 +866,9 @@ const devices = [
         description: 'Aqara temperature, humidity and pressure sensor',
         supports: 'temperature, humidity and pressure',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [
-            fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure,
-            fz.WSDCGQ01LM_WSDCGQ11LM_interval,
-        ],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure, fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
     },
     {
         zigbeeModel: ['lumi.sensor_ht.agl02'],
@@ -884,6 +884,7 @@ const devices = [
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
             await bind(endpoint, coordinatorEndpoint, binds);
         },
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
@@ -894,6 +895,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout],
         toZigbee: [],
+        exposes: [e.battery(), e.occupancy()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
@@ -902,11 +904,9 @@ const devices = [
         description: 'Aqara human body movement and illuminance sensor',
         supports: 'occupancy and illuminance',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [
-            fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance,
-            fz.RTCGQ11LM_interval,
-        ],
+        fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
+        exposes: [e.battery(), e.occupancy(), e.illuminance().withUnit('lx')],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
@@ -917,6 +917,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
         toZigbee: [],
+        exposes: [e.battery(), e.contact()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -925,10 +926,9 @@ const devices = [
         description: 'Aqara door & window contact sensor',
         supports: 'contact',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [
-            fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval,
-        ],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
+        exposes: [e.battery(), e.contact()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
@@ -937,8 +937,9 @@ const devices = [
         description: 'Aqara water leak sensor',
         supports: 'water leak true/false',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.SJCGQ11LM_water_leak_iaszone],
+        fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -949,6 +950,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -957,9 +959,7 @@ const devices = [
         description: 'Mi/Aqara smart home cube',
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [
-            fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog,
-        ],
+        fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
         toZigbee: [],
     },
     {
@@ -969,10 +969,11 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state, fz.ignore_occupancy_report,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -981,11 +982,12 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic,
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_power],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
         zigbeeModel: ['lumi.plug.mmeu01'],
@@ -994,11 +996,12 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_eu_state,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic,
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report, fz.ignore_time_read,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.current()],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
@@ -1007,11 +1010,12 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
         fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
+            fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic,
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report,
         ],
         toZigbee: [tz.on_off, tz.xiaomi_power],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
@@ -1019,7 +1023,7 @@ const devices = [
         description: 'Aqara EU smart plug',
         supports: 'on/off, power measurements (depends on firmware)',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_plug_state, fz.electrical_measurement_power],
+        fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -1037,6 +1041,7 @@ const devices = [
             // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
         },
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.current()],
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
@@ -1044,10 +1049,9 @@ const devices = [
         description: 'Aqara socket Zigbee',
         supports: 'on/off, power measurement',
         vendor: 'Xiaomi',
-        fromZigbee: [
-            fz.on_off, fz.xiaomi_power, fz.xiaomi_plug_state,
-        ],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -1056,8 +1060,12 @@ const devices = [
         supports: 'smoke',
         vendor: 'Xiaomi',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
+        fromZigbee: [fz.xiaomi_battery, fz.ias_smoke_alarm_1, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
+        exposes: [
+            e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
+            exposes.numeric('smoke_density', 'r'),
+        ],
     },
     {
         zigbeeModel: ['lumi.sensor_natgas'],
@@ -1065,8 +1073,12 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia gas leak detector ',
         supports: 'gas',
-        fromZigbee: [fz.JTQJBF01LMBW_gas, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
+        fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
+        exposes: [
+            e.gas(), e.battery_low(), e.tamper(), exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
+            exposes.numeric('gas_density', 'r'),
+        ],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],
@@ -1104,6 +1116,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
@@ -1120,6 +1133,7 @@ const devices = [
                 await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
             }
         },
+        exposes: [e.cover_position(), e.battery()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.endpoints[0];
@@ -1133,12 +1147,13 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless relay controller',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.xiaomi_power_from_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off],
+        fromZigbee: [fz.xiaomi_switch_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
+        exposes: [e.power(), e.energy(), e.temperature(), e.voltage(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
@@ -4553,6 +4568,7 @@ const devices = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['DWS003'],
@@ -6122,6 +6138,7 @@ const devices = [
         supports: 'sos',
         fromZigbee: [fz.ias_sos_alarm_2, fz.battery],
         toZigbee: [],
+        exposes: [e.sos(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8'],
@@ -6166,6 +6183,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.batteryAlarmState(endpoint);
         },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['FNB56-COS06FB1.7'],
@@ -6182,6 +6200,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.batteryAlarmState(endpoint);
         },
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['FNB56-GAS05FB1.4'],
@@ -6191,6 +6210,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['FNB56-WTS05FB2.0'],
@@ -7528,6 +7548,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['AV2010/22A'],
@@ -7537,6 +7558,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['902010/25'],
@@ -7602,6 +7624,7 @@ const devices = [
         supports: 'smoke, tamper and battery',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['902010/24'],
@@ -7611,6 +7634,7 @@ const devices = [
         supports: 'smoke, tamper and battery',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
     },
 
     // Iris
@@ -8119,6 +8143,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.batteryAlarmState(endpoint);
         },
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM'],
@@ -8218,6 +8243,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['GASSensor-EN'],
@@ -8227,6 +8253,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['GAS_V15'],
@@ -8236,6 +8263,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['DoorSensor-N'],
@@ -8351,6 +8379,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
@@ -8490,6 +8519,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['STHM-I1H'],
@@ -8552,6 +8582,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Piri', model: 'HSIO18008'},
         ],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
         fingerprint: [{modelID: 'Vibration-N', manufacturerName: 'HEIMAN'}],
@@ -9888,6 +9919,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
+        exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['55e0fa5cdb144ba3a91aefb87c068cff'],
@@ -10148,6 +10180,7 @@ const devices = [
         ],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['3041'],
@@ -10163,6 +10196,7 @@ const devices = [
         ],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['3045'],
@@ -10178,6 +10212,7 @@ const devices = [
         ],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
     },
 
     // Securifi
@@ -10881,6 +10916,7 @@ const devices = [
         supports: 'occupancy, illuminance',
         fromZigbee: [fz.occupancy, fz.illuminance, fz.ignore_occupancy_report],
         toZigbee: [],
+        exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux()],
     },
 
     // GMY
@@ -10978,6 +11014,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['3AFE140103020000', '3AFE220103020000'],
@@ -10985,11 +11022,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
-        fromZigbee: [
-            fz.temperature,
-            fz.humidity,
-            fz.battery,
-        ],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -12237,6 +12270,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['da2edf1ded0d44e1815d06f45ce02029'],
@@ -12420,6 +12454,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['TS0203'],
@@ -12439,6 +12474,7 @@ const devices = [
         supports: 'gas',
         fromZigbee: [fz.ias_gas_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['TS0205'],
@@ -12448,6 +12484,7 @@ const devices = [
         supports: 'smoke',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['TS0111'],
@@ -13268,6 +13305,7 @@ const devices = [
         endpoint: (device) => {
             return {default: 35};
         },
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['MOSZB-130'],
@@ -13441,7 +13479,7 @@ const devices = [
         supports: 'action, contact, water leak, temperature, humidity',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.battery, fz.temperature, fz.humidity,
-            fz.MultiSensor_ias_contact_alarm, fz.MultiSensor_ias_water_leak_alarm,
+            fz.U02I007C01_contact, fz.U02I007C01_water_leak,
         ],
         toZigbee: [],
         meta: {configureKey: 1},
