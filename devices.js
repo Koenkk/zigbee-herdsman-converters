@@ -9254,6 +9254,14 @@ const devices = [
 
     // Müller Licht
     {
+        zigbeeModel: ['ZBT-DIMLight-A4700001'],
+        model: '404023',
+        vendor: 'Müller Licht',
+        description: 'LED bulb E27 470 lumen, dimmable, clear',
+        extend: generic.light_onoff_brightness,
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['ZBT-ExtendedColor'],
         model: '404000/404005/404012',
         vendor: 'Müller Licht',
