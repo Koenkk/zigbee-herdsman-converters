@@ -3138,6 +3138,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3261048P6'],
+        model: '3261048P6',
+        vendor: 'Philips',
+        description: 'Hue Being Alu',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },    
+    {
         zigbeeModel: ['3261030P6'],
         model: '3261030P6',
         vendor: 'Philips',
