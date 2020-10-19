@@ -9062,6 +9062,17 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['ICZB-RM11S'],
+        model: 'ICZB-RM11S',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Remote Control',
+        supports: 'click, action, brightness, scenes',
+        fromZigbee: [
+            fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery,
+        ],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['ICZB-FC'],
         model: 'ICZB-B1FC60/B3FC64/B2FC95/B2FC125',
         vendor: 'iCasa',
