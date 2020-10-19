@@ -2164,6 +2164,21 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_ncutbjdi'}],
+        model: 'QS-Zigbee-S05-LN',
+        vendor: 'Lonsonho',
+        description: '1 gang switch module with neutral wire',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('l1')],
+        endpoint: (device) => {
+            return {'l1': 1};
+        },
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // IKEA
     {
