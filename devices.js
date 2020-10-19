@@ -260,41 +260,53 @@ const generic = {
         toZigbee: [tz.on_off],
     },
     light_onoff_brightness: {
-        exposes: [e.light_brightness()],
+        exposes: [
+            e.light_brightness(),
+            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+        ],
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.identify,
+            tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_brightness_step,
         ],
     },
     light_onoff_brightness_colortemp: {
-        exposes: [e.light_brightness_colortemp()],
+        exposes: [
+            e.light_brightness_colortemp(),
+            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+        ],
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.identify,
+            tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step,
         ],
     },
     light_onoff_brightness_colorxy: {
-        exposes: [e.light_brightness_colorxy()],
+        exposes: [
+            e.light_brightness_colorxy(),
+            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+        ],
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.identify,
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_brightness_step,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
-        exposes: [e.light_brightness_colortemp_colorxy()],
+        exposes: [
+            e.light_brightness_colortemp_colorxy(),
+            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+        ],
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
-            tz.identify, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
