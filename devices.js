@@ -1362,6 +1362,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
         ],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
@@ -1618,6 +1619,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position()],
     },
     {
         fingerprint: [
@@ -1629,6 +1631,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['kud7u2l'],
@@ -1775,6 +1778,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['RH3001'],
@@ -2060,6 +2064,7 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 1, coverInverted: true},
+        exposes: [e.cover_position()],
     },
     {
         fingerprint: [
@@ -2513,6 +2518,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
+        exposes: [e.cover_position(), e.battery()],
     },
     {
         zigbeeModel: ['KADRILJ roller blind'],
@@ -2530,6 +2536,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
+        exposes: [e.cover_position(), e.battery()],
     },
     {
         zigbeeModel: ['TRADFRI open/close remote'],
@@ -4531,6 +4538,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await configureReporting.brightness(endpoint);
         },
+        exposes: [e.cover_position()],
     },
 
     // Ledvance
@@ -6694,6 +6702,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['hpb9yts'],
@@ -6791,6 +6800,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
+        exposes: [e.cover_position()],
     },
 
     // Namron
@@ -6969,7 +6979,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multi Sensor (2015 model)',
         supports: 'contact and temperature',
-        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -6979,6 +6989,7 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['3200-Sgb'],
@@ -7144,7 +7155,7 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Door sensor',
         supports: 'contact and temperature',
-        fromZigbee: [fz.temperature, fz.smartsense_multi, fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -7153,6 +7164,7 @@ const devices = [
             await configureReporting.temperature(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['multiv4'],
@@ -7174,6 +7186,7 @@ const devices = [
             const payload = configureReportingPayload('acceleration', 10, repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
         },
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), exposes.binary('moving', 'r', true, false)],
     },
     {
         zigbeeModel: ['multi'],
@@ -8006,6 +8019,7 @@ const devices = [
                 // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
             }
         },
+        exposes: [e.cover_position()],
     },
 
     // Lupus
@@ -8017,6 +8031,7 @@ const devices = [
         supports: 'open/close',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['SCM-3-OTA_00.00.03.16TC'],
@@ -8026,6 +8041,7 @@ const devices = [
         supports: 'open/close',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],
@@ -8089,6 +8105,7 @@ const devices = [
         supports: 'open/close',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC', 'PSMP5_00.00.03.16TC'],
@@ -8219,11 +8236,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [
-            fz.heiman_smoke,
-            fz.battery,
-            fz.heiman_smoke_enrolled,
-        ],
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8231,6 +8244,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0'],
@@ -8238,7 +8252,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         supports: 'smoke',
-        fromZigbee: [fz.heiman_smoke, fz.battery],
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8246,6 +8260,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['GASSensor-N'],
@@ -8619,10 +8634,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Air quality monitor',
         supports: 'air quality',
-        fromZigbee: [
-            fz.battery, fz.temperature, fz.humidity,
-            fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality,
-        ],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8678,6 +8690,10 @@ const devices = [
             // So, we need to write time during configure
             await writeCurrentTime(endpoint);
         },
+        exposes: [
+            e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
+            exposes.enum('battery_state', 'r', ['not_charging', 'charging', 'charged']),
+        ],
     },
     {
         fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
@@ -8790,6 +8806,7 @@ const devices = [
         supports: 'gas and carbon monoxide',
         fromZigbee: [fz.OJBCR701YZ_statuschange],
         toZigbee: [],
+        exposes: [e.gas(), e.carbon_monoxide(), e.tamper(), e.battery_low()],
     },
 
     // Calex
@@ -9623,6 +9640,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRD226 TSDB'],
@@ -9639,6 +9657,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRD256 TSDB'],
@@ -9659,6 +9678,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
@@ -9676,6 +9696,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.battery(), e.lock()],
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -9692,6 +9713,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRL220 TS LL'],
@@ -9709,6 +9731,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRD226/246 TSDB'],
@@ -9725,6 +9748,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRD220/240 TSDB'],
@@ -9741,6 +9765,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['YRD246 TSDB'],
@@ -9757,6 +9782,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
 
     // JAVIS
@@ -9789,6 +9815,7 @@ const devices = [
         },
         // Note - Keypad triggered deletions do not cause a zigbee event, though Adds work fine.
         onEvent: pincodeLock.readPinCodeAfterProgramming,
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],
@@ -9805,6 +9832,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
 
     // Keen Home
@@ -10528,6 +10556,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
 
     // NET2GRID
@@ -11090,6 +11119,7 @@ const devices = [
         supports: 'open, close, stop',
         fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11928,6 +11958,7 @@ const devices = [
             await configureReporting.currentPositionLiftPercentage(endpoint1);
         },
         ota: ota.ubisys,
+        exposes: [e.cover_position_tilt(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['C4 (5504)'],
@@ -12239,6 +12270,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['e0fc98cc88df4857847dc4ae73d80b9e'],
@@ -12318,6 +12350,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
             await configureReporting.currentPositionLiftPercentage(endpoint);
         },
+        exposes: [e.cover_position(), e.battery()],
     },
 
     // SONOFF
@@ -12769,6 +12802,7 @@ const devices = [
         supports: 'open,close,position,stop,linkquality',
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        exposes: [e.cover_position()],
         meta: {configureKey: 1, coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -12801,6 +12835,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: [
@@ -13101,6 +13136,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10_L'],
@@ -13117,6 +13153,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5'],
@@ -13135,6 +13172,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5_L'],
@@ -13151,6 +13189,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
 
     // Schlage
@@ -13169,6 +13208,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
+        exposes: [e.lock(), e.battery()],
     },
 
     // HORNBACH
@@ -13928,6 +13968,7 @@ const devices = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.identify],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
     },
 
     // Titan Products

@@ -1756,6 +1756,23 @@ const converters = {
             return {action: lookup[zoneStatus]};
         },
     },
+    OJBCR701YZ_statuschange: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const {zoneStatus} = msg.data;
+            return {
+                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Carbon Monoxide (CO)
+                gas: (zoneStatus & 1 << 1) > 0, // Bit 1 = Alarm 2: Gas (CH4)
+                tamper: (zoneStatus & 1 << 2) > 0, // Bit 2 = Tamper
+                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Low battery alarm
+                trouble: (zoneStatus & 1 << 6) > 0, // Bit 6 = Trouble/Failure
+                ac_connected: !((zoneStatus & 1 << 7) > 0), // Bit 7 = AC Connected
+                test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
+                battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
+            };
+        },
+    },
     ptvo_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -1946,6 +1963,43 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0,
             };
+        },
+    },
+    heiman_pm25: {
+        cluster: 'heimanSpecificPM25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {pm25: msg.data['measuredValue']};
+            }
+        },
+    },
+    heiman_hcho: {
+        cluster: 'heimanSpecificFormaldehydeMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {hcho: parseFloat(msg.data['measuredValue']) / 100.0};
+            }
+        },
+    },
+    heiman_air_quality: {
+        cluster: 'heimanSpecificAirQuality',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['batteryState']) {
+                const lookup = {
+                    0: 'not_charging',
+                    1: 'charging',
+                    2: 'charged',
+                };
+                result['battery_state'] = lookup[msg.data['batteryState']];
+            }
+            if (msg.data['tvocMeasuredValue']) result['voc'] = msg.data['tvocMeasuredValue'];
+            if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
+            if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
+            return result;
         },
     },
 
@@ -2918,17 +2972,6 @@ const converters = {
             return {position};
         },
     },
-    heiman_smoke: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
-    },
     heiman_smart_controller_armmode: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -2943,43 +2986,6 @@ const converters = {
                 const value = msg.data.armmode;
                 return {action: lookup[value] || `armmode_${value}`};
             }
-        },
-    },
-    heiman_pm25: {
-        cluster: 'heimanSpecificPM25Measurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['measuredValue']) result['pm25'] = msg.data['measuredValue'];
-            return result;
-        },
-    },
-    heiman_hcho: {
-        cluster: 'heimanSpecificFormaldehydeMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['measuredValue']) result['hcho'] = parseFloat(msg.data['measuredValue']) / 100.0;
-            return result;
-        },
-    },
-    heiman_air_quality: {
-        cluster: 'heimanSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['batteryState']) {
-                const lookup = {
-                    0: 'not_charging',
-                    1: 'charging',
-                    2: 'charged',
-                };
-                result['battery_state'] = lookup[msg.data['batteryState']];
-            }
-            if (msg.data['tvocMeasuredValue']) result['voc'] = msg.data['tvocMeasuredValue'];
-            if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
-            if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
-            return result;
         },
     },
     heiman_scenes: {
@@ -3001,22 +3007,6 @@ const converters = {
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'click'};
-        },
-    },
-    heiman_smoke_enrolled: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneId = msg.data.zoneId;
-            const zoneState = msg.data.zoneState;
-            const results = {};
-            if (zoneState) {
-                results['enrolled'] = true;
-            } else {
-                results['enrolled'] = false;
-            }
-            results['zone_id'] = zoneId;
-            return results;
         },
     },
     heiman_ir_remote: {
@@ -3529,17 +3519,6 @@ const converters = {
                 }
                 return {};
             }
-        },
-    },
-    smartsense_multi: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: !(zoneStatus & 1), // Bit 1 = Contact
-                // Bit 5 = Currently always set?
-            };
         },
     },
     SE21_action: {
@@ -4390,23 +4369,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const pos = (msg.endpoint.ID === 2) ? 'top' : 'bottom';
             return {action: `right_${pos}_hold`};
-        },
-    },
-    OJBCR701YZ_statuschange: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const {zoneStatus} = msg.data;
-            return {
-                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Carbon Monoxide (CO)
-                gas: (zoneStatus & 1 << 1) > 0, // Bit 1 = Alarm 2: Gas (CH4)
-                tamper: (zoneStatus & 1 << 2) > 0, // Bit 2 = Tamper
-                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Low battery alarm
-                trouble: (zoneStatus & 1 << 6) > 0, // Bit 6 = Trouble/Failure
-                ac_connected: !((zoneStatus & 1 << 7) > 0), // Bit 7 = AC Connected
-                test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
-                battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
-            };
         },
     },
     generic_fan_mode: {
