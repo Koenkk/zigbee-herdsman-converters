@@ -14109,6 +14109,21 @@ const devices = [
         description: '6W smart dimmable E27 lamp 2700K',
         extend: generic.light_onoff_brightness,
     },
+
+    // LED Trading
+    {
+        zigbeeModel: ['HK-LN-DIM-A'],
+        model: 'HK-LN-DIM-A',
+        vendor: 'LED Trading',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 ];
 
 
