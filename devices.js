@@ -14043,7 +14043,7 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
-	// LED Trading
+    // LED Trading
     {
         zigbeeModel: ['HK-LN-DIM-A'],
         model: 'HK-LN-DIM-A',
@@ -14056,7 +14056,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await configureReporting.onOff(endpoint);
         },
-	},
+    },
 ];
 
 
