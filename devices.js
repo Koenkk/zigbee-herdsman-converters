@@ -6715,7 +6715,7 @@ const devices = [
 
     // YSRSAI
     {
-        zigbeeModel: ['ZB-CL01', 'FB56-ZCW20FB1.2'],
+        zigbeeModel: ['ZB-CL01', 'ZB-CL03', 'FB56-ZCW20FB1.2'],
         model: 'YSR-MINI-01',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
