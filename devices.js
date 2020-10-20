@@ -13270,7 +13270,7 @@ const devices = [
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
+            const endpoint = device.endpoints[0];
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
