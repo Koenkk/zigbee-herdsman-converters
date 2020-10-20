@@ -9126,6 +9126,19 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ICZB-R12D'],
+        model: 'ICZB-R12D',
+        vendor: 'iCasa',
+        description: 'Zigbee AC dimmer',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // Busch-Jaeger
     {
