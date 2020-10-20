@@ -13469,6 +13469,23 @@ const devices = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['HMSZB-110'],
+        model: 'HMSZB-110',
+        vendor: 'Develco',
+        description: 'Temperature & humidity sensor',
+        supports: 'temperature, humidity',
+        fromZigbee: [fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity()],
+        meta: {configureKey: 1},
+        configure: async (device,coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(38);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.humidity(endpoint);
+        },
+    },
 
     // Aurora Lighting
     {
