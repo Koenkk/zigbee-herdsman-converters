@@ -1391,6 +1391,39 @@ const converters = {
             return result;
         },
     },
+    tuya_cover_options: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+                const value = msg.data['tuyaMovingState'];
+                const movingLookup = {0: 'up', 1: 'stop', 2: 'down'};
+                result.moving = movingLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaCalibration')) {
+                const value = msg.data['tuyaCalibration'];
+                const calibrationLookup = {0: 'on', 1: 'off'};
+                result.calibration = calibrationLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+                const value = msg.data['tuyaMotorReversal'];
+                const reversalLookup = {0: 'off', 1: 'on'};
+                result.motor_reversal = reversalLookup[value];
+            }
+            return result;
+        },
+    },
+    tuya_backlight_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+                const value = msg.data['tuyaBacklightMode'];
+                return {backlight_mode: value};
+            }
+        },
+    },
     cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],

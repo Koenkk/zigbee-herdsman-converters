@@ -3441,7 +3441,40 @@ const converters = {
             );
         },
     },
-
+    tuya_cover_calibration: {
+        key: ['calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'on': 0, 'off': 1};
+            const calibration = lookup[value.toLowerCase()];            
+            await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
+            return {state: {calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['tuyaCalibration']);
+        },
+    },
+    tuya_cover_reversal: {
+        key: ['motor_reversal'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'on': 1, 'off': 0};
+            const reversal = lookup[value.toLowerCase()];
+            await entity.write('closuresWindowCovering', {tuyaMotorReversal: reversal});
+            return {state: {motor_reversal: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
+        },
+    },
+    tuya_backlight_mode: {
+        key: ['backlight_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff', {tuyaBacklightMode: value});
+            return {state: {backlight_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    },
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         for (const key of Object.keys(store)) {
