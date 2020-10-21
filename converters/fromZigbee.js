@@ -6232,7 +6232,8 @@ const converters = {
             const dp = msg.data.dp;
             const data = msg.data.data;
             const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-            let temperature, lookup;
+            let temperature;
+            let lookup;
 
             switch (dp) {
             case 119: // schedule for workdays [5,9,12,8,0,15,10,0,15]
