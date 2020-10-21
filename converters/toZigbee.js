@@ -922,11 +922,27 @@ const converters = {
             await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'colorTemperature']);
         },
     },
-    identify: {
-        key: ['identify', 'alert', 'flash'], // alert and flash are deprecated.
+    effect: {
+        key: ['effect', 'alert', 'flash'], // alert and flash are deprecated.
         convertSet: async (entity, key, value, meta) => {
-            let effectid = 0;
-            if (key === 'alert' || key === 'flash') {
+            if (key === 'effect') {
+                const lookup = {
+                    blink: 0,
+                    breathe: 1,
+                    okay: 2,
+                    channel_change: 11,
+                    finish_effect: 254,
+                    stop_effect: 255,
+                };
+
+                if (!lookup.hasOwnProperty(value)) {
+                    throw new Error(`Effect '${value}' not supported`);
+                }
+
+                const payload = {effectid: lookup[value], effectvariant: 0};
+                await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
+            } else if (key === 'alert' || key === 'flash') { // Deprecated
+                let effectid = 0;
                 const lookup = {
                     'select': 0x00,
                     'lselect': 0x01,
@@ -941,27 +957,9 @@ const converters = {
                 }
 
                 effectid = lookup[value];
+                const payload = {effectid, effectvariant: 0};
+                await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
             }
-
-            if (key === 'identify') {
-                const lookup = {
-                    blink: 0,
-                    breathe: 1,
-                    okay: 2,
-                    channel_change: 11,
-                    finish_effect: 254,
-                    stop_effect: 255,
-                };
-
-                if (!lookup.hasOwnProperty(value)) {
-                    throw new Error(`Effect '${value}' not supported`);
-                }
-
-                effectid = lookup[value];
-            }
-
-            const payload = {effectid, effectvariant: 0};
-            await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
         },
     },
     thermostat_local_temperature: {
@@ -1312,7 +1310,7 @@ const converters = {
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
                 const button = value.hasOwnProperty('button') ? value.button : 'single';
@@ -1329,7 +1327,7 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
