@@ -6232,7 +6232,7 @@ const converters = {
             const dp = msg.data.dp;
             const data = msg.data.data;
             const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-            let temperature;
+            let temperature, lookup;
 
             switch (dp) {
             case 119: // schedule for workdays [5,9,12,8,0,15,10,0,15]
@@ -6240,25 +6240,25 @@ const converters = {
                     {hour: data[0], minute: data[1], temperature: data[2]},
                     {hour: data[3], minute: data[4], temperature: data[5]},
                     {hour: data[6], minute: data[7], temperature: data[8]},
-                ], range: "am"};
+                ], range: 'am'};
             case 120: // schedule for workdays [15,0,25,145,2,17,22,50,14]
                 return {workdays: [
                     {hour: data[0], minute: data[1], temperature: data[2]},
                     {hour: data[3], minute: data[4], temperature: data[5]},
                     {hour: data[6], minute: data[7], temperature: data[8]},
-                ], range: "pm"};
+                ], range: 'pm'};
             case 121: // schedule for holidays [5,5,20,8,4,13,11,30,15]
                 return {holidays: [
                     {hour: data[0], minute: data[1], temperature: data[2]},
                     {hour: data[3], minute: data[4], temperature: data[5]},
                     {hour: data[6], minute: data[7], temperature: data[8]},
-                ], range: "am"};
+                ], range: 'am'};
             case 122: // schedule for holidays [13,30,15,17,0,15,22,0,15]
                 return {holidays: [
                     {hour: data[0], minute: data[1], temperature: data[2]},
                     {hour: data[3], minute: data[4], temperature: data[5]},
                     {hour: data[6], minute: data[7], temperature: data[8]},
-                ], range: "pm"};
+                ], range: 'pm'};
             case 358: // heating
                 return {heating: (dataAsDecNumber) ? 'ON' : 'OFF'};
             case 362: // max temperature protection
@@ -6276,13 +6276,13 @@ const converters = {
                 return {away_preset_days: dataAsDecNumber};
             case 617: // away preset temperature
                 return {away_preset_temperature: dataAsDecNumber};
-            case 621: // 0x026D Temperature correction 
+            case 621: // 0x026D Temperature correction
                 temperature = (dataAsDecNumber / 10).toFixed(1);
                 return {local_temperature_calibration: temperature};
-            case 622: // 0x026E Temperature hysteresis 
+            case 622: // 0x026E Temperature hysteresis
                 temperature = (dataAsDecNumber / 10).toFixed(1);
                 return {hysteresis: temperature};
-            case 623: // 0x026F Temperature protection hysteresis 
+            case 623: // 0x026F Temperature protection hysteresis
                 return {hysteresis_for_protection: dataAsDecNumber};
             case 624: // 0x027A max temperature for protection
                 return {max_temperature_for_protection: dataAsDecNumber};
@@ -6299,35 +6299,35 @@ const converters = {
                 temperature = (dataAsDecNumber / 10).toFixed(1);
                 return {local_temperature: temperature};
             case 1140: // Sensor type
-                const type = {
+                lookup = {
                     0: 'internal',
                     1: 'external',
                     2: 'both',
                 };
-                return {sensor_type: type[dataAsDecNumber]};
+                return {sensor_type: lookup[dataAsDecNumber]};
             case 1141: // 0x0475 State after power on
-                const power_state = {
+                lookup = {
                     0: 'restore',
                     1: 'off',
                     2: 'on',
                 };
-                return {power_on_behavior: power_state[dataAsDecNumber]};
+                return {power_on_behavior: lookup[dataAsDecNumber]};
             case 1142: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
             case 1152: // 0x0480 mode
-                const modes = {
+                lookup = {
                     0: 'manual',
                     1: 'auto',
                     2: 'away',
                 };
-                return {system_mode: modes[dataAsDecNumber]};
+                return {system_mode: lookup[dataAsDecNumber]};
             case 1410: // [16] [0]
                 return {alarm: (dataAsDecNumber > 0) ? true : false};
             default: // The purpose of the codes 1041 & 1043 are still unknown
                 console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(data)}`);
             }
-        }
+        },
     },
     hy_thermostat_on_set_data: {
         cluster: 'manuSpecificTuyaDimmer',

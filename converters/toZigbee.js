@@ -3452,20 +3452,19 @@ const converters = {
             'away_preset_days', 'away_preset_temperature',
         ],
         convertSet: async (entity, key, value, meta) => {
-            const temp = value;
             switch (key) {
             case 'max_temperature_protection':
                 sendTuyaCommand(entity, 362, 0, [1, value==='ON' ? 1 : 0]);
-                break
+                break;
             case 'min_temperature_protection':
                 sendTuyaCommand(entity, 363, 0, [1, value==='ON' ? 1 : 0]);
-                break
+                break;
             case 'state':
                 sendTuyaCommand(entity, 381, 0, [1, value==='ON' ? 1 : 0]);
-                break
+                break;
             case 'child_lock':
                 sendTuyaCommand(entity, 385, 0, [1, value==='LOCKED' ? 1 : 0]);
-                break
+                break;
             case 'away_preset_days':
                 sendTuyaCommand(entity, 616, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
                 break;
@@ -3474,7 +3473,7 @@ const converters = {
                 break;
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
-                if (value < 0) value = 0xFFFFFFFF + value + 1;;
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
                 sendTuyaCommand(entity, 621, 0, [4, ...utils.convertDecimalValueTo4ByteHexArray(value)]);
                 break;
             case 'hysteresis':
