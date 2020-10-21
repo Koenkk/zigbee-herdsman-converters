@@ -2040,6 +2040,18 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_znzs7yaw'}],
+        model: 'HY08WE',
+        vendor: 'TuYa',
+        description: 'Wall-mount thermostat',
+        supports: 'thermostat, temperature',
+        fromZigbee: [
+            fz.hy_thermostat, fz.hy_thermostat_on_set_data, fz.ignore_basic_report,
+            fz.hy_set_time_request,
+        ],
+        toZigbee: [tz.hy_thermostat],
+    },
 
     // Neo
     {

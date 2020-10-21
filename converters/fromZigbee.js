@@ -6225,6 +6225,136 @@ const converters = {
             return result;
         },
     },
+    hy_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const data = msg.data.data;
+            const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+            let temperature;
+
+            switch (dp) {
+            case 119: // schedule for workdays [5,9,12,8,0,15,10,0,15]
+                return {workdays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: "am"};
+            case 120: // schedule for workdays [15,0,25,145,2,17,22,50,14]
+                return {workdays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: "pm"};
+            case 121: // schedule for holidays [5,5,20,8,4,13,11,30,15]
+                return {holidays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: "am"};
+            case 122: // schedule for holidays [13,30,15,17,0,15,22,0,15]
+                return {holidays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: "pm"};
+            case 358: // heating
+                return {heating: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 362: // max temperature protection
+                return {max_temperature_protection: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 363: // min temperature protection
+                return {min_temperature_protection: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 381: // 0x017D work state
+                return {state: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 385: // 0x0181 Changed child lock status
+                return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+            case 615: // external sensor temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {external_temperature: temperature};
+            case 616: // away preset days
+                return {away_preset_days: dataAsDecNumber};
+            case 617: // away preset temperature
+                return {away_preset_temperature: dataAsDecNumber};
+            case 621: // 0x026D Temperature correction 
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {local_temperature_calibration: temperature};
+            case 622: // 0x026E Temperature hysteresis 
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {hysteresis: temperature};
+            case 623: // 0x026F Temperature protection hysteresis 
+                return {hysteresis_for_protection: dataAsDecNumber};
+            case 624: // 0x027A max temperature for protection
+                return {max_temperature_for_protection: dataAsDecNumber};
+            case 625: // 0x027B min temperature for protection
+                return {min_temperature_for_protection: dataAsDecNumber};
+            case 626: // 0x027C max temperature limit
+                return {max_temperature: dataAsDecNumber};
+            case 627: // 0x027D min temperature limit
+                return {min_temperature: dataAsDecNumber};
+            case 638: // 0x027E Changed target temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {current_heating_setpoint: temperature};
+            case 639: // 0x027F MCU reporting room temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {local_temperature: temperature};
+            case 1140: // Sensor type
+                const type = {
+                    0: 'internal',
+                    1: 'external',
+                    2: 'both',
+                };
+                return {sensor_type: type[dataAsDecNumber]};
+            case 1141: // 0x0475 State after power on
+                const power_state = {
+                    0: 'restore',
+                    1: 'off',
+                    2: 'on',
+                };
+                return {power_on_behavior: power_state[dataAsDecNumber]};
+            case 1142: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
+            case 1152: // 0x0480 mode
+                const modes = {
+                    0: 'manual',
+                    1: 'auto',
+                    2: 'away',
+                };
+                return {system_mode: modes[dataAsDecNumber]};
+            case 1410: // [16] [0]
+                return {alarm: (dataAsDecNumber > 0) ? true : false};
+            default: // The purpose of the codes 1041 & 1043 are still unknown
+                console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(data)}`);
+            }
+        }
+    },
+    hy_thermostat_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return converters.hy_thermostat.convert(model, msg, publish, options, meta);
+        },
+    },
+    hy_set_time_request: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetTimeRequest'],
+        convert: async (model, msg, publish, options, meta) => {
+            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+            const currentTime = new Date().getTime();
+            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
+            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
+            const endpoint = msg.device.getEndpoint(1);
+            const payload = {
+                payloadSize: 8,
+                payload: [
+                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                ],
+            };
+            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
