@@ -3441,6 +3441,81 @@ const converters = {
             );
         },
     },
+    hy_thermostat: {
+        key: [
+            'child_lock', 'current_heating_setpoint', 'local_temperature_calibration',
+            'max_temperature_protection', 'min_temperature_protection', 'state',
+            'hysteresis', 'hysteresis_for_protection',
+            'max_temperature_for_protection', 'min_temperature_for_protection',
+            'max_temperature', 'min_temperature',
+            'sensor_type', 'power_on_behavior', 'week', 'system_mode',
+            'away_preset_days', 'away_preset_temperature',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'max_temperature_protection':
+                sendTuyaCommand(entity, 362, 0, [1, value==='ON' ? 1 : 0]);
+                break;
+            case 'min_temperature_protection':
+                sendTuyaCommand(entity, 363, 0, [1, value==='ON' ? 1 : 0]);
+                break;
+            case 'state':
+                sendTuyaCommand(entity, 381, 0, [1, value==='ON' ? 1 : 0]);
+                break;
+            case 'child_lock':
+                sendTuyaCommand(entity, 385, 0, [1, value==='LOCKED' ? 1 : 0]);
+                break;
+            case 'away_preset_days':
+                sendTuyaCommand(entity, 616, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'away_preset_temperature':
+                sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'local_temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                sendTuyaCommand(entity, 621, 0, [4, ...utils.convertDecimalValueTo4ByteHexArray(value)]);
+                break;
+            case 'hysteresis':
+                value = Math.round(value * 10);
+                sendTuyaCommand(entity, 622, 0, [4, ...utils.convertDecimalValueTo4ByteHexArray(value)]);
+                break;
+            case 'hysteresis_for_protection':
+                sendTuyaCommand(entity, 623, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'max_temperature_for_protection':
+                sendTuyaCommand(entity, 624, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'min_temperature_for_protection':
+                sendTuyaCommand(entity, 625, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'max_temperature':
+                sendTuyaCommand(entity, 626, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'min_temperature':
+                sendTuyaCommand(entity, 627, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'current_heating_setpoint':
+                value = Math.round(value * 10);
+                sendTuyaCommand(entity, 638, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                break;
+            case 'sensor_type':
+                sendTuyaCommand(entity, 1140, 0, [1, {'internal': 0, 'external': 1, 'both': 2}[value]]);
+                break;
+            case 'power_on_behavior':
+                sendTuyaCommand(entity, 1141, 0, [1, {'restore': 0, 'off': 1, 'on': 2}[value]]);
+                break;
+            case 'week':
+                sendTuyaCommand(entity, 1142, 0, [1, utils.getKeyByValue(common.TuyaThermostatWeekFormat, value, value)]);
+                break;
+            case 'system_mode':
+                sendTuyaCommand(entity, 1152, 0, [1, {'manual': 0, 'auto': 1, 'away': 2}[value]]);
+                break;
+            default: // Unknown key
+                console.log(`Unhandled key ${key}`);
+            }
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
