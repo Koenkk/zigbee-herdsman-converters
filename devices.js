@@ -13403,6 +13403,7 @@ const devices = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power],
         toZigbee: [tz.on_off],
+        supports: 'on/off, power measurements',
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
