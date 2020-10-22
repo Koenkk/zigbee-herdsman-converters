@@ -10915,10 +10915,11 @@ const devices = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
+    // Comcast Xfinity branded XHS2-UE Door / Window / Temp sensor by Universal Electronics, Inc
     {
         zigbeeModel: ['URC4460BC0-X-R'],
         model: 'XHS2-UE',
-        vendor: 'Visonic',
+        vendor: 'Universal Electronics, Inc.',
         description: 'Magnetic door & window contact sensor',
         supports: 'contact, temperature',
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
