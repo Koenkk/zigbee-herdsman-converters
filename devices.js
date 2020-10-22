@@ -10915,24 +10915,6 @@ const devices = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
-    // Comcast Xfinity branded XHS2-UE Door / Window / Temp sensor by Universal Electronics, Inc
-    {
-        zigbeeModel: ['URC4460BC0-X-R'],
-        model: 'XHS2-UE',
-        vendor: 'Universal Electronics, Inc.',
-        description: 'Magnetic door & window contact sensor',
-        supports: 'contact, temperature',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
-        toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-            await configureReporting.temperature(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
-    },
     {
         zigbeeModel: ['SZ-DWS04', 'SZ-DWS04N_SF'],
         model: 'SZ-DWS04',
@@ -10965,6 +10947,25 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+    },
+
+    // Comcast Xfinity branded XHS2 devices manufactured by Universal Electronics, Inc
+    {
+        zigbeeModel: ['URC4460BC0-X-R'],
+        model: 'XHS2-UE',
+        vendor: 'Universal Electronics, Inc.',
+        description: 'Magnetic door & window contact sensor',
+        supports: 'contact, temperature',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
 
     // Leedarson
