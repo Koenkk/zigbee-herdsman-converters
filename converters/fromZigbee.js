@@ -1398,17 +1398,17 @@ const converters = {
             const result = {};
             if (msg.data.hasOwnProperty('tuyaMovingState')) {
                 const value = msg.data['tuyaMovingState'];
-                const movingLookup = {0: 'up', 1: 'stop', 2: 'down'};
+                const movingLookup = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
                 result.moving = movingLookup[value];
             }
             if (msg.data.hasOwnProperty('tuyaCalibration')) {
                 const value = msg.data['tuyaCalibration'];
-                const calibrationLookup = {0: 'on', 1: 'off'};
+                const calibrationLookup = {0: 'ON', 1: 'OFF'};
                 result.calibration = calibrationLookup[value];
             }
             if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
                 const value = msg.data['tuyaMotorReversal'];
-                const reversalLookup = {0: 'off', 1: 'on'};
+                const reversalLookup = {0: 'OFF', 1: 'ON'};
                 result.motor_reversal = reversalLookup[value];
             }
             return result;

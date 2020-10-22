@@ -14014,6 +14014,11 @@ const devices = [
         whiteLabel: [
             {vendor: 'LoraTap', model: 'SC400'},
         ],
+        exposes: [e.cover_position_tilt(),
+            exposes.binary('calibration', 'rw', 'ON', 'OFF'), 
+            exposes.enum('backlight_mode', 'rw', ['0', '1', '2']),
+            exposes.binary('motor_reversal', 'rw', 'ON', 'OFF')
+        ],
     },
 ];
 
