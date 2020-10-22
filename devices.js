@@ -3698,7 +3698,7 @@ const devices = [
         description: 'Hue Discover white and color ambiance flood light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: hue.light_onoff_brightness_colorxy,
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['1746330P7'],
