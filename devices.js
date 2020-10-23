@@ -9073,6 +9073,13 @@ const devices = [
         },
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['JZD60-J4R150'],
+        model: '100.001.96',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-LED Lamp RGBW E27 socket',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // iCasa
     {
