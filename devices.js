@@ -13477,13 +13477,14 @@ const devices = [
         supports: 'temperature, humidity',
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
-            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await configureReporting.temperature(endpoint);
             await configureReporting.humidity(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
 
