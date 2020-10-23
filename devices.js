@@ -13475,10 +13475,10 @@ const devices = [
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
         supports: 'temperature, humidity',
-        fromZigbee: [fz.temperature, fz.humidity],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
