@@ -3468,10 +3468,10 @@ const converters = {
     tuya_backlight_mode: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if (value >= 0 && value <= 2) {
-                await entity.write('genOnOff', {tuyaBacklightMode: value});
-                return {state: {backlight_mode: value}};
-            }
+            const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
+            const backlight = lookup[value.toUpperCase()];
+            await entity.write('genOnOff', {tuyaBacklightMode: backlight});
+            return {state: {backlight_mode: value.toUpperCase()}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);

@@ -14001,7 +14001,8 @@ const devices = [
         description: '6W smart dimmable E27 lamp 2700K',
         extend: generic.light_onoff_brightness,
     },
-	// LoraTap SC400 curtain switch
+
+	// LoraTap SC400 / Tuya TS130F curtain switch
     {
         zigbeeModel: ['TS130F'],
 		fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_8kzqqzu4'}],
@@ -14016,7 +14017,7 @@ const devices = [
         ],
         exposes: [e.cover_position_tilt(),
             exposes.binary('calibration', 'rw', 'ON', 'OFF'), 
-            exposes.enum('backlight_mode', 'rw', ['0', '1', '2']),
+            exposes.enum('backlight_mode', 'rw', ['LOW', 'MEDIUM', 'HIGH']),
             exposes.binary('motor_reversal', 'rw', 'ON', 'OFF')
         ],
     },

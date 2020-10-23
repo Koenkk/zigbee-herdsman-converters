@@ -1420,7 +1420,8 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
                 const value = msg.data['tuyaBacklightMode'];
-                return {backlight_mode: value};
+                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
+                return {backlight_mode: backlightLookup[value]};
             }
         },
     },
