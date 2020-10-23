@@ -10949,7 +10949,7 @@ const devices = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
 
-    // Comcast Xfinity branded XHS2 devices manufactured by Universal Electronics
+    // Universal Electronics Inc
     {
         zigbeeModel: ['URC4460BC0-X-R'],
         model: 'XHS2-UE',
