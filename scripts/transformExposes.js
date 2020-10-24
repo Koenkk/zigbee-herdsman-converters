@@ -26,10 +26,13 @@ const exposes = {
     gas: `e.gas()`,
     sos: `e.sos()`,
     carbon_monoxide: `e.carbon_monoxide()`,
+    lock: `e.lock()`,
+    lock_state: `e.lock_state()`,
 };
 
 const mapping = {
     linkquality_from_basic: [],
+    ias_contact_alarm_1_report: [exposes.contact, exposes.battery_low, exposes.tamper],
     ias_occupancy_alarm_1: [exposes.occupancy, exposes.battery_low, exposes.tamper],
     ias_occupancy_alarm_2: [exposes.occupancy, exposes.battery_low, exposes.tamper],
     ias_water_leak_alarm_1: [exposes.water_leak, exposes.battery_low, exposes.tamper],
@@ -55,6 +58,7 @@ const mapping = {
     on_off: [exposes.switch],
     metering_power: [exposes.power, exposes.energy],
     cover_position_via_brightness: [exposes.cover_position],
+    cover_position_tilt: [exposes.cover_position],
     keen_home_smart_vent_pressure: [exposes.pressure],
     xiaomi_battery: [exposes.battery],
     xiaomi_temperature: [exposes.temperature],
@@ -70,6 +74,15 @@ const mapping = {
     xiaomi_plug_state: [exposes.power, exposes.temperature, exposes.voltage],
     xiaomi_switch_basic: [exposes.power, exposes.energy, exposes.temperature, exposes.voltage],
     xiaomi_switch_opple_basic: [exposes.power, exposes.energy, exposes.temperature, exposes.voltage, exposes.current],
+    lock: [exposes.lock],
+    lock_operation_event: [],
+    lock_programming_event: [],
+    lock_pin_code_response: [],
+    heiman_pm25: ['e.pm25()'],
+    heiman_hcho: ['e.hcho()'],
+    heiman_air_quality: [`e.voc()`, `e.aqi()`, `e.pm10()`],
+    tuya_cover: [exposes.cover_position],
+    cover_state_via_onoff: [],
 };
 
 module.exports = function(fileInfo, api, options) {
