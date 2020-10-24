@@ -11109,13 +11109,19 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await configureReporting.onOff(endpoint, {min: 1, max: 0xfffe});
-            const options = {manufacturerCode: 4406, disableDefaultResponse: false};
-            await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
+            await configureReporting.onOff(endpoint, {min: 1, max: 3600, change: 0});
+            const options = {manufacturerCode: 4406, disableDefaultResponse: true};
+            await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
             await endpoint.configureReporting('seMetering', [{
-                attribute: {ID: 0x2000, type: 0x29},
+                attribute: {ID: 0x2007, type: 0x39},
                 minimumReportInterval: 1,
-                maximumReportInterval: repInterval.MINUTES_5,
+                maximumReportInterval: 5,
+                reportableChange: 1,
+            }], options);
+            await endpoint.configureReporting('seMetering', [{
+                attribute: {ID: 0x3000, type: 0x23},
+                minimumReportInterval: 1,
+                maximumReportInterval: 5,
                 reportableChange: 1,
             }], options);
         },
@@ -11138,14 +11144,19 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await configureReporting.onOff(endpoint);
-            const options = {manufacturerCode: 4406, disableDefaultResponse: false};
-            await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
-            await configureReporting.onOff(endpoint);
+            await configureReporting.onOff(endpoint, {min: 1, max: 3600, change: 0});
+            const options = {manufacturerCode: 4406, disableDefaultResponse: true};
+            await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
             await endpoint.configureReporting('seMetering', [{
-                attribute: {ID: 0x2000, type: 0x29},
+                attribute: {ID: 0x2007, type: 0x39},
                 minimumReportInterval: 1,
-                maximumReportInterval: repInterval.MINUTES_5,
+                maximumReportInterval: 5,
+                reportableChange: 1,
+            }], options);
+            await endpoint.configureReporting('seMetering', [{
+                attribute: {ID: 0x3000, type: 0x23},
+                minimumReportInterval: 1,
+                maximumReportInterval: 5,
                 reportableChange: 1,
             }], options);
         },

@@ -4516,16 +4516,8 @@ const converters = {
                 result.voltage = precisionRound(msg.data['8196'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8213')) {
-                result.voltage = precisionRound(msg.data['8213'], 2);
-            }
-
             if (msg.data.hasOwnProperty('8199')) {
                 result.current = precisionRound(msg.data['8199'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8216')) {
-                result.current = precisionRound(msg.data['8216'], 2);
             }
 
             if (msg.data.hasOwnProperty('8202')) {
@@ -4533,19 +4525,19 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('12288')) {
-                result.energyconsumed = precisionRound(msg.data['12288'], 2);
+                result.energyconsumed = precisionRound(msg.data['12288'], 0);
             }
 
             if (msg.data.hasOwnProperty('12291')) {
-                result.energyproduced = precisionRound(msg.data['12291'], 2);
+                result.energyproduced = precisionRound(msg.data['12291'], 0);
             }
 
             if (msg.data.hasOwnProperty('12294')) {
-                result.reactivesummation = precisionRound(msg.data['12294'], 2);
+                result.reactivesummation = precisionRound(msg.data['12294'], 0);
             }
 
             if (msg.data.hasOwnProperty('16408')) {
-                result.measureserial = precisionRound(msg.data['16408'], 2);
+                result.measureserial = precisionRound(msg.data['16408'], 0);
             }
 
             return result;
