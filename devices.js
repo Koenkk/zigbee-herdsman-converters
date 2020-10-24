@@ -2973,6 +2973,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCL002'],
+        model: '9290022890',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance LightStrip OUTDOOR 2m',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCA001', 'LCA002', 'LCA003'],
         model: '9290022166',
         vendor: 'Philips',
