@@ -3445,7 +3445,7 @@ const converters = {
         key: ['calibration'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 0, 'OFF': 1};
-            const calibration = lookup[value.toUpperCase()];            
+            const calibration = lookup[value.toUpperCase()];
             await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
             return {state: {calibration: value.toUpperCase()}};
         },
