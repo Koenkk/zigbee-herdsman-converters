@@ -1777,7 +1777,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const actionLookup = {1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
+            const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
             return {action: postfixWithEndpointName(action, msg, model)};
@@ -4842,7 +4842,7 @@ const converters = {
                     const devid = data2[1];
                     const unit = data2[0];
                     if (devid) {
-                        payload['device'] = devid;
+                        payload['device_' + name] = devid;
                     }
 
                     const valRaw = msg.data['presentValue'];
@@ -4879,7 +4879,7 @@ const converters = {
                             nameAlt = nameLookup[unit];
                         }
 
-                        payload[nameAlt] = val;
+                        payload[nameAlt + '_' + name] = val;
                     }
                 }
             }
