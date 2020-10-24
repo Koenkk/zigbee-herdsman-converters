@@ -1364,6 +1364,25 @@ const devices = [
         ],
     },
     {
+        zigbeeModel: ['TS130F'],
+        model: 'TS130F',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_backlight_mode, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'SC400'},
+        ],
+        exposes: [
+            e.cover_position_tilt(),
+            exposes.enum('moving', 'r', ['UP', 'STOP', 'DOWN']),
+            exposes.binary('calibration', 'rw', 'ON', 'OFF'),
+            exposes.enum('backlight_mode', 'rw', ['LOW', 'MEDIUM', 'HIGH']),
+            exposes.binary('motor_reversal', 'rw', 'ON', 'OFF'),
+        ],
+    },
+    {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
@@ -14000,26 +14019,6 @@ const devices = [
         vendor: 'CY-LIGHTING',
         description: '6W smart dimmable E27 lamp 2700K',
         extend: generic.light_onoff_brightness,
-    },
-
-	// LoraTap SC400 / Tuya TS130F curtain switch
-    {
-        zigbeeModel: ['TS130F'],
-		fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_8kzqqzu4'}],
-        model: 'TS0601_curtain_switch',
-        vendor: 'TuYa',
-        description: 'Curtain/Blind switch',
-        supports: 'open, close, stop, position',
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_backlight_mode, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
-        whiteLabel: [
-            {vendor: 'LoraTap', model: 'SC400'},
-        ],
-        exposes: [e.cover_position_tilt(),
-            exposes.binary('calibration', 'rw', 'ON', 'OFF'), 
-            exposes.enum('backlight_mode', 'rw', ['LOW', 'MEDIUM', 'HIGH']),
-            exposes.binary('motor_reversal', 'rw', 'ON', 'OFF')
-        ],
     },
 ];
 
