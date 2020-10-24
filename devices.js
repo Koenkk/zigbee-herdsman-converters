@@ -3749,6 +3749,15 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
+        {
+        zigbeeModel: ['LCL002'],
+        model: 'S024BI2400083',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor spot light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
     {
         zigbeeModel: ['LCL003'],
         model: '9290022891',
