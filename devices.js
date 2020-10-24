@@ -9417,6 +9417,20 @@ const devices = [
         },
         ota: ota.salus,
     },
+    {
+        zigbeeModel: ['SR600'],
+        model: 'SR600',
+        vendor: 'Salus Controls',
+        description: 'Relay switch',
+        supports: 'on/off',
+        extend: generic.switch,
+        meta: {configureKey: 4},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 
     // AduroSmart
     {
