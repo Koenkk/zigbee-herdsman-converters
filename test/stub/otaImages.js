@@ -39,6 +39,11 @@ const otaImagesFilesWithMeta = {
         headerField: 0,
         elements: 1
     },
+    "100B-0112-01001500-ConfLightBLE-Lamps-EFR32MG13.zigbee": {
+        manufacturer: "",
+        headerField: 0,
+        elements: 26
+    },
 };
 
 const otaImages = Object.entries(otaImagesFilesWithMeta).map(

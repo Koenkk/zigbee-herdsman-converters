@@ -25,6 +25,7 @@ const eblPadding = 0xff;
 
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
+const gblPadding = 0x0;
 
 function getOTAEndpoint(device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -142,9 +143,11 @@ function validateSilabsGbl(data) {
             continue;
         }
 
-        assert(position === dataLength, `Image contains trailing data`);
+        for (let position2 = position; position2 < dataLength; position2++) {
+            assert(data.readUInt8(position2) === gblPadding, `Image padding contains invalid bytes`);
+        }
 
-        const calculatedCrc32 = crc32.unsigned(data);
+        const calculatedCrc32 = crc32.unsigned(data.slice(0, position));
 
         assert(calculatedCrc32 === validSilabsCrc, `Image CRC-32 is invalid`);
 
