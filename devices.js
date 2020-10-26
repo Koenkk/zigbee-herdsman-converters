@@ -14263,7 +14263,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    
+
     {
         zigbeeModel: ['TS011F'],
         model: 'TS011F',
