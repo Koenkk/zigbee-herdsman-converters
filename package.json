@@ -24,7 +24,8 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "jest test"
+    "test": "jest test",
+    "test-watch": "jest test --watch"
   },
   "author": "Koen Kanters",
   "license": "MIT",
