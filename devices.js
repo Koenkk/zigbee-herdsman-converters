@@ -1365,6 +1365,16 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ['TS011F'],
+        model: 'TS011F',
+        vendor: 'TuYa',
+        description: 'Socket module',
+        extend: generic.switch,
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'RR400ZB'},
+        ],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
