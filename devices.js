@@ -3784,15 +3784,6 @@ const devices = [
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
-    {
-        zigbeeModel: ['HML006'],
-        model: '7531609',
-        vendor: 'Philips',
-        description: 'Hue Phoenix downlight',
-        meta: {turnsOffAtBrightness1: true},
-        extend: hue.light_onoff_brightness_colortemp,
-        ota: ota.zigbeeOTA,
-    },
 
     // Belkin
     {
