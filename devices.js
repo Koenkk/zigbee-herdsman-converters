@@ -14263,6 +14263,14 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    
+    {
+        zigbeeModel: ['TS011F'],
+        model: 'TS011F',
+        vendor: 'LoraTap',
+        description: 'Socket',
+        extend: generic.switch,
+    },
 ];
 
 
