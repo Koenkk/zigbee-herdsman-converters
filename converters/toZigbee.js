@@ -588,16 +588,10 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (meta.message) {
-                if (meta.message.hasOwnProperty('brightness')) {
-                    await entity.read('genLevelCtrl', ['currentLevel']);
-                }
-                if (meta.message.hasOwnProperty('state')) {
-                    await converters.on_off.convertGet(entity, key, meta);
-                }
-            } else {
-                await converters.on_off.convertGet(entity, key, meta);
+            if (key === 'brightness') {
                 await entity.read('genLevelCtrl', ['currentLevel']);
+            } else if (key === 'state') {
+                await converters.on_off.convertGet(entity, key, meta);
             }
         },
     },
@@ -884,7 +878,7 @@ const converters = {
             // Skip them if the `supportsHueAndSaturation` flag is set to false
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340
             const attributes = [];
-            if (typeof meta.message.color === 'object') {
+            if (meta.message && typeof meta.message.color === 'object') {
                 if (meta.message.color.hasOwnProperty('x')) attributes.push('currentX');
                 if (meta.message.color.hasOwnProperty('y')) attributes.push('currentY');
                 if (meta.message.color.hasOwnProperty('hue')) attributes.push('currentHue');
