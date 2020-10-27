@@ -883,10 +883,19 @@ const converters = {
             // Some bulb like Ikea Tådfri LED1624G9 do not support 'currentHue' and 'currentSaturation' attributes.
             // Skip them if the `supportsHueAndSaturation` flag is set to false
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340
-            const attributes = ['currentX', 'currentY'];
-            if (meta.mapped && meta.mapped.meta && meta.mapped.meta.supportsHueAndSaturation !== false) {
-                attributes.push('currentHue', 'currentSaturation');
+            const attributes = [];
+            if (typeof meta.message.color === 'object') {
+                if (meta.message.color.hasOwnProperty('x')) attributes.push('currentX');
+                if (meta.message.color.hasOwnProperty('y')) attributes.push('currentY');
+                if (meta.message.color.hasOwnProperty('hue')) attributes.push('currentHue');
+                if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
+            } else {
+                attributes.push('currentX', 'currentY');
+                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.supportsHueAndSaturation !== false) {
+                    attributes.push('currentHue', 'currentSaturation');
+                }
             }
+
             await entity.read('lightingColorCtrl', attributes);
         },
     },
@@ -919,7 +928,11 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['currentX', 'currentY', 'colorTemperature']);
+            if (key == 'color') {
+                await converters.light_color.convertGet(entity, key, meta);
+            } else if (key == 'color_temp') {
+                await converters.light_colortemp.convertGet(entity, key, meta);
+            }
         },
     },
     effect: {
