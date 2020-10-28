@@ -6199,6 +6199,13 @@ const devices = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['LXT56-LS27LX1.4'],
+        model: '3A12S-15',
+        vendor: 'Nue / 3A',
+        description: 'Smart ZigBee 3.0 Strip Light Controller',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Smart Home Pty
     {
