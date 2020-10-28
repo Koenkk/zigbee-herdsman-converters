@@ -9929,7 +9929,7 @@ const devices = [
         vendor: 'JAVIS',
         description: 'Intelligent biometric digital lock',
         supports: 'action',
-        fromZigbee: [fz.javis_lock_report],
+        fromZigbee: [fz.javis_lock_report, fz.battery],
         toZigbee: [],
     },
 
