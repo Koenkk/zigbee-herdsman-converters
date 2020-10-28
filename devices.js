@@ -12832,9 +12832,28 @@ const devices = [
     {
         fingerprint: [
             {modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
-            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
         ],
         model: 'SEA801-Zigbee',
+        vendor: 'Saswell',
+        description: 'Thermostatic radiator valve',
+        supports: 'thermostat, temperature',
+        fromZigbee: [fz.saswell_thermostat],
+        toZigbee: [
+            tz.saswell_thermostat_current_heating_setpoint,
+            tz.saswell_thermostat_mode,
+            tz.saswell_thermostat_standby,
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
+        ],
+        model: 'SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         supports: 'thermostat, temperature',
