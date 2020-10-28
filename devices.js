@@ -12852,11 +12852,15 @@ const devices = [
     {
         fingerprint: [
             {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
+            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
         ],
         model: 'SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         supports: 'thermostat, temperature',
+        whiteLabel: [
+            {vendor: 'HiHome', model: 'WZB-TRVL'},
+        ],
         fromZigbee: [fz.saswell_thermostat],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
