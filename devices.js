@@ -10407,6 +10407,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.peanut_electrical],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
