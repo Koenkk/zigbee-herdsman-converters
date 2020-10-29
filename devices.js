@@ -1810,11 +1810,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'PIR sensor',
         supports: 'occupancy',
-        fromZigbee: [
-            fz.battery, fz.legacy_battery_voltage,
-            fz.ignore_basic_report,
-            fz.ias_occupancy_alarm_1,
-        ],
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {configureKey: 1},
         whiteLabel: [
@@ -1825,6 +1821,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await configureReporting.batteryVoltage(endpoint);
         },
+        exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['TS0115'],
@@ -2499,6 +2496,10 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
+        exposes: [
+            e.battery(), e.occupancy(), exposes.numeric('requested_brightness_level', 'r'),
+            exposes.numeric('requested_brightness_percent', 'r'),
+        ],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -3562,6 +3563,11 @@ const devices = [
             fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
             fz.ignore_basic_report, fz.hue_motion_sensitivity,
         ],
+        exposes: [
+            e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
+            exposes.enum('motion_sensitivity', 'rw', ['low', 'medium', 'high']),
+            exposes.numeric('occupancy_timeout', 'rw').withUnit('second').withValueMin(0).withValueMax(65535),
+        ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
             return {
@@ -3591,6 +3597,11 @@ const devices = [
         fromZigbee: [
             fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout,
             fz.hue_motion_sensitivity,
+        ],
+        exposes: [
+            e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
+            exposes.enum('motion_sensitivity', 'rw', ['low', 'medium', 'high']),
+            exposes.numeric('occupancy_timeout', 'rw').withUnit('second').withValueMin(0).withValueMax(65535),
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
@@ -3865,6 +3876,7 @@ const devices = [
         supports: 'state, description, type, rssi',
         fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger],
+        exposes: [exposes.binary('led', 'r', true, false)],
     },
     {
         zigbeeModel: ['ptvo.switch'],
@@ -4203,7 +4215,7 @@ const devices = [
         description: 'Smart heating thermostat',
         supports: 'temperature, occupancy, un-/occupied heating, schedule',
         fromZigbee: [
-            fz.legacy_battery_voltage,
+            fz.battery,
             fz.thermostat_att_report,
         ],
         toZigbee: [
@@ -7305,6 +7317,7 @@ const devices = [
         description: 'Temperature and humidity sensor',
         supports: 'temperature and humidity',
         fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -8835,6 +8848,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
             await configureReporting.deviceTemperature(endpoint);
         },
+        exposes: [e.switch(), e.device_temperature()],
     },
     {
         zigbeeModel: ['HS2SW2L-EFR-3.0', 'HS2SW2A-N'],
@@ -8856,6 +8870,7 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature()],
     },
 
     {
@@ -8879,6 +8894,9 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await configureReporting.deviceTemperature(device.getEndpoint(1));
         },
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.device_temperature(),
+        ],
     },
     {
         zigbeeModel: ['CurtainMo-EF'],
@@ -10421,6 +10439,7 @@ const devices = [
             await configureReporting.rmsCurrent(endpoint, {change: 55}); // Current reports in 0.00183A
             await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.261W
         },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
         zigbeeModel: ['ZB2-BU01'],
@@ -11639,7 +11658,7 @@ const devices = [
         description: 'Thermostat',
         supports: 'temperature, heating/cooling system control',
         fromZigbee: [
-            fz.legacy_battery_voltage,
+            fz.battery,
             fz.thermostat_att_report,
         ],
         toZigbee: [
@@ -13304,6 +13323,7 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
+        exposes: [e.occupancy()],
     },
 
     // Kwikset

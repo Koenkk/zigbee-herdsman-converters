@@ -55,6 +55,7 @@ const mapping = {
     soil_moisture: [exposes.soil_moisture],
     illuminance: [exposes.illuminance, exposes.illuminance_lux],
     electrical_measurement_power: [exposes.power, exposes.current, exposes.voltage],
+    peanut_electrical: [exposes.power, exposes.current, exposes.voltage],
     on_off: [exposes.switch],
     metering_power: [exposes.power, exposes.energy],
     cover_position_via_brightness: [exposes.cover_position],
@@ -83,6 +84,7 @@ const mapping = {
     heiman_air_quality: [`e.voc()`, `e.aqi()`, `e.pm10()`],
     tuya_cover: [exposes.cover_position],
     cover_state_via_onoff: [],
+    device_temperature: [`e.device_temperature()`],
 };
 
 module.exports = function(fileInfo, api, options) {

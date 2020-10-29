@@ -3515,15 +3515,6 @@ const converters = {
             return {};
         },
     },
-    legacy_battery_voltage: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                return {voltage: msg.data['batteryVoltage'] / 100};
-            }
-        },
-    },
     iris_3320L_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
