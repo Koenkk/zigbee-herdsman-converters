@@ -1608,24 +1608,6 @@ const devices = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_fr1lzwta'}],
-        model: 'TS0003_curtain_switch',
-        vendor: 'TuYa',
-        description: 'Curtain switch / garage controller',
-        supports: 'open, close, stop',
-        whiteLabel: [
-            {vendor: 'Zemismart', model: 'ZM-CSW002-D_curtain_switch'},
-        ],
-        fromZigbee: [fz.TS0003_curtain_switch, fz.ignore_basic_report],
-        toZigbee: [tz.TS0003_curtain_switch],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
@@ -9947,7 +9929,7 @@ const devices = [
         vendor: 'JAVIS',
         description: 'Intelligent biometric digital lock',
         supports: 'action',
-        fromZigbee: [fz.javis_lock_report],
+        fromZigbee: [fz.javis_lock_report, fz.battery],
         toZigbee: [],
     },
 
