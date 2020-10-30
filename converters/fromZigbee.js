@@ -1391,6 +1391,40 @@ const converters = {
             return result;
         },
     },
+    tuya_cover_options: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+                const value = msg.data['tuyaMovingState'];
+                const movingLookup = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
+                result.moving = movingLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaCalibration')) {
+                const value = msg.data['tuyaCalibration'];
+                const calibrationLookup = {0: 'ON', 1: 'OFF'};
+                result.calibration = calibrationLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+                const value = msg.data['tuyaMotorReversal'];
+                const reversalLookup = {0: 'OFF', 1: 'ON'};
+                result.motor_reversal = reversalLookup[value];
+            }
+            return result;
+        },
+    },
+    tuya_backlight_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+                const value = msg.data['tuyaBacklightMode'];
+                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
+                return {backlight_mode: backlightLookup[value]};
+            }
+        },
+    },
     cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1756,11 +1790,28 @@ const converters = {
             return {action: lookup[zoneStatus]};
         },
     },
+    OJBCR701YZ_statuschange: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const {zoneStatus} = msg.data;
+            return {
+                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Carbon Monoxide (CO)
+                gas: (zoneStatus & 1 << 1) > 0, // Bit 1 = Alarm 2: Gas (CH4)
+                tamper: (zoneStatus & 1 << 2) > 0, // Bit 2 = Tamper
+                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Low battery alarm
+                trouble: (zoneStatus & 1 << 6) > 0, // Bit 6 = Trouble/Failure
+                ac_connected: !((zoneStatus & 1 << 7) > 0), // Bit 7 = AC Connected
+                test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
+                battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
+            };
+        },
+    },
     ptvo_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const actionLookup = {1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
+            const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
             return {action: postfixWithEndpointName(action, msg, model)};
@@ -1946,6 +1997,43 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0,
             };
+        },
+    },
+    heiman_pm25: {
+        cluster: 'heimanSpecificPM25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {pm25: msg.data['measuredValue']};
+            }
+        },
+    },
+    heiman_hcho: {
+        cluster: 'heimanSpecificFormaldehydeMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {hcho: parseFloat(msg.data['measuredValue']) / 100.0};
+            }
+        },
+    },
+    heiman_air_quality: {
+        cluster: 'heimanSpecificAirQuality',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['batteryState']) {
+                const lookup = {
+                    0: 'not_charging',
+                    1: 'charging',
+                    2: 'charged',
+                };
+                result['battery_state'] = lookup[msg.data['batteryState']];
+            }
+            if (msg.data['tvocMeasuredValue']) result['voc'] = msg.data['tvocMeasuredValue'];
+            if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
+            if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
+            return result;
         },
     },
 
@@ -2918,17 +3006,6 @@ const converters = {
             return {position};
         },
     },
-    heiman_smoke: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                smoke: (zoneStatus & 1) > 0, // Bit 1 = Alarm: Smoke
-                battery_low: (zoneStatus & 1<<3) > 0, // Bit 4 = Battery LOW indicator
-            };
-        },
-    },
     heiman_smart_controller_armmode: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -2943,43 +3020,6 @@ const converters = {
                 const value = msg.data.armmode;
                 return {action: lookup[value] || `armmode_${value}`};
             }
-        },
-    },
-    heiman_pm25: {
-        cluster: 'heimanSpecificPM25Measurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['measuredValue']) result['pm25'] = msg.data['measuredValue'];
-            return result;
-        },
-    },
-    heiman_hcho: {
-        cluster: 'heimanSpecificFormaldehydeMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['measuredValue']) result['hcho'] = parseFloat(msg.data['measuredValue']) / 100.0;
-            return result;
-        },
-    },
-    heiman_air_quality: {
-        cluster: 'heimanSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data['batteryState']) {
-                const lookup = {
-                    0: 'not_charging',
-                    1: 'charging',
-                    2: 'charged',
-                };
-                result['battery_state'] = lookup[msg.data['batteryState']];
-            }
-            if (msg.data['tvocMeasuredValue']) result['voc'] = msg.data['tvocMeasuredValue'];
-            if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
-            if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
-            return result;
         },
     },
     heiman_scenes: {
@@ -3001,22 +3041,6 @@ const converters = {
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'click'};
-        },
-    },
-    heiman_smoke_enrolled: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneId = msg.data.zoneId;
-            const zoneState = msg.data.zoneState;
-            const results = {};
-            if (zoneState) {
-                results['enrolled'] = true;
-            } else {
-                results['enrolled'] = false;
-            }
-            results['zone_id'] = zoneId;
-            return results;
         },
     },
     heiman_ir_remote: {
@@ -3491,15 +3515,6 @@ const converters = {
             return {};
         },
     },
-    legacy_battery_voltage: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                return {voltage: msg.data['batteryVoltage'] / 100};
-            }
-        },
-    },
     iris_3320L_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -3529,17 +3544,6 @@ const converters = {
                 }
                 return {};
             }
-        },
-    },
-    smartsense_multi: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                contact: !(zoneStatus & 1), // Bit 1 = Contact
-                // Bit 5 = Currently always set?
-            };
         },
     },
     SE21_action: {
@@ -4392,23 +4396,6 @@ const converters = {
             return {action: `right_${pos}_hold`};
         },
     },
-    OJBCR701YZ_statuschange: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const {zoneStatus} = msg.data;
-            return {
-                carbon_monoxide: (zoneStatus & 1) > 0, // Bit 0 = Alarm 1: Carbon Monoxide (CO)
-                gas: (zoneStatus & 1 << 1) > 0, // Bit 1 = Alarm 2: Gas (CH4)
-                tamper: (zoneStatus & 1 << 2) > 0, // Bit 2 = Tamper
-                battery_low: (zoneStatus & 1 << 3) > 0, // Bit 3 = Low battery alarm
-                trouble: (zoneStatus & 1 << 6) > 0, // Bit 6 = Trouble/Failure
-                ac_connected: !((zoneStatus & 1 << 7) > 0), // Bit 7 = AC Connected
-                test: (zoneStatus & 1 << 8) > 0, // Bit 8 = Self test
-                battery_defect: (zoneStatus & 1 << 9) > 0, // Bit 9 = Battery Defect
-            };
-        },
-    },
     generic_fan_mode: {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -4880,7 +4867,7 @@ const converters = {
                     const devid = data2[1];
                     const unit = data2[0];
                     if (devid) {
-                        payload['device'] = devid;
+                        payload['device_' + name] = devid;
                     }
 
                     const valRaw = msg.data['presentValue'];
@@ -4917,7 +4904,7 @@ const converters = {
                             nameAlt = nameLookup[unit];
                         }
 
-                        payload[nameAlt] = val;
+                        payload[nameAlt + '_' + name] = val;
                     }
                 }
             }
@@ -6261,6 +6248,137 @@ const converters = {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
             return result;
+        },
+    },
+    hy_thermostat: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const data = msg.data.data;
+            const dataAsDecNumber = utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
+            let temperature;
+            let lookup;
+
+            switch (dp) {
+            case 119: // schedule for workdays [5,9,12,8,0,15,10,0,15]
+                return {workdays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: 'am'};
+            case 120: // schedule for workdays [15,0,25,145,2,17,22,50,14]
+                return {workdays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: 'pm'};
+            case 121: // schedule for holidays [5,5,20,8,4,13,11,30,15]
+                return {holidays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: 'am'};
+            case 122: // schedule for holidays [13,30,15,17,0,15,22,0,15]
+                return {holidays: [
+                    {hour: data[0], minute: data[1], temperature: data[2]},
+                    {hour: data[3], minute: data[4], temperature: data[5]},
+                    {hour: data[6], minute: data[7], temperature: data[8]},
+                ], range: 'pm'};
+            case 358: // heating
+                return {heating: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 362: // max temperature protection
+                return {max_temperature_protection: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 363: // min temperature protection
+                return {min_temperature_protection: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 381: // 0x017D work state
+                return {state: (dataAsDecNumber) ? 'ON' : 'OFF'};
+            case 385: // 0x0181 Changed child lock status
+                return {child_lock: dataAsDecNumber ? 'LOCKED' : 'UNLOCKED'};
+            case 615: // external sensor temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {external_temperature: temperature};
+            case 616: // away preset days
+                return {away_preset_days: dataAsDecNumber};
+            case 617: // away preset temperature
+                return {away_preset_temperature: dataAsDecNumber};
+            case 621: // 0x026D Temperature correction
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {local_temperature_calibration: temperature};
+            case 622: // 0x026E Temperature hysteresis
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {hysteresis: temperature};
+            case 623: // 0x026F Temperature protection hysteresis
+                return {hysteresis_for_protection: dataAsDecNumber};
+            case 624: // 0x027A max temperature for protection
+                return {max_temperature_for_protection: dataAsDecNumber};
+            case 625: // 0x027B min temperature for protection
+                return {min_temperature_for_protection: dataAsDecNumber};
+            case 626: // 0x027C max temperature limit
+                return {max_temperature: dataAsDecNumber};
+            case 627: // 0x027D min temperature limit
+                return {min_temperature: dataAsDecNumber};
+            case 638: // 0x027E Changed target temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {current_heating_setpoint: temperature};
+            case 639: // 0x027F MCU reporting room temperature
+                temperature = (dataAsDecNumber / 10).toFixed(1);
+                return {local_temperature: temperature};
+            case 1140: // Sensor type
+                lookup = {
+                    0: 'internal',
+                    1: 'external',
+                    2: 'both',
+                };
+                return {sensor_type: lookup[dataAsDecNumber]};
+            case 1141: // 0x0475 State after power on
+                lookup = {
+                    0: 'restore',
+                    1: 'off',
+                    2: 'on',
+                };
+                return {power_on_behavior: lookup[dataAsDecNumber]};
+            case 1142: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week: common.TuyaThermostatWeekFormat[dataAsDecNumber]};
+            case 1152: // 0x0480 mode
+                lookup = {
+                    0: 'manual',
+                    1: 'auto',
+                    2: 'away',
+                };
+                return {system_mode: lookup[dataAsDecNumber]};
+            case 1410: // [16] [0]
+                return {alarm: (dataAsDecNumber > 0) ? true : false};
+            default: // The purpose of the codes 1041 & 1043 are still unknown
+                console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(data)}`);
+            }
+        },
+    },
+    hy_thermostat_on_set_data: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: 'commandSetDataResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return converters.hy_thermostat.convert(model, msg, publish, options, meta);
+        },
+    },
+    hy_set_time_request: {
+        cluster: 'manuSpecificTuyaDimmer',
+        type: ['commandSetTimeRequest'],
+        convert: async (model, msg, publish, options, meta) => {
+            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+            const currentTime = new Date().getTime();
+            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
+            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
+            const endpoint = msg.device.getEndpoint(1);
+            const payload = {
+                payloadSize: 8,
+                payload: [
+                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                ],
+            };
+            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
         },
     },
 
