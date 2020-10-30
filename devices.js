@@ -11807,7 +11807,7 @@ const devices = [
         description: 'Contact sensor',
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
     },
 
     // Dawon DNS
