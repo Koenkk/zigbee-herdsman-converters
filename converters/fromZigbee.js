@@ -2700,13 +2700,6 @@ const converters = {
             return result;
         },
     },
-    smartthings_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data.zonestatus === 48};
-        },
-    },
     MFKZQ01LM_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -3272,18 +3265,6 @@ const converters = {
                 dig_input: msg.data['41366'],
                 reason: lookup[msg.data['41367']],
                 [`${ds18b20Id}`]: ds18b20Value,
-            };
-        },
-    },
-    Z809A_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                power: msg.data['activePower'],
-                current: msg.data['rmsCurrent'],
-                voltage: msg.data['rmsVoltage'],
-                power_factor: msg.data['powerFactor'],
             };
         },
     },

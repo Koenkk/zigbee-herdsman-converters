@@ -523,6 +523,7 @@ const devices = [
         supports: 'single, double, triple, quadruple, many, long, long_release click',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
+        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
         toZigbee: [],
     },
     {
@@ -532,9 +533,10 @@ const devices = [
         description: 'Aqara wireless switch',
         supports: 'single, double click (and triple, quadruple, hold, release depending on model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [
-            fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action,
-            /* check these: */ fz.xiaomi_battery, fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
+            fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
+            fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -545,6 +547,7 @@ const devices = [
         description: 'Aqara wireless switch (with gyroscope)',
         supports: 'single, double, shake, hold, release',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake'])],
         fromZigbee: [
             fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy_WXKG12LM_action_click_multistate,
         ],
@@ -557,10 +560,11 @@ const devices = [
         description: 'Aqara single key wireless wall switch',
         supports: 'single (and double, hold, release and long click depending on model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release'])],
         fromZigbee: [
-            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
-            /* check these: */
-            fz.xiaomi_battery, fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate],
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
+            fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate,
+        ],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
     },
@@ -572,6 +576,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release'])],
         onEvent: xiaomi.prevent_reset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -586,9 +591,15 @@ const devices = [
         description: 'Aqara double key wireless wall switch',
         supports: 'left, right, both click (and double, long click for left, right and both depending on model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [
+            e.battery(), e.action([
+                'single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
+                'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both',
+            ]),
+        ],
         fromZigbee: [
-            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
-            /* check these: */ fz.xiaomi_battery, fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
+            fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
+            /* check these: */ fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
         ],
         toZigbee: [],
         endpoint: (device) => {
@@ -673,6 +684,7 @@ const devices = [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
+        exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
@@ -698,6 +710,7 @@ const devices = [
             fz.xiaomi_switch_basic,
             fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
+        exposes: [e.switch(), e.power(), e.temperature(), e.action(['single', 'double', 'release', 'hold'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
         endpoint: (device) => {
             return {'system': 1};
@@ -717,6 +730,9 @@ const devices = [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic,
         ],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
+            'single_left', 'single_right', 'single_both',
+        ])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
@@ -742,6 +758,10 @@ const devices = [
             fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.power(), e.action([
+            'single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
+            'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both',
+        ])],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
         endpoint: (device) => {
@@ -761,6 +781,9 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
+        exposes: [e.battery(), e.action([
+            'left', 'right', 'both', 'left_long', 'left_double', 'right_long', 'right_double', 'both_long', 'both_double',
+        ])],
         onEvent: xiaomi.prevent_reset,
     },
     {
@@ -773,6 +796,7 @@ const devices = [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
+        exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
@@ -789,6 +813,7 @@ const devices = [
             fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -808,6 +833,11 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
+            'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
+            'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
+            'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release',
+        ])],
         onEvent: xiaomi.prevent_reset,
     },
     {
@@ -858,6 +888,11 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power(), e.action([
+            'hold_left', 'single_left', 'double_left', 'release_left',
+            'hold_right', 'single_right', 'double_right', 'release_right',
+            'hold_both', 'single_both', 'double_both', 'release_both',
+        ])],
         onEvent: xiaomi.prevent_reset,
     },
     {
@@ -972,6 +1007,7 @@ const devices = [
         supports: 'shake, wakeup, fall, tap, slide, flip180, flip90, rotate_left and rotate_right',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
+        exposes: [e.battery(), e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
     {
@@ -1099,6 +1135,7 @@ const devices = [
         description: 'Vima Smart Lock',
         supports: 'inserted, forgotten, key error',
         fromZigbee: [fz.xiaomi_lock_report],
+        exposes: [exposes.text('inserted', 'r')],
         toZigbee: [],
     },
     {
@@ -1110,6 +1147,10 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
+        exposes: [
+            e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', 'r'),
+            exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
+        ],
     },
     {
         zigbeeModel: ['lumi.vibration.agl01'],
@@ -1118,6 +1159,7 @@ const devices = [
         description: 'Aqara vibration sensor',
         supports: 'action',
         fromZigbee: [fz.DJT12LM_vibration],
+        exposes: [e.action(['vibration'])],
         toZigbee: [],
     },
     {
@@ -1175,6 +1217,14 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.xiaomi_battery],
         toZigbee: [],
+        exposes: [
+            e.battery(), e.battery_low(), exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
+            exposes.enum('action', 'r', [
+                'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
+                'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
+                'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
+            ]),
+        ],
         meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
         configure: async (device, coordinatorEndpoint) => {
             // Device advertises itself as Router but is an EndDevice
@@ -1191,6 +1241,14 @@ const devices = [
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         meta: {configureKey: 1},
+        exposes: [
+            exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
+            exposes.enum('action', 'r', [
+                'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
+                'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
+                'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
+            ]),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
@@ -1205,6 +1263,14 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
+        exposes: [
+            exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
+            exposes.enum('action', 'r', [
+                'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
+                'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
+                'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['lumi.remote.b286opcn01'],
@@ -1216,6 +1282,10 @@ const devices = [
             fz.aqara_opple_on, fz.aqara_opple_off, fz.battery,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
+        exposes: [e.battery(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+        ])],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -1236,6 +1306,12 @@ const devices = [
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
         toZigbee: [tz.aqara_opple_operation_mode],
+        exposes: [e.battery(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+            'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
+        ])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1257,6 +1333,14 @@ const devices = [
             fz.battery,
             fz.aqara_opple_multistate, fz.aqara_opple_report,
         ],
+        exposes: [e.battery(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+            'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
+            'button_5_hold', 'button_5_release', 'button_5_single', 'button_5_double', 'button_5_triple',
+            'button_6_hold', 'button_6_release', 'button_6_single', 'button_6_double', 'button_6_triple',
+        ])],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -1477,6 +1561,7 @@ const devices = [
         description: 'SOS button',
         supports: 'action',
         fromZigbee: [fz.command_emergency, fz.battery],
+        exposes: [e.battery(), e.action(['emergency'])],
         toZigbee: [],
     },
     {
@@ -1533,6 +1618,7 @@ const devices = [
             {vendor: 'Smart9', model: 'S9TSZGB'},
             {vendor: 'Lonsonho', model: 'TS0041'},
         ],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
@@ -1546,6 +1632,9 @@ const devices = [
             {vendor: 'Lonsonho', model: 'TS0042'},
         ],
         supports: 'action',
+        exposes: [e.battery(), e.action([
+            '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
+        ])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
@@ -1560,6 +1649,9 @@ const devices = [
             {vendor: 'LoraTap', model: 'SS600ZB'},
         ],
         supports: 'action',
+        exposes: [e.battery(), e.action([
+            '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold',
+        ])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
     },
@@ -1573,6 +1665,10 @@ const devices = [
         ],
         supports: 'action',
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        exposes: [e.battery(), e.action([
+            '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
+            '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
+        ])],
         toZigbee: [],
     },
     {
@@ -1936,6 +2032,7 @@ const devices = [
         description: 'Smart 6 key scene wall switch',
         supports: 'action',
         fromZigbee: [fz.scenes_recall_scene_65029],
+        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
     {
@@ -1945,6 +2042,7 @@ const devices = [
         description: 'Water leak sensor',
         supports: 'water leak',
         fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
+        exposes: [e.water_leak()],
         toZigbee: [],
     },
     {
@@ -2041,6 +2139,7 @@ const devices = [
         description: 'Sound and flash siren',
         supports: 'alarm',
         fromZigbee: [fz.ts0216_siren, fz.battery],
+        exposes: [e.battery(), exposes.binary('alarm', 'r', true, false)],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2070,6 +2169,10 @@ const devices = [
         supports: 'temperature, humidity, alarm',
         fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
         toZigbee: [tz.neo_t_h_alarm],
+        exposes: [
+            e.temperature(), e.humidity(), exposes.binary('humidity_alarm', 'r', true, false),
+            exposes.binary('temperature_alarm', 'r', true, false), exposes.binary('alarm', 'r', true, false),
+        ],
     },
 
     // Lonsonho
@@ -2351,6 +2454,7 @@ const devices = [
             fz.legacy_cmd_move, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop, fz.legacy_cmd_stop_with_onoff,
             fz.legacy_cmd_move_to_level_with_onoff, fz.battery,
         ],
+        exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -2435,6 +2539,11 @@ const devices = [
             fz.E1524_E1810_brightness_up_release, fz.E1524_E1810_brightness_down_hold,
             fz.E1524_E1810_brightness_down_release, fz.battery, fz.E1524_E1810_hold,
         ],
+        exposes: [e.battery(), e.action([
+            'toggle', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold', 'arrow_right_hold', 'arrow_left_release',
+            'arrow_right_release', 'brightness_up_click', 'brightness_down_click', 'brightness_up_hold', 'brightness_up_release',
+            'brightness_down_release', 'toggle_hold',
+        ])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
@@ -2458,6 +2567,7 @@ const devices = [
             fz.legacy_E1743_brightness_up, fz.legacy_E1743_brightness_down, fz.command_stop,
             fz.legacy_E1743_brightness_stop, fz.battery,
         ],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
@@ -2480,6 +2590,9 @@ const devices = [
         supports: 'volume up/down, play/pause, skip forward/backward',
         fromZigbee: [fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.legacy_E1744_play_pause, fz.legacy_E1744_skip, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'brightness_move_up', 'brightness_move_down', 'brighntess_stop', 'toggle', 'brighntess_step_up', 'brightness_step_down',
+        ])],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -2572,6 +2685,7 @@ const devices = [
             fz.battery, fz.command_cover_close, fz.legacy_cover_close, fz.command_cover_open, fz.legacy_cover_open,
             fz.command_cover_stop, fz.legacy_cover_stop,
         ],
+        exposes: [e.battery(), e.action(['close', 'open', 'stop'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
@@ -3516,6 +3630,10 @@ const devices = [
             fz._324131092621_ignore_stop, fz._324131092621_notification,
             fz.battery,
         ],
+        exposes: [e.battery(), e.action([
+            'on-press', 'on-hold', 'on-release', 'up-press', 'up-hold', 'up-release', 'down-press', 'down-hold',
+            'down-release', 'off-press', 'off-hold', 'off-release']),
+        ],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -3541,6 +3659,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.SmartButton_skip, fz.SmartButton_event, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3891,6 +4010,15 @@ const devices = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input,
             tz.ptvo_switch_light_brightness, tz.on_off,
         ],
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
+            e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'), e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
+            exposes.text('', 'r').withEndpoint('l1').withProperty('l1'), exposes.text('', 'r').withEndpoint('l2').withProperty('l2'),
+            exposes.text('', 'r').withEndpoint('l3').withProperty('l3'), exposes.text('', 'r').withEndpoint('l4').withProperty('l4'),
+            exposes.text('', 'r').withEndpoint('l5').withProperty('l5'), exposes.text('', 'r').withEndpoint('l6').withProperty('l6'),
+            exposes.text('', 'r').withEndpoint('l7').withProperty('l7'), exposes.text('', 'r').withEndpoint('l8').withProperty('l8'),
+            e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'triple', 'hold']),
+        ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
@@ -3973,6 +4101,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
+        exposes: [e.action(['toggle'])],
     },
 
     // databyte.ch
@@ -3984,6 +4113,9 @@ const devices = [
         supports: 'switch, buttons',
         fromZigbee: [fz.DTB190502A1_parse],
         toZigbee: [tz.DTB190502A1_LED],
+        exposes: [
+            exposes.binary('led_state', 'r', 'ON', 'OFF'), exposes.enum('key_state', 'r', ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE']),
+        ],
     },
     {
         zigbeeModel: ['DTB-ED2004-012'],
@@ -4018,6 +4150,7 @@ const devices = [
         supports: 'click',
         fromZigbee: [fz.keypad20states, fz.keypad20_battery],
         toZigbee: [],
+        exposes: [e.battery()],
         endpoint: (device) => {
             return {
                 'btn_1': 1, 'btn_2': 2, 'btn_3': 3, 'btn_4': 4, 'btn_5': 5,
@@ -4034,6 +4167,7 @@ const devices = [
         description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
         supports: 'contact',
         fromZigbee: [fz.keypad20_battery, fz.diyruz_contact],
+        exposes: [e.battery(), e.contact()],
         toZigbee: [],
     },
     {
@@ -4044,6 +4178,7 @@ const devices = [
         supports: 'relay, switch, adc',
         fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.cpu_temperature(), e.action(['hold', 'release'])],
     },
     {
         zigbeeModel: ['DIYRuZ_FreePad'],
@@ -4052,6 +4187,7 @@ const devices = [
         description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
         supports: 'single, double, triple, quadruple, many, hold/release',
         fromZigbee: [fz.diyruz_freepad_clicks, fz.battery],
+        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])],
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4093,6 +4229,10 @@ const devices = [
         description: '[DiY Geiger counter](https://modkam.ru/?p=1591)',
         supports: 'radioactive pulses perminute',
         fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off],
+        exposes: [
+            e.action(['on', 'off']), exposes.numeric('radioactive_events_per_minute', 'r').withUnit('rpm'),
+            exposes.numeric('radiation_dose_per_hour', 'r').withUnit('rph'),
+        ],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4535,6 +4675,9 @@ const devices = [
             fz.osram_lightify_switch_cmdOff, fz.osram_lightify_switch_cmdMove, fz.battery,
             fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
         ],
+        exposes: [e.battery(), e.action([
+            'up', 'up_hold', 'up_release', 'down_release', 'circle_release', 'circle_hold', 'down', 'down_hold', 'circle_click',
+        ])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
@@ -4554,6 +4697,11 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ switch',
         supports: 'action',
+        exposes: [e.battery(), e.action([
+            'left_top_click', 'left_bottom_click', 'right_top_click', 'right_bottom_click', 'left_top_hold',
+            'left_bottom_hold', 'left_top_release', 'left_bottom_release', 'right_top_release', 'right_top_hold',
+            'right_bottom_release', 'right_bottom_hold',
+        ])],
         fromZigbee: [
             fz.osram_lightify_switch_AB371860355_cmdOn,
             fz.osram_lightify_switch_AB371860355_cmdOff,
@@ -5396,6 +5544,7 @@ const devices = [
             fz.osram_lightify_switch_cmdOn, fz.osram_lightify_switch_cmdMoveWithOnOff, fz.osram_lightify_switch_cmdOff,
             fz.osram_lightify_switch_cmdMove, fz.osram_lightify_switch_73743_cmdStop, fz.battery,
         ],
+        exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
@@ -5825,6 +5974,7 @@ const devices = [
         description: 'Smart switch ',
         supports: 'action',
         fromZigbee: [fz.E1E_G7F_action],
+        exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
     },
 
@@ -5836,7 +5986,8 @@ const devices = [
         description: 'Key fob remote',
         supports: 'panic, home, away, sleep',
         fromZigbee: [fz.KEF1PA_arm, fz.command_panic],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
+        exposes: [e.action(['home', 'sleep', 'away', 'panic'])],
     },
     {
         zigbeeModel: ['SWO-WDS1PA'],
@@ -5875,7 +6026,7 @@ const devices = [
         vendor: 'Netvox',
         description: 'Power socket with power consumption monitoring',
         supports: 'on/off, power measurement',
-        fromZigbee: [fz.on_off, fz.Z809A_power],
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -5887,6 +6038,7 @@ const devices = [
             await configureReporting.activePower(endpoint);
             await configureReporting.powerFactor(endpoint);
         },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
 
     // Nanoleaf
@@ -5974,6 +6126,7 @@ const devices = [
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
         fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        exposes: [e.action(['recall_*']), e.switch()],
     },
     {
         zigbeeModel: ['FTB56+ZSN16HG1.0'],
@@ -5982,6 +6135,7 @@ const devices = [
         description: 'Smart 2 key scene wall switch',
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
+        exposes: [e.action(['recall_*']), e.switch()],
         fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
     },
     {
@@ -5992,6 +6146,7 @@ const devices = [
         supports: 'on/off, click, action',
         toZigbee: [tz.on_off],
         fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        exposes: [e.action(['recall_*']), e.switch()],
     },
     {
         zigbeeModel: ['LXN56-DC27LX1.1', 'LXN56-DS27LX1.1'],
@@ -6405,6 +6560,7 @@ const devices = [
         supports: 'on/off, action',
         toZigbee: [tz.on_off],
         fromZigbee: [fz.command_recall],
+        exposes: [e.action(['recall_*']), e.switch()],
     },
 
     // Gledopto
@@ -6869,6 +7025,16 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
+            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
+            'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5',
+            'on_6', 'off_6', 'brightness_move_up_6', 'brightness_move_down_6', 'brightness_stop_6',
+            'on_7', 'off_7', 'brightness_move_up_7', 'brightness_move_down_7', 'brightness_stop_7',
+            'on_8', 'off_8', 'brightness_move_up_8', 'brightness_move_down_8', 'brightness_stop_8',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [
@@ -6885,6 +7051,12 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+            'on_3', 'off_3', 'stop_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
+            'on_4', 'off_4', 'stop_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [
@@ -6958,6 +7130,12 @@ const devices = [
             fz.command_on, fz.command_off, fz.battery,
             fz.command_move, fz.command_stop,
         ],
+        exposes: [e.battery(), e.action([
+            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
+            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
+            'on_l3', 'off_l3', 'brightness_move_up_l3', 'brightness_move_down_l3', 'brightness_stop_l3',
+            'on_l4', 'off_l4', 'brightness_move_up_l4', 'brightness_move_down_l4', 'brightness_stop_l4',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -6973,6 +7151,12 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         toZigbee: [],
         meta: {multiEndpoint: true},
+        exposes: [e.battery(), e.action([
+            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
+            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
+            'on_l3', 'off_l3', 'brightness_move_up_l3', 'brightness_move_down_l3', 'brightness_stop_l3',
+            'on_l4', 'off_l4', 'brightness_move_up_l4', 'brightness_move_down_l4', 'brightness_stop_l4',
+        ])],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
@@ -6987,6 +7171,9 @@ const devices = [
             fz.command_on, fz.command_off, fz.battery,
             fz.command_move, fz.command_stop, fz.command_step,
         ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down',
+        ])],
         toZigbee: [],
     },
     {
@@ -6999,6 +7186,10 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature,
             fz.command_recall, fz.command_move_to_color_temp, fz.battery,
         ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down',
+            'recall_*', 'color_temperature_move',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -7020,8 +7211,9 @@ const devices = [
         vendor: 'SmartThings',
         description: 'Multipurpose sensor',
         supports: 'contact',
-        fromZigbee: [fz.smartthings_contact],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['PGC314'],
@@ -7043,6 +7235,7 @@ const devices = [
             fz.STS_PRS_251_presence, fz.battery,
             fz.STS_PRS_251_beeping,
         ],
+        exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', 'w', [''])],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -7059,6 +7252,7 @@ const devices = [
         description: 'Presence sensor',
         supports: 'presence',
         fromZigbee: [fz.PGC410EU_presence, fz.battery],
+        exposes: [e.battery(), e.presence()],
         toZigbee: [],
     },
     {
@@ -7432,6 +7626,7 @@ const devices = [
             fz.command_status_change_notification_action,
             fz.legacy_st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport,
         ],
+        exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -7495,6 +7690,7 @@ const devices = [
         fromZigbee: [
             fz.command_on, fz.command_off_with_effect, fz.ZYCT202_stop, fz.ZYCT202_up_down,
         ],
+        exposes: [e.action(['on', 'off', 'stop', 'up-press', 'down-press'])],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -7640,6 +7836,10 @@ const devices = [
             fz.tint404011_scene,
         ],
         toZigbee: [],
+        exposes: [e.action([
+            'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
+            'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*',
+        ])],
     },
     {
         zigbeeModel: ['NLG-remote', 'Neuhaus remote'],
@@ -7653,6 +7853,11 @@ const devices = [
             fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
             fz.tint404011_scene, fz.command_recall,
         ],
+        exposes: [e.action([
+            'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
+            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
+            'recall_*', 'scene_*',
+        ])],
         toZigbee: [],
     },
 
@@ -7665,6 +7870,7 @@ const devices = [
         supports: 'click, action',
         fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy_AV2010_34_click],
         toZigbee: [],
+        exposes: [e.action(['recall_*'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7699,6 +7905,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.bitron_power],
         toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7831,6 +8038,7 @@ const devices = [
         supports: 'action, temperature',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
         toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.action('on', 'off')],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7951,6 +8159,7 @@ const devices = [
         supports: 'switch and power meter',
         fromZigbee: [fz.on_off, fz.RZHAC_4256251_power],
         toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7969,6 +8178,7 @@ const devices = [
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.light_onoff_restorable_brightness],
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8035,6 +8245,9 @@ const devices = [
         supports: 'action, arm',
         meta: {configureKey: 1, commandArmIncludeTransaction: true},
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery],
+        exposes: [e.battery(), e.temperature(), e.action([
+            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+        ])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8156,6 +8369,7 @@ const devices = [
         description: 'LUPUSEC mains socket with power meter',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.bitron_power],
+        exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -8497,6 +8711,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.battery, fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8620,6 +8835,7 @@ const devices = [
         supports: 'on/off, power measurement',
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.HS2SK_SKHMP30I1_power],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -8688,6 +8904,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.command_status_change_notification_action, fz.legacy_st_button_state, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8703,6 +8920,7 @@ const devices = [
         description: 'Smart scene switch',
         supports: 'action',
         fromZigbee: [fz.battery, fz.heiman_scenes],
+        exposes: [e.battery(), e.action(['cinema', 'at_home', 'sleep', 'go_out', 'repast'])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8817,6 +9035,7 @@ const devices = [
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
         meta: {configureKey: 1},
+        exposes: [e.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
@@ -9032,6 +9251,10 @@ const devices = [
         vendor: 'Airam',
         description: 'CTR.U remote',
         supports: 'on/off, brightness up/down and click/hold/release',
+        exposes: [e.action([
+            'on', 'off', 'brightness_down_click', 'brightness_up_click', 'brightness_down_hold', 'brightness_up_hold',
+            'brightness_down_release', 'brightness_up_release',
+        ])],
         fromZigbee: [
             fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
             fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
@@ -9049,6 +9272,10 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_step, fz.command_move,
             fz.command_stop, fz.command_recall, fz.ignore_basic_report,
         ],
+        exposes: [e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop', 'recall_*',
+        ])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -9172,6 +9399,7 @@ const devices = [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
         ],
+        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
         toZigbee: [],
     },
     {
@@ -9184,6 +9412,7 @@ const devices = [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
         ],
+        exposes: [e.battery(), e.action(['on', 'recall_*', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
     },
     {
@@ -9193,6 +9422,7 @@ const devices = [
         description: 'Zigbee 3.0 remote control',
         supports: 'action',
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
     },
     {
@@ -9254,6 +9484,12 @@ const devices = [
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
+        exposes: [e.switch(), e.action([
+            'row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
+            'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
+            'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
+            'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop',
+        ])],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             let firstEndpoint = 0x0a;
@@ -9365,6 +9601,10 @@ const devices = [
             fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
             fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
         ],
+        exposes: [e.action([
+            'on', 'off', 'toggle', 'brightness_down_click', 'brightness_up_click', 'color_temp', 'color_wheel',
+            'brightness_0_release', 'brightness_1_release', 'brightness_0_hold', 'brightness_1_hold',
+        ])],
         toZigbee: [],
     },
     {
@@ -9431,6 +9671,7 @@ const devices = [
         description: 'Smart plug (UK socket)',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.SP600_power],
+        exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
@@ -9479,6 +9720,7 @@ const devices = [
         description: 'ERIA smart wireless dimming switch',
         supports: 'on, off, up, down',
         fromZigbee: [fz.command_on, fz.command_off, fz.eria_81825_updown],
+        exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -9692,6 +9934,7 @@ const devices = [
         description: '4-Touch single click buttons',
         supports: 'action',
         fromZigbee: [fz.immax_07046L_arm, fz.command_panic],
+        exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
     {
@@ -9956,6 +10199,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.javis_lock_report, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['unlock'])],
     },
 
     // Weiser
@@ -10136,6 +10380,12 @@ const devices = [
         description: 'Scene controller ',
         supports: 'action',
         fromZigbee: [fz.orvibo_raw2],
+        exposes: [e.action([
+            'button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
+            'button_3_click', 'button_3_hold', 'button_3_release', 'button_4_click', 'button_4_hold', 'button_4_release',
+            'button_5_click', 'button_5_hold', 'button_5_release', 'button_6_click', 'button_6_hold', 'button_6_release',
+            'button_7_click', 'button_7_hold', 'button_7_release',
+        ])],
         toZigbee: [],
     },
 
@@ -10448,6 +10698,7 @@ const devices = [
         description: 'Almond Click multi-function button',
         supports: 'single, double and long click',
         fromZigbee: [fz.almond_click],
+        exposes: [e.action(['single', 'double', 'long'])],
         toZigbee: [],
     },
 
@@ -10525,6 +10776,10 @@ const devices = [
         supports: 'action',
         description: 'Zigbee wireless touch dimmer switch',
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        exposes: [e.action([
+            'recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_down', 'brightness_move_up', 'brightness_step_down',
+            'brightness_step_up',
+        ])],
         toZigbee: [],
     },
     {
@@ -10571,6 +10826,7 @@ const devices = [
         ),
         toZigbee: generic.light_onoff_brightness.toZigbee,
         meta: {configureKey: 2},
+        exposes: [e.light_brightness(), e.power(), e.energy()],
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
             {vendor: 'Samotech', model: 'SM311'},
@@ -10599,6 +10855,7 @@ const devices = [
         description: 'ZigBee knob smart dimmer',
         supports: 'action',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
+        exposes: [e.action(['on', 'off', 'brightness_move_to_level'])],
         toZigbee: [],
     },
 
@@ -10731,6 +10988,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.metering_power],
+        exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -10797,6 +11055,7 @@ const devices = [
             fz.generic_fan_mode,
         ]),
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
+        exposes: [e.light_brightness(), e.fan()],
         meta: {disableDefaultResponse: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10870,6 +11129,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.command_off, fz.command_on, fz.command_move_to_color_temp, fz.command_move_to_color],
         toZigbee: [],
+        exposes: [e.action(['off', 'on', 'color_temperature_move', 'color_move'])],
     },
     {
         zigbeeModel: ['RGBW-CCT'],
@@ -10895,6 +11155,9 @@ const devices = [
             fz.command_step, fz.command_recall,
             fz.ZG2819S_command_on, fz.ZG2819S_command_off,
         ],
+        exposes: [e.battery(), e.action([
+            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down', 'recall_*', 'on', 'off',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -10936,6 +11199,7 @@ const devices = [
             fz.insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.insta_down_hold,
             fz.insta_up_hold, fz.insta_stop,
         ],
+        exposes: [e.action(['select_*', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
         ota: ota.zigbeeOTA,
     },
@@ -10952,6 +11216,7 @@ const devices = [
             fz.legacy_ZGRC013_brightness, fz.command_stop, fz.legacy_ZGRC013_brightness_stop, fz.command_on,
             fz.legacy_ZGRC013_cmdOn, fz.command_off, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
         ],
+        exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         meta: {configureKey: 1, multiEndpoint: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -10969,6 +11234,7 @@ const devices = [
         description: 'Telstra smart plug',
         supports: 'on/off, power consumption',
         fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
+        exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -10984,6 +11250,7 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
         supports: 'on/off, power consumption',
+        exposes: [e.switch(), e.power()],
         fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
@@ -11116,6 +11383,10 @@ const devices = [
             fz.CCTSwitch_D0001_brightness_updown_hold_release,
             fz.battery,
         ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_up', 'brightness_down', 'colortemp_up', 'colortemp_down', 'colortemp_up_hold', 'colortemp_down_hold',
+            'colortemp_up_release', 'colortemp_down_release',
+        ])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -11165,6 +11436,7 @@ const devices = [
             fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -11194,6 +11466,7 @@ const devices = [
             fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -11220,6 +11493,7 @@ const devices = [
         description: 'Multi-function button',
         supports: 'single, double and long click',
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy_konke_click],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -11633,6 +11907,7 @@ const devices = [
         supports: 'on/off, brightness',
         fromZigbee: [fz.insta_down_hold, fz.insta_up_hold, fz.LZL4B_onoff, fz.insta_stop],
         toZigbee: [],
+        exposes: [e.action(['down', 'up', 'stop'])],
     },
     {
         zigbeeModel: ['Z3-1BRL'],
@@ -11642,6 +11917,7 @@ const devices = [
         supports: 'brightness',
         fromZigbee: [fz.dimmer_passthru_brightness],
         toZigbee: [],
+        exposes: [e.action(['brightness']), exposes.numeric('brightness', 'r')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -12112,6 +12388,7 @@ const devices = [
         supports: 'on/off, brightness, power measurement',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering_power],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
+        exposes: [e.light_brightness(), e.power()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -12150,6 +12427,14 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.ubisys_c4_scenes, fz.ubisys_c4_onoff, fz.ubisys_c4_level, fz.ubisys_c4_cover],
         toZigbee: [tz.ubisys_device_setup],
+        exposes: [e.action([
+            '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
+            '2_scene_*', '2_on', '2_off', '2_toggle', '2_level_move_down', '2_level_move_up',
+            '3_scene_*', '3_on', '3_off', '3_toggle', '3_level_move_down', '3_level_move_up',
+            '4_scene_*', '4_on', '4_off', '4_toggle', '4_level_move_down', '4_level_move_up',
+            '5_scene_*', '5_cover_open', '5_cover_close', '5_cover_stop',
+            '6_scene_*', '6_cover_open', '6_cover_close', '6_cover_stop',
+        ])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
@@ -12259,6 +12544,7 @@ const devices = [
         supports: 'temperature, contact',
         fromZigbee: [fz.terncy_temperature, fz.terncy_contact],
         toZigbee: [],
+        exposes: [e.temperature(), e.contact()],
     },
     {
         zigbeeModel: ['TERNCY-PP01'],
@@ -12270,6 +12556,9 @@ const devices = [
             fz.terncy_temperature, fz.occupancy_with_timeout,
             fz.illuminance, fz.terncy_raw, fz.legacy_terncy_raw, fz.battery,
         ],
+        exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(), e.action([
+            'single', 'double', 'triple', 'quadruple',
+        ])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
     },
@@ -12282,6 +12571,7 @@ const devices = [
         fromZigbee: [fz.terncy_raw, fz.legacy_terncy_raw, fz.terncy_knob, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', 'r')],
     },
 
     // ORVIBO
@@ -12292,6 +12582,12 @@ const devices = [
         description: 'Smart sticker switch',
         supports: 'click, hold, release',
         fromZigbee: [fz.orvibo_raw],
+        exposes: [e.action([
+            'button_1_click', 'button_1_hold', 'button_1_release',
+            'button_2_click', 'button_2_hold', 'button_2_release',
+            'button_3_click', 'button_3_hold', 'button_3_release',
+            'button_4_click', 'button_4_hold', 'button_4_release',
+        ])],
         toZigbee: [],
     },
     {
@@ -12515,6 +12811,7 @@ const devices = [
         description: 'Smart emergency button',
         supports: 'action',
         fromZigbee: [fz.SE21_action],
+        exposes: [e.action(['off', 'single', 'double', 'hold'])],
         toZigbee: [],
     },
     {
@@ -12592,6 +12889,7 @@ const devices = [
         ],
         description: 'Wireless button',
         supports: 'single, double, long',
+        exposes: [e.battery(), e.action(['single', 'double', 'long'])],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
@@ -12737,6 +13035,7 @@ const devices = [
         description: 'Button',
         supports: 'click',
         fromZigbee: [fz.TS0218_click, fz.battery],
+        exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
 
@@ -12767,6 +13066,7 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
         ],
+        exposes: [e.battery(), e.action(['on', 'off', 'brighntess_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -12776,10 +13076,11 @@ const devices = [
         vendor: 'EcoDim',
         description: 'Zigbee 2 button wall switch',
         supports: 'action',
-        fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
-            fz.battery,
-        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'brighntess_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brighntess_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+        ])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -12793,6 +13094,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13053,6 +13355,7 @@ const devices = [
         description: 'Wireless remote switch',
         supports: 'action',
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -13069,6 +13372,7 @@ const devices = [
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
         supports: 'action',
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, multiEndpoint: true},
@@ -13092,6 +13396,7 @@ const devices = [
         description: 'Remote toggle switch',
         supports: 'action',
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle'])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -13133,6 +13438,7 @@ const devices = [
         supports: 'on/off, power measurement',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+        exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13167,6 +13473,7 @@ const devices = [
             fz.legrand_scenes, fz.legrand_master_switch_center,
             fz.ignore_poll_ctrl, fz.battery,
         ],
+        exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -13204,6 +13511,7 @@ const devices = [
         toZigbee: [
             tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm,
         ],
+        exposes: [e.power(), exposes.binary('power_alarm_active', 'r', true, false)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13222,6 +13530,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.legrand_scenes, fz.battery, fz.ignore_poll_ctrl, fz.legrand_master_switch_center],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13241,6 +13550,7 @@ const devices = [
             tz.on_off, tz.legrand_settingAlwaysEnableLed,
             tz.legrand_settingEnableLedIfOn, tz.legrand_identify,
         ],
+        exposes: [e.switch(), e.action(['identify', 'on', 'off'])],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13304,6 +13614,7 @@ const devices = [
         description: '1-key remote control',
         supports: 'action',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
     },
     {
@@ -13513,6 +13824,7 @@ const devices = [
         supports: 'voc, eco2, temperature, humidity',
         fromZigbee: [fz.lifecontrolVoc],
         toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.eco2()],
     },
 
     // Develco
@@ -13689,6 +14001,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step],
         toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightenss_step_up', 'brightness_step_down'])],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13718,6 +14031,7 @@ const devices = [
         description: 'Power plug Zigbee EU',
         supports: 'on/off, power measurements',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -13750,6 +14064,7 @@ const devices = [
         description: 'Aurora smart plug',
         supports: 'on/off, power measurement, temperature',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.device_temperature(), e.energy()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         endpoint: (device) => {
@@ -13789,6 +14104,7 @@ const devices = [
             fz.command_on, fz.command_off, fz.battery, fz.temperature, fz.humidity,
             fz.U02I007C01_contact, fz.U02I007C01_water_leak,
         ],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.action(['on', 'off']), e.contact(), e.water_leak()],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -13882,6 +14198,13 @@ const devices = [
         description: 'On/off switch',
         supports: 'action',
         fromZigbee: [fz.greenpower_on_off_switch],
+        exposes: [e.action([
+            'identify', 'recall_scene_0', 'recall_scene_1', 'recall_scene_2', 'recall_scene_3', 'recall_scene_4', 'recall_scene_5',
+            'recall_scene_6', 'recall_scene_7', 'store_scene_0', 'store_scene_1', 'store_scene_2', 'store_scene_3', 'store_scene_4',
+            'store_scene_5', 'store_scene_6', 'store_scene_7', 'off', 'on', 'toggle', 'release', 'press_1_of_1', 'release_1_of_1',
+            'press_1_of_2', 'release_1_of_2', 'press_2_of_2', 'release_2_of_2', 'short_press_1_of_1', 'short_press_1_of_2',
+            'short_press_2_of_1',
+        ])],
         toZigbee: [],
         whiteLabel: [
             {vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
@@ -13896,6 +14219,7 @@ const devices = [
         supports: 'action',
         fromZigbee: [fz.greenpower_7],
         toZigbee: [],
+        exposes: [e.action(['*'])],
         whiteLabel: [
             {vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'},
         ],
@@ -13972,6 +14296,7 @@ const devices = [
         supports: 'water leak, temperature',
         fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
         toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.water_leak()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -14010,6 +14335,7 @@ const devices = [
         description: 'SAGE by Hughes doorbell sensor',
         supports: 'action',
         fromZigbee: [fz.SAGE206612_state, fz.battery],
+        exposes: [e.battery(), e.action(['on'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
     },
@@ -14041,6 +14367,10 @@ const devices = [
         vendor: 'KMPCIL',
         description: 'Environment sensor',
         supports: 'battery, temperature, humidity, pressure, illuminance, occupancy, switch',
+        exposes: [
+            e.battery(), e.temperature(), e.humidity(), e.pressure(), e.illuminance(), e.illuminance_lux(),
+            e.occupancy(), e.switch(),
+        ],
         fromZigbee: [
             fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy,
             fz.kmpcil_res005_on_off,
@@ -14207,6 +14537,7 @@ const devices = [
         description: '5 channel remote',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.identify, fz.cover_position_tilt],
+        exposes: [e.action(['identify']), exposes.numeric('position', 'r')],
         toZigbee: [],
     },
     {
@@ -14228,6 +14559,7 @@ const devices = [
         description: 'Room CO2, humidity & temperature sensor',
         supports: 'temperature, humidity and co2',
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
+        exposes: [e.battery(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -14280,6 +14612,16 @@ const devices = [
         description: '8key switch',
         supports: 'action',
         fromZigbee: [fz.qlwz_letv8key_switch],
+        exposes: [e.action([
+            'hold_up', 'single_up', 'double_up', 'tripple_up',
+            'hold_down', 'single_down', 'double_down', 'tripple_down',
+            'hold_left', 'single_left', 'double_left', 'tripple_left',
+            'hold_right', 'single_right', 'double_right', 'tripple_right',
+            'hold_center', 'single_center', 'double_center', 'tripple_center',
+            'hold_back', 'single_back', 'double_back', 'tripple_back',
+            'hold_play', 'single_play', 'double_play', 'tripple_play',
+            'hold_voice', 'single_voice', 'double_voice', 'tripple_voice',
+        ])],
         toZigbee: [],
     },
 
