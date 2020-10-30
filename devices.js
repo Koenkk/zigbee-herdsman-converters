@@ -11803,11 +11803,11 @@ const devices = [
         zigbeeModel: ['4655BC0-R'],
         model: '4655BC0-R',
         vendor: 'Ecolink',
-        supports: 'contact',
+        supports: 'contact, temperature',
         description: 'Contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
     },
 
     // Dawon DNS
