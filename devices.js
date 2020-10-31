@@ -14158,7 +14158,7 @@ const devices = [
 
     // Siterwell
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'TS0601'],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -14187,6 +14187,7 @@ const devices = [
         ],
         whiteLabel: [
             {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
+            {vendor: "Tuya", description: "Głowica termostatyczna", model:"GTZ02"},
         ],
     },
 
