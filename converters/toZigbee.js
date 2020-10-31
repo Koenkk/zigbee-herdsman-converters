@@ -2752,6 +2752,46 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
+    edm_dimmer_control: {
+        key: ['brightness_min', 'brightness', 'brightness_percent', 'level'],
+        convertSet: async (entity, key, value, meta) => {
+            value = Number(value);
+            if (isNaN(value)) {
+                throw new Error(`${key} value of message: '${JSON.stringify(meta.message)}' invalid`);
+            }
+            let Val;
+            let dp = 514;
+            if (key === 'brightness') {
+                if (value >= 0 && value <= 254) {
+                    Val = Math.round(value * 1000 / 254);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..254');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    Val = value * 10;
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    Val = value;
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_min') {
+                if (value >= 0 && value <= 100) {
+                    Val = value * 10;
+                    dp = 515;
+                } else {
+                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                }
+            }
+            const val1 = Val >> 8;
+            const val2 = Val & 0xFF;
+            sendTuyaCommand(entity, dp, 0, [4, 0, 0, val1, val2]);
+        },
+    },
     RM01_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
