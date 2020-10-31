@@ -5063,6 +5063,20 @@ const converters = {
             return {action: `${button}_${action}`};
         },
     },
+    diyruz_freepad_config: {
+        cluster: 'genOnOffSwitchCfg',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const {switchActions, switchType} = msg.data;
+            const switchTypesLookup = ['toggle', 'momentary', 'multifunction'];
+            const switchActionsLookup = ['on', 'off', 'toggle'];
+            return {
+                [`switch_type_${button}`]: switchTypesLookup[switchType],
+                [`switch_actions_${button}`]: switchActionsLookup[switchActions],
+            };
+        },
+    },
     diyruz_geiger: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],

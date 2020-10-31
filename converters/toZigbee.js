@@ -3164,6 +3164,9 @@ const converters = {
     },
     diyruz_freepad_on_off_config: {
         key: ['switch_type', 'switch_actions'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOffSwitchCfg', ['switchType', 'switchActions']);
+        },
         convertSet: async (entity, key, value, meta) => {
             const switchTypesLookup = {
                 toggle: 0x00,
@@ -3183,7 +3186,6 @@ const converters = {
                 switch_type: {switchType},
                 switch_actions: {switchActions},
             };
-
             await entity.write('genOnOffSwitchCfg', payloads[key]);
         },
     },
