@@ -3695,7 +3695,7 @@ const devices = [
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -3704,6 +3704,9 @@ const devices = [
             await configureReporting.occupancy(endpoint);
             await configureReporting.temperature(endpoint);
             await configureReporting.illuminance(endpoint);
+            // read occupancy_timeout and motion_sensitivity
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
         },
         ota: ota.zigbeeOTA,
     },
@@ -3730,7 +3733,7 @@ const devices = [
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
         },
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -3739,6 +3742,9 @@ const devices = [
             await configureReporting.occupancy(endpoint);
             await configureReporting.temperature(endpoint);
             await configureReporting.illuminance(endpoint);
+            // read occupancy_timeout and motion_sensitivity
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
         },
         ota: ota.zigbeeOTA,
     },
