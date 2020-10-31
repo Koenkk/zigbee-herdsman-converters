@@ -3187,6 +3187,8 @@ const converters = {
                 switch_actions: {switchActions},
             };
             await entity.write('genOnOffSwitchCfg', payloads[key]);
+
+            return {state: {[`${key}_${meta.endpoint_name}`]: value}};
         },
     },
     diyruz_geiger_config: {
