@@ -4186,8 +4186,16 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
         supports: 'single, double, triple, quadruple, many, hold/release',
-        fromZigbee: [fz.diyruz_freepad_clicks, fz.battery],
-        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])],
+        fromZigbee: [fz.diyruz_freepad_clicks, fz.diyruz_freepad_config, fz.battery],
+        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])].concat(((enpoinsCount) => {
+            const features = [];
+            for (let i = 1; i <= enpoinsCount; i++) {
+                const epName = `button_${i}`;
+                features.push(exposes.enum('switch_type', 'rw', ['toggle', 'momentary', 'multifunction']).withEndpoint(epName));
+                features.push(exposes.enum('switch_actions', 'rw', ['on', 'off', 'toggle']).withEndpoint(epName));
+            }
+            return features;
+        })(20)),
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
