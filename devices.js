@@ -7177,6 +7177,21 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['4512701'],
+        model: '4512701',
+        vendor: 'Namron',
+        description: 'Zigbee 1 channel switch K2',
+        supports: 'action',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.battery,
+            fz.command_move, fz.command_stop,
+        ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+        ])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['4512702'],
         model: '4512702',
         vendor: 'Namron',
@@ -7190,6 +7205,23 @@ const devices = [
             'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down',
         ])],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['4512719'],
+        model: '4512719',
+        vendor: 'Namron',
+        description: 'Zigbee 2 channel switch K4',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
+        meta: {multiEndpoint: true},
+        exposes: [e.battery(), e.action([
+            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
+            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
+        ])],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
     },
     {
         zigbeeModel: ['4512706'],
