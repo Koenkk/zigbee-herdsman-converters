@@ -14282,7 +14282,6 @@ const devices = [
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
             tz.thermostat_keypad_lockout,
@@ -14296,7 +14295,6 @@ const devices = [
             ]);
             await configureReporting.thermostatTemperature(endpoint);
             await configureReporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await configureReporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await configureReporting.thermostatPIHeatingDemand(endpoint);
             await configureReporting.thermostatKeypadLockMode(endpoint);
         },
