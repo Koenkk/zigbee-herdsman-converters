@@ -4717,6 +4717,7 @@ const devices = [
             'right_bottom_release', 'right_bottom_hold',
         ])],
         fromZigbee: [
+            fz.battery,
             fz.osram_lightify_switch_AB371860355_cmdOn,
             fz.osram_lightify_switch_AB371860355_cmdOff,
             fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
@@ -4727,7 +4728,7 @@ const devices = [
             fz.osram_lightify_switch_AB371860355_cmdMoveSat,
         ],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
