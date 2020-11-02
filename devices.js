@@ -2082,6 +2082,10 @@ const devices = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode,
         ],
+        exposes: [
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
@@ -2101,6 +2105,10 @@ const devices = [
         vendor: 'TuYa',
         description: 'HVAC controller',
         supports: 'temperature, heating/cooling system control, fan mode',
+        exposes: [
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+        ],
         fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report, fz.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
@@ -2158,6 +2166,10 @@ const devices = [
             fz.hy_set_time_request,
         ],
         toZigbee: [tz.hy_thermostat],
+        exposes: [
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
     },
 
     // Neo
@@ -4380,6 +4392,10 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state,
         ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -4951,6 +4967,10 @@ const devices = [
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_system_mode, tz.thermostat_running_state,
         ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4975,6 +4995,10 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration,
+        ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 1, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -7944,6 +7968,10 @@ const devices = [
             tz.thermostat_temperature_display_mode,
             tz.thermostat_system_mode,
         ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+        ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9760,6 +9788,10 @@ const devices = [
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position,
             tz.thermostat_local_temperature,
         ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10436,6 +10468,11 @@ const devices = [
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
@@ -10485,6 +10522,11 @@ const devices = [
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
         ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
@@ -10533,6 +10575,11 @@ const devices = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -10584,6 +10631,11 @@ const devices = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -11645,6 +11697,11 @@ const devices = [
             tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature,
         ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11702,6 +11759,11 @@ const devices = [
             tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -11767,6 +11829,11 @@ const devices = [
             tz.sinope_temperature_sensor,
             tz.sinope_time_format,
         ],
+        exposes: [
+            e.local_temperature(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11819,6 +11886,10 @@ const devices = [
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
         ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -11848,6 +11919,10 @@ const devices = [
             tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -11959,6 +12034,10 @@ const devices = [
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
+        ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -13221,6 +13300,10 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_keypad_lockout,
         ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+        ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -14285,6 +14368,10 @@ const devices = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
             tz.thermostat_keypad_lockout,
+        ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
