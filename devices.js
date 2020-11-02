@@ -8849,7 +8849,7 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['SMHM-I1'],
+        zigbeeModel: ['SMHM-I1', 'PIR_TPV12'],
         model: 'SMHM-I1',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
