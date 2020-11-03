@@ -13062,6 +13062,11 @@ const devices = [
         },
     },
     {
+        fingerprint: [
+            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+            ]},
+        ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
         vendor: 'SONOFF',
