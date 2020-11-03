@@ -9044,6 +9044,23 @@ const devices = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
+        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS1VS-EF',
+        vendor: 'HEIMAN',
+        description: 'Vibration sensor',
+        supports: 'vibration',
+        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+        exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'HS2AQ-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS2AQ-EM',
         vendor: 'HEIMAN',
