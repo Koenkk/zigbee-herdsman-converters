@@ -9325,6 +9325,21 @@ const devices = [
         extend: generic.light_onoff_brightness,
     },
 
+    // Lubeez
+    {
+        zigbeeModel: ['LUBEEZ-12AB'],
+		model: '12AB',
+		vendor: 'Lubeez',
+		description: 'zigbee 3.0 AC dimmer',
+		extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
+
     // Airam
     {
         zigbeeModel: ['ZBT-DimmableLight'],
