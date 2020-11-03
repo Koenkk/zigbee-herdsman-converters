@@ -2734,6 +2734,14 @@ const devices = [
 
     // Philips
     {
+        zigbeeModel: ['LWU001'],
+        model: '9290024406',
+        vendor: 'Philips',
+        description: 'Hue P45 light bulb',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC002'],
         model: '4034031P7',
         vendor: 'Philips',
