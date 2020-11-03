@@ -9328,10 +9328,10 @@ const devices = [
     // Lubeez
     {
         zigbeeModel: ['LUBEEZ-12AB'],
-		model: '12AB',
-		vendor: 'Lubeez',
-		description: 'zigbee 3.0 AC dimmer',
-		extend: generic.light_onoff_brightness,
+        model: '12AB',
+        vendor: 'Lubeez',
+        description: 'zigbee 3.0 AC dimmer',
+        extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
