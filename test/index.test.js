@@ -176,7 +176,7 @@ describe('index.js', () => {
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
+                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'exposes'],
                 Object.keys(device),
                 device.model,
             );

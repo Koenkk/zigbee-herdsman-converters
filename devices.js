@@ -1761,6 +1761,12 @@ const devices = [
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
         ],
+        exposes: [
+            e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['auto']).withRunningState(['idle', 'heat']).withAwayMode()
+                .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
+        ],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
@@ -1789,6 +1795,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: 101,
             },
         },
+        exposes: [
+            e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode(),
+        ],
     },
     {
         fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
@@ -1818,6 +1828,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: 101,
             },
         },
+        exposes: [
+            e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode(),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],
@@ -5069,6 +5083,12 @@ const devices = [
             await configureReporting.thermostatTemperatureSetpointHold(waterEndpoint);
             await configureReporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('cool'),
+        ],
     },
     {
         zigbeeModel: ['WPT1'],
@@ -5798,6 +5818,11 @@ const devices = [
             await configureReporting.thermostatUnoccupiedCoolingSetpoint(endpoint);
             await configureReporting.fanMode(endpoint);
         },
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
+                .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1),
+        ],
     },
 
     // GE
@@ -8391,6 +8416,11 @@ const devices = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode,
         ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
+                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1),
+        ],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10125,6 +10155,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: 101,
             },
         },
+        exposes: [
+            e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode(),
+        ],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
@@ -13323,6 +13357,10 @@ const devices = [
             tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_min_temperature,
         ],
+        exposes: [
+            e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat', 'cool']).withPreset(['hold', 'program']),
+        ],
     },
     {
         fingerprint: [
@@ -13343,6 +13381,10 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
+        exposes: [
+            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+        ],
     },
     {
         fingerprint: [
@@ -13367,6 +13409,10 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
+        exposes: [
+            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+        ],
     },
 
     // Schneider Electric
@@ -14375,6 +14421,11 @@ const devices = [
         ],
         whiteLabel: [
             {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
+        ],
+        exposes: [
+            e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
     },
 
