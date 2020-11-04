@@ -11272,7 +11272,7 @@ const devices = [
         exposes: [e.action(['off', 'on', 'color_temperature_move', 'color_move'])],
     },
     {
-        zigbeeModel: ['RGBW-CCT'],
+        zigbeeModel: ['RGBW-CCT', '511.040'],
         model: '511.040',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
