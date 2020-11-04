@@ -2170,7 +2170,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
         extend: generic.switch,
-        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
