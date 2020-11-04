@@ -14838,6 +14838,17 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    // FireAngel W2-Module
+    {
+        zigbeeModel: ['Alarm_SD_Device'],
+        model: 'W2-Module',
+        description: 'Carbon monoxide sensor',
+        supports: 'carbon monoxide',
+        vendor: 'FireAngel',
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_2, fz.battery],
+        toZigbee: [],
+        exposes: [e.carbon_monoxide(), e.battery()],
+    },
 ];
 
 

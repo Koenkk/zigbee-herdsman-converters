@@ -991,6 +991,16 @@ const converters = {
             };
         },
     },
+    ias_carbon_monoxide_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                carbon_monoxide: (zoneStatus & 1<<8) > 8,
+            };
+        },
+    },
     ias_sos_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
