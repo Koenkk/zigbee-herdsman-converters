@@ -1876,6 +1876,7 @@ const devices = [
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'}],
         model: 'mcdj3aq',
         vendor: 'TuYa',
         description: 'Tubular motor',
