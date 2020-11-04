@@ -653,7 +653,7 @@ const converters = {
                 }
                 meta.mapped = meta.mapped[0];
             }
-
+            
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
                 value.x = xy.x;
@@ -803,6 +803,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 cmd = 'moveToSaturation';
             }
+            value.mode = 'xy';
 
             const zclData = {transtime: getTransition(entity, key, meta).time};
 
@@ -866,7 +867,8 @@ const converters = {
                     value.y = 0.2993;
                 }
 
-                newState.color = {x: value.x, y: value.y};
+                newState.color = {hex: value.hex, x: value.x, y: value.y};
+                newState.mode = { mode: value.mode };
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
@@ -918,6 +920,7 @@ const converters = {
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
                 result.state.color = utils.miredsToXY(result.state.color_temp);
+                result.state.mode = 'ct';
                 return result;
             }
         },
@@ -1762,14 +1765,14 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                }
+                //if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                //    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                //}
 
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.gledopto_light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = utils.miredsToXY(result.state.color_temp);
+                //result.state.color = utils.miredsToXY(result.state.color_temp);
                 return result;
             }
         },
