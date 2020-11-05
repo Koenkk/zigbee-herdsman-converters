@@ -991,18 +991,6 @@ const converters = {
             };
         },
     },
-    ias_carbon_monoxide_alarm_2: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                carbon_monoxide: (zoneStatus & 1<<8) > 8,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
     ias_sos_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1729,6 +1717,16 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const pressure = msg.data.hasOwnProperty('16') ? parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
+    fire_angel_carbon_monoxide: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                carbon_monoxide: (zoneStatus & 1<<8) > 8,
+            };
         },
     },
     WSDCGQ01LM_WSDCGQ11LM_interval: {
