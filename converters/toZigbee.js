@@ -3136,7 +3136,7 @@ const converters = {
     tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
         key: ['schedule'],
         convertSet: async (entity, key, value, meta) => {
-            const prob = Object.keys(value)[0]; //"workdays" or "holidays"
+            const prob = Object.keys(value)[0]; // "workdays" or "holidays"
             if ((prob === 'workdays') || (prob === 'holidays')) {
                 const dpId = (prob === 'workdays') ? 112 : 113;
                 const payload = [];
