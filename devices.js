@@ -456,7 +456,7 @@ const tuya = {
             await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
         }
     },
-    setLocalTime: async (type, data, device) => { // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970, GMT
+    setLocalTime: async (type, data, device) => { // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
         if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuyaDimmer') {
             const utcTime = Math.round(((new Date()).getTime()) / 1000);
             const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;

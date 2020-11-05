@@ -3126,21 +3126,21 @@ const converters = {
             }
         },
     },
-    tuya_thermostat_window_detect: {    // payload example { "detect":"OFF", "temperature":5, "minutes":8} 
+    tuya_thermostat_window_detect: { // payload example { "detect":"OFF", "temperature":5, "minutes":8}
         key: ['window_detect'],
         convertSet: async (entity, key, value, meta) => {
             const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
             sendTuyaCommand(entity, 104, 0, [3, detect, value.temperature, value.minutes]);
         },
     },
-    tuya_thermostat_schedule: {    // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x hour,minute,temperature
+    tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
         key: ['schedule'],
         convertSet: async (entity, key, value, meta) => {
-            const prob = Object.keys(value)[0];	//"workdays" or "holidays"
-            if ((prob === "workdays") || (prob === "holidays")) {
-                const dpId = (prob === "workdays") ? 112 : 113;
+            const prob = Object.keys(value)[0]; //"workdays" or "holidays"
+            if ((prob === 'workdays') || (prob === 'holidays')) {
+                const dpId = (prob === 'workdays') ? 112 : 113;
                 const payload = [];
-                for (var i = 0; i < 6; i++) {
+                for (let i = 0; i < 6; i++) {
                     if ((value[prob][i].hour >= 0) && (value[prob][i].hour < 24)) {
                         payload[i*3] = value[prob][i].hour;
                     }
@@ -3151,7 +3151,7 @@ const converters = {
                         payload[i*3+2] = value[prob][i].temperature;
                     }
                 }
-            sendTuyaCommand(entity, dpId, 0, [18, ...payload]);
+                sendTuyaCommand(entity, dpId, 0, [18, ...payload]);
             }
         },
     },
