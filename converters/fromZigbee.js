@@ -998,6 +998,8 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 carbon_monoxide: (zoneStatus & 1<<8) > 8,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
     },
