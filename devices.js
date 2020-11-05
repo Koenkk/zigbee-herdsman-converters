@@ -456,6 +456,21 @@ const tuya = {
             await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
         }
     },
+    setLocalTime: async (type, data, device) => { // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
+        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuyaDimmer') {
+            const utcTime = Math.round(((new Date()).getTime()) / 1000);
+            const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
+            const endpoint = device.getEndpoint(1);
+            const payload = {
+                payloadSize: 8,
+                payload: [
+                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                ],
+            };
+            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
+        }
+    },
 };
 
 
@@ -1470,7 +1485,7 @@ const devices = [
             {vendor: 'LoraTap', model: 'SC400'},
         ],
         exposes: [
-            e.cover_position_tilt(),
+            e.cover_position(),
             exposes.enum('moving', 'r', ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', 'rw', 'ON', 'OFF'),
             exposes.enum('backlight_mode', 'rw', ['LOW', 'MEDIUM', 'HIGH']),
@@ -1753,6 +1768,7 @@ const devices = [
         ],
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         ota: ota.zigbeeOTA,
+        onEvent: tuya.setLocalTime,
         fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
@@ -1760,6 +1776,7 @@ const devices = [
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
+            tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset,
         ],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
