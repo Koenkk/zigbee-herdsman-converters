@@ -14918,6 +14918,21 @@ const devices = [
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery()],
     },
+
+    // KlikAanKlikUit
+    {
+        zigbeeModel: ['Socket Switch'],
+        model: 'ZCC-3500',
+        vendor: 'KlikAanKlikUit',
+        description: 'Zigbee socket switch',
+        extend: generic.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 ];
 
 
