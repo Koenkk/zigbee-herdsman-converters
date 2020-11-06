@@ -14933,7 +14933,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    
+
     // eWeLink Zigbee 2 gang switch
     {
         zigbeeModel: ['ZB-SW02'],
