@@ -13190,7 +13190,7 @@ const devices = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
 
-    // eWeLink: the IoT solution provider behinds lots of smart device brands
+    // eWeLink
     {
         zigbeeModel: ['SA-003-Zigbee'],
         model: 'SA-003-Zigbee',
@@ -13202,6 +13202,22 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['ZB-SW02'],
+        model: 'ZB-SW02',
+        vendor: 'eWeLink',
+        description: 'Smart light switch - 2 gang',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
 
@@ -14931,24 +14947,6 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
-        },
-    },
-
-    // eWeLink Zigbee 2 gang switch
-    {
-        zigbeeModel: ['ZB-SW02'],
-        model: 'ZB-SW02',
-        vendor: 'eWeLink',
-        description: 'Smart light switch - 2 gang',
-        extend: generic.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
 ];
