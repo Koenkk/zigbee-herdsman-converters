@@ -14933,6 +14933,24 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    
+    // eWeLink Zigbee 2 gang switch
+    {
+        zigbeeModel: ['ZB-SW02'],
+        model: 'ZB-SW02',
+        vendor: 'eWeLink',
+        description: 'Smart light switch - 2 gang',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
 
 
