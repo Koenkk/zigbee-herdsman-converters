@@ -13072,6 +13072,13 @@ const devices = [
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
+        zigbeeModel: ['01MINIZB'],
+        model: 'ZBMINI',
+        vendor: 'SONOFF',
+        description: 'Zigbee two way smart switch',
+        extend: generic.switch,
+    },
+    {
         zigbeeModel: ['S31 Lite zb'],
         model: 'S31ZB',
         vendor: 'SONOFF',
