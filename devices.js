@@ -13368,6 +13368,13 @@ const devices = [
         description: 'LED Strip',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['AJ_ZB30_GU10'],
+        model: 'AJ_ZB_GU10',
+        vendor: 'Ajax Online',
+        description: 'Smart Zigbee pro GU10 spotlight bulb',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Moes
     {
