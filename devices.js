@@ -2036,10 +2036,14 @@ const devices = [
         ],
         meta: {configureKey: 2, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3]) {
-                const endpoint = device.getEndpoint(ID);
-                await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(endpoint);
+            try {
+                for (const ID of [1, 2, 3]) {
+                    const endpoint = device.getEndpoint(ID);
+                    await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                    await configureReporting.onOff(endpoint);
+                }
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
         },
     },
