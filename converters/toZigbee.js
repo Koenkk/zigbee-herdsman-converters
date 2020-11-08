@@ -2723,20 +2723,45 @@ const converters = {
         },
     },
     tuya_dimmer_level: {
-        key: ['brightness', 'brightness_percent'],
+        key: ['brightness_min', 'brightness', 'brightness_percent', 'level'],
         convertSet: async (entity, key, value, meta) => {
             // upscale to 1000
             let newValue;
-            if (key === 'brightness_percent') {
-                newValue = Math.round(Number(value) * 10);
+            let dp = 515;
+            if (meta.device.manufacturerName == '_TZE200_9i9dt8is') {
+                dp = 514;
+            }
+            if (key === 'brightness_min') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                    dp = 515;
+                } else {
+                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                }
+            } else if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
             } else {
-                newValue = Math.round(Number(value) * 1000 / 255);
+                if (value >= 0 && value <= 255) {
+                    newValue = Math.round(Number(value) * 1000 / 255);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
             }
             const b1 = newValue >> 8;
             const b2 = newValue & 0xFF;
             await entity.command(
                 'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 515, fn: 0, data: [4, 0, 0, b1, b2],
+                    status: 0, transid: 16, dp: dp, fn: 0, data: [4, 0, 0, b1, b2],
                 },
                 {disableDefaultResponse: true},
             );
