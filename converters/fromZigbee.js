@@ -2542,6 +2542,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return converters.command_toggle.convert(model, msg, publish, options, meta);
             } else {
@@ -2553,6 +2554,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return converters.command_step.convert(model, msg, publish, options, meta);
             } else {
@@ -2569,6 +2571,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return converters.command_move.convert(model, msg, publish, options, meta);
             } else {
@@ -2595,6 +2598,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (options.hasOwnProperty('legacy') && options.legacy === false) {
                 return converters.command_stop.convert(model, msg, publish, options, meta);
             } else {
