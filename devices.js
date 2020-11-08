@@ -262,7 +262,7 @@ const generic = {
     light_onoff_brightness: {
         exposes: [
             e.light_brightness(),
-            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
         ],
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
@@ -274,7 +274,7 @@ const generic = {
     light_onoff_brightness_colortemp: {
         exposes: [
             e.light_brightness_colortemp(),
-            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
         ],
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
@@ -287,7 +287,7 @@ const generic = {
     light_onoff_brightness_colorxy: {
         exposes: [
             e.light_brightness_colorxy(),
-            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
         ],
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
@@ -300,7 +300,7 @@ const generic = {
     light_onoff_brightness_colortemp_colorxy: {
         exposes: [
             e.light_brightness_colortemp_colorxy(),
-            exposes.enum('effect', 'w', ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
+            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
         ],
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
@@ -1126,8 +1126,8 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.ias_smoke_alarm_1, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
-            e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
-            exposes.numeric('smoke_density', 'r'),
+            e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('smoke_density', exposes.access.STATE), exposes.enum('selftest', exposes.access.SET, ['']),
         ],
     },
     {
@@ -1139,8 +1139,8 @@ const devices = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
-            e.gas(), e.battery_low(), e.tamper(), exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
-            exposes.numeric('gas_density', 'r'),
+            e.gas(), e.battery_low(), e.tamper(), exposes.enum('sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('gas_density', exposes.access.STATE), exposes.enum('selftest', exposes.access.SET, ['']),
         ],
     },
     {
@@ -1150,7 +1150,7 @@ const devices = [
         description: 'Vima Smart Lock',
         supports: 'inserted, forgotten, key error',
         fromZigbee: [fz.xiaomi_lock_report],
-        exposes: [exposes.text('inserted', 'r')],
+        exposes: [exposes.text('inserted', exposes.access.STATE)],
         toZigbee: [],
     },
     {
@@ -1163,8 +1163,8 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', 'r'),
-            exposes.enum('sensitivity', 'rw', ['low', 'medium', 'high']),
+            e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', exposes.access.STATE),
+            exposes.enum('sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
         ],
     },
     {
@@ -1233,8 +1233,9 @@ const devices = [
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.xiaomi_battery],
         toZigbee: [],
         exposes: [
-            e.battery(), e.battery_low(), exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
-            exposes.enum('action', 'r', [
+            e.battery(), e.battery_low(), exposes.binary('state', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.binary('reverse', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.enum('action', exposes.access.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -1257,8 +1258,9 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1},
         exposes: [
-            exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
-            exposes.enum('action', 'r', [
+            exposes.binary('state', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.binary('reverse', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.enum('action', exposes.access.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -1279,8 +1281,9 @@ const devices = [
         fromZigbee: [fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [
-            exposes.binary('state', 'r', 'UNLOCK', 'LOCK'), exposes.binary('reverse', 'r', 'UNLOCK', 'LOCK'),
-            exposes.enum('action', 'r', [
+            exposes.binary('state', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.binary('reverse', exposes.access.STATE, 'UNLOCK', 'LOCK'),
+            exposes.enum('action', exposes.access.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -1488,10 +1491,10 @@ const devices = [
         ],
         exposes: [
             e.cover_position(),
-            exposes.enum('moving', 'r', ['UP', 'STOP', 'DOWN']),
-            exposes.binary('calibration', 'rw', 'ON', 'OFF'),
-            exposes.enum('backlight_mode', 'rw', ['LOW', 'MEDIUM', 'HIGH']),
-            exposes.binary('motor_reversal', 'rw', 'ON', 'OFF'),
+            exposes.enum('moving', exposes.access.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.binary('calibration', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.enum('backlight_mode', exposes.access.ALL, ['LOW', 'MEDIUM', 'HIGH']),
+            exposes.binary('motor_reversal', exposes.access.ALL, 'ON', 'OFF'),
         ],
     },
     {
@@ -2185,7 +2188,7 @@ const devices = [
         description: 'Sound and flash siren',
         supports: 'alarm',
         fromZigbee: [fz.ts0216_siren, fz.battery],
-        exposes: [e.battery(), exposes.binary('alarm', 'r', true, false)],
+        exposes: [e.battery(), exposes.binary('alarm', exposes.access.STATE, true, false)],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -2220,8 +2223,9 @@ const devices = [
         fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
         toZigbee: [tz.neo_t_h_alarm],
         exposes: [
-            e.temperature(), e.humidity(), exposes.binary('humidity_alarm', 'r', true, false),
-            exposes.binary('temperature_alarm', 'r', true, false), exposes.binary('alarm', 'r', true, false),
+            e.temperature(), e.humidity(), exposes.binary('humidity_alarm', exposes.access.STATE_SET, true, false),
+            exposes.binary('temperature_alarm', exposes.access.STATE_SET, true, false),
+            exposes.binary('alarm', exposes.access.STATE, true, false),
         ],
     },
 
@@ -2671,8 +2675,8 @@ const devices = [
         fromZigbee: [fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         exposes: [
-            e.battery(), e.occupancy(), exposes.numeric('requested_brightness_level', 'r'),
-            exposes.numeric('requested_brightness_percent', 'r'),
+            e.battery(), e.occupancy(), exposes.numeric('requested_brightness_level', exposes.access.STATE),
+            exposes.numeric('requested_brightness_percent', exposes.access.STATE),
         ],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
@@ -3753,8 +3757,8 @@ const devices = [
         ],
         exposes: [
             e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', 'rw', ['low', 'medium', 'high']),
-            exposes.numeric('occupancy_timeout', 'rw').withUnit('second').withValueMin(0).withValueMax(65535),
+            exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('occupancy_timeout', exposes.access.ALL).withUnit('second').withValueMin(0).withValueMax(65535),
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
@@ -3791,8 +3795,8 @@ const devices = [
         ],
         exposes: [
             e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', 'rw', ['low', 'medium', 'high']),
-            exposes.numeric('occupancy_timeout', 'rw').withUnit('second').withValueMin(0).withValueMax(65535),
+            exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('occupancy_timeout', exposes.access.ALL).withUnit('second').withValueMin(0).withValueMax(65535),
         ],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
         endpoint: (device) => {
@@ -4070,7 +4074,7 @@ const devices = [
         supports: 'state, description, type, rssi',
         fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger],
-        exposes: [exposes.binary('led', 'r', true, false)],
+        exposes: [exposes.binary('led', exposes.access.STATE, true, false)],
     },
     {
         zigbeeModel: ['ptvo.switch'],
@@ -4088,10 +4092,14 @@ const devices = [
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
             e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'), e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
-            exposes.text('', 'r').withEndpoint('l1').withProperty('l1'), exposes.text('', 'r').withEndpoint('l2').withProperty('l2'),
-            exposes.text('', 'r').withEndpoint('l3').withProperty('l3'), exposes.text('', 'r').withEndpoint('l4').withProperty('l4'),
-            exposes.text('', 'r').withEndpoint('l5').withProperty('l5'), exposes.text('', 'r').withEndpoint('l6').withProperty('l6'),
-            exposes.text('', 'r').withEndpoint('l7').withProperty('l7'), exposes.text('', 'r').withEndpoint('l8').withProperty('l8'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l1').withProperty('l1'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l2').withProperty('l2'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l3').withProperty('l3'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l4').withProperty('l4'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l5').withProperty('l5'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l6').withProperty('l6'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l7').withProperty('l7'),
+            exposes.text('', exposes.access.STATE).withEndpoint('l8').withProperty('l8'),
             e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'triple', 'hold']),
         ],
         meta: {multiEndpoint: true},
@@ -4189,7 +4197,8 @@ const devices = [
         fromZigbee: [fz.DTB190502A1_parse],
         toZigbee: [tz.DTB190502A1_LED],
         exposes: [
-            exposes.binary('led_state', 'r', 'ON', 'OFF'), exposes.enum('key_state', 'r', ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE']),
+            exposes.binary('led_state', exposes.access.STATE, 'ON', 'OFF'),
+            exposes.enum('key_state', exposes.access.STATE, ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE']),
         ],
     },
     {
@@ -4266,8 +4275,9 @@ const devices = [
             const features = [];
             for (let i = 1; i <= enpoinsCount; i++) {
                 const epName = `button_${i}`;
-                features.push(exposes.enum('switch_type', 'rw', ['toggle', 'momentary', 'multifunction']).withEndpoint(epName));
-                features.push(exposes.enum('switch_actions', 'rw', ['on', 'off', 'toggle']).withEndpoint(epName));
+                features.push(
+                    exposes.enum('switch_type', exposes.access.ALL, ['toggle', 'momentary', 'multifunction']).withEndpoint(epName));
+                features.push(exposes.enum('switch_actions', exposes.access.ALL, ['on', 'off', 'toggle']).withEndpoint(epName));
             }
             return features;
         })(20)),
@@ -4313,8 +4323,8 @@ const devices = [
         supports: 'radioactive pulses perminute',
         fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off],
         exposes: [
-            e.action(['on', 'off']), exposes.numeric('radioactive_events_per_minute', 'r').withUnit('rpm'),
-            exposes.numeric('radiation_dose_per_hour', 'r').withUnit('rph'),
+            e.action(['on', 'off']), exposes.numeric('radioactive_events_per_minute', exposes.access.STATE).withUnit('rpm'),
+            exposes.numeric('radiation_dose_per_hour', exposes.access.STATE).withUnit('rph'),
         ],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         meta: {configureKey: 1},
@@ -7374,7 +7384,7 @@ const devices = [
             fz.STS_PRS_251_presence, fz.battery,
             fz.STS_PRS_251_beeping,
         ],
-        exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', 'w', [''])],
+        exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', exposes.access.SET, [''])],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -7624,7 +7634,10 @@ const devices = [
             const payload = configureReportingPayload('acceleration', 10, repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), exposes.binary('moving', 'r', true, false)],
+        exposes: [
+            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
+            exposes.binary('moving', exposes.access.STATE, true, false),
+        ],
     },
     {
         zigbeeModel: ['multi'],
@@ -9189,7 +9202,7 @@ const devices = [
         },
         exposes: [
             e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
-            exposes.enum('battery_state', 'r', ['not_charging', 'charging', 'charged']),
+            exposes.enum('battery_state', exposes.access.STATE, ['not_charging', 'charging', 'charged']),
         ],
     },
     {
@@ -12149,7 +12162,7 @@ const devices = [
         supports: 'brightness',
         fromZigbee: [fz.dimmer_passthru_brightness],
         toZigbee: [],
-        exposes: [e.action(['brightness']), exposes.numeric('brightness', 'r')],
+        exposes: [e.action(['brightness']), exposes.numeric('brightness', exposes.access.STATE)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -12807,7 +12820,7 @@ const devices = [
         fromZigbee: [fz.terncy_raw, fz.legacy_terncy_raw, fz.terncy_knob, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', 'r')],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', exposes.access.STATE)],
     },
 
     // ORVIBO
@@ -13798,7 +13811,7 @@ const devices = [
         toZigbee: [
             tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm,
         ],
-        exposes: [e.power(), exposes.binary('power_alarm_active', 'r', true, false)],
+        exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -14831,7 +14844,7 @@ const devices = [
         description: '5 channel remote',
         supports: 'open, close, stop, position',
         fromZigbee: [fz.identify, fz.cover_position_tilt],
-        exposes: [e.action(['identify']), exposes.numeric('position', 'r')],
+        exposes: [e.action(['identify']), exposes.numeric('position', exposes.access.STATE)],
         toZigbee: [],
     },
     {
