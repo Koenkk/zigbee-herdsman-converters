@@ -1419,6 +1419,7 @@ const devices = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -1433,24 +1434,6 @@ const devices = [
         },
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
-        ],
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
-        ],
-        model: 'EDM_1ZAA',
-        vendor: 'TuYa',
-        description: 'Smarty dimmer switch',
-        extend: generic.light_onoff_brightness,
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_dimmer_state, tz.edm_dimmer_control],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        whiteLabel: [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
         ],
     },
