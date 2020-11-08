@@ -3818,6 +3818,74 @@ const converters = {
             }
         },
     },
+    danfoss_thermostat_att_report: {
+      cluster: 'hvacThermostat',
+      type: ['attributeReport', 'readResponse'],
+      convert: (model, msg, publish, options, meta) => {
+          const result = {};
+          if (typeof msg.data['localTemp'] == 'number') {
+              result[postfixWithEndpointName('local_temperature', msg, model)] = precisionRound(msg.data['localTemp'], 2) / 100;
+          }
+          if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
+              let ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+              // Stelpro will return -325.65 when set to off
+              ohs = ohs < - 250 ? 0 : ohs;
+              result[postfixWithEndpointName('occupied_heating_setpoint', msg, model)] = ohs;
+          }
+          const ctrl = msg.data['ctrlSeqeOfOper'];
+          if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
+              result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
+                  common.thermostatControlSequenceOfOperations[ctrl];
+          }
+          const smode = msg.data['systemMode'];
+          if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
+              result[postfixWithEndpointName('system_mode', msg, model)] = common.thermostatSystemModes[smode];
+          }
+          const rmode = msg.data['runningMode'];
+          if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
+              result[postfixWithEndpointName('running_mode', msg, model)] = common.thermostatSystemModes[rmode];
+          }
+          const state = msg.data['runningState'];
+          if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
+              result[postfixWithEndpointName('running_state', msg, model)] = common.thermostatRunningStates[state];
+          }
+          if (typeof msg.data['pIHeatingDemand'] == 'number') {
+              result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
+                  precisionRound(msg.data['pIHeatingDemand'], 0);
+          }
+          if (typeof msg.data[0x4000] == 'number') {
+              result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
+          }
+          if (typeof msg.data[0x4003] == 'number') {
+              result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
+          }
+          if (typeof msg.data[0x4010] == 'number') {
+              result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
+          }
+          if (typeof msg.data[0x4011] == 'number') {
+              result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
+          }
+          if (typeof msg.data[0x4012] == 'number') {
+              result[postfixWithEndpointName('mounted_mode', msg, model)] = (msg.data[0x4012]==1);
+          }
+          if (typeof msg.data[0x4013] == 'number') {
+              result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
+          }
+          if (typeof msg.data[0x4014] == 'number') {
+              result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
+          }
+          if (typeof msg.data[0x4020] == 'number') {
+              result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
+          }
+          if (typeof msg.data[0x4030] == 'number') {
+              result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
+          }
+          if (typeof msg.data[0x4031] == 'number') {
+              result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
+          }
+          return result;
+       },
+    },
 
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
