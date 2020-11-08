@@ -285,7 +285,7 @@ describe('index.js', () => {
                 "type":"binary",
                 "name":"state",
                 "property":"state_rgb",
-                "access":"rw",
+                "access":7,
                 "value_on":"ON",
                 "value_off":"OFF",
                 "value_toggle":"TOGGLE",
@@ -295,7 +295,7 @@ describe('index.js', () => {
                 "type":"numeric",
                 "name":"brightness",
                 "property":"brightness_rgb",
-                "access":"rw",
+                "access":7,
                 "value_min":0,
                 "value_max":254,
                 "endpoint":"rgb"
@@ -309,13 +309,13 @@ describe('index.js', () => {
                     "type":"numeric",
                     "name":"x",
                     "property":"x",
-                    "access":"rw"
+                    "access":7
                   },
                   {
                     "type":"numeric",
                     "name":"y",
                     "property":"y",
-                    "access":"rw"
+                    "access":7
                   }
                 ],
                 "endpoint":"rgb"
