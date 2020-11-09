@@ -1469,34 +1469,6 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        fingerprint: [
-            {modelId: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
-        ],
-        model: 'SPSZ_3_A1',
-        vendor: 'SilverCrest',
-        description: '3 gang switch (16A) with 4 USB ports',
-        supports: 'on/off',
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
-        ],
-        fromZigbee: [fz.on_off, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3]) {
-                const endpoint = device.getEndpoint(ID);
-                await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                await configureReporting.onOff(endpoint);
-            }
-        },
-        endpoint: (device) => {
-            // Endpoint selection is made in tuya_switch_state
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
-    },
-    {
         zigbeeModel: ['TS011F'],
         model: 'TS011F',
         vendor: 'TuYa',
@@ -4213,6 +4185,24 @@ const devices = [
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
         exposes: [e.action(['toggle'])],
+    },
+
+    // SilverCrest
+    {
+        fingerprint: [{modelId: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
+        model: 'SPSZ_3_A1',
+        vendor: 'SilverCrest',
+        description: '3 gang switch (16A) with 4 USB ports',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3]) {
+                const endpoint = device.getEndpoint(ID);
+                await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                await configureReporting.onOff(endpoint);
+            }
+        },
     },
 
     // databyte.ch
