@@ -1785,7 +1785,7 @@ const devices = [
         ],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
                 .withSystemMode(['auto']).withRunningState(['idle', 'heat']).withAwayMode()
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
         ],
