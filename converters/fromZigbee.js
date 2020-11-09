@@ -561,7 +561,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         break;
     case common.TuyaDataPoints.saswellAntiScaling:
         return {anti_scaling: value ? 'ON' : 'OFF'};
-   default:
+    default:
         meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
             dp} with data ${JSON.stringify(msg.data)}`);
     }
