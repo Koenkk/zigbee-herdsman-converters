@@ -3620,6 +3620,39 @@ const converters = {
             await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellTempCalibration, value);
         },
     },
+    tuya_data_point_test: {
+        key: ['tuya_data_point_test'],
+        convertSet: async (entity, key, value, meta) => {
+            const args = value.split(',');
+            const mode = args[0];
+            const dp = parseInt(args[1]);
+            const data = [];
+
+            switch (mode) {
+            case 'raw':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendTuyaDataPointRaw(entity, dp, data);
+                break;
+            case 'bool':
+                await sendTuyaDataPointBool(entity, dp, args[2] === '1');
+                break;
+            case 'value':
+                await sendTuyaDataPointValue(entity, dp, parseInt(args[2]));
+                break;
+            case 'enum':
+                await sendTuyaDataPointEnum(entity, dp, parseInt(args[2]));
+                break;
+            case 'bitmap':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendTuyaDataPointBitmap(entity, dp, data);
+                break;
+            }
+        },
+    },
     ts0216_duration: {
         key: ['duration'],
         convertSet: async (entity, key, value, meta) => {

@@ -5729,6 +5729,36 @@ const converters = {
             }
         },
     },
+    tuya_data_point_dump: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publis, options, meta) => {
+            const getHex = (value) => {
+                let hex = value.toString(16);
+                if (hex.length < 2) {
+                    hex = '0' + hex;
+                }
+                return hex;
+            }
+            let dataStr =
+                Date.now().toString() + ' ' +
+                meta.device.ieeeAddr + ' ' +
+                getHex(msg.data.status) + ' ' +
+                getHex(msg.data.transid) + ' ' +
+                getHex(msg.data.dp) + ' ' +
+                getHex(msg.data.datatype) + ' ' +
+                getHex(msg.data.fn);
+
+            msg.data.data.forEach((elem) => {
+                dataStr += ' ' + getHex(elem);
+            });
+            dataStr += '\n';
+            const fs = require('fs');
+            fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
+                if (err) throw err;
+            });
+        }
+    },
     moes_thermostat_on_set_data: {
         cluster: 'manuSpecificTuya',
         type: 'commandSetDataResponse',
