@@ -2670,6 +2670,26 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TRADFRI SHORTCUT Button'],
+        model: 'E1812',
+        vendor: 'IKEA',
+        description: 'TRADFRI shortcut button',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
+        toZigbee: [],
+        ota: ota.tradfri,
+        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            // By default this device controls group 0, some devices are by default in
+            // group 0 causing the remote to control them.
+            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
+            await bind(endpoint, defaultBindGroup, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SYMFONISK Sound Controller'],
         model: 'E1744',
         vendor: 'IKEA',
