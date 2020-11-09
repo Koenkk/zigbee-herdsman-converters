@@ -442,7 +442,7 @@ const livolo = {
 
 const tuya = {
     setTime: async (type, data, device) => {
-        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuyaDimmer') {
+        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuya') {
             const utcTime = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
             const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
             const endpoint = device.getEndpoint(1);
@@ -453,7 +453,7 @@ const tuya = {
                     ...utils.convertDecimalValueTo4ByteHexArray(localTime),
                 ],
             };
-            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
+            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
         }
     },
     setLocalTime: async (type, data, device) => { // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
@@ -1836,7 +1836,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -1869,7 +1869,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -10230,7 +10230,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -13478,26 +13478,48 @@ const devices = [
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         supports: 'thermostat, temperature',
-        fromZigbee: [fz.saswell_thermostat],
+        fromZigbee: [
+            fz.saswell_thermostat,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_basic_report,
+            fz.tuya_thermostat_weekly_schedule,
+        ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
             tz.saswell_thermostat_standby,
+            tz.saswell_thermostat_away,
+            tz.saswell_thermostat_child_lock,
+            tz.saswell_thermostat_window_detection,
+            tz.saswell_thermostat_frost_detection,
+            tz.tuya_thermostat_weekly_schedule,
         ],
-        meta: {configureKey: 1},
+        onEvent: tuya.setTime,
+        meta: {
+            configureKey: 1,
+            thermostat: {
+                weeklyScheduleMaxTransitions: 4,
+                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
+                weeklyScheduleConversion: 'saswell',
+            },
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [
-            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+            e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withPreset(['Schedule']).withAwayMode(),
         ],
     },
     {
         fingerprint: [
             {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'},
         ],
         model: 'SEA802-Zigbee',
         vendor: 'Saswell',
@@ -13506,20 +13528,43 @@ const devices = [
         whiteLabel: [
             {vendor: 'HiHome', model: 'WZB-TRVL'},
         ],
-        fromZigbee: [fz.saswell_thermostat],
+        fromZigbee: [
+            fz.saswell_thermostat,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_basic_report,
+            fz.tuya_thermostat_weekly_schedule,
+        ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
             tz.saswell_thermostat_standby,
+            tz.saswell_thermostat_away,
+            tz.saswell_thermostat_child_lock,
+            tz.saswell_thermostat_window_detection,
+            tz.saswell_thermostat_frost_detection,
+            tz.saswell_thermostat_calibration,
+            tz.saswell_thermostat_anti_scaling,
+            tz.tuya_thermostat_weekly_schedule,
         ],
-        meta: {configureKey: 1},
+        onEvent: tuya.setTime,
+        meta: {
+            configureKey: 1,
+            thermostat: {
+                weeklyScheduleMaxTransitions: 4,
+                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
+                weeklyScheduleConversion: 'saswell',
+            },
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [
-            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+            e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withPreset(['Schedule']).withAwayMode(),
         ],
     },
 
@@ -14513,7 +14558,7 @@ const devices = [
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_child_lock,
-            tz.tuya_thermostat_window_detection,
+            tz.siterwell_thermostat_window_detection,
             tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_system_mode,
