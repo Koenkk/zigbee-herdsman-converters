@@ -2659,7 +2659,6 @@ const devices = [
         ],
         exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
-        OTA is not supported at the moment
         ota: ota.tradfri,
         meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
