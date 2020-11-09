@@ -533,7 +533,7 @@ const devices = [
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
         model: 'JWSP001A',
-        vendor: 'Aqara',
+        vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
@@ -544,7 +544,7 @@ const devices = [
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
-        vendor: 'Aqara',
+        vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
         extend: generic.light_onoff_brightness_colortemp,
         fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
