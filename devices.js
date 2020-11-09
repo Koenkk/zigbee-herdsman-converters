@@ -536,12 +536,10 @@ const devices = [
         vendor: 'Aqara',
         description: 'Aqara embedded spot led light',
         extend: generic.light_onoff_brightness_colortemp,
-        fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.on_off, fz.xiaomi_bulb_interval,
-            fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report,
-            fz.ignore_occupancy_report, fz.ignore_humidity_report,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report,
-        ],
+        ]),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
@@ -549,12 +547,10 @@ const devices = [
         vendor: 'Aqara',
         description: 'Aqara embedded spot led light',
         extend: generic.light_onoff_brightness_colortemp,
-        fromZigbee: [
-            fz.brightness, fz.color_colortemp, fz.on_off, fz.xiaomi_bulb_interval,
-            fz.ignore_light_brightness_report, fz.ignore_light_color_colortemp_report,
-            fz.ignore_occupancy_report, fz.ignore_humidity_report,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report,
-        ],
+        ]),
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
