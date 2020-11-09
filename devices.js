@@ -531,6 +531,28 @@ const devices = [
         ],
     },
     {
+        zigbeeModel: ['lumi.light.cwjwcn01'],
+        model: 'JWSP001A',
+        vendor: 'Xiaomi',
+        description: 'Aqara embedded spot led light',
+        extend: generic.light_onoff_brightness_colortemp,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
+        ]),
+    },
+    {
+        zigbeeModel: ['lumi.light.cwjwcn02'],
+        model: 'JWDL001A',
+        vendor: 'Xiaomi',
+        description: 'Aqara embedded spot led light',
+        extend: generic.light_onoff_brightness_colortemp,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
+        ]),
+    },
+    {
         zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
