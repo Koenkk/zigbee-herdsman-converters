@@ -5739,7 +5739,7 @@ const converters = {
                     hex = '0' + hex;
                 }
                 return hex;
-            }
+            };
             let dataStr =
                 Date.now().toString() + ' ' +
                 meta.device.ieeeAddr + ' ' +
@@ -5757,7 +5757,7 @@ const converters = {
             fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
                 if (err) throw err;
             });
-        }
+        },
     },
     moes_thermostat_on_set_data: {
         cluster: 'manuSpecificTuya',
