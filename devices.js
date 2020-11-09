@@ -2654,13 +2654,13 @@ const devices = [
         description: 'TRADFRI Shortcut Button',
         supports: 'on, brightness up/stop',
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_move,
-            fz.legacy_E1743_brightness_up, fz.command_stop, fz.legacy_E1743_brightness_stop, fz.battery,
+            fz.command_on, fz.command_move,
+            fz.command_stop, fz.battery,
         ],
         exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
-        // OTA is not supported at the moment
-        // ota: ota.tradfri,
+        OTA is not supported at the moment
+        ota: ota.tradfri,
         meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
