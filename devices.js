@@ -2647,7 +2647,7 @@ const devices = [
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
-	{
+    {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
         model: 'E1812',
         vendor: 'IKEA',
@@ -2655,7 +2655,7 @@ const devices = [
         supports: 'on, brightness up/stop',
         fromZigbee: [
             fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_move,
-            fz.legacy_E1743_brightness_up, fz.command_stop, fz.legacy_E1743_brightness_stop, fz.battery
+            fz.legacy_E1743_brightness_up, fz.command_stop, fz.legacy_E1743_brightness_stop, fz.battery,
         ],
         exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
