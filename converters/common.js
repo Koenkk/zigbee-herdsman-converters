@@ -150,6 +150,7 @@ const TuyaDataPoints = {
     comfortTemp: 107,
     ecoTemp: 108,
     valvePos: 109,
+    batteryLow: 110,
     weekFormat: 111,
     scheduleWorkday: 112,
     scheduleHoliday: 113,

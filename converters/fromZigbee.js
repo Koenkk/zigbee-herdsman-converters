@@ -408,6 +408,8 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {local_temperature_calibration: (value / 10).toFixed(1)};
     case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
         return {battery: value};
+    case common.TuyaDataPoints.batteryLow:
+            return {battery_low: value}
     case common.TuyaDataPoints.minTemp:
         return {min_temperature: value};
     case common.TuyaDataPoints.maxTemp:
