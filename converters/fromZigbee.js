@@ -414,6 +414,8 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
         return {window_detection: dataAsDecNumber ? 'ON' : 'OFF'};
     case 276: // 0x1401 Enabled/disabled Valve detection feature
         return {valve_detection: dataAsDecNumber ? 'ON' : 'OFF'};
+    case 366: // low battery alert
+        return {battery_low: dataAsDecNumber === 1};
     case 372: // 0x7401 auto lock mode
         return {auto_lock: dataAsDecNumber ? 'AUTO' : 'MANUAL'};
     case 514: // 0x0202 Changed target temperature
