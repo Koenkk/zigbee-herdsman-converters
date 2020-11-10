@@ -4189,6 +4189,7 @@ const devices = [
 
     // SilverCrest
     {
+        zigbeeModel: ['TS011F'],
         fingerprint: [{modelId: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
         model: 'SPSZ_3_A1',
         vendor: 'SilverCrest',
@@ -4196,12 +4197,16 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
+        fromZigbee: [fz.ignore_basic_report],
         configure: async (device, coordinatorEndpoint) => {
             for (const ID of [1, 2, 3]) {
                 const endpoint = device.getEndpoint(ID);
                 await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 await configureReporting.onOff(endpoint);
             }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
 
