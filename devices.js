@@ -11468,7 +11468,35 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
 
-    // RGB genie
+    // RGB Genie
+    {
+        zigbeeModel: ['RGBgenie ZB-5121'],
+        model: 'ZB-5121',
+        vendor: 'RGB Genie',
+        description: 'Micro remote and dimmer with single scene recall',
+        supports: 'action',
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_recall,
+        ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            'recall_*',
+        ])],
+        toZigbee: [],
+        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
     {
         zigbeeModel: ['ZGRC-KEY-013'],
         model: 'ZGRC-KEY-013',
