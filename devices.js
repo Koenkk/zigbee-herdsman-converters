@@ -1479,6 +1479,25 @@ const devices = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
+        model: 'TS011F_switch',
+        vendor: 'TuYa',
+        description: '3 gang switch, possibly with USB',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        supports: 'on/off',
+        whiteLabel: [{vendor: 'SilverCrest', model: 'SPSZ 3 A1', description: '3 gang switch (16A) with 4 USB ports'}],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3]) {
+                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
@@ -4185,26 +4204,6 @@ const devices = [
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
         exposes: [e.action(['toggle'])],
-    },
-
-    // SilverCrest
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
-        model: 'SPSZ_3_A1',
-        vendor: 'SilverCrest',
-        description: '3 gang switch (16A) with 4 USB ports',
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        extend: generic.switch,
-        meta: {configureKey: 1, multiEndpoint: true},
-        supports: 'on/off',
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3]) {
-                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-            }
-        },
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
     },
 
     // databyte.ch
