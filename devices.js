@@ -14401,10 +14401,19 @@ const devices = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        supports: 'occupancy',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        supports: 'occupancy, temperature, illuminance',
+        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(38);
+            await bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint1);
+            const endpoint2 = device.getEndpoint(39);
+            await bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await configureReporting.illuminance(endpoint2);
+        },
     },
     {
         zigbeeModel: ['HMSZB-110'],
