@@ -8254,7 +8254,7 @@ const devices = [
         supports: 'motion, tamper, temperature, humidity and battery',
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
     },
     {
         zigbeeModel: ['HT8-ZB'],
