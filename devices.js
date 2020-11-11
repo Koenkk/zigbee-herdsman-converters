@@ -1491,14 +1491,33 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        zigbeeModel: ['TS011F'],
-        model: 'TS011F',
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
+        model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
         extend: generic.switch,
         whiteLabel: [
             {vendor: 'LoraTap', model: 'RR400ZB'},
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
+        model: 'TS011F_switch',
+        vendor: 'TuYa',
+        description: '3 gang switch, possibly with USB',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        supports: 'on/off',
+        whiteLabel: [{vendor: 'SilverCrest', model: 'SPSZ 3 A1', description: '3 gang switch (16A) with 4 USB ports'}],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3]) {
+                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
     },
     {
         zigbeeModel: ['TS130F'],
