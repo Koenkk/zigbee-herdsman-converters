@@ -1469,6 +1469,16 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ['TS011F'],
+        model: 'TS011F',
+        vendor: 'TuYa',
+        description: 'Socket module',
+        extend: generic.switch,
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'RR400ZB'},
+        ],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
@@ -1779,36 +1789,6 @@ const devices = [
                 .withSystemMode(['auto']).withRunningState(['idle', 'heat']).withAwayMode()
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
         ],
-    },
-    {
-        zigbeeModel: ['TS011F'],
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
-            {modelID: 'TS011F'},
-        ],
-        model: 'TS011F',
-        vendor: 'TuYa',
-        description: 'Socket module, 1-3 gang switch, etc. based on TS011F',
-        supports: 'on/off',
-        whiteLabel: [
-            {vendor: 'LoraTap', model: 'RR400ZB', description: 'Socket module'},
-            {vendor: 'SilverCrest', model: 'SPSZ_3_A1', description: '3 gang switch with USB ports'},
-        ],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        extend: generic.switch,
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3]) {
-                if (device.getEndpoint(ID)) {
-                    await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-                }
-            }
-        },
-        endpoint: (device) => {
-            if (device.getEndpoint(3)) return {'l1': 1, 'l2': 2, 'l3': 3};
-            if (device.getEndpoint(2)) return {'l1': 1, 'l2': 2};
-            return {'l1': 1};
-        },
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
@@ -4205,6 +4185,29 @@ const devices = [
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
         exposes: [e.action(['toggle'])],
+    },
+
+    // SilverCrest
+    {
+        zigbeeModel: ['TS011F'],
+        fingerprint: [{modelId: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
+        model: 'SPSZ_3_A1',
+        vendor: 'SilverCrest',
+        description: '3 gang switch (16A) with 4 USB ports',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        fromZigbee: [fz.ignore_basic_report],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3]) {
+                const endpoint = device.getEndpoint(ID);
+                await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                await configureReporting.onOff(endpoint);
+            }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
     },
 
     // databyte.ch
