@@ -442,7 +442,7 @@ const livolo = {
 
 const tuya = {
     setTime: async (type, data, device) => {
-        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuyaDimmer') {
+        if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuya') {
             const utcTime = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
             const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
             const endpoint = device.getEndpoint(1);
@@ -453,7 +453,7 @@ const tuya = {
                     ...utils.convertDecimalValueTo4ByteHexArray(localTime),
                 ],
             };
-            await endpoint.command('manuSpecificTuyaDimmer', 'setTime', payload, {});
+            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
         }
     },
     setLocalTime: async (type, data, device) => { // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
@@ -529,6 +529,28 @@ const devices = [
             fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report,
         ],
+    },
+    {
+        zigbeeModel: ['lumi.light.cwjwcn01'],
+        model: 'JWSP001A',
+        vendor: 'Xiaomi',
+        description: 'Aqara embedded spot led light',
+        extend: generic.light_onoff_brightness_colortemp,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
+        ]),
+    },
+    {
+        zigbeeModel: ['lumi.light.cwjwcn02'],
+        model: 'JWDL001A',
+        vendor: 'Xiaomi',
+        description: 'Aqara embedded spot led light',
+        extend: generic.light_onoff_brightness_colortemp,
+        fromZigbee: generic.light_onoff_brightness_colortemp.fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
+        ]),
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
@@ -1804,7 +1826,7 @@ const devices = [
         ],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
                 .withSystemMode(['auto']).withRunningState(['idle', 'heat']).withAwayMode()
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
         ],
@@ -1833,7 +1855,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -1866,7 +1888,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -2663,6 +2685,26 @@ const devices = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
             await endpoint.bind('genOnOff', defaultBindGroup);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['TRADFRI SHORTCUT Button'],
+        model: 'E1812',
+        vendor: 'IKEA',
+        description: 'TRADFRI shortcut button',
+        supports: 'action',
+        fromZigbee: [fz.command_on, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
+        toZigbee: [],
+        ota: ota.tradfri,
+        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            // By default this device controls group 0, some devices are by default in
+            // group 0 causing the remote to control them.
+            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
+            await bind(endpoint, defaultBindGroup, ['genPowerCfg']);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
@@ -6397,7 +6439,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0'],
+        zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0', 'FB56+ZSW1GKJ2.7'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
@@ -8228,10 +8270,10 @@ const devices = [
         model: 'iL07_1',
         vendor: 'Iris',
         description: 'Motion Sensor',
-        supports: 'motion, tamper and battery',
-        fromZigbee: [fz.ias_occupancy_alarm_2],
+        supports: 'motion, tamper, temperature, humidity and battery',
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
     },
     {
         zigbeeModel: ['HT8-ZB'],
@@ -10207,7 +10249,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: 101,
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
             },
         },
         exposes: [
@@ -11445,7 +11487,35 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
 
-    // RGB genie
+    // RGB Genie
+    {
+        zigbeeModel: ['RGBgenie ZB-5121'],
+        model: 'ZB-5121',
+        vendor: 'RGB Genie',
+        description: 'Micro remote and dimmer with single scene recall',
+        supports: 'action',
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_recall,
+        ],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            'recall_*',
+        ])],
+        toZigbee: [],
+        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await configureReporting.batteryVoltage(endpoint);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
     {
         zigbeeModel: ['ZGRC-KEY-013'],
         model: 'ZGRC-KEY-013',
@@ -13455,26 +13525,48 @@ const devices = [
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         supports: 'thermostat, temperature',
-        fromZigbee: [fz.saswell_thermostat],
+        fromZigbee: [
+            fz.saswell_thermostat,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_basic_report,
+            fz.tuya_thermostat_weekly_schedule,
+        ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
             tz.saswell_thermostat_standby,
+            tz.saswell_thermostat_away,
+            tz.saswell_thermostat_child_lock,
+            tz.saswell_thermostat_window_detection,
+            tz.saswell_thermostat_frost_detection,
+            tz.tuya_thermostat_weekly_schedule,
         ],
-        meta: {configureKey: 1},
+        onEvent: tuya.setTime,
+        meta: {
+            configureKey: 1,
+            thermostat: {
+                weeklyScheduleMaxTransitions: 4,
+                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
+                weeklyScheduleConversion: 'saswell',
+            },
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [
-            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+            e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withPreset(['Schedule']).withAwayMode(),
         ],
     },
     {
         fingerprint: [
             {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'},
         ],
         model: 'SEA802-Zigbee',
         vendor: 'Saswell',
@@ -13483,20 +13575,43 @@ const devices = [
         whiteLabel: [
             {vendor: 'HiHome', model: 'WZB-TRVL'},
         ],
-        fromZigbee: [fz.saswell_thermostat],
+        fromZigbee: [
+            fz.saswell_thermostat,
+            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_basic_report,
+            fz.tuya_thermostat_weekly_schedule,
+        ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
             tz.saswell_thermostat_standby,
+            tz.saswell_thermostat_away,
+            tz.saswell_thermostat_child_lock,
+            tz.saswell_thermostat_window_detection,
+            tz.saswell_thermostat_frost_detection,
+            tz.saswell_thermostat_calibration,
+            tz.saswell_thermostat_anti_scaling,
+            tz.tuya_thermostat_weekly_schedule,
         ],
-        meta: {configureKey: 1},
+        onEvent: tuya.setTime,
+        meta: {
+            configureKey: 1,
+            thermostat: {
+                weeklyScheduleMaxTransitions: 4,
+                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
+                weeklyScheduleConversion: 'saswell',
+            },
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [
-            e.battery_low(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPreset(['manual', 'auto']),
+            e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withPreset(['Schedule']).withAwayMode(),
         ],
     },
 
@@ -14478,6 +14593,7 @@ const devices = [
     // Siterwell
     {
         zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -14490,7 +14606,7 @@ const devices = [
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_child_lock,
-            tz.tuya_thermostat_window_detection,
+            tz.siterwell_thermostat_window_detection,
             tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_system_mode,
@@ -14506,6 +14622,7 @@ const devices = [
         ],
         whiteLabel: [
             {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
+            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'},
         ],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
