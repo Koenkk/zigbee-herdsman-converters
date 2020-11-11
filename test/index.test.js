@@ -1,5 +1,7 @@
 const index = require('../index');
 const devices = require('../devices');
+const exposes = require('../lib/exposes');
+const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -174,7 +176,7 @@ describe('index.js', () => {
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
+                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'exposes'],
                 Object.keys(device),
                 device.model,
             );
@@ -273,5 +275,55 @@ describe('index.js', () => {
         expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
         const device = index.findByZigbeeModel(mockZigbeeModel);
         expect(device.model).toBe(mockDevice.model);
+    });
+
+    it('Exposes light with endpoint', () => {
+        const expected = {
+            "type":"light",
+            "features":[
+              {
+                "type":"binary",
+                "name":"state",
+                "property":"state_rgb",
+                "access":7,
+                "value_on":"ON",
+                "value_off":"OFF",
+                "value_toggle":"TOGGLE",
+                "endpoint":"rgb"
+              },
+              {
+                "type":"numeric",
+                "name":"brightness",
+                "property":"brightness_rgb",
+                "access":7,
+                "value_min":0,
+                "value_max":254,
+                "endpoint":"rgb"
+              },
+              {
+                "type":"composite",
+                "property":"color_rgb",
+                "name":"color_xy",
+                "features":[
+                  {
+                    "type":"numeric",
+                    "name":"x",
+                    "property":"x",
+                    "access":7
+                  },
+                  {
+                    "type":"numeric",
+                    "name":"y",
+                    "property":"y",
+                    "access":7
+                  }
+                ],
+                "endpoint":"rgb"
+              }
+            ],
+            "endpoint":"rgb"
+        };
+        const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
+        expect(expected).toStrictEqual(deepClone(actual));
     });
 });

@@ -103,6 +103,158 @@ const TuyaThermostatForceMode = {
     2: 'close',
 };
 
+const TuyaThermostatScheduleMode = {
+    1: 'single', // One schedule for all days
+    2: 'weekday/weekend', // Weekdays(2-5) and Holidays(6-1)
+    3: 'weekday/sat/sun', // Weekdays(2-6), Saturday(7), Sunday(1)
+    4: '7day', // 7 day schedule
+};
+
+const TuyaDataTypes = {
+    raw: 0, // [ bytes ]
+    bool: 1, // [0/1]
+    value: 2, // [ 4 byte value ]
+    string: 3, // [ N byte string ]
+    enum: 4, // [ 0-255 ]
+    bitmap: 5, // [ 1,2,4 bytes ] as bits
+};
+
+const TuyaDataPoints = {
+    // Common data points
+    // Below data points are usually shared between devices
+    state: 1,
+    heatingSetpoint: 2,
+    coverPosition: 2,
+    dimmerLevel: 3,
+    localTemp: 3,
+    coverArrived: 3,
+    occupancy: 3,
+    mode: 4,
+    fanMode: 5,
+    motorDirection: 5,
+    config: 5,
+    childLock: 7,
+    coverChange: 7,
+    runningState: 14,
+    valveDetection: 20,
+    battery: 21,
+    tempCalibration: 44,
+    // Data points above 100 are usually custom function data points
+    schedule: 101,
+    waterLeak: 101,
+    minTemp: 102,
+    maxTemp: 103,
+    windowDetection: 104,
+    boostTime: 105,
+    forceMode: 106,
+    comfortTemp: 107,
+    ecoTemp: 108,
+    valvePos: 109,
+    batteryLow: 110,
+    weekFormat: 111,
+    scheduleWorkday: 112,
+    scheduleHoliday: 113,
+    awayTemp: 114,
+    autoLock: 116,
+    awayDays: 117,
+    // Manufacturer specific
+    // Earda
+    eardaDimmerLevel: 2,
+    // Siterwell Thermostat
+    siterwellWindowDetection: 18,
+    // Moes Thermostat
+    moesHold: 2,
+    moesSchedule: 3,
+    moesHeatingSetpoint: 16,
+    moesMaxTempLimit: 18,
+    moesMaxTemp: 19,
+    moesMinTemp: 20,
+    moesLocalTemp: 24,
+    moesTempCalibration: 27,
+    moesValve: 36,
+    moesChildLock: 40,
+    moesSensor: 43,
+    etopErrorStatus: 13,
+    // Neo T&H
+    neoUnknown1: 101,
+    neoMelody: 102,
+    neoDuration: 103,
+    neoAlarm: 104,
+    neoTemp: 105,
+    neoHumidity: 106,
+    neoMinTemp: 107,
+    neoMaxTemp: 108,
+    neoMinHumidity: 109,
+    neoMaxHumidity: 110,
+    neoUnknown2: 112,
+    neoTempAlarm: 113,
+    neoHumidityAlarm: 114,
+    neoUnknown3: 115,
+    neoVolume: 116,
+    // Saswell TRV
+    saswellWindowDetection: 8,
+    saswellFrostDetection: 10,
+    saswellTempCalibration: 27,
+    saswellChildLock: 40,
+    saswellState: 101,
+    saswellLocalTemp: 102,
+    saswellHeatingSetpoint: 103,
+    saswellValvePos: 104,
+    saswellBatteryLow: 105,
+    saswellAwayMode: 106,
+    saswellScheduleMode: 107,
+    saswellScheduleEnable: 108,
+    saswellScheduleSet: 109,
+    saswellSetpointHistoryDay: 110,
+    saswellTimeSync: 111,
+    saswellSetpointHistoryWeek: 112,
+    saswellSetpointHistoryMonth: 113,
+    saswellSetpointHistoryYear: 114,
+    saswellLocalHistoryDay: 115,
+    saswellLocalHistoryWeek: 116,
+    saswellLocalHistoryMonth: 117,
+    saswellLocalHistoryYear: 118,
+    saswellMotorHistoryDay: 119,
+    saswellMotorHistoryWeek: 120,
+    saswellMotorHistoryMonth: 121,
+    saswellMotorHistoryYear: 122,
+    saswellScheduleSunday: 123,
+    saswellScheduleMonday: 124,
+    saswellScheduleTuesday: 125,
+    saswellScheduleWednesday: 126,
+    saswellScheduleThursday: 127,
+    saswellScheduleFriday: 128,
+    saswellScheduleSaturday: 129,
+    saswellAntiScaling: 130,
+    // HY thermostat
+    hyHeating: 102,
+    hyExternalTemp: 103,
+    hyAwayDays: 104,
+    hyAwayTemp: 105,
+    hyMaxTempProtection: 106,
+    hyMinTempProtection: 107,
+    hyTempCalibration: 109,
+    hyHysteresis: 110,
+    hyProtectionHysteresis: 111,
+    hyProtectionMaxTemp: 112,
+    hyProtectionMinTemp: 113,
+    hyMaxTemp: 114,
+    hyMinTemp: 115,
+    hySensor: 116,
+    hyPowerOnBehavior: 117,
+    hyWeekFormat: 118,
+    hyWorkdaySchedule1: 119,
+    hyWorkdaySchedule2: 120,
+    hyHolidaySchedule1: 121,
+    hyHolidaySchedule2: 122,
+    hyState: 125,
+    hyHeatingSetpoint: 126,
+    hyLocalTemp: 127,
+    hyMode: 128,
+    hyChildLock: 129,
+    hyAlarm: 130,
+};
+
 const lockSourceName = {
     0: 'keypad',
     1: 'rf',
@@ -168,6 +320,9 @@ module.exports = {
     TuyaThermostatWeekFormat,
     TuyaThermostatForceMode,
     TuyaThermostatPresets,
+    TuyaThermostatScheduleMode,
+    TuyaDataTypes,
+    TuyaDataPoints,
     lockSourceName,
     armMode,
     TuyaFanModes,

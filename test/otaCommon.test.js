@@ -7,6 +7,8 @@ describe("ota/common.js", () => {
 
         const image = common.parseImage(otaImage.data.slice(start));
 
+        expect(common.validateImageData(image)).toBeUndefined();
+
         expect(image.header.otaHeaderFieldControl).toBe(otaImage.headerField);
 
         expect(image.header.minimumHardwareVersion).toBe(otaImage.minimumHardwareVersion);
