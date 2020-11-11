@@ -14139,6 +14139,33 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SPLZB-134'],
+        model: 'SPLZB-134',
+        vendor: 'Develco',
+        description: 'Power plug (type G)',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature],
+        toZigbee: [tz.on_off],
+        supports: 'on/off, power measurements',
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.deviceTemperature(endpoint, {change: 2}); // Device temperature reports with 2 degree change
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
+            await configureReporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
+            await configureReporting.rmsVoltage(endpoint, {min: repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
+            await configureReporting.instantaneousDemand(endpoint, {min: repInterval.MINUTES_5, change: 10});
+        },
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ['EMIZB-132'],
         model: 'EMIZB-132',
         vendor: 'Develco',
