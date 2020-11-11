@@ -557,7 +557,7 @@ const devices = [
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
-        supports: 'single, double, triple, quadruple, many, long, long_release click',
+        supports: 'single, double, triple, quadruple, many, hold, release',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
         exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
