@@ -1469,7 +1469,7 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-	fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}]
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
@@ -4196,7 +4196,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
-	supports: 'on/off',
+        supports: 'on/off',
         configure: async (device, coordinatorEndpoint) => {
             for (const ID of [1, 2, 3]) {
                 await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
