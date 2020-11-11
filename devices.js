@@ -1791,6 +1791,24 @@ const devices = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
+        model: 'TY0202_occupancy',
+        vendor: 'TuYa',
+        supports: 'occupancy',
+        description: 'Motion sensor',
+        whiteLabel: [
+            {vendor: 'SilverCrest', model: 'SMSZ 1 A1'},
+        ],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+        exposes: [e.battery(), e.occupancy()],
+    },
+    {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
         model: 'HT-08',
         vendor: 'ETOP',
