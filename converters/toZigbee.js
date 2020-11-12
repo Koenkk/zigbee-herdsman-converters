@@ -3357,8 +3357,8 @@ const converters = {
         },
     },
     diyruz_airsense_config: {
-		key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
-		convertSet: async (entity, key, rawValue, meta) => {
+        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
+        convertSet: async(entity, key, rawValue, meta) => {
             const lookup = {
                 'OFF': 0x00,
                 'ON': 0x01,
@@ -3366,13 +3366,13 @@ const converters = {
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
                 led_feedback: {0x0203: {value, type: 0x10}},
-				enable_abc:   {0x0202: {value, type: 0x10}},
-				threshold1:   {0x0204: {value, type: 0x21}},
-				threshold2:   {0x0205: {value, type: 0x21}},
+                enable_abc: {0x0202: {value, type: 0x10}},
+                threshold1: {0x0204: {value, type: 0x21}},
+                threshold2: {0x0205: {value, type: 0x21}},
             };
             await entity.write('msCO2', payloads[key]);
         },
-	},
+    },
     neo_t_h_alarm: {
         key: [
             'alarm', 'melody', 'volume', 'duration',
