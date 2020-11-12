@@ -8403,7 +8403,9 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // 4257050-ZHAC doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
