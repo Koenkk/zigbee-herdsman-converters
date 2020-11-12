@@ -4528,6 +4528,38 @@ const devices = [
         },
         exposes: [e.temperature(), e.humidity(), e.illuminance(), e.illuminance_lux(), e.soil_moisture(), e.pressure(), e.battery()],
     },
+    {
+        zigbeeModel: ['DIYRuZ_AirSense'],
+        model: 'DIYRuZ_AirSense',
+        vendor: 'DIYRuZ',
+        description: '[Air quality sensor](https://modkam.ru/?p=1715)',
+        supports: '',
+        fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure],
+        toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await bind(firstEndpoint, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2']);
+
+            const msBindPayload = [
+                {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+
+            await firstEndpoint.configureReporting('msCO2', msBindPayload);
+            await firstEndpoint.configureReporting('msTemperatureMeasurement', msBindPayload);
+            await firstEndpoint.configureReporting('msRelativeHumidity', msBindPayload);
+
+            const pressureBindPayload = [
+                {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
+        },
+        exposes: [
+            e.co2(), e.temperature(), e.humidity(), e.pressure(), exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
+            exposes.binary('enable_abc', 'rw', 'ON', 'OFF'), exposes.numeric('threshold1', 'rw').withUnit('ppm'),
+            exposes.numeric('threshold2', 'rw').withUnit('ppm'),
+        ],
+    },
+
     // eCozy
     {
         zigbeeModel: ['Thermostat'],
