@@ -3358,7 +3358,7 @@ const converters = {
     },
     diyruz_airsense_config: {
         key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
-        convertSet: async(entity, key, rawValue, meta) => {
+        convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {
                 'OFF': 0x00,
                 'ON': 0x01,
