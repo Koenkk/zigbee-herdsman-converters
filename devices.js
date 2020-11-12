@@ -4551,6 +4551,16 @@ const devices = [
           ];
              await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
         },
+	     exposes: [
+       		 exposes.numeric('co2', 'r').withUnit('ppm'),
+       		 exposes.numeric('temperature', 'r').withUnit('°C'),
+        	 exposes.numeric('humidity', 'r').withUnit('%'),
+        	 exposes.numeric('pressure', 'r').withUnit('hPa'),
+        	 exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
+       		 exposes.binary('enable_abc', 'rw', 'ON', 'OFF'),
+       		 exposes.numeric('threshold1', 'rw').withUnit('ppm'),
+       		 exposes.numeric('threshold2', 'rw').withUnit('ppm'),
+    		],
     },
     // eCozy
     {
