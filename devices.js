@@ -2927,6 +2927,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929002375901'],
+        model: '929002375901',
+        vendor: 'Philips',
+        description: 'Hue Bloom with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCP001', 'LCP002', '4090331P9_01', '4090331P9_02'],
         model: '4090331P9',
         vendor: 'Philips',
@@ -4911,7 +4920,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Switch 4x EU-LIGHTIFY'],
+        zigbeeModel: ['Switch 4x EU-LIGHTIFY', 'Switch 4x-LIGHTIFY'],
         model: '4058075816459',
         vendor: 'OSRAM',
         description: 'Smart+ switch',
@@ -8266,7 +8275,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // 3210-L doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
@@ -8462,7 +8473,9 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await configureReporting.onOff(endpoint);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // 4257050-ZHAC doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await configureReporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
@@ -9887,6 +9900,14 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
+        extend: generic.light_onoff_brightness_colortemp,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        zigbeeModel: ['ZBT-CCTLight-GU100000'],
+        model: '404024',
+        vendor: 'Müller Licht',
+        description: 'Tint retro LED bulb GU10, dimmable',
         extend: generic.light_onoff_brightness_colortemp,
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
