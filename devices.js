@@ -14295,7 +14295,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power, fz.device_temperature],
         toZigbee: [tz.on_off],
         supports: 'on/off, power measurements',
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
