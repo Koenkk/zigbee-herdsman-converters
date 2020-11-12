@@ -4516,59 +4516,32 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[Air quality sensor](https://modkam.ru/?p=1715)',
         supports: '',
-        fromZigbee: [
-            fz.temperature,
-            fz.humidity,
-            fz.co2,
-            fz.pressure,
-        ],
-        toZigbee: [
-            tz.factory_reset,
-            tz.diyruz_airsense_config,
-        ],
-        meta: {
-            configureKey: 1,
-        },
+        fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure],
+        toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
+            await bind(firstEndpoint, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2']);
 
-            await bind(firstEndpoint, coordinatorEndpoint, [
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'msPressureMeasurement',
-                'msCO2',
-            ]);
-
-            const msBindPayload = [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 0,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            }];
+            const msBindPayload = [
+                {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
 
             await firstEndpoint.configureReporting('msCO2', msBindPayload);
             await firstEndpoint.configureReporting('msTemperatureMeasurement', msBindPayload);
             await firstEndpoint.configureReporting('msRelativeHumidity', msBindPayload);
 
-            const pressureBindPayload = [{
-                attribute: 'scaledValue',
-                minimumReportInterval: 0,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            }];
+            const pressureBindPayload = [
+                {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
         },
         exposes: [
-            exposes.numeric('co2', 'r').withUnit('ppm'),
-            exposes.numeric('temperature', 'r').withUnit('°C'),
-            exposes.numeric('humidity', 'r').withUnit('%'),
-            exposes.numeric('pressure', 'r').withUnit('hPa'),
-            exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
-            exposes.binary('enable_abc', 'rw', 'ON', 'OFF'),
-            exposes.numeric('threshold1', 'rw').withUnit('ppm'),
+            e.co2(), e.temperature(), e.humidity(), e.pressure(), exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
+            exposes.binary('enable_abc', 'rw', 'ON', 'OFF'), exposes.numeric('threshold1', 'rw').withUnit('ppm'),
             exposes.numeric('threshold2', 'rw').withUnit('ppm'),
         ],
     },
+
     // eCozy
     {
         zigbeeModel: ['Thermostat'],
