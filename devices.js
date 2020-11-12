@@ -8205,7 +8205,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // 3210-L doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await configureReporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
