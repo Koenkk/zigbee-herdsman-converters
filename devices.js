@@ -4529,14 +4529,14 @@ const devices = [
         meta: {
             configureKey: 1,
         },
-        configure: async(device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
 
             await bind(firstEndpoint, coordinatorEndpoint, [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'msPressureMeasurement',
-                'msCO2'
+                'msCO2',
             ]);
 
             const msBindPayload = [{
