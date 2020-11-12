@@ -2927,6 +2927,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929002375901'],
+        model: '929002375901',
+        vendor: 'Philips',
+        description: 'Hue Bloom with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCP001', 'LCP002', '4090331P9_01', '4090331P9_02'],
         model: '4090331P9',
         vendor: 'Philips',
