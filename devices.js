@@ -9830,6 +9830,14 @@ const devices = [
         toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['ZBT-CCTLight-GU100000'],
+        model: '404024',
+        vendor: 'Müller Licht',
+        description: 'Tint retro LED bulb GU10, dimmable',
+        extend: generic.light_onoff_brightness_colortemp,
+        toZigbee: generic.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['RGBW Lighting'],
         model: '44435',
         vendor: 'Müller Licht',
