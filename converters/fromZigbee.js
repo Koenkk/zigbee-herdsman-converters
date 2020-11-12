@@ -3578,13 +3578,6 @@ const converters = {
             return {};
         },
     },
-    iris_3320L_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data.zonestatus === 36};
-        },
-    },
     RZHAC_4256251_power: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
