@@ -8130,6 +8130,16 @@ const devices = [
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['902010/29'],
+        model: '902010/24',
+        vendor: 'Bitron',
+        description: 'Zigbee outdoor siren',
+        supports: 'warning and battery',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+    },
 
     // Iris
     {
@@ -9929,8 +9939,8 @@ const devices = [
         description: 'Danfoss Ally Thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
-           fz.eurotronic_thermostat,
            fz.battery,
+           fz.thermostat_att_report,
            fz.danfoss_thermostat_att_report,
          ],
         toZigbee: [
@@ -9943,6 +9953,9 @@ const devices = [
             tz.danfoss_window_open,
             tz.danfoss_display_orientation,
             tz.thermostat_keypad_lockout,
+        ],
+        exposes: [
+            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature(),
         ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -9959,7 +9972,7 @@ const devices = [
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4012, type: 0x10},
                 minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
+                maximumReportInterval: repInterval.MINUTES_10,
                 reportableChange: 1,
             }], options);
             await endpoint.configureReporting('hvacThermostat', [{

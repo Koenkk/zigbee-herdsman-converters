@@ -3823,32 +3823,7 @@ const converters = {
       type: ['attributeReport', 'readResponse'],
       convert: (model, msg, publish, options, meta) => {
           const result = {};
-          if (typeof msg.data['localTemp'] == 'number') {
-              result[postfixWithEndpointName('local_temperature', msg, model)] = precisionRound(msg.data['localTemp'], 2) / 100;
-          }
-          if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-              let ohs = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-              // Stelpro will return -325.65 when set to off
-              ohs = ohs < - 250 ? 0 : ohs;
-              result[postfixWithEndpointName('occupied_heating_setpoint', msg, model)] = ohs;
-          }
-          const ctrl = msg.data['ctrlSeqeOfOper'];
-          if (typeof ctrl == 'number' && common.thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-              result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
-                  common.thermostatControlSequenceOfOperations[ctrl];
-          }
-          const smode = msg.data['systemMode'];
-          if (typeof smode == 'number' && common.thermostatSystemModes.hasOwnProperty(smode)) {
-              result[postfixWithEndpointName('system_mode', msg, model)] = common.thermostatSystemModes[smode];
-          }
-          const rmode = msg.data['runningMode'];
-          if (typeof rmode == 'number' && common.thermostatSystemModes.hasOwnProperty(rmode)) {
-              result[postfixWithEndpointName('running_mode', msg, model)] = common.thermostatSystemModes[rmode];
-          }
-          const state = msg.data['runningState'];
-          if (typeof state == 'number' && common.thermostatRunningStates.hasOwnProperty(state)) {
-              result[postfixWithEndpointName('running_state', msg, model)] = common.thermostatRunningStates[state];
-          }
+          // Danfoss sends pi_heating_demand as raw %
           if (typeof msg.data['pIHeatingDemand'] == 'number') {
               result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                   precisionRound(msg.data['pIHeatingDemand'], 0);
