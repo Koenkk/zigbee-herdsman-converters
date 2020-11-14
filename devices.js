@@ -6957,6 +6957,14 @@ const devices = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-C-008P'],
+        model: 'GL-C-008P',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT plus model',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        meta: {disableDefaultResponse: true},
+    },
+    {
         zigbeeModel: ['GL-C-009'],
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
