@@ -8132,7 +8132,7 @@ const devices = [
     },
     {
         zigbeeModel: ['902010/29'],
-        model: '902010/24',
+        model: '902010/29',
         vendor: 'Bitron',
         description: 'Zigbee outdoor siren',
         supports: 'warning and battery',
