@@ -10089,17 +10089,17 @@ const devices = [
         description: 'Danfoss Ally Thermostat',
         supports: 'temperature, heating system control',
         fromZigbee: [
-           fz.battery,
-           fz.thermostat_att_report,
-           fz.danfoss_thermostat_att_report,
-         ],
+            fz.battery,
+            fz.thermostat_att_report,
+            fz.danfoss_thermostat_att_report,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature,
             tz.danfoss_mounted_mode,
             tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_request,
-            tz.danfoss_day_of_week,tz.danfoss_trigger_time,
+            tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open,
             tz.danfoss_display_orientation,
             tz.thermostat_keypad_lockout,
@@ -10131,8 +10131,7 @@ const devices = [
                 maximumReportInterval: repInterval.HOUR,
                 reportableChange: 1,
             }], options);
-
-         },
+        },
     },
 
     // Eurotronic

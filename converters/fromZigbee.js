@@ -3920,7 +3920,7 @@ const converters = {
                 result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
             }
             return result;
-         },
+        },
     },
 
     eurotronic_thermostat: {
