@@ -14360,6 +14360,31 @@ const devices = [
 
     // Develco
     {
+        zigbeeModel: ['SPLZB-131'],
+        model: 'SPLZB-131',
+        vendor: 'Develco',
+        description: 'Power plug',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power],
+        toZigbee: [tz.on_off],
+        supports: 'on/off, power measurements',
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ['SPLZB-132'],
         model: 'SPLZB-132',
         vendor: 'Develco',
