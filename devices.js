@@ -3151,6 +3151,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWW003'],
+        model: '9290018216',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA002'],
         model: '9290018215',
         vendor: 'Philips',
