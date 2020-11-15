@@ -242,7 +242,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     let temperature;
     /* See tuyaThermostat above for message structure comment */
     switch (dp) {
-    case common.TuyaDataPoints.schedule:
+    case common.TuyaDataPoints.moesSchedule:
         return {
             program: [
                 {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
@@ -280,7 +280,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {local_temperature_calibration: temperature};
     case common.TuyaDataPoints.moesHold: // state is inverted
         return {preset_mode: value ? 'program' : 'hold'};
-    case common.TuyaDataPoints.moesSchedule: // state is inverted
+    case common.TuyaDataPoints.moesScheduleEnable: // state is inverted
         return {preset_mode: value ? 'hold' : 'program'};
     case common.TuyaDataPoints.moesValve:
         return {heat: value ? 'OFF' : 'ON'};
@@ -382,7 +382,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
             {hour: value[12], minute: value[13], temperature: value[14]},
             {hour: value[15], minute: value[16], temperature: value[17]},
         ]};
-    case common.TuyaDataPoints.schedule: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+    case common.TuyaDataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
         // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
         return {holidays: [
             {hour: value[0], minute: value[1], temperature: value[2]},

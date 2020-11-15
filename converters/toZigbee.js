@@ -2927,7 +2927,7 @@ const converters = {
             const hold = value === 'hold' ? 0 : 1;
             const schedule = value === 'program' ? 0 : 1;
             await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesHold, hold);
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSchedule, schedule);
+            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesScheduleEnable, schedule);
         },
     },
     moes_thermostat_standby: {
