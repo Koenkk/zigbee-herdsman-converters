@@ -140,7 +140,6 @@ const TuyaDataPoints = {
     battery: 21,
     tempCalibration: 44,
     // Data points above 100 are usually custom function data points
-    schedule: 101,
     waterLeak: 101,
     minTemp: 102,
     maxTemp: 103,
@@ -164,7 +163,7 @@ const TuyaDataPoints = {
     siterwellWindowDetection: 18,
     // Moes Thermostat
     moesHold: 2,
-    moesSchedule: 3,
+    moesScheduleEnable: 3,
     moesHeatingSetpoint: 16,
     moesMaxTempLimit: 18,
     moesMaxTemp: 19,
@@ -174,6 +173,7 @@ const TuyaDataPoints = {
     moesValve: 36,
     moesChildLock: 40,
     moesSensor: 43,
+    moesSchedule: 101,
     etopErrorStatus: 13,
     // Neo T&H
     neoUnknown1: 101,
