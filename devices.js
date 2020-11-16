@@ -6990,7 +6990,7 @@ const devices = [
         zigbeeModel: ['GL-C-008P'],
         model: 'GL-C-008P',
         vendor: 'Gledopto',
-        description: 'Zigbee LED controller RGB + CCT plus model',
+        description: 'Zigbee LED controller RGB + CCT pro model',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         meta: {disableDefaultResponse: true},
     },
@@ -7031,6 +7031,13 @@ const devices = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-S-007P'],
+        model: 'GL-S-007P',
+        vendor: 'Gledopto',
+        description: 'Smart RGB+CCT 4W GU10 pro model',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-S-007ZS'],
         model: 'GL-S-007ZS',
         vendor: 'Gledopto',
@@ -7056,6 +7063,13 @@ const devices = [
         model: 'GL-B-001ZS',
         vendor: 'Gledopto',
         description: 'Smart 4W E14 RGB / CCT LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['GL-B-001P'],
+        model: 'GL-B-001P',
+        vendor: 'Gledopto',
+        description: 'Smart 4W E14 RGB / CCT LED bulb pro',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
@@ -7087,6 +7101,13 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['GL-B-007P'],
+        model: 'GL-B-007P',
+        vendor: 'Gledopto',
+        description: 'Smart 6W E27 RGB / CCT LED bulb pro',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-B-008Z'],
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
@@ -7098,6 +7119,13 @@ const devices = [
         model: 'GL-B-008ZS',
         vendor: 'Gledopto',
         description: 'Smart 12W E27 RGB / CW LED bulb',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['GL-B-008P'],
+        model: 'GL-B-008P',
+        vendor: 'Gledopto',
+        description: 'Smart 12W E27 RGB / CCT LED bulb pro',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
