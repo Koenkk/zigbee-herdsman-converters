@@ -4389,7 +4389,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.current(), e.cpu_temperature(), e.action(['hold', 'release'])],
     },
     {
-        zigbeeModel: ['DIYRuZ_FreePad'],
+        zigbeeModel: ['DIYRuZ_FreePad', 'FreePadLeTV8'],
         model: 'DIYRuZ_FreePad',
         vendor: 'DIYRuZ',
         description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
