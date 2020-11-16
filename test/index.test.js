@@ -284,6 +284,7 @@ describe('index.js', () => {
               {
                 "type":"binary",
                 "name":"state",
+                "description": "On/off state of this light",
                 "property":"state_rgb",
                 "access":7,
                 "value_on":"ON",
@@ -294,6 +295,7 @@ describe('index.js', () => {
               {
                 "type":"numeric",
                 "name":"brightness",
+                "description": "Brightness of this light",
                 "property":"brightness_rgb",
                 "access":7,
                 "value_min":0,
@@ -304,6 +306,7 @@ describe('index.js', () => {
                 "type":"composite",
                 "property":"color_rgb",
                 "name":"color_xy",
+                "description": "Color of this light in the CIE 1931 color space (x/y)",
                 "features":[
                   {
                     "type":"numeric",
