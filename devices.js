@@ -8449,7 +8449,7 @@ const devices = [
         supports: 'action, temperature',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.action('on', 'off')],
+        exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
