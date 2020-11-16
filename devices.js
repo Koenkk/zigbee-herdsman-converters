@@ -4484,7 +4484,7 @@ const devices = [
         endpoint: (device) => {
             return {
                 button_1: 1, button_2: 2, button_3: 3, button_4: 4, button_5: 5,
-                button_6: 6, button_7: 7, button_8: 8
+                button_6: 6, button_7: 7, button_8: 8,
             };
         },
     },
