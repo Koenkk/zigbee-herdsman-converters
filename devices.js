@@ -4639,9 +4639,9 @@ const devices = [
             await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
         },
         exposes: [
-            e.co2(), e.temperature(), e.humidity(), e.pressure(), exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
-            exposes.binary('enable_abc', 'rw', 'ON', 'OFF'), exposes.numeric('threshold1', 'rw').withUnit('ppm'),
-            exposes.numeric('threshold2', 'rw').withUnit('ppm'),
+            e.co2(), e.temperature(), e.humidity(), e.pressure(), exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF'), exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm'),
+            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm'),
         ],
     },
 
