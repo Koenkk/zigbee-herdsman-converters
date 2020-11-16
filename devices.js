@@ -13446,7 +13446,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint, {min: 5, change: 100});
+            await configureReporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_15, change: 25});
             await configureReporting.humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
