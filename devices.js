@@ -6911,6 +6911,18 @@ const devices = [
         },
     },
     {
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 528, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        model: 'GL-H-001',
+        vendor: 'Gledopto',
+        description: 'Zigbee RF Hub',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-S-004ZS'],
         model: 'GL-S-004ZS',
         vendor: 'Gledopto',
