@@ -5181,6 +5181,12 @@ const converters = {
                     voltage: voltage,
                 };
             }
+            if (msg.data['mode'] !== undefined) {
+                const lookup = ['command', 'event'];
+                return {
+                    operation_mode: lookup[msg.data['mode']],
+                };
+            }
         },
     },
     aqara_opple_multistate: {
