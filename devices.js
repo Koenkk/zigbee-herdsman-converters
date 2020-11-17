@@ -4640,10 +4640,10 @@ const devices = [
         },
         exposes: [
             e.co2(), e.temperature(), e.humidity(), e.pressure(),
-            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF'),
-            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF'),
-            exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm'),
-            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm'),
+            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable LEDs feedback'),
+            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable ABC (Automatic Baseline Correction)'),
+            exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm').withDescription('CO2 when exceeded, LED2 blinks'),
+            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm').withDescription('CO2 when exceeded, LED2 ON, LED3 blinks'),
         ],
     },
 
