@@ -4994,7 +4994,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['Switch 4x EU-LIGHTIFY', 'Switch 4x-LIGHTIFY'],
+        zigbeeModel: ['Switch 4x EU-LIGHTIFY', 'Switch 4x-LIGHTIFY', 'Switch-LIGHTIFY'],
         model: '4058075816459',
         vendor: 'OSRAM',
         description: 'Smart+ switch',
