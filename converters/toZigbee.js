@@ -2840,6 +2840,7 @@ const converters = {
             const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
+            return {state: {operation_mode: value.toLowerCase()}};
         },
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);

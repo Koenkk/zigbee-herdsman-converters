@@ -1380,7 +1380,8 @@ const devices = [
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
             'button_5_hold', 'button_5_release', 'button_5_single', 'button_5_double', 'button_5_triple',
             'button_6_hold', 'button_6_release', 'button_6_single', 'button_6_double', 'button_6_triple',
-        ])],
+        ]), exposes.enum('operation_mode', exposes.access.ALL, ['command', 'event'])
+            .withDescription('Operation mode, select "command" to enable bindings')],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
