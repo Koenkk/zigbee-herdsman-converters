@@ -33,6 +33,7 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
+    MINUTES_30: 1800,
     MINUTES_15: 900,
     MINUTES_10: 600,
     MINUTES_5: 300,
@@ -13503,7 +13504,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await bind(endpoint, coordinatorEndpoint, bindClusters);
-            await configureReporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_15, change: 25});
+            await configureReporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
             await configureReporting.humidity(endpoint);
             await configureReporting.batteryVoltage(endpoint);
         },
