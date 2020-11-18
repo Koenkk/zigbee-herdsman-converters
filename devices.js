@@ -1616,14 +1616,32 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS0215A'],
-        model: 'TS0215A',
+        fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'}],
+        model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
         supports: 'action',
         fromZigbee: [fz.command_emergency, fz.battery],
         exposes: [e.battery(), e.action(['emergency'])],
         toZigbee: [],
+    },
+    {
+        fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'}],
+        model: 'TS0215A_remote',
+        vendor: 'TuYa',
+        description: 'Security remote control',
+        supports: 'action',
+        fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        toZigbee: [],
+        whiteLabel: [
+            {vendor: 'Woox', model: 'R7054'},
+        ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
     },
     {
         zigbeeModel: ['TS0503A'],
