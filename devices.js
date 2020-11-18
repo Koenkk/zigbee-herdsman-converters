@@ -2285,6 +2285,13 @@ const devices = [
             e.temperature(), e.humidity(), exposes.binary('humidity_alarm', exposes.access.STATE_SET, true, false),
             exposes.binary('temperature_alarm', exposes.access.STATE_SET, true, false),
             exposes.binary('alarm', exposes.access.STATE, true, false),
+            exposes.enum('melody', exposes.access.STATE, Array.from(Array(18).keys()).map(x=>(x+1).toString())),
+            exposes.numeric('duration', exposes.access.STATE).withUnit('second'),
+            exposes.numeric('temperature_min', exposes.access.STATE).withUnit('°C'),
+            exposes.numeric('temperature_max', exposes.access.STATE).withUnit('°C'),
+            exposes.numeric('humidity_min', exposes.access.STATE).withUnit('%'),
+            exposes.numeric('humidity_max', exposes.access.STATE).withUnit('%'),
+            exposes.enum('volume', exposes.access.STATE, ['low', 'medium', 'high']),
         ],
     },
 
