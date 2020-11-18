@@ -15411,6 +15411,18 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+
+    // Hommyn
+    {
+        zigbeeModel: ['5e56b9c85b6e4fcaaaad3c1319e16c57'],
+        model: 'MS-20-Z',
+        vendor: 'Hommyn',
+        description: 'Occupancy sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
+        toZigbee: [],
+        exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];
 
 
