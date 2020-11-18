@@ -33,7 +33,7 @@ const store = {};
 const repInterval = {
     MAX: 62000,
     HOUR: 3600,
-	MINUTES_30: 1800,
+    MINUTES_30: 1800,
     MINUTES_15: 900,
     MINUTES_10: 600,
     MINUTES_5: 300,
