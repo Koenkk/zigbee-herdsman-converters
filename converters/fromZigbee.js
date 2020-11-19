@@ -1145,6 +1145,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(common.armMode[msg.data['armmode']], msg, model),
                 action_code: msg.data.code,
@@ -1410,6 +1411,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
