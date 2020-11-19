@@ -2024,15 +2024,9 @@ const devices = [
         supports: 'occupancy',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        meta: {configureKey: 1},
         whiteLabel: [
             {vendor: 'Samotech', model: 'SM301Z'},
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await configureReporting.batteryVoltage(endpoint);
-        },
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
