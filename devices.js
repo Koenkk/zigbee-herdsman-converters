@@ -15447,6 +15447,16 @@ const devices = [
         description: 'Smart Plug',
         extend: generic.switch,
     },
+    {
+        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
+        model: 'HG06335',
+        vendor: 'Silvercrest',
+        description: 'Smart Motion Sensor',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];
 
 
