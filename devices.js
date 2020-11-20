@@ -1503,10 +1503,7 @@ const devices = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
-        ],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
         model: 'TS011F_switch',
         vendor: 'TuYa',
         description: '3 gang switch, possibly with USB',
