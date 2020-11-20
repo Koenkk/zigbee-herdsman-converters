@@ -15438,14 +15438,11 @@ const devices = [
 
     // Silvercrest
     {
-        zigbeeModel: ['TS011F'],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_kdi2o9m6'}],
         model: 'HG06337',
         vendor: 'Silvercrest',
         description: 'Smart Plug',
-        supports: 'switch_on_off',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [],
+        extend: generic.switch,
     },
 ];
 
