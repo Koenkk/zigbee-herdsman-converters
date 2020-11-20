@@ -1503,28 +1503,6 @@ const devices = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
-        ],
-        model: 'TS011F_switch',
-        vendor: 'TuYa',
-        description: '3 gang switch, possibly with USB',
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        extend: generic.switch,
-        meta: {configureKey: 1, multiEndpoint: true},
-        supports: 'on/off',
-        whiteLabel: [{vendor: 'SilverCrest', model: 'SPSZ 3 A1', description: '3 gang switch (16A) with 4 USB ports'}],
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3]) {
-                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-            }
-        },
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
-    },
-    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
@@ -1853,24 +1831,6 @@ const devices = [
                 .withSystemMode(['auto']).withRunningState(['idle', 'heat']).withAwayMode()
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
         ],
-    },
-    {
-        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
-        model: 'TY0202_occupancy',
-        vendor: 'TuYa',
-        supports: 'occupancy',
-        description: 'Motion sensor',
-        whiteLabel: [
-            {vendor: 'SilverCrest', model: 'SMSZ 1 A1'},
-        ],
-        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-        },
-        exposes: [e.battery(), e.occupancy()],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
@@ -15451,11 +15411,36 @@ const devices = [
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
         model: 'HG06335',
         vendor: 'Silvercrest',
-        description: 'Smart Motion Sensor',
+        description: 'Smart motion sensor',
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
+        ],
+        model: 'SPSZ 3 A1',
+        vendor: 'Silvercrest',
+        description: '3 gang switch, possibly with USB',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3]) {
+                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
     },
 ];
 
