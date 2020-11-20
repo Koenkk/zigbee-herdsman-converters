@@ -1503,7 +1503,10 @@ const devices = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}],
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
+        ],
         model: 'TS011F_switch',
         vendor: 'TuYa',
         description: '3 gang switch, possibly with USB',
@@ -15436,12 +15439,19 @@ const devices = [
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
 
-    // SILVER CREST
+    // Silvercrest
     {
-        zigbeeModel: ['TY0202'],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_kdi2o9m6'}],
+        model: 'HG06337',
+        vendor: 'Silvercrest',
+        description: 'Smart Plug',
+        extend: generic.switch,
+    },
+    {
+        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
         model: 'HG06335',
-        vendor: 'SilverCrest',
-        description: 'SilverCrest Smart Motion Sensor (LIDL)',
+        vendor: 'Silvercrest',
+        description: 'Smart Motion Sensor',
         supports: 'occupancy',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
