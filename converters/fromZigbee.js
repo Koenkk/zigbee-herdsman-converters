@@ -5161,6 +5161,46 @@ const converters = {
             };
         },
     },
+    diyruz_airsense_config_co2: {
+        cluster: 'msCO2',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                led_feedback: ['OFF', 'ON'][msg.data[0x0203.toString()]],
+                enable_abc:   ['OFF', 'ON'][msg.data[0x0202.toString()]],
+                threshold1:   msg.data[0x0204.toString()],
+                threshold2:   msg.data[0x0205.toString()],
+            };
+        },
+    },
+    diyruz_airsense_config_temp: {
+        cluster: 'msTemperatureMeasurement',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                temperature_offset: msg.data[0x0210.toString()],
+            };
+        },
+    },
+    diyruz_airsense_config_pres: {
+        cluster: 'msPressureMeasurement',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                pressure_offset: msg.data[0x0210.toString()],
+            };
+        },
+
+    },
+    diyruz_airsense_config_hum: {
+        cluster: 'msRelativeHumidity',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                humidity_offset: msg.data[0x0210.toString()],
+            };
+        },
+    },
     aqara_opple_report: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
