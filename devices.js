@@ -15436,7 +15436,7 @@ const devices = [
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
 
-    //Silver Crest
+    // Silver Crest
     {                     
         zigbeeModel: ['TS011F'],
         model: 'HG06337',                                                                                       
