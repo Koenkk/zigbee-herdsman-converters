@@ -15435,6 +15435,18 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
+
+    //Silver Crest
+    {                     
+        zigbeeModel: ['TS011F'],
+        model: 'HG06337',                                                                                       
+        vendor: 'SilverCrest',                                                                             
+        description: 'SilverCrest Smart Plug (LIDL)',     
+        supports: 'switch_on_off',                                                                           
+        fromZigbee: [fz.on_off],                                                                              
+        toZigbee: [tz.on_off],
+	exposes: [],
+    },	
 ];
 
 
