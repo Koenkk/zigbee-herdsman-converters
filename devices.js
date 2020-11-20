@@ -15435,6 +15435,18 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
+
+    // SILVER CREST
+    {
+        zigbeeModel: ['TY0202'],
+        model: 'HG06335',
+        vendor: 'SilverCrest',
+        description: 'SilverCrest Smart Motion Sensor (LIDL)',
+        supports: 'occupancy',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];
 
 
