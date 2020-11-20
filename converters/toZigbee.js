@@ -3375,9 +3375,7 @@ const converters = {
             };
             await entity.write(payloads[key][0], payloads[key][1]);
             return {
-                state: {
-                    [key]: rawValue
-                }
+                state: {[key]: rawValue},
             };
         },
         convertGet: async (entity, key, meta) => {
