@@ -5167,9 +5167,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             return {
                 led_feedback: ['OFF', 'ON'][msg.data[0x0203.toString()]],
-                enable_abc:   ['OFF', 'ON'][msg.data[0x0202.toString()]],
-                threshold1:   msg.data[0x0204.toString()],
-                threshold2:   msg.data[0x0205.toString()],
+                enable_abc: ['OFF', 'ON'][msg.data[0x0202.toString()]],
+                threshold1: msg.data[0x0204.toString()],
+                threshold2: msg.data[0x0205.toString()],
             };
         },
     },
