@@ -7239,6 +7239,13 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['GL-FL-005TZS'],
+        model: 'GL-FL-005TZS',
+        vendor: 'Gledopto',
+        description: 'Zigbee 30W floodlight RGB CCT plus',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-FL-006TZ'],
         model: 'GL-FL-006TZ',
         vendor: 'Gledopto',
