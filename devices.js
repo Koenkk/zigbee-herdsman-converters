@@ -11904,7 +11904,7 @@ const devices = [
             'colortemp_up_release', 'colortemp_down_release',
         ])],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
