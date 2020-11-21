@@ -13966,6 +13966,47 @@ const devices = [
 
     // Legrand
     {
+        zigbeeModel: [
+            ' Shutters central remote switch',
+        ],
+        model: '067646',
+        vendor: 'Legrand',
+        description: 'Wireless shutter switch',
+        supports: 'action',
+        fromZigbee: [
+            fz.identify,
+            fz.ignore_basic_report,
+            fz.cover_open,
+            fz.cover_close,
+            fz.cover_stop,
+            fz.battery_3V,
+            fz.legrand_binary_input_moving,
+        ],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+        },
+        onEvent: async (type, data, device, options) => {
+            await legrand.read_initial_battery_state(type, data, device);
+
+            if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
+                // TODO current solution is a work around, it would be cleaner to answer to the request
+                const endpoint = device.getEndpoint(1);
+                const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+                /* await endpoint.command('genPollCtrl', 'checkinRsp', {
+                    startfastpolling: false,
+                    fastpolltimeout: 0,
+                }, {
+                    transactionSequenceNumber:data.meta.zclTransactionSequenceNumber,
+                    manufacturerCode: 0x1021, disableDefaultResponse: true
+                }); */
+                await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
+            }
+        },
+    },
+    {
         zigbeeModel: [' Shutter switch with neutral\u0000\u0000\u0000'],
         model: '067776',
         vendor: 'Legrand',
