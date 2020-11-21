@@ -9357,7 +9357,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GASSensor-EM'],
+        zigbeeModel: ['GASSensor-EM', 'GASSensor-EFR-3.0'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
