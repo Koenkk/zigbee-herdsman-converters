@@ -13551,6 +13551,32 @@ const devices = [
 
     // Legrand
     {
+        zigbeeModel: [' Shutters central remote switch'],
+        model: '067646',
+        vendor: 'Legrand',
+        description: 'Wireless shutter switch',
+        fromZigbee: [
+            fz.identify, fz.ignore_basic_report, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.battery,
+            fz.legrand_binary_input_moving,
+        ],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped'])],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+        },
+        onEvent: async (type, data, device, options) => {
+            await legrand.read_initial_battery_state(type, data, device);
+
+            if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
+                const endpoint = device.getEndpoint(1);
+                const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+                await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
+            }
+        },
+    },
+    {
         zigbeeModel: [' Shutter switch with neutral\u0000\u0000\u0000'],
         model: '067776',
         vendor: 'Legrand',
