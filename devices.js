@@ -12532,6 +12532,23 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
         },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 18 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
+             *
+             * This cluster uses the binding table for managing command targets.
+             * When factory fresh, this cluster is bound to endpoint #1 to
+             * enable local control.
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+            }
+        },
         ota: ota.ubisys,
     },
     {
