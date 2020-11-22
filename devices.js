@@ -15012,6 +15012,25 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
+
+    // Livarnolux (Lidl) remote control dimmer
+    {
+        zigbeeModel: ['TS1001'], 
+        model: 'TS1001',
+        vendor: 'Livarnolux',
+        description: 'Livarnolux remote control dimmer',
+        supports: 'switch and dimming',
+        exposes: [e.action([
+            'on', 'off', 'brightness_down_click', 'brightness_up_click', 'brightness_down_hold', 'brightness_up_hold',
+            'brightness_down_release', 'brightness_up_release',
+        ])],
+        fromZigbee: [
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
+            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [],
+    },
 ];
 
 
