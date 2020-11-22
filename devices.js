@@ -11102,11 +11102,18 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint, {min: 1, max: 3600, change: 0});
             const options = {manufacturerCode: 4406, disableDefaultResponse: true};
-            await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
+            try {
+                await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
+            } catch (e) {
+                // Is the meter device was already setup, it will return a write failure
+                // Meter will anyway still be fully functional
+            }
             await endpoint.configureReporting('seMetering', [{
                 attribute: {ID: 0x2007, type: 0x39},
                 minimumReportInterval: 1,
                 maximumReportInterval: 5,
+                // Keeping the maximumReportInterval to 5 as the meter reports at fixed interval
+                // whatever the changes. In this case it will report at 5 seconds interval
                 reportableChange: 1,
             }], options);
             await endpoint.configureReporting('seMetering', [{
@@ -11137,7 +11144,12 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint, {min: 1, max: 3600, change: 0});
             const options = {manufacturerCode: 4406, disableDefaultResponse: true};
-            await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
+            try {
+                await endpoint.write('seMetering', {0x1005: {value: 0x071f, type: 25}}, options);
+            } catch (e) {
+                // Is the meter device was already setup, it will return a write failure
+                // Meter will anyway still be fully functional
+            }
             await endpoint.configureReporting('seMetering', [{
                 attribute: {ID: 0x2007, type: 0x39},
                 minimumReportInterval: 1,
