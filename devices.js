@@ -14961,7 +14961,7 @@ const devices = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
         ],
-        model: 'SPSZ 3 A1',
+        model: 'HG06338',
         vendor: 'Silvercrest',
         description: '3 gang switch, possibly with USB',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
