@@ -253,6 +253,11 @@ const configureReporting = {
     },
 };
 
+const effectExpose = exposes.enum(
+    'effect', exposes.access.SET,
+    ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect'],
+).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)');
+
 const generic = {
     switch: {
         exposes: [e.switch()],
@@ -261,10 +266,7 @@ const generic = {
         toZigbee: [tz.on_off],
     },
     light_onoff_brightness: {
-        exposes: [
-            e.light_brightness(),
-            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
-        ],
+        exposes: [e.light_brightness(), effectExpose],
         supports: 'on/off, brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -273,10 +275,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp: {
-        exposes: [
-            e.light_brightness_colortemp(),
-            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
-        ],
+        exposes: [e.light_brightness_colortemp(), effectExpose],
         supports: 'on/off, brightness, color temperature',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -286,10 +285,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colorxy: {
-        exposes: [
-            e.light_brightness_colorxy(),
-            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
-        ],
+        exposes: [e.light_brightness_colorxy(), effectExpose],
         supports: 'on/off, brightness, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -299,10 +295,7 @@ const generic = {
         ],
     },
     light_onoff_brightness_colortemp_colorxy: {
-        exposes: [
-            e.light_brightness_colortemp_colorxy(),
-            exposes.enum('effect', exposes.access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']),
-        ],
+        exposes: [e.light_brightness_colortemp_colorxy(), effectExpose],
         supports: 'on/off, brightness, color temperature, color xy',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [
@@ -4623,9 +4616,11 @@ const devices = [
             await firstEndpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
         },
         exposes: [
-            e.co2(), e.temperature(), e.humidity(), e.pressure(), exposes.binary('led_feedback', 'rw', 'ON', 'OFF'),
-            exposes.binary('enable_abc', 'rw', 'ON', 'OFF'), exposes.numeric('threshold1', 'rw').withUnit('ppm'),
-            exposes.numeric('threshold2', 'rw').withUnit('ppm'),
+            e.co2(), e.temperature(), e.humidity(), e.pressure(),
+            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm'),
+            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm'),
         ],
     },
 
