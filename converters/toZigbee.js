@@ -3,7 +3,6 @@
 const utils = require('./utils');
 const common = require('./common');
 const globalStore = require('./store');
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const store = {};
 
@@ -36,19 +35,67 @@ const options = {
     },
 };
 
-async function sendTuyaCommand(entity, dp, fn, data) {
+async function sendTuyaDataPoint(entity, datatype, dp, data) {
+    if (sendTuyaDataPoint.transId === undefined) {
+        sendTuyaDataPoint.transId = 0;
+    } else {
+        sendTuyaDataPoint.transId++;
+        sendTuyaDataPoint.transId %= 256;
+    }
     await entity.command(
-        'manuSpecificTuyaDimmer',
+        'manuSpecificTuya',
         'setData',
         {
             status: 0,
-            transid: utils.getRandomInt(0, 255),
+            transid: sendTuyaDataPoint.transId,
             dp: dp,
-            fn: fn,
+            datatype: datatype,
+            length_hi: (data.length >> 8) & 0xFF,
+            length_lo: data.length & 0xFF,
             data: data,
         },
         {disableDefaultResponse: true},
     );
+}
+
+async function sendTuyaDataPointValue(entity, dp, value) {
+    await sendTuyaDataPoint(
+        entity,
+        common.TuyaDataTypes.value,
+        dp,
+        utils.convertDecimalValueTo4ByteHexArray(value));
+}
+
+async function sendTuyaDataPointBool(entity, dp, value) {
+    await sendTuyaDataPoint(
+        entity,
+        common.TuyaDataTypes.bool,
+        dp,
+        [value ? 1 : 0]);
+}
+
+async function sendTuyaDataPointEnum(entity, dp, value) {
+    await sendTuyaDataPoint(
+        entity,
+        common.TuyaDataTypes.enum,
+        dp,
+        [value]);
+}
+
+async function sendTuyaDataPointRaw(entity, dp, value) {
+    await sendTuyaDataPoint(
+        entity,
+        common.TuyaDataTypes.raw,
+        dp,
+        value);
+}
+
+async function sendTuyaDataPointBitmap(entity, dp, value) {
+    await sendTuyaDataPoint(
+        entity,
+        common.TuyaDataTypes.bitmap,
+        dp,
+        value);
 }
 
 function saveSceneState(entity, sceneID, groupID, state) {
@@ -350,7 +397,7 @@ const converters = {
                 await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
-                await wait(500);
+                await utils.sleepMs(500);
                 const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
@@ -383,7 +430,7 @@ const converters = {
             // - Color mode could have been swithed (x/y or hue/saturation)
             const entityToRead = getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
-                await wait(100 + (transition * 100));
+                await utils.sleepMs(100 + (transition * 100));
                 await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
             }
         },
@@ -408,7 +455,7 @@ const converters = {
                 if (value === 'stop' || value === 0) {
                     const entityToRead = getEntityOrFirstGroupMember(entity);
                     if (entityToRead) {
-                        await wait(100);
+                        await utils.sleepMs(100);
                         await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
                     }
                 }
@@ -448,7 +495,7 @@ const converters = {
             // - Color mode could have been swithed (x/y or colortemp)
             const entityToRead = getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
-                await wait(100 + (transition * 100));
+                await utils.sleepMs(100 + (transition * 100));
                 await entityToRead.read('lightingColorCtrl', [attribute]);
             }
         },
@@ -479,7 +526,7 @@ const converters = {
             if (value === 'stop' || value === 0) {
                 const entityToRead = getEntityOrFirstGroupMember(entity);
                 if (entityToRead) {
-                    await wait(100);
+                    await utils.sleepMs(100);
                     await entityToRead.read('lightingColorCtrl', [attribute]);
                 }
             }
@@ -1702,7 +1749,7 @@ const converters = {
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
                     await converters.on_off.convertSet(entity, key, 'ON', meta);
-                    await wait(1000);
+                    await utils.sleepMs(1000);
                 }
             }
 
@@ -2714,32 +2761,45 @@ const converters = {
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 257, fn: 0, data: [1, (value === 'ON') ? 1 : 0],
-                },
-                {disableDefaultResponse: true},
-            );
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, value === 'ON');
         },
     },
     tuya_dimmer_level: {
-        key: ['brightness', 'brightness_percent'],
+        key: ['brightness_min', 'brightness', 'brightness_percent', 'level'],
         convertSet: async (entity, key, value, meta) => {
             // upscale to 1000
             let newValue;
-            if (key === 'brightness_percent') {
-                newValue = Math.round(Number(value) * 10);
-            } else {
-                newValue = Math.round(Number(value) * 1000 / 255);
+            let dp = common.TuyaDataPoints.dimmerLevel;
+            if (meta.device.manufacturerName == '_TZE200_9i9dt8is') {
+                dp = common.TuyaDataPoints.eardaDimmerLevel;
             }
-            const b1 = newValue >> 8;
-            const b2 = newValue & 0xFF;
-            await entity.command(
-                'manuSpecificTuyaDimmer', 'setData', {
-                    status: 0, transid: 16, dp: 515, fn: 0, data: [4, 0, 0, b1, b2],
-                },
-                {disableDefaultResponse: true},
-            );
+            if (key === 'brightness_min') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                    dp = common.TuyaDataPoints.dimmerLevel;
+                } else {
+                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                }
+            } else if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else {
+                if (value >= 0 && value <= 255) {
+                    newValue = Math.round(Number(value) * 1000 / 255);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+            }
+            await sendTuyaDataPointValue(entity, dp, newValue);
         },
     },
     tuya_switch_state: {
@@ -2748,7 +2808,7 @@ const converters = {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
             const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await sendTuyaCommand(entity, 256 + keyid, 0, [1, value === 'ON' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
         },
     },
@@ -2780,6 +2840,7 @@ const converters = {
             const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
+            return {state: {operation_mode: value.toLowerCase()}};
         },
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);
@@ -2839,52 +2900,48 @@ const converters = {
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 296, 0, [1, value==='LOCK' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.moesChildLock, value === 'LOCK');
         },
     },
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const temp = value;
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            sendTuyaCommand(entity, 528, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesHeatingSetpoint, value);
         },
     },
     moes_thermostat_min_temperature: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            const temp = value;
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            sendTuyaCommand(entity, 532, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesMinTemp, value);
         },
     },
     moes_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 4096 + value;
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            sendTuyaCommand(entity, 539, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesTempCalibration, value);
         },
     },
     moes_thermostat_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 1026, 0, [1, value === 'hold' ? 0 : 1]);
-            sendTuyaCommand(entity, 1027, 0, [1, value === 'program' ? 0 : 1]);
+            const hold = value === 'hold' ? 0 : 1;
+            const schedule = value === 'program' ? 0 : 1;
+            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesHold, hold);
+            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesScheduleEnable, schedule);
         },
     },
     moes_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 257, 0, [1, value === 'heat' ? 1 : 0]);
-            sendTuyaCommand(entity, 257, 0, [1, value === 'off' ? 0 : 1]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, value === 'heat');
         },
     },
     // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
     moes_thermostat_sensor: {
         key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 1067, 0, [1, value]);
+            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSensor, value);
         },
     },
     etop_thermostat_system_mode: {
@@ -2892,17 +2949,17 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'off':
-                await sendTuyaCommand(entity, 257, 0, [1, 0/* off */]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, false);
                 break;
             case 'heat':
-                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
                 await utils.sleepMs(500);
-                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 0 /* manual */);
                 break;
             case 'auto':
-                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
                 await utils.sleepMs(500);
-                await sendTuyaCommand(entity, 1028, 0, [1, 2/* auto */]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 2 /* auto */);
                 break;
             }
         },
@@ -2912,12 +2969,12 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'ON':
-                await sendTuyaCommand(entity, 257, 0, [1, 1/* on */]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
                 await utils.sleepMs(500);
-                await sendTuyaCommand(entity, 1028, 0, [1, 1/* away */]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 1 /* away */);
                 break;
             case 'OFF':
-                await sendTuyaCommand(entity, 1028, 0, [1, 0/* manual */]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 0 /* manual */);
                 break;
             }
         },
@@ -2929,6 +2986,10 @@ const converters = {
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            let conversion = 'generic';
+            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+                conversion = thermostatMeta.weeklyScheduleConversion;
+            }
 
             function transitionToData(transition) {
                 // Later it is possible to move converter to meta or to other place outside if other type of converter
@@ -2968,38 +3029,73 @@ const converters = {
                     }
                 }
                 const payload = [];
+                if (conversion == 'saswell') {
+                    // Single data point for setting schedule
+                    // [
+                    //     bitmap of days: |  7|  6|  5|  4|  3|  2|  1|
+                    //                     |Sat|Fri|Thu|Wed|Tue|Mon|Sun|,
+                    //     schedule mode - see common.TuyaThermostatScheduleMode, currently
+                    //                     no known devices support modes other than "7 day"
+                    //     4 transitions:
+                    //       minutes from midnight high byte
+                    //       minutes from midnight low byte
+                    //       temperature * 10 high byte
+                    //       temperature * 10 low byte
+                    // ]
+                    payload.push(1 << (dayofweek - 1), 4);
+                }
                 transitions.forEach((transition) => {
                     payload.push(...transitionToData(transition));
                 });
-                await sendTuyaCommand(entity, firstDayDpId - 1 + dayofweek, 0, [payload.length, ...payload]);
+                if (conversion == 'saswell') {
+                    await sendTuyaDataPointRaw(
+                        entity,
+                        common.TuyaDataPoints.saswellScheduleSet,
+                        payload);
+                } else {
+                    await sendTuyaDataPointRaw(
+                        entity,
+                        firstDayDpId - 1 + dayofweek,
+                        payload);
+                }
             }
         },
     },
     tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaCommand(entity, 263, 0, [1, value==='LOCK' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.childLock, value === 'LOCK');
         },
     },
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaCommand(entity, 104, 0, [1, value==='ON' ? 1 : 0]);
-            await sendTuyaCommand(entity, 274, 0, [1, value==='ON' ? 1 : 0]);
+            await sendTuyaDataPointRaw(
+                entity,
+                common.TuyaDataPoints.windowDetection,
+                [value === 'ON' ? 1 : 0]);
+        },
+    },
+    siterwell_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendTuyaDataPointBool(
+                entity,
+                common.TuyaDataPoints.siterwellWindowDetection,
+                value === 'ON');
         },
     },
     tuya_thermostat_valve_detection: {
         key: ['valve_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaCommand(entity, 276, 0, [1, value==='ON' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.valveDetection, value === 'ON');
         },
     },
     tuya_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            await sendTuyaCommand(entity, 514, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.heatingSetpoint, temp);
         },
     },
     tuya_thermostat_system_mode: {
@@ -3007,7 +3103,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
             if (modeId !== null) {
-                await sendTuyaCommand(entity, 1028, 0, [1, parseInt(modeId)]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(modeId));
             } else {
                 console.log(`TRV system mode ${value} is not recognized.`);
             }
@@ -3018,7 +3114,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
-                await sendTuyaCommand(entity, 1028, 0, [1, parseInt(presetId)]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(presetId));
             } else {
                 console.log(`TRV preset ${value} is not recognized.`);
             }
@@ -3032,9 +3128,9 @@ const converters = {
             const schedulePresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
             if (awayPresetId !== null) {
                 if (value == 'ON') {
-                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(awayPresetId)]);
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(awayPresetId));
                 } else if (schedulePresetId != null) {
-                    await sendTuyaCommand(entity, 1028, 0, [1, parseInt(schedulePresetId)]);
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(schedulePresetId));
                 }
                 // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
@@ -3047,7 +3143,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(common.TuyaFanModes, value, null);
             if (modeId !== null) {
-                await sendTuyaCommand(entity, 1029, 0, [1, parseInt(modeId)]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.fanMode, parseInt(modeId));
             } else {
                 console.log(`TRV fan mode ${value} is not recognized.`);
             }
@@ -3056,50 +3152,44 @@ const converters = {
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaCommand(entity, 372, 0, [1, value==='AUTO' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.autoLock, value === 'AUTO');
         },
     },
     tuya_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            await sendTuyaCommand(entity, 556, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.tempCalibration, temp);
         },
     },
     tuya_thermostat_min_temp: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            await sendTuyaCommand(entity, 614, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.minTemperature, value);
         },
     },
     tuya_thermostat_max_temp: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.maxTemperature, value);
         },
     },
     tuya_thermostat_boost_time: {
         key: ['boost_time'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            await sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.boostTime, value);
         },
     },
     tuya_thermostat_comfort_temp: {
         key: ['comfort_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.comfortTemperature, value);
         },
     },
     tuya_thermostat_eco_temp: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(value);
-            await sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.ecoTemperature, value);
         },
     },
     tuya_thermostat_force: {
@@ -3107,7 +3197,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKeyByValue(common.TuyaThermostatForceMode, value, null);
             if (modeId !== null) {
-                await sendTuyaCommand(entity, 1130, 0, [1, parseInt(modeId)]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.forceMode, parseInt(modeId));
             } else {
                 console.log(`TRV force mode ${value} is not recognized.`);
             }
@@ -3118,10 +3208,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'away_preset_days':
-                sendTuyaCommand(entity, 629, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.awayDays, value);
                 break;
             case 'away_preset_temperature':
-                sendTuyaCommand(entity, 626, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.awayTemp, value);
                 break;
             }
         },
@@ -3130,7 +3220,10 @@ const converters = {
         key: ['window_detect'],
         convertSet: async (entity, key, value, meta) => {
             const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
-            sendTuyaCommand(entity, 104, 0, [3, detect, value.temperature, value.minutes]);
+            await sendTuyaDataPointRaw(
+                entity,
+                common.TuyaDataPoints.windowDetection,
+                [detect, value.temperature, value.minutes]);
         },
     },
     tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
@@ -3138,7 +3231,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const prob = Object.keys(value)[0]; // "workdays" or "holidays"
             if ((prob === 'workdays') || (prob === 'holidays')) {
-                const dpId = (prob === 'workdays') ? 112 : 113;
+                const dpId =
+                    (prob === 'workdays') ?
+                        common.TuyaDataPoints.scheduleWorkday :
+                        common.TuyaDataPoints.scheduleHoliday;
                 const payload = [];
                 for (let i = 0; i < 6; i++) {
                     if ((value[prob][i].hour >= 0) && (value[prob][i].hour < 24)) {
@@ -3151,7 +3247,7 @@ const converters = {
                         payload[i*3+2] = value[prob][i].temperature;
                     }
                 }
-                sendTuyaCommand(entity, dpId, 0, [18, ...payload]);
+                sendTuyaDataPointRaw(entity, dpId, payload);
             }
         },
     },
@@ -3160,7 +3256,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'5+2': 0, '6+1': 1, '7': 2};
             const week = lookup[value];
-            sendTuyaCommand(entity, 1135, 0, [1, week]);
+            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.weekFormat, week);
             return {state: {week: value}};
         },
     },
@@ -3175,7 +3271,7 @@ const converters = {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
                     value = invert ? 100 - value : value;
-                    await sendTuyaCommand(entity, 514, 0, [4, 0, 0, 0, value]); // Set position from 0 - 100%
+                    await sendTuyaDataPointValue(entity, common.TuyaDataPoints.coverPosition, value);
                 } else {
                     meta.logger.debug('TuYa_cover_control: Curtain motor position is out of range');
                 }
@@ -3184,13 +3280,13 @@ const converters = {
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await sendTuyaCommand(entity, 1025, 0, [1, isRoller ? 0 : 2]); // close
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, isRoller ? 0 : 2);
                     break;
                 case 'open':
-                    await sendTuyaCommand(entity, 1025, 0, [1, isRoller ? 2 : 0]); // open
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, isRoller ? 2 : 0);
                     break;
                 case 'stop':
-                    await sendTuyaCommand(entity, 1025, 0, [1, 1]); // Stop
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, 1);
                     break;
                 default:
                     meta.logger.debug('TuYa_cover_control: Invalid command received');
@@ -3205,10 +3301,10 @@ const converters = {
             if (value.reverse_direction != undefined) {
                 if (value.reverse_direction) {
                     meta.logger.info('Motor direction reverse');
-                    await sendTuyaCommand(entity, 1029, 0, [1, 1]); // 0x04 0x05: Set motor direction to reverse
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.motorDirection, 1);
                 } else {
                     meta.logger.info('Motor direction forward');
-                    await sendTuyaCommand(entity, 1029, 0, [1, 0]); // 0x04 0x05: Set motor direction to forward (default)
+                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.motorDirection, 0);
                 }
             }
         },
@@ -3261,6 +3357,23 @@ const converters = {
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
         },
     },
+    diyruz_airsense_config: {
+        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {
+                'OFF': 0x00,
+                'ON': 0x01,
+            };
+            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const payloads = {
+                led_feedback: {0x0203: {value, type: 0x10}},
+                enable_abc: {0x0202: {value, type: 0x10}},
+                threshold1: {0x0204: {value, type: 0x21}},
+                threshold2: {0x0205: {value, type: 0x21}},
+            };
+            await entity.write('msCO2', payloads[key]);
+        },
+    },
     neo_t_h_alarm: {
         key: [
             'alarm', 'melody', 'volume', 'duration',
@@ -3270,34 +3383,37 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'alarm':
-                await sendTuyaCommand(entity, 360, 0, [1, value ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoAlarm, value);
                 break;
             case 'melody':
-                await sendTuyaCommand(entity, 1126, 0, [1, parseInt(value, 10)]);
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.neoMelody, parseInt(value, 10));
                 break;
             case 'volume':
-                await sendTuyaCommand(entity, 1140, 0, [1, {'low': 2, 'medium': 1, 'high': 0}[value]]);
+                await sendTuyaDataPointEnum(
+                    entity,
+                    common.TuyaDataPoints.neoVolume,
+                    {'low': 2, 'medium': 1, 'high': 0}[value]);
                 break;
             case 'duration':
-                await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoDuration, value);
                 break;
             case 'temperature_max':
-                await sendTuyaCommand(entity, 620, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMaxTemp, value);
                 break;
             case 'temperature_min':
-                await sendTuyaCommand(entity, 619, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMinTemp, value);
                 break;
             case 'humidity_max':
-                await sendTuyaCommand(entity, 622, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMaxHumidity, value);
                 break;
             case 'humidity_min':
-                await sendTuyaCommand(entity, 621, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMinHumidity, value);
                 break;
             case 'temperature_alarm':
-                await sendTuyaCommand(entity, 369, 0, [1, value ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoTempAlarm, value);
                 break;
             case 'humidity_alarm':
-                await sendTuyaCommand(entity, 370, 0, [1, value ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoHumidityAlarm, value);
                 break;
             default: // Unknown key
                 console.log(`Unhandled key ${key}`);
@@ -3452,24 +3568,107 @@ const converters = {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            const payloadValue = utils.convertDecimalValueTo2ByteHexArray(temp);
-            await sendTuyaCommand(entity, 615, 0, [4, 0, 0, ...payloadValue]);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellHeatingSetpoint, temp);
         },
     },
     saswell_thermostat_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            if ( value == 'auto' ) {
-                sendTuyaCommand(entity, 364, 0, [1, 1]);
+            if ( value == 'off' ) {
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
+            } else if ( value == 'Schedule' ) {
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, true);
+            }
+        },
+    },
+    saswell_thermostat_away: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if ( value == 'ON' ) {
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, true);
             } else {
-                sendTuyaCommand(entity, 364, 0, [1, 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, false);
+                // HA does not send preset_mode when exiting 'away'
+                // We have no way to check whether 'Schedule' is on, so we need to set it here
+                await utils.sleepMs(2000);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
+                meta.logger.error('Saswell: Sending prog 0');
+                // return {state: {preset_mode: 'none'}};
             }
         },
     },
     saswell_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            sendTuyaCommand(entity, 357, 0, [1, value === 'heat' ? 1 : 0]);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, value === 'heat');
+        },
+    },
+    saswell_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            // It seems that currently child lock can be sent and device responds,
+            // but it's not entering lock state
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellChildLock, value === 'LOCK');
+        },
+    },
+    saswell_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellWindowDetection, value === 'ON');
+        },
+    },
+    saswell_thermostat_frost_detection: {
+        key: ['frost_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellFrostDetection, value === 'ON');
+        },
+    },
+    saswell_thermostat_anti_scaling: {
+        key: ['anti_scaling'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAntiScaling, value === 'ON');
+        },
+    },
+    saswell_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value > 6) value = 6;
+            if (value < -6) value = -6;
+            if (value < 0) value = 0xFFFFFFFF + value + 1;
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellTempCalibration, value);
+        },
+    },
+    tuya_data_point_test: {
+        key: ['tuya_data_point_test'],
+        convertSet: async (entity, key, value, meta) => {
+            const args = value.split(',');
+            const mode = args[0];
+            const dp = parseInt(args[1]);
+            const data = [];
+
+            switch (mode) {
+            case 'raw':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendTuyaDataPointRaw(entity, dp, data);
+                break;
+            case 'bool':
+                await sendTuyaDataPointBool(entity, dp, args[2] === '1');
+                break;
+            case 'value':
+                await sendTuyaDataPointValue(entity, dp, parseInt(args[2]));
+                break;
+            case 'enum':
+                await sendTuyaDataPointEnum(entity, dp, parseInt(args[2]));
+                break;
+            case 'bitmap':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendTuyaDataPointBitmap(entity, dp, data);
+                break;
+            }
         },
     },
     ts0216_duration: {
@@ -3552,62 +3751,74 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'max_temperature_protection':
-                sendTuyaCommand(entity, 362, 0, [1, value==='ON' ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyMaxTempProtection, value === 'ON');
                 break;
             case 'min_temperature_protection':
-                sendTuyaCommand(entity, 363, 0, [1, value==='ON' ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyMinTempProtection, value === 'ON');
                 break;
             case 'state':
-                sendTuyaCommand(entity, 381, 0, [1, value==='ON' ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyState, value === 'ON');
                 break;
             case 'child_lock':
-                sendTuyaCommand(entity, 385, 0, [1, value==='LOCKED' ? 1 : 0]);
+                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyChildLock, value === 'LOCKED');
                 break;
             case 'away_preset_days':
-                sendTuyaCommand(entity, 616, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyAwayDays, value);
                 break;
             case 'away_preset_temperature':
-                sendTuyaCommand(entity, 617, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyAwayTemp, value);
                 break;
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
                 if (value < 0) value = 0xFFFFFFFF + value + 1;
-                sendTuyaCommand(entity, 621, 0, [4, ...utils.convertDecimalValueTo4ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyTempCalibration, value);
                 break;
             case 'hysteresis':
                 value = Math.round(value * 10);
-                sendTuyaCommand(entity, 622, 0, [4, ...utils.convertDecimalValueTo4ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyHysteresis, value);
                 break;
             case 'hysteresis_for_protection':
-                sendTuyaCommand(entity, 623, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionHysteresis, value);
                 break;
             case 'max_temperature_for_protection':
-                sendTuyaCommand(entity, 624, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionMaxTemp, value);
                 break;
             case 'min_temperature_for_protection':
-                sendTuyaCommand(entity, 625, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionMinTemp, value);
                 break;
             case 'max_temperature':
-                sendTuyaCommand(entity, 626, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyMaxTemp, value);
                 break;
             case 'min_temperature':
-                sendTuyaCommand(entity, 627, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyMinTemp, value);
                 break;
             case 'current_heating_setpoint':
                 value = Math.round(value * 10);
-                sendTuyaCommand(entity, 638, 0, [4, 0, 0, ...utils.convertDecimalValueTo2ByteHexArray(value)]);
+                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyHeatingSetpoint, value);
                 break;
             case 'sensor_type':
-                sendTuyaCommand(entity, 1140, 0, [1, {'internal': 0, 'external': 1, 'both': 2}[value]]);
+                await sendTuyaDataPointEnum(
+                    entity,
+                    common.TuyaDataPoints.hySensor,
+                    {'internal': 0, 'external': 1, 'both': 2}[value]);
                 break;
             case 'power_on_behavior':
-                sendTuyaCommand(entity, 1141, 0, [1, {'restore': 0, 'off': 1, 'on': 2}[value]]);
+                await sendTuyaDataPointEnum(
+                    entity,
+                    common.TuyaDataPoints.hyPowerOnBehavior,
+                    {'restore': 0, 'off': 1, 'on': 2}[value]);
                 break;
             case 'week':
-                sendTuyaCommand(entity, 1142, 0, [1, utils.getKeyByValue(common.TuyaThermostatWeekFormat, value, value)]);
+                await sendTuyaDataPointEnum(
+                    entity,
+                    common.TuyaDataPoints.hyWeekFormat,
+                    utils.getKeyByValue(common.TuyaThermostatWeekFormat, value, value));
                 break;
             case 'system_mode':
-                sendTuyaCommand(entity, 1152, 0, [1, {'manual': 0, 'auto': 1, 'away': 2}[value]]);
+                await sendTuyaDataPointEnum(
+                    entity,
+                    common.TuyaDataPoints.hyMode,
+                    {'manual': 0, 'auto': 1, 'away': 2}[value]);
                 break;
             default: // Unknown key
                 console.log(`Unhandled key ${key}`);

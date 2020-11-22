@@ -176,7 +176,7 @@ describe('index.js', () => {
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'exposes'],
+                ['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'],
                 Object.keys(device),
                 device.model,
             );
@@ -284,8 +284,9 @@ describe('index.js', () => {
               {
                 "type":"binary",
                 "name":"state",
+                "description": "On/off state of this light",
                 "property":"state_rgb",
-                "access":"rw",
+                "access":7,
                 "value_on":"ON",
                 "value_off":"OFF",
                 "value_toggle":"TOGGLE",
@@ -294,8 +295,9 @@ describe('index.js', () => {
               {
                 "type":"numeric",
                 "name":"brightness",
+                "description": "Brightness of this light",
                 "property":"brightness_rgb",
-                "access":"rw",
+                "access":7,
                 "value_min":0,
                 "value_max":254,
                 "endpoint":"rgb"
@@ -304,18 +306,19 @@ describe('index.js', () => {
                 "type":"composite",
                 "property":"color_rgb",
                 "name":"color_xy",
+                "description": "Color of this light in the CIE 1931 color space (x/y)",
                 "features":[
                   {
                     "type":"numeric",
                     "name":"x",
                     "property":"x",
-                    "access":"rw"
+                    "access":7
                   },
                   {
                     "type":"numeric",
                     "name":"y",
                     "property":"y",
-                    "access":"rw"
+                    "access":7
                   }
                 ],
                 "endpoint":"rgb"
