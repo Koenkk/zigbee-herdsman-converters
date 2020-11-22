@@ -1961,6 +1961,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
+            {vendor: 'Earda', model: 'ESW-2ZAA-EU'},
         ],
         extend: generic.switch,
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
