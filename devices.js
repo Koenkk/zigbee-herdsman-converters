@@ -3468,6 +3468,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4033930P6'],
+        model: '4033930P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Fair',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTP003', 'LTP001'],
         model: '4033930P7',
         vendor: 'Philips',
