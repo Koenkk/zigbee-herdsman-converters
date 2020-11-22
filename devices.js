@@ -14976,6 +14976,24 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
+
+    // Livarnolux (Lidl) remote control dimmer
+    {
+        zigbeeModel: ['TS1001'], 
+        model: 'TS1001',
+        vendor: 'Lidl',
+        description: 'Livarnolux remote control dimmer',
+        supports: 'switch and dimming',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
+
 ];
 
 
