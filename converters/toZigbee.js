@@ -2831,6 +2831,28 @@ const converters = {
             }
         },
     },
+    RM01_light_brightness_step: {
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
+    RM01_light_brightness_move: {
+        key: ['brightness_move', 'brightness_move_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
     aqara_opple_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
