@@ -9098,7 +9098,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['GASSensor-EM', 'GASSensor-EFR-3.0'],
+        zigbeeModel: ['GASSensor-EM'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
@@ -9107,6 +9107,15 @@ const devices = [
         whiteLabel: [
             {vendor: 'Piri', model: 'HSIO18008'},
         ],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['GASSensor-EFR-3.0'],
+        model: 'HS1CG-E_3.0',
+        vendor: 'HEIMAN',
+        description: 'Combustible gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_2],
+        toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
