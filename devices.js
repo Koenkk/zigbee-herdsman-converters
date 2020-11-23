@@ -15015,7 +15015,7 @@ const devices = [
 
     // Livarnolux (Lidl) remote control dimmer
     {
-        zigbeeModel: ['TS1001'], 
+        zigbeeModel: ['TS1001'],
         model: 'TS1001',
         vendor: 'Livarnolux',
         description: 'Livarnolux remote control dimmer',
