@@ -15012,6 +15012,14 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_riwp3k79'}],
+        model: 'HG06104A',
+        vendor: 'Silvercrest',
+        description: 'Smart LED light strip 2M',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        meta: {applyRedFix: true},
+    },
 ];
 
 
