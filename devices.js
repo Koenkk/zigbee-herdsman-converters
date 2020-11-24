@@ -7008,6 +7008,13 @@ const devices = [
         description: 'LED RGB + CCT downlight',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
+	{
+        zigbeeModel: ['GL-D-003P'],
+        model: 'GL-D-003P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
     {
         zigbeeModel: ['GL-D-004Z'],
         model: 'GL-D-004Z',
@@ -7015,6 +7022,13 @@ const devices = [
         description: 'LED RGB + CCT downlight',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
+	{
+        zigbeeModel: ['GL-D-004P'],
+        model: 'GL-D-004P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },	
     {
         zigbeeModel: ['GL-D-004ZS'],
         model: 'GL-D-004ZS',
@@ -7029,6 +7043,13 @@ const devices = [
         description: 'LED RGB + CCT downlight',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
+	{
+        zigbeeModel: ['GL-D-005P'],
+        model: 'GL-D-005P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },	
     {
         zigbeeModel: ['GL-D-005ZS'],
         model: 'GL-D-005ZS',
