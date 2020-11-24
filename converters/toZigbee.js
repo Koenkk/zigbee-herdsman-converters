@@ -42,7 +42,7 @@ async function sendTuyaDataPoint(entity, datatype, dp, data) {
         sendTuyaDataPoint.transId++;
         sendTuyaDataPoint.transId %= 256;
     }
-    
+
     await entity.command(
         'manuSpecificTuya',
         'setData',
@@ -3664,13 +3664,10 @@ const converters = {
     silvercrest_smart_led_string: {
         key: ['silvercrest_smart_led_string', 'color', 'brightness', 'scene'],
         convertSet: async (entity, key, value, meta) => {
-
-            //console.log(meta);
-
-            const scale = (value, value_min, value_max, min, max) => {
-                return min + ((max-min) / (value_max - value_min)) * value;
+            const scale = (value, valueMin, valueMax, min, max) => {
+                return min + ((max-min) / (valueMax - valueMin)) * value;
             };
-            
+
             const make4sizedString = (v) => {
                 if (v.length >= 4) return v;
                 else if (v.length === 3) return '0'+v;
@@ -3678,24 +3675,28 @@ const converters = {
                 else if (v.length === 1) return '000'+v;
                 else return '0000';
             };
-            
+
             if (key === 'scene') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.scene);
 
                 let data = [];
                 const scene = common.silvercrestEffects[value.scene];
                 data = data.concat(utils.convertStringToHexArray(scene));
-                let speed = Math.round(scale(value.speed, 0, 100, 0, 64)); 
-                
+                let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
+
                 // Max speed what the gateways sends is 64.
-                if (speed > 64)
+                if (speed > 64) {
                     speed = 64;
+                }
 
                 // Make it a string and attach a leading zero (0x30)
                 let speedString = String(speed);
-                if (speedString.length === 1)
+                if (speedString.length === 1) {
                     speedString = '0' + speedString;
-                if (!speedString) speedString = '00';
+                }
+                if (!speedString) {
+                    speedString = '00';
+                }
 
                 data = data.concat(utils.convertStringToHexArray(speedString));
                 let colors = value.colors;
@@ -3705,22 +3706,30 @@ const converters = {
 
                 if (colors) {
                     for (const color of colors) {
-                        let r = '00', g = '00', b = '00';
+                        let r = '00';
+                        let g = '00';
+                        let b = '00';
 
-                        if (color.r)
+                        if (color.r) {
                             r = color.r.toString(16);
-                        if (r.length === 1)
+                        }
+                        if (r.length === 1) {
                             r = '0'+r;
+                        }
 
-                        if (color.g) 
+                        if (color.g) {
                             g = color.g.toString(16);
-                        if (g.length === 1) 
+                        }
+                        if (g.length === 1) {
                             g = '0'+g;
+                        }
 
-                        if (color.b) 
+                        if (color.b) {
                             b = color.b.toString(16);
-                        if (b.length === 1) 
+                        }
+                        if (b.length === 1) {
                             b = '0'+b;
+                        }
 
                         data = data.concat(utils.convertStringToHexArray(r));
                         data = data.concat(utils.convertStringToHexArray(g));
@@ -3734,15 +3743,14 @@ const converters = {
                     common.TuyaDataTypes.string,
                     common.TuyaDataPoints.silvercrestSetScene,
                     data);
-                
             } else if (key === 'brightness') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
-                
+
                 // It expects 2 leading zero's.
-                let data = [0x00, 0x00]; 
+                let data = [0x00, 0x00];
 
                 // Scale it to what the device expects (0-1000 instead of 0-255)
-                let scaled = Math.round(scale(value, 0, 255, 0, 1000));
+                const scaled = Math.round(scale(value, 0, 255, 0, 1000));
                 data = data.concat(utils.convertDecimalValueTo2ByteHexArray(scaled));
 
                 await sendTuyaDataPoint(
@@ -3756,25 +3764,30 @@ const converters = {
                 // Expects leading zero's (0x30)
 
 
-                let h = '0000', s = '0000', b = '0000';
+                let h = '0000';
+                let s = '0000';
+                let b = '0000';
 
-                if(value.h) 
+                if (value.h) {
                     h = make4sizedString(value.h.toString(16));
-                else if (meta.state.color && meta.state.color.h)
+                } else if (meta.state.color && meta.state.color.h) {
                     h = make4sizedString(meta.state.color.h.toString(16));
+                }
 
                 // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
-                if(value.s) 
+                if (value.s) {
                     s = make4sizedString((value.s * 10).toString(16));
-                else if (meta.state.color && meta.state.color.s)
+                } else if (meta.state.color && meta.state.color.s) {
                     s = make4sizedString((meta.state.color.s * 10).toString(16));
+                }
 
                 // Scale 0-255 to 0-1000 what the device expects.
-                if(value.b) 
+                if (value.b) {
                     b = make4sizedString(Math.round(scale(value.b, 0, 255, 0, 1000)).toString(16));
-                else if (meta.state.color && meta.state.color.b)
+                } else if (meta.state.color && meta.state.color.b) {
                     b = make4sizedString(Math.round(scale(meta.state.color.b, 0, 255, 0, 1000)).toString(16));
-                
+                }
+
                 let data = [];
                 data = data.concat(utils.convertStringToHexArray(h));
                 data = data.concat(utils.convertStringToHexArray(s));

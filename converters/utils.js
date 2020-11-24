@@ -244,10 +244,11 @@ const replaceInArray = (arr, oldElements, newElements) => {
 
 const convertStringToHexArray = (value) => {
     const asciiKeys = [];
-    for (var i = 0; i < value.length; i ++)
+    for (let i = 0; i < value.length; i ++) {
         asciiKeys.push(value[i].charCodeAt(0));
+    }
     return asciiKeys;
-}
+};
 
 async function getDoorLockPinCode(entity, user, options = null) {
     await entity.command(

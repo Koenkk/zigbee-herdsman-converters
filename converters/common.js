@@ -122,7 +122,7 @@ const TuyaDataTypes = {
 const silvercrestModes = {
     white: 0,
     color: 1,
-    scene: 2
+    scene: 2,
 };
 
 const silvercrestEffects = {
@@ -141,7 +141,7 @@ const silvercrestEffects = {
     strobe: '0c',
     sparkles: '0d',
     carnaval: '0e',
-    glow: '0f'
+    glow: '0f',
 };
 
 const TuyaDataPoints = {
