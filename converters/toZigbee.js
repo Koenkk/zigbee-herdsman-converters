@@ -3796,8 +3796,6 @@ const converters = {
             const dp = parseInt(args[1]);
             const data = [];
 
-            console.log(args, mode, dp);
-
             switch (mode) {
             case 'raw':
                 for (let i = 2; i < args.length; i++) {
