@@ -13101,7 +13101,7 @@ const devices = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['WB01'],
+        zigbeeModel: ['WB01', 'WB-01'],
         model: 'SNZB-01',
         vendor: 'SONOFF',
         whiteLabel: [
