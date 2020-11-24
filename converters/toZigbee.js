@@ -42,6 +42,7 @@ async function sendTuyaDataPoint(entity, datatype, dp, data) {
         sendTuyaDataPoint.transId++;
         sendTuyaDataPoint.transId %= 256;
     }
+    
     await entity.command(
         'manuSpecificTuya',
         'setData',
@@ -2831,28 +2832,6 @@ const converters = {
             }
         },
     },
-    RM01_light_brightness_step: {
-        key: ['brightness_step', 'brightness_step_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    },
-    RM01_light_brightness_move: {
-        key: ['brightness_move', 'brightness_move_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    },
     aqara_opple_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3660,6 +3639,133 @@ const converters = {
             await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellTempCalibration, value);
         },
     },
+    silvercrest_smart_led_string: {
+        key: ['silvercrest_smart_led_string', 'color', 'brightness', 'scene'],
+        convertSet: async (entity, key, value, meta) => {
+
+            //console.log(meta);
+
+            const scale = (value, value_min, value_max, min, max) => {
+                return min + ((max-min) / (value_max - value_min)) * value;
+            };
+            
+            const make4sizedString = (v) => {
+                if (v.length >= 4) return v;
+                else if (v.length === 3) return '0'+v;
+                else if (v.length === 2) return '00'+v;
+                else if (v.length === 1) return '000'+v;
+                else return '0000';
+            };
+            
+            if (key === 'scene') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.scene);
+
+                let data = [];
+                const scene = common.silvercrestEffects[value.scene];
+                data = data.concat(utils.convertStringToHexArray(scene));
+                let speed = Math.round(scale(value.speed, 0, 100, 0, 64)); 
+                
+                // Max speed what the gateways sends is 64.
+                if (speed > 64)
+                    speed = 64;
+
+                // Make it a string and attach a leading zero (0x30)
+                let speedString = String(speed);
+                if (speedString.length === 1)
+                    speedString = '0' + speedString;
+                if (!speedString) speedString = '00';
+
+                data = data.concat(utils.convertStringToHexArray(speedString));
+                let colors = value.colors;
+                if (!colors && meta.state && meta.state.scene && meta.state.scene.colors) {
+                    colors = meta.state.scene.colors;
+                }
+
+                if (colors) {
+                    for (const color of colors) {
+                        let r = '00', g = '00', b = '00';
+
+                        if (color.r)
+                            r = color.r.toString(16);
+                        if (r.length === 1)
+                            r = '0'+r;
+
+                        if (color.g) 
+                            g = color.g.toString(16);
+                        if (g.length === 1) 
+                            g = '0'+g;
+
+                        if (color.b) 
+                            b = color.b.toString(16);
+                        if (b.length === 1) 
+                            b = '0'+b;
+
+                        data = data.concat(utils.convertStringToHexArray(r));
+                        data = data.concat(utils.convertStringToHexArray(g));
+                        data = data.concat(utils.convertStringToHexArray(b));
+                    }
+                }
+
+
+                await sendTuyaDataPoint(
+                    entity,
+                    common.TuyaDataTypes.string,
+                    common.TuyaDataPoints.silvercrestSetScene,
+                    data);
+                
+            } else if (key === 'brightness') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
+                
+                // It expects 2 leading zero's.
+                let data = [0x00, 0x00]; 
+
+                // Scale it to what the device expects (0-1000 instead of 0-255)
+                let scaled = Math.round(scale(value, 0, 255, 0, 1000));
+                data = data.concat(utils.convertDecimalValueTo2ByteHexArray(scaled));
+
+                await sendTuyaDataPoint(
+                    entity,
+                    common.TuyaDataTypes.value,
+                    common.TuyaDataPoints.silvercrestSetBrightness,
+                    data);
+            } else if (key === 'color') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.color);
+
+                // Expects leading zero's (0x30)
+
+
+                let h = '0000', s = '0000', b = '0000';
+
+                if(value.h) 
+                    h = make4sizedString(value.h.toString(16));
+                else if (meta.state.color && meta.state.color.h)
+                    h = make4sizedString(meta.state.color.h.toString(16));
+
+                // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                if(value.s) 
+                    s = make4sizedString((value.s * 10).toString(16));
+                else if (meta.state.color && meta.state.color.s)
+                    s = make4sizedString((meta.state.color.s * 10).toString(16));
+
+                // Scale 0-255 to 0-1000 what the device expects.
+                if(value.b) 
+                    b = make4sizedString(Math.round(scale(value.b, 0, 255, 0, 1000)).toString(16));
+                else if (meta.state.color && meta.state.color.b)
+                    b = make4sizedString(Math.round(scale(meta.state.color.b, 0, 255, 0, 1000)).toString(16));
+                
+                let data = [];
+                data = data.concat(utils.convertStringToHexArray(h));
+                data = data.concat(utils.convertStringToHexArray(s));
+                data = data.concat(utils.convertStringToHexArray(b));
+
+                await sendTuyaDataPoint(
+                    entity,
+                    common.TuyaDataTypes.string,
+                    common.TuyaDataPoints.silvercrestSetColor,
+                    data);
+            }
+        },
+    },
     tuya_data_point_test: {
         key: ['tuya_data_point_test'],
         convertSet: async (entity, key, value, meta) => {
@@ -3667,6 +3773,8 @@ const converters = {
             const mode = args[0];
             const dp = parseInt(args[1]);
             const data = [];
+
+            console.log(args, mode, dp);
 
             switch (mode) {
             case 'raw':

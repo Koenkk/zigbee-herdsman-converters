@@ -30,7 +30,13 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.value:
         return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     case common.TuyaDataTypes.string:
-        return data.map((byte) => String.fromCharCode(byte)).join('');
+        // If we do the old map, for some reason hex-letters don't work.
+        let dataString = '';
+        const n = data.length;
+        for(let i = 0; i < n; ++i) {
+            dataString += String.fromCharCode(data[i]);
+        }
+        return dataString;
     case common.TuyaDataTypes.enum:
         return data[0];
     case common.TuyaDataTypes.bitmap:
@@ -5684,6 +5690,66 @@ const converters = {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
+        },
+    },
+    silvercrest_smart_led_string: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data); // This function will take of converting the data to proper JS type
+    
+            switch (dp) {
+                case common.TuyaDataPoints.silvercrestChangeMode:
+                    meta.state.mode = value;
+                    break;
+                case common.TuyaDataPoints.silvercrestSetBrightness:
+                    meta.state.brightness = value;
+                    break;
+                case common.TuyaDataPoints.silvercrestSetColor:
+                    const h_string = value.substring(0, 4);
+                    const s_string = value.substring(4, 8);
+                    const b_string = value.substring(8, 12);
+
+                    const h = parseInt(h_string, 16);
+                    const s = parseInt(s_string, 16);
+                    const b = parseInt(b_string, 16);
+                    
+                    if (!meta.state.color) {
+                        meta.state.color = {};
+                    }
+                    meta.state.color.b = (b / 1000) * 255
+                    meta.state.color.h = h;
+                    meta.state.color.s = s / 10;
+
+                    break;
+                case common.TuyaDataPoints.silvercrestSetScene:
+                    meta.state.scene = {
+                        scene: parseInt(value.substring(0, 2)),
+                        speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                        colors: []
+                    };
+
+                    const colorsString = value.substring(4);
+                    // Colors are 6 characters.
+                    const n = Math.floor(colorsString.length / 6);
+
+                    for(let i = 0; i < n; ++i)
+                    {
+                        const part = colorsString.substring(i * 6, (i + 1) * 6);
+                        const r = part[0]+part[1], g = part[2]+part[3], b = part[4]+part[5];
+                        meta.state.scene.colors.push({
+                            r: parseInt(r, 16),
+                            g: parseInt(g, 16),
+                            b: parseInt(b, 16)
+                        });
+                    }
+                    
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
+                        dp} with data ${JSON.stringify(msg.data)}`); // This will cause zigbee2mqtt to print similar data to what is dumped in tuya.dump.txt
+            }
         },
     },
     tuya_led_controller: {

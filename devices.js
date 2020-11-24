@@ -1384,6 +1384,15 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
+        model: 'HG06467',
+        vendor: 'Silvercrest',
+        description: 'Smart LED string lights',
+        toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
+        fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
+        exposes: [e.light_brightness_colortemp_colorhs()],
+    },
+    {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -9717,7 +9726,7 @@ const devices = [
             fz.ignore_basic_report, fz.on_off, fz.brightness, fz.RM01_on_click, fz.RM01_off_click,
             fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
         ],
-        toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
+        toZigbee: [tz.RM01_light_onoff_brightness],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
