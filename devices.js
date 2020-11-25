@@ -2154,6 +2154,18 @@ const devices = [
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
     },
+	
+	// 3rd-party Tuya
+
+{
+
+zigbeeModel: ['TS0505A'],
+model: 'TS0505A',
+description: 'E27 RGBW bulb',
+vendor: 'TuYa',
+extend: generic.light_onoff_brightness_colortemp_colorxy,
+
+},
 
     // Neo
     {
