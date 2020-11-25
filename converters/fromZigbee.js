@@ -22,7 +22,6 @@ const defaultPrecision = {
 };
 
 const tuyaGetDataValue = (dataType, data) => {
-    let dataString = '';
     switch (dataType) {
     case common.TuyaDataTypes.raw:
         return data;
@@ -31,6 +30,8 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.value:
         return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     case common.TuyaDataTypes.string:
+        // eslint-disable-next-line
+        let dataString = '';
         // If we do the old map, for some reason hex-letters don't work.
         for (let i = 0; i < data.length; ++i) {
             dataString += String.fromCharCode(data[i]);
