@@ -15073,11 +15073,11 @@ const devices = [
     },
         // LightSolutions
     {
-        zigbeeModel: ['91-947'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: '200403V2-B', // Vendor model number, look on the device for a model number
-        vendor: 'LightSolutions', // Vendor of the device (only used for documentation and startup logging)
-        description: '', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
-        supports: 'on/off, brightness', // Actions this device supports (only used for documentation)
+        zigbeeModel: ['91-947'], 
+        model: '200403V2-B', 
+        vendor: 'LightSolutions',
+        description: '',
+        supports: 'on/off, brightness',
         extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
