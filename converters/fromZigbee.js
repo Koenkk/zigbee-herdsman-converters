@@ -5700,9 +5700,7 @@ const converters = {
 
             const result = {};
 
-            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
-                result.mode = value;
-            } else if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+            if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
                 result.brightness = value;
             } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
                 const hString = value.substring(0, 4);
@@ -5720,8 +5718,10 @@ const converters = {
                 result.color.h = h;
                 result.color.s = s / 10;
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
+                const scene_value = value.substring(0, 2);
+                const scene_string = Object.keys(common.silvercrestEffects).find(key => object[key] === scene_value) || '';
                 result.scene = {
-                    scene: parseInt(value.substring(0, 2)),
+                    scene: scene_string,
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };
@@ -5730,6 +5730,9 @@ const converters = {
                 // Colors are 6 characters.
                 const n = Math.floor(colorsString.length / 6);
 
+                // The incoming message can contain anywhere between 0 to 6 colors.
+                // In the following loop we're extracting every color the led
+                // string gives us.
                 for (let i = 0; i < n; ++i) {
                     const part = colorsString.substring(i * 6, (i + 1) * 6);
                     const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
