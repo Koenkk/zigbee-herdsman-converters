@@ -6307,7 +6307,7 @@ const devices = [
 
     // Nordtronic
     {
-        zigbeeModel: ['BoxDIM2 98425031', '98425031'],
+        zigbeeModel: ['BoxDIM2 98425031', '98425031', 'BoxDIMZ 98425031'],
         model: '98425031',
         vendor: 'Nordtronic',
         description: 'Box Dimmer 2.0',
@@ -6951,6 +6951,14 @@ const devices = [
     {
         zigbeeModel: ['GL-C-008S'],
         model: 'GL-C-008S',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGB + CCT plus model',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+        meta: {disableDefaultResponse: true},
+    },
+    {
+        zigbeeModel: ['GL-C-008P'],
+        model: 'GL-C-008P',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller RGB + CCT plus model',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
@@ -14412,6 +14420,31 @@ const devices = [
     },
 
     // Develco
+    {
+        zigbeeModel: ['SPLZB-131'],
+        model: 'SPLZB-131',
+        vendor: 'Develco',
+        description: 'Power plug',
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power],
+        toZigbee: [tz.on_off],
+        supports: 'on/off, power measurements',
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(2);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await configureReporting.onOff(endpoint);
+            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            await configureReporting.activePower(endpoint);
+            await configureReporting.rmsCurrent(endpoint);
+            await configureReporting.rmsVoltage(endpoint);
+            await readMeteringPowerConverterAttributes(endpoint);
+            await configureReporting.currentSummDelivered(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
     {
         zigbeeModel: ['SPLZB-132'],
         model: 'SPLZB-132',
