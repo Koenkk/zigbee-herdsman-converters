@@ -272,7 +272,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.moesMinTemp:
         return {min_temperature: value};
     case common.TuyaDataPoints.moesLocalTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.moesTempCalibration:
         temperature = value;
         // for negative values produce complimentary hex (equivalent to negative values)
@@ -401,11 +401,11 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.autoLock: // 0x7401 auto lock mode
         return {auto_lock: value ? 'AUTO' : 'MANUAL'};
     case common.TuyaDataPoints.heatingSetpoint:
-        return {current_heating_setpoint: (value / 10).toFixed(1)};
+        return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.localTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.tempCalibration:
-        return {local_temperature_calibration: (value / 10).toFixed(1)};
+        return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
         return {battery: value};
     case common.TuyaDataPoints.batteryLow:
