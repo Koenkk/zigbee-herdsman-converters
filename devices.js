@@ -15071,6 +15071,21 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
     },
+        // LightSolutions
+    {
+        zigbeeModel: ['91-947'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: '200403V2-B', // Vendor model number, look on the device for a model number
+        vendor: 'LightSolutions', // Vendor of the device (only used for documentation and startup logging)
+        description: '', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        supports: 'on/off, brightness', // Actions this device supports (only used for documentation)
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 ];
 
 
