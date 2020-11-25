@@ -15078,7 +15078,7 @@ const devices = [
         description: 'Smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colortemp_colorhs()],
+        exposes: [e.light_brightness_colorhs()],
     },
 ];
 
