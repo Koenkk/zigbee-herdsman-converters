@@ -132,7 +132,7 @@ const silvercrestEffects = {
     snake: '03',
     twinkle: '04',
     firework: '08',
-    horizontalFlag: '06',
+    horizontal_flag: '06',
     waves: '07',
     updown: '08',
     vintage: '09',
@@ -278,7 +278,7 @@ const TuyaDataPoints = {
     hyMode: 128,
     hyChildLock: 129,
     hyAlarm: 130,
-
+    // Silvercrest
     silvercrestChangeMode: 2,
     silvercrestSetBrightness: 3,
     silvercrestSetColor: 5,

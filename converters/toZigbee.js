@@ -42,7 +42,6 @@ async function sendTuyaDataPoint(entity, datatype, dp, data) {
         sendTuyaDataPoint.transId++;
         sendTuyaDataPoint.transId %= 256;
     }
-
     await entity.command(
         'manuSpecificTuya',
         'setData',
@@ -3662,7 +3661,7 @@ const converters = {
         },
     },
     silvercrest_smart_led_string: {
-        key: ['silvercrest_smart_led_string', 'color', 'brightness', 'scene'],
+        key: ['color', 'brightness', 'scene'],
         convertSet: async (entity, key, value, meta) => {
             const scale = (value, valueMin, valueMax, min, max) => {
                 return min + ((max-min) / (valueMax - valueMin)) * value;

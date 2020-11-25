@@ -5698,10 +5698,12 @@ const converters = {
             const dp = msg.data.dp;
             const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
 
+            const result = {};
+
             if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
-                meta.state.mode = value;
+                result.mode = value;
             } else if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
-                meta.state.brightness = value;
+                result.brightness = value;
             } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
                 const hString = value.substring(0, 4);
                 const sString = value.substring(4, 8);
@@ -5712,13 +5714,13 @@ const converters = {
                 const b = parseInt(bString, 16);
 
                 if (!meta.state.color) {
-                    meta.state.color = {};
+                    result.color = {};
                 }
-                meta.state.color.b = (b / 1000) * 255;
-                meta.state.color.h = h;
-                meta.state.color.s = s / 10;
+                result.color.b = (b / 1000) * 255;
+                result.color.h = h;
+                result.color.s = s / 10;
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
-                meta.state.scene = {
+                result.scene = {
                     scene: parseInt(value.substring(0, 2)),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
@@ -5731,13 +5733,15 @@ const converters = {
                 for (let i = 0; i < n; ++i) {
                     const part = colorsString.substring(i * 6, (i + 1) * 6);
                     const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
-                    meta.state.scene.colors.push({
+                    result.scene.colors.push({
                         r: parseInt(r, 16),
                         g: parseInt(g, 16),
                         b: parseInt(b, 16),
                     });
                 }
             }
+
+            return result;
         },
     },
     tuya_led_controller: {

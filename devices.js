@@ -1384,15 +1384,6 @@ const devices = [
 
     // TuYa
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
-        model: 'HG06467',
-        vendor: 'Silvercrest',
-        description: 'Smart LED string lights',
-        toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
-        fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colortemp_colorhs()],
-    },
-    {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -15079,6 +15070,15 @@ const devices = [
         description: 'Smart LED light strip 2M',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
+        model: 'HG06467',
+        vendor: 'Silvercrest',
+        description: 'Smart LED string lights',
+        toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
+        fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
+        exposes: [e.light_brightness_colortemp_colorhs()],
     },
 ];
 
