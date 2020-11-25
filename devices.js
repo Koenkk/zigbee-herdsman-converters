@@ -10090,6 +10090,7 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
+    // Danfoss
     {
         zigbeeModel: ['eTRV0100'],
         model: 'eTRV0100',
@@ -10106,14 +10107,15 @@ const devices = [
             tz.thermostat_local_temperature,
             tz.danfoss_mounted_mode,
             tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
-            tz.danfoss_heat_available, tz.danfoss_heat_request,
+            tz.danfoss_heat_available,
             tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open,
             tz.danfoss_display_orientation,
             tz.thermostat_keypad_lockout,
         ],
         exposes: [
-            e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature(),
+            e.battery(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature(),
         ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {

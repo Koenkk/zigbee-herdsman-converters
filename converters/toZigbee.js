@@ -1566,12 +1566,6 @@ const converters = {
             await entity.read('hvacThermostat', [0x4030], options.danfoss);
         },
     },
-    danfoss_heat_request: {
-        key: ['heat_required'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4031], options.danfoss);
-        },
-    },
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
