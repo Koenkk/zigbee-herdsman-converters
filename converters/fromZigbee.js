@@ -5165,30 +5165,42 @@ const converters = {
         cluster: 'msCO2',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            return {
-                led_feedback: ['OFF', 'ON'][msg.data[0x0203.toString()]],
-                enable_abc: ['OFF', 'ON'][msg.data[0x0202.toString()]],
-                threshold1: msg.data[0x0204.toString()],
-                threshold2: msg.data[0x0205.toString()],
-            };
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0203)) {
+                result.led_feedback = ['OFF', 'ON'][msg.data[0x0203]];
+            }
+            if (msg.data.hasOwnProperty(0x0202)) {
+                result.enable_abc = ['OFF', 'ON'][msg.data[0x0202]];
+            }
+            if (msg.data.hasOwnProperty(0x0204)) {
+                result.threshold1 = msg.data[0x0204];
+            }
+            if (msg.data.hasOwnProperty(0x0205)) {
+                result.threshold2 = msg.data[0x0205];
+            }
+            return result;
         },
     },
     diyruz_airsense_config_temp: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            return {
-                temperature_offset: msg.data[0x0210.toString()],
-            };
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.temperature_offset = msg.data[0x0210];
+            }
+            return result;
         },
     },
     diyruz_airsense_config_pres: {
         cluster: 'msPressureMeasurement',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            return {
-                pressure_offset: msg.data[0x0210.toString()],
-            };
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.pressure_offset = msg.data[0x0210];
+            }
+            return result;
         },
 
     },
@@ -5196,9 +5208,11 @@ const converters = {
         cluster: 'msRelativeHumidity',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            return {
-                humidity_offset: msg.data[0x0210.toString()],
-            };
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.humidity_offset = msg.data[0x0210];
+            }
+            return result;
         },
     },
     aqara_opple_report: {
