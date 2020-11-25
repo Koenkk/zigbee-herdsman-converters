@@ -3667,14 +3667,6 @@ const converters = {
                 return min + ((max-min) / (valueMax - valueMin)) * value;
             };
 
-            const make4sizedString = (v) => {
-                if (v.length >= 4) return v;
-                else if (v.length === 3) return '0'+v;
-                else if (v.length === 2) return '00'+v;
-                else if (v.length === 1) return '000'+v;
-                else return '0000';
-            };
-
             if (key === 'scene') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.scene);
 
@@ -3736,11 +3728,9 @@ const converters = {
                     }
                 }
 
-
                 await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetScene, data);
             } else if (key === 'brightness') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
-
                 // It expects 2 leading zero's.
                 let data = [0x00, 0x00];
 
@@ -3752,35 +3742,64 @@ const converters = {
             } else if (key === 'color') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.color);
 
-                // Expects leading zero's (0x30)
-                let h = '0000';
-                let s = '0000';
-                let b = '0000';
+                const make4sizedString = (v) => {
+                    if (v.length >= 4) return v;
+                    else if (v.length === 3) return '0'+v;
+                    else if (v.length === 2) return '00'+v;
+                    else if (v.length === 1) return '000'+v;
+                    else return '0000';
+                };
 
-                if (value.h) {
-                    h = make4sizedString(value.h.toString(16));
-                } else if (meta.state.color && meta.state.color.h) {
-                    h = make4sizedString(meta.state.color.h.toString(16));
-                }
+                const fillInHSB = (h, s, b, state) => {
+                    // Define default values. Device expects leading zero in string.
+                    const hsb = {
+                        h: '0168', // 360
+                        s: '03e8', // 1000
+                        b: '03e8', // 1000
+                    };
 
-                // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
-                if (value.s) {
-                    s = make4sizedString((value.s * 10).toString(16));
-                } else if (meta.state.color && meta.state.color.s) {
-                    s = make4sizedString((meta.state.color.s * 10).toString(16));
-                }
+                    if (h) {
+                        hsb.h = make4sizedString(h.toString(16));
+                    } else if (state.color && state.color.h) {
+                        hsb.h = make4sizedString(state.color.h.toString(16));
+                    }
 
-                // Scale 0-255 to 0-1000 what the device expects.
-                if (value.b) {
-                    b = make4sizedString(Math.round(scale(value.b, 0, 255, 0, 1000)).toString(16));
-                } else if (meta.state.color && meta.state.color.b) {
-                    b = make4sizedString(Math.round(scale(meta.state.color.b, 0, 255, 0, 1000)).toString(16));
+                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    if (s) {
+                        hsb.s = make4sizedString((s * 10).toString(16));
+                    } else if (state.color && state.color.s) {
+                        hsb.s = make4sizedString((state.color.s * 10).toString(16));
+                    }
+
+                    // Scale 0-255 to 0-1000 what the device expects.
+                    if (b) {
+                        hsb.b = make4sizedString(Math.round(scale(b, 0, 255, 0, 1000)).toString(16));
+                    } else if (state.color && state.color.b) {
+                        hsb.b = make4sizedString(Math.round(scale(state.color.b, 0, 255, 0, 1000)).toString(16));
+                    } else if (state.brightness) {
+                        hsb.b = make4sizedString(Math.round(scale(state.brightness, 0, 255, 0, 1000)).toString(16));
+                    }
+
+                    return hsb;
+                };
+
+                let hsb = {};
+
+                if (value.hasOwnProperty('hsb')) {
+                    const splitted = value.hsb.split(',').map((i) => parseInt(i));
+                    hsb = fillInHSB(splitted[0], splitted[1], splitted[2], meta.state);
+                } else {
+                    hsb = fillInHSB(
+                        value.h || value.hue || null,
+                        value.s || value.saturation || null,
+                        value.b || value.brightness || null,
+                        meta.state);
                 }
 
                 let data = [];
-                data = data.concat(utils.convertStringToHexArray(h));
-                data = data.concat(utils.convertStringToHexArray(s));
-                data = data.concat(utils.convertStringToHexArray(b));
+                data = data.concat(utils.convertStringToHexArray(hsb.h));
+                data = data.concat(utils.convertStringToHexArray(hsb.s));
+                data = data.concat(utils.convertStringToHexArray(hsb.b));
 
                 await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetColor, data);
             }

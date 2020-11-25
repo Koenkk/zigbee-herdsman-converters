@@ -183,6 +183,11 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : fallback;
 }
 
+function getKeyStringByValue(object, value, fallback) {
+    const key = Object.keys(object).find((k) => object[k] === value);
+    return key != null ? String(key) : fallback;
+}
+
 function hasEndpoints(device, endpoints) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
@@ -337,6 +342,7 @@ module.exports = {
     hexToRgb,
     hslToHSV,
     getKeyByValue,
+    getKeyStringByValue,
     interpolateHue,
     hasEndpoints,
     miredsToXY,

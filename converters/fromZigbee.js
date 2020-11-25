@@ -5701,11 +5701,12 @@ const converters = {
             const result = {};
 
             if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                result.mode = utils.getKeyByValue(common.silvercrestModes, value, 0);
                 if (value !== common.silvercrestModes.scene) {
                     result.scene = null;
                 }
             } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
-                result.brightness = value;
+                result.brightness = (value / 1000) * 255;
             } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
                 const h = parseInt(value.substring(0, 4), 16);
                 const s = parseInt(value.substring(4, 8), 16);
@@ -5713,7 +5714,7 @@ const converters = {
                 result.color = {b: (b / 1000) * 255, h, s: s / 10};
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
                 result.scene = {
-                    scene: utils.getKeyByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    scene: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };
