@@ -7028,7 +7028,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight PRO',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-    },	
+    },
     {
         zigbeeModel: ['GL-D-004ZS'],
         model: 'GL-D-004ZS',
@@ -7049,7 +7049,7 @@ const devices = [
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight PRO',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-    },	
+    },
     {
         zigbeeModel: ['GL-D-005ZS'],
         model: 'GL-D-005ZS',
