@@ -5711,18 +5711,13 @@ const converters = {
                 const s = parseInt(sString, 16);
                 const b = parseInt(bString, 16);
 
-                if (!meta.state.color) {
-                    result.color = {};
-                }
+                result.color = {};
                 result.color.b = (b / 1000) * 255;
                 result.color.h = h;
                 result.color.s = s / 10;
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
                 const sceneValue = value.substring(0, 2);
-                const sceneString = Object.keys(common.silvercrestEffects).find(
-                    (key) => {
-                        return common.silvercrestEffects[key] === sceneValue;
-                    }) || '';
+                const sceneString = utils.getKeyByValue(common.silvercrestEffects, sceneValue, '');
                 result.scene = {
                     scene: sceneString,
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
