@@ -15071,10 +15071,10 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
     },
-        // LightSolutions
+    // LightSolutions
     {
-        zigbeeModel: ['91-947'], 
-        model: '200403V2-B', 
+        zigbeeModel: ['91-947'],
+        model: '200403V2-B',
         vendor: 'LightSolutions',
         description: '',
         supports: 'on/off, brightness',
