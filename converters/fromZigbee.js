@@ -32,7 +32,7 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.string:
         // eslint-disable-next-line
         let dataString = '';
-        // If we do the old map, for some reason hex-letters don't work.
+        // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
         for (let i = 0; i < data.length; ++i) {
             dataString += String.fromCharCode(data[i]);
         }
@@ -5698,29 +5698,22 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
             const result = {};
 
-            if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                if (value !== common.silvercrestModes.scene) {
+                    result.scene = null;
+                }
+            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
                 result.brightness = value;
             } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
-                const hString = value.substring(0, 4);
-                const sString = value.substring(4, 8);
-                const bString = value.substring(8, 12);
-
-                const h = parseInt(hString, 16);
-                const s = parseInt(sString, 16);
-                const b = parseInt(bString, 16);
-
-                result.color = {};
-                result.color.b = (b / 1000) * 255;
-                result.color.h = h;
-                result.color.s = s / 10;
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color = {b: (b / 1000) * 255, h, s: s / 10};
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
-                const sceneValue = value.substring(0, 2);
-                const sceneString = utils.getKeyByValue(common.silvercrestEffects, sceneValue, '');
                 result.scene = {
-                    scene: sceneString,
+                    scene: utils.getKeyByValue(common.silvercrestEffects, value.substring(0, 2), ''),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };
