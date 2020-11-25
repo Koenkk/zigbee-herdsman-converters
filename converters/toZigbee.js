@@ -3737,11 +3737,7 @@ const converters = {
                 }
 
 
-                await sendTuyaDataPoint(
-                    entity,
-                    common.TuyaDataTypes.string,
-                    common.TuyaDataPoints.silvercrestSetScene,
-                    data);
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetScene, data);
             } else if (key === 'brightness') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
 
@@ -3752,17 +3748,11 @@ const converters = {
                 const scaled = Math.round(scale(value, 0, 255, 0, 1000));
                 data = data.concat(utils.convertDecimalValueTo2ByteHexArray(scaled));
 
-                await sendTuyaDataPoint(
-                    entity,
-                    common.TuyaDataTypes.value,
-                    common.TuyaDataPoints.silvercrestSetBrightness,
-                    data);
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.value, common.TuyaDataPoints.silvercrestSetBrightness, data);
             } else if (key === 'color') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.color);
 
                 // Expects leading zero's (0x30)
-
-
                 let h = '0000';
                 let s = '0000';
                 let b = '0000';
@@ -3792,11 +3782,7 @@ const converters = {
                 data = data.concat(utils.convertStringToHexArray(s));
                 data = data.concat(utils.convertStringToHexArray(b));
 
-                await sendTuyaDataPoint(
-                    entity,
-                    common.TuyaDataTypes.string,
-                    common.TuyaDataPoints.silvercrestSetColor,
-                    data);
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetColor, data);
             }
         },
     },
