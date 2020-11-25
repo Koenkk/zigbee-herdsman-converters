@@ -5701,7 +5701,6 @@ const converters = {
             const result = {};
 
             if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
-                result.mode = utils.getKeyByValue(common.silvercrestModes, value, 0);
                 if (value !== common.silvercrestModes.scene) {
                     result.scene = null;
                 }
