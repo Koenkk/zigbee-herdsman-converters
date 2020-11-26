@@ -5713,7 +5713,7 @@ const converters = {
                 result.color = {b: (b / 1000) * 255, h, s: s / 10};
             } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
                 result.scene = {
-                    scene: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    scene: utils.getKeyStringByValue(common.silvercrestScenes, value.substring(0, 2), ''),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };

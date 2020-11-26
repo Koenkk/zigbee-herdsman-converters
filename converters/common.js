@@ -125,7 +125,7 @@ const silvercrestModes = {
     scene: 2,
 };
 
-const silvercrestEffects = {
+const silvercrestScenes = {
     steady: '00',
     snow: '01',
     rainbow: '02',
@@ -344,7 +344,7 @@ module.exports = {
     thermostatSystemModes,
     thermostatRunningStates,
     fanMode,
-    silvercrestEffects,
+    silvercrestScenes,
     silvercrestModes,
     temperatureDisplayMode,
     keypadLockoutMode,

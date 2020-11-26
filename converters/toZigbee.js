@@ -3671,7 +3671,7 @@ const converters = {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.scene);
 
                 let data = [];
-                const scene = common.silvercrestEffects[value.scene];
+                const scene = common.silvercrestScenes[value.scene];
                 data = data.concat(utils.convertStringToHexArray(scene));
                 let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
 
