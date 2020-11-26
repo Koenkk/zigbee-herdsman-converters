@@ -30,7 +30,13 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.value:
         return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     case common.TuyaDataTypes.string:
-        return data.map((byte) => String.fromCharCode(byte)).join('');
+        // eslint-disable-next-line
+        let dataString = '';
+        // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
+        for (let i = 0; i < data.length; ++i) {
+            dataString += String.fromCharCode(data[i]);
+        }
+        return dataString;
     case common.TuyaDataTypes.enum:
         return data[0];
     case common.TuyaDataTypes.bitmap:
@@ -5684,6 +5690,53 @@ const converters = {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
+        },
+    },
+    silvercrest_smart_led_string: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+
+            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                if (value !== common.silvercrestModes.effect) {
+                    result.effect = null;
+                }
+            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+                result.brightness = (value / 1000) * 255;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color = {b: (b / 1000) * 255, h, s: s / 10};
+            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
+                result.effect = {
+                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                    colors: [],
+                };
+
+                const colorsString = value.substring(4);
+                // Colors are 6 characters.
+                const n = Math.floor(colorsString.length / 6);
+
+                // The incoming message can contain anywhere between 0 to 6 colors.
+                // In the following loop we're extracting every color the led
+                // string gives us.
+                for (let i = 0; i < n; ++i) {
+                    const part = colorsString.substring(i * 6, (i + 1) * 6);
+                    const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
+                    result.effect.colors.push({
+                        r: parseInt(r, 16),
+                        g: parseInt(g, 16),
+                        b: parseInt(b, 16),
+                    });
+                }
+            }
+
+            return result;
         },
     },
     tuya_led_controller: {
