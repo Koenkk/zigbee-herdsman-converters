@@ -6901,7 +6901,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGB+CCT 5W GU10',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-S-007P'],
