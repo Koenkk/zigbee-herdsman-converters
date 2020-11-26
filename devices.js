@@ -3420,7 +3420,7 @@ const devices = [
         model: '4507748C5',
         vendor: 'Philips',
         description: 'Hue Semeru Ambiance Pendant',
-        meta: { turnsOffAtBrightness1: true },
+        meta: {turnsOffAtBrightness1: true},
         extend: hue.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
