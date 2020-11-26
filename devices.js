@@ -15071,13 +15071,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
     },
+
     // LightSolutions
     {
         zigbeeModel: ['91-947'],
         model: '200403V2-B',
         vendor: 'LightSolutions',
-        description: '',
-        supports: 'on/off, brightness',
+        description: 'Mini dimmer 200W',
         extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
