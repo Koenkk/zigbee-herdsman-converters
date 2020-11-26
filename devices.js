@@ -8281,7 +8281,6 @@ const devices = [
         model: '902010/29',
         vendor: 'Bitron',
         description: 'Zigbee outdoor siren',
-        supports: 'warning and battery',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper()],
@@ -10090,13 +10089,13 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
+
     // Danfoss
     {
         zigbeeModel: ['eTRV0100'],
-        model: 'eTRV0100',
+        model: '014G2461',
         vendor: 'Danfoss',
-        description: 'Danfoss Ally Thermostat',
-        supports: 'temperature, heating system control',
+        description: 'Ally thermostat',
         fromZigbee: [
             fz.battery,
             fz.thermostat_att_report,
