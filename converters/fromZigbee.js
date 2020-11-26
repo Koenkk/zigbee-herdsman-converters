@@ -5701,8 +5701,8 @@ const converters = {
             const result = {};
 
             if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
-                if (value !== common.silvercrestModes.scene) {
-                    result.scene = null;
+                if (value !== common.silvercrestModes.effect) {
+                    result.effect = null;
                 }
             } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
                 result.brightness = (value / 1000) * 255;
@@ -5711,9 +5711,9 @@ const converters = {
                 const s = parseInt(value.substring(4, 8), 16);
                 const b = parseInt(value.substring(8, 12), 16);
                 result.color = {b: (b / 1000) * 255, h, s: s / 10};
-            } else if (dp === common.TuyaDataPoints.silvercrestSetScene) {
-                result.scene = {
-                    scene: utils.getKeyStringByValue(common.silvercrestScenes, value.substring(0, 2), ''),
+            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
+                result.effect = {
+                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };
@@ -5728,7 +5728,7 @@ const converters = {
                 for (let i = 0; i < n; ++i) {
                     const part = colorsString.substring(i * 6, (i + 1) * 6);
                     const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
-                    result.scene.colors.push({
+                    result.effect.colors.push({
                         r: parseInt(r, 16),
                         g: parseInt(g, 16),
                         b: parseInt(b, 16),

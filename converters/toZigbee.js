@@ -3661,18 +3661,18 @@ const converters = {
         },
     },
     silvercrest_smart_led_string: {
-        key: ['color', 'brightness', 'scene'],
+        key: ['color', 'brightness', 'effect'],
         convertSet: async (entity, key, value, meta) => {
             const scale = (value, valueMin, valueMax, min, max) => {
                 return min + ((max-min) / (valueMax - valueMin)) * value;
             };
 
-            if (key === 'scene') {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.scene);
+            if (key === 'effect') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.effect);
 
                 let data = [];
-                const scene = common.silvercrestScenes[value.scene];
-                data = data.concat(utils.convertStringToHexArray(scene));
+                const effect = common.silvercrestEffects[value.effect];
+                data = data.concat(utils.convertStringToHexArray(effect));
                 let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
 
                 // Max speed what the gateways sends is 64.
@@ -3691,8 +3691,8 @@ const converters = {
 
                 data = data.concat(utils.convertStringToHexArray(speedString));
                 let colors = value.colors;
-                if (!colors && meta.state && meta.state.scene && meta.state.scene.colors) {
-                    colors = meta.state.scene.colors;
+                if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
+                    colors = meta.state.effect.colors;
                 }
 
                 if (colors) {
@@ -3728,7 +3728,7 @@ const converters = {
                     }
                 }
 
-                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetScene, data);
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetEffect, data);
             } else if (key === 'brightness') {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
                 // It expects 2 leading zero's.

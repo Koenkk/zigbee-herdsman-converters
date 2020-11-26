@@ -122,10 +122,10 @@ const TuyaDataTypes = {
 const silvercrestModes = {
     white: 0,
     color: 1,
-    scene: 2,
+    effect: 2,
 };
 
-const silvercrestScenes = {
+const silvercrestEffects = {
     steady: '00',
     snow: '01',
     rainbow: '02',
@@ -282,7 +282,7 @@ const TuyaDataPoints = {
     silvercrestChangeMode: 2,
     silvercrestSetBrightness: 3,
     silvercrestSetColor: 5,
-    silvercrestSetScene: 6,
+    silvercrestSetEffect: 6,
 };
 
 const lockSourceName = {
@@ -344,7 +344,7 @@ module.exports = {
     thermostatSystemModes,
     thermostatRunningStates,
     fanMode,
-    silvercrestScenes,
+    silvercrestEffects,
     silvercrestModes,
     temperatureDisplayMode,
     keypadLockoutMode,
