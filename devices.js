@@ -6901,7 +6901,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGB+CCT 5W GU10',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-S-007P'],
@@ -7009,10 +7008,24 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['GL-D-003P'],
+        model: 'GL-D-003P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-D-004Z'],
         model: 'GL-D-004Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['GL-D-004P'],
+        model: 'GL-D-004P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
@@ -7027,6 +7040,13 @@ const devices = [
         model: 'GL-D-005Z',
         vendor: 'Gledopto',
         description: 'LED RGB + CCT downlight',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['GL-D-005P'],
+        model: 'GL-D-005P',
+        vendor: 'Gledopto',
+        description: 'LED RGB + CCT downlight PRO',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
@@ -8163,7 +8183,16 @@ const devices = [
         vendor: 'Bitron',
         description: 'Optical smoke detector (hardware version v1)',
         fromZigbee: [fz.ias_smoke_alarm_1],
-        toZigbee: [],
+        toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['902010/29'],
+        model: '902010/29',
+        vendor: 'Bitron',
+        description: 'Zigbee outdoor siren',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper()],
     },
 
@@ -9922,6 +9951,59 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+
+    // Danfoss
+    {
+        zigbeeModel: ['eTRV0100'],
+        model: '014G2461',
+        vendor: 'Danfoss',
+        description: 'Ally thermostat',
+        fromZigbee: [
+            fz.battery,
+            fz.thermostat_att_report,
+            fz.danfoss_thermostat_att_report,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature,
+            tz.danfoss_mounted_mode,
+            tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
+            tz.danfoss_heat_available,
+            tz.danfoss_day_of_week, tz.danfoss_trigger_time,
+            tz.danfoss_window_open,
+            tz.danfoss_display_orientation,
+            tz.thermostat_keypad_lockout,
+        ],
+        exposes: [
+            e.battery(), e.keypad_lockout(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature(),
+        ],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: 0x1246};
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await configureReporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
+            await configureReporting.thermostatPIHeatingDemand(
+                endpoint, {min: 0, max: repInterval.MINUTES_10, change: 1},
+            );
+            await configureReporting.thermostatOccupiedHeatingSetpoint(
+                endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25},
+            );
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4012, type: 0x10},
+                minimumReportInterval: 0,
+                maximumReportInterval: repInterval.MINUTES_10,
+                reportableChange: 1,
+            }], options);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4000, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: repInterval.HOUR,
+                reportableChange: 1,
+            }], options);
         },
     },
 
@@ -15070,6 +15152,15 @@ const devices = [
         description: 'Smart LED light strip 2M',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
+        model: 'HG06467',
+        vendor: 'Silvercrest',
+        description: 'Smart LED string lights',
+        toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
+        fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
+        exposes: [e.light_brightness_colorhs()],
     },
 
     // LightSolutions

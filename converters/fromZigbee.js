@@ -30,7 +30,13 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.value:
         return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     case common.TuyaDataTypes.string:
-        return data.map((byte) => String.fromCharCode(byte)).join('');
+        // eslint-disable-next-line
+        let dataString = '';
+        // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
+        for (let i = 0; i < data.length; ++i) {
+            dataString += String.fromCharCode(data[i]);
+        }
+        return dataString;
     case common.TuyaDataTypes.enum:
         return data[0];
     case common.TuyaDataTypes.bitmap:
@@ -272,7 +278,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.moesMinTemp:
         return {min_temperature: value};
     case common.TuyaDataPoints.moesLocalTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.moesTempCalibration:
         temperature = value;
         // for negative values produce complimentary hex (equivalent to negative values)
@@ -401,11 +407,11 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.autoLock: // 0x7401 auto lock mode
         return {auto_lock: value ? 'AUTO' : 'MANUAL'};
     case common.TuyaDataPoints.heatingSetpoint:
-        return {current_heating_setpoint: (value / 10).toFixed(1)};
+        return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.localTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.tempCalibration:
-        return {local_temperature_calibration: (value / 10).toFixed(1)};
+        return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
         return {battery: value};
     case common.TuyaDataPoints.batteryLow:
@@ -3881,6 +3887,49 @@ const converters = {
             }
         },
     },
+    danfoss_thermostat_att_report: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // Danfoss sends pi_heating_demand as raw %
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
+                    precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            if (typeof msg.data[0x4000] == 'number') {
+                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
+            }
+            if (typeof msg.data[0x4003] == 'number') {
+                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
+            }
+            if (typeof msg.data[0x4010] == 'number') {
+                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
+            }
+            if (typeof msg.data[0x4011] == 'number') {
+                result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
+            }
+            if (typeof msg.data[0x4012] == 'number') {
+                result[postfixWithEndpointName('mounted_mode', msg, model)] = (msg.data[0x4012]==1);
+            }
+            if (typeof msg.data[0x4013] == 'number') {
+                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
+            }
+            if (typeof msg.data[0x4014] == 'number') {
+                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
+            }
+            if (typeof msg.data[0x4020] == 'number') {
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
+            }
+            if (typeof msg.data[0x4030] == 'number') {
+                result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
+            }
+            if (typeof msg.data[0x4031] == 'number') {
+                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
+            }
+            return result;
+        },
+    },
 
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
@@ -5684,6 +5733,53 @@ const converters = {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
+        },
+    },
+    silvercrest_smart_led_string: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+
+            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                if (value !== common.silvercrestModes.effect) {
+                    result.effect = null;
+                }
+            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+                result.brightness = (value / 1000) * 255;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color = {b: (b / 1000) * 255, h, s: s / 10};
+            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
+                result.effect = {
+                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                    colors: [],
+                };
+
+                const colorsString = value.substring(4);
+                // Colors are 6 characters.
+                const n = Math.floor(colorsString.length / 6);
+
+                // The incoming message can contain anywhere between 0 to 6 colors.
+                // In the following loop we're extracting every color the led
+                // string gives us.
+                for (let i = 0; i < n; ++i) {
+                    const part = colorsString.substring(i * 6, (i + 1) * 6);
+                    const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
+                    result.effect.colors.push({
+                        r: parseInt(r, 16),
+                        g: parseInt(g, 16),
+                        b: parseInt(b, 16),
+                    });
+                }
+            }
+
+            return result;
         },
     },
     tuya_led_controller: {
