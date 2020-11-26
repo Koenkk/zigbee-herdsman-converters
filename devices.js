@@ -15162,6 +15162,21 @@ const devices = [
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
         exposes: [e.light_brightness_colorhs()],
     },
+
+    // LightSolutions
+    {
+        zigbeeModel: ['91-947'],
+        model: '200403V2-B',
+        vendor: 'LightSolutions',
+        description: 'Mini dimmer 200W',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+        },
+    },
 ];
 
 
