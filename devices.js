@@ -9947,11 +9947,22 @@ const devices = [
         description: 'Relay switch',
         extend: generic.switch,
         meta: {configureKey: 4},
+        ota: ota.salus,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['SW600'],
+        model: 'SW600',
+        vendor: 'Salus Controls',
+        description: 'Door or window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        ota: ota.salus,
     },
 
     // AduroSmart
