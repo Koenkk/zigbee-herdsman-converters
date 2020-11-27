@@ -15012,8 +15012,6 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
-
-    // Silvercrest (Livarnolux) remote control dimmer
     {
         zigbeeModel: ['TS1001'],
         model: 'FB20-002',
