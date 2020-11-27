@@ -3900,23 +3900,26 @@ const converters = {
                     };
 
                     if (h) {
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
                         hsb.h = make4sizedString(h.toString(16));
                     } else if (state.color && state.color.h) {
                         hsb.h = make4sizedString(state.color.h.toString(16));
                     }
 
                     // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    // The device expects a round number, otherwise everything breaks
                     if (s) {
-                        hsb.s = make4sizedString((s * 10).toString(16));
+                        hsb.s = make4sizedString(Math.round(s * 10).toString(16));
                     } else if (state.color && state.color.s) {
-                        hsb.s = make4sizedString((state.color.s * 10).toString(16));
+                        hsb.s = make4sizedString(Math.round(state.color.s * 10).toString(16));
                     }
 
                     // Scale 0-255 to 0-1000 what the device expects.
                     if (b) {
                         hsb.b = make4sizedString(Math.round(scale(b, 0, 255, 0, 1000)).toString(16));
-                    } else if (state.color && state.color.b) {
-                        hsb.b = make4sizedString(Math.round(scale(state.color.b, 0, 255, 0, 1000)).toString(16));
                     } else if (state.brightness) {
                         hsb.b = make4sizedString(Math.round(scale(state.brightness, 0, 255, 0, 1000)).toString(16));
                     }
