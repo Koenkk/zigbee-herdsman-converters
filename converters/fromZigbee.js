@@ -30,7 +30,13 @@ const tuyaGetDataValue = (dataType, data) => {
     case common.TuyaDataTypes.value:
         return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     case common.TuyaDataTypes.string:
-        return data.map((byte) => String.fromCharCode(byte)).join('');
+        // eslint-disable-next-line
+        let dataString = '';
+        // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
+        for (let i = 0; i < data.length; ++i) {
+            dataString += String.fromCharCode(data[i]);
+        }
+        return dataString;
     case common.TuyaDataTypes.enum:
         return data[0];
     case common.TuyaDataTypes.bitmap:
@@ -242,7 +248,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     let temperature;
     /* See tuyaThermostat above for message structure comment */
     switch (dp) {
-    case common.TuyaDataPoints.schedule:
+    case common.TuyaDataPoints.moesSchedule:
         return {
             program: [
                 {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
@@ -272,7 +278,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.moesMinTemp:
         return {min_temperature: value};
     case common.TuyaDataPoints.moesLocalTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.moesTempCalibration:
         temperature = value;
         // for negative values produce complimentary hex (equivalent to negative values)
@@ -280,7 +286,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {local_temperature_calibration: temperature};
     case common.TuyaDataPoints.moesHold: // state is inverted
         return {preset_mode: value ? 'program' : 'hold'};
-    case common.TuyaDataPoints.moesSchedule: // state is inverted
+    case common.TuyaDataPoints.moesScheduleEnable: // state is inverted
         return {preset_mode: value ? 'hold' : 'program'};
     case common.TuyaDataPoints.moesValve:
         return {heat: value ? 'OFF' : 'ON'};
@@ -382,7 +388,7 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
             {hour: value[12], minute: value[13], temperature: value[14]},
             {hour: value[15], minute: value[16], temperature: value[17]},
         ]};
-    case common.TuyaDataPoints.schedule: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+    case common.TuyaDataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
         // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
         return {holidays: [
             {hour: value[0], minute: value[1], temperature: value[2]},
@@ -401,11 +407,11 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.autoLock: // 0x7401 auto lock mode
         return {auto_lock: value ? 'AUTO' : 'MANUAL'};
     case common.TuyaDataPoints.heatingSetpoint:
-        return {current_heating_setpoint: (value / 10).toFixed(1)};
+        return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.localTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
+        return {local_temperature: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.tempCalibration:
-        return {local_temperature_calibration: (value / 10).toFixed(1)};
+        return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
     case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
         return {battery: value};
     case common.TuyaDataPoints.batteryLow:
@@ -1145,6 +1151,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(common.armMode[msg.data['armmode']], msg, model),
                 action_code: msg.data.code,
@@ -1410,6 +1417,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -5204,6 +5212,60 @@ const converters = {
             };
         },
     },
+    diyruz_airsense_config_co2: {
+        cluster: 'msCO2',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0203)) {
+                result.led_feedback = ['OFF', 'ON'][msg.data[0x0203]];
+            }
+            if (msg.data.hasOwnProperty(0x0202)) {
+                result.enable_abc = ['OFF', 'ON'][msg.data[0x0202]];
+            }
+            if (msg.data.hasOwnProperty(0x0204)) {
+                result.threshold1 = msg.data[0x0204];
+            }
+            if (msg.data.hasOwnProperty(0x0205)) {
+                result.threshold2 = msg.data[0x0205];
+            }
+            return result;
+        },
+    },
+    diyruz_airsense_config_temp: {
+        cluster: 'msTemperatureMeasurement',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.temperature_offset = msg.data[0x0210];
+            }
+            return result;
+        },
+    },
+    diyruz_airsense_config_pres: {
+        cluster: 'msPressureMeasurement',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.pressure_offset = msg.data[0x0210];
+            }
+            return result;
+        },
+
+    },
+    diyruz_airsense_config_hum: {
+        cluster: 'msRelativeHumidity',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0210)) {
+                result.humidity_offset = msg.data[0x0210];
+            }
+            return result;
+        },
+    },
     aqara_opple_report: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -5222,6 +5284,12 @@ const converters = {
                 return {
                     battery: toPercentage3V(voltage),
                     voltage: voltage,
+                };
+            }
+            if (msg.data['mode'] !== undefined) {
+                const lookup = ['command', 'event'];
+                return {
+                    operation_mode: lookup[msg.data['mode']],
                 };
             }
         },
@@ -5719,6 +5787,54 @@ const converters = {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
+        },
+    },
+    silvercrest_smart_led_string: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+
+            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                if (value !== common.silvercrestModes.effect) {
+                    result.effect = null;
+                }
+            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+                result.brightness = (value / 1000) * 255;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color = {b: (b / 1000) * 255, h, s: s / 10};
+                result.brightness = result.color.b;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
+                result.effect = {
+                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                    colors: [],
+                };
+
+                const colorsString = value.substring(4);
+                // Colors are 6 characters.
+                const n = Math.floor(colorsString.length / 6);
+
+                // The incoming message can contain anywhere between 0 to 6 colors.
+                // In the following loop we're extracting every color the led
+                // string gives us.
+                for (let i = 0; i < n; ++i) {
+                    const part = colorsString.substring(i * 6, (i + 1) * 6);
+                    const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
+                    result.effect.colors.push({
+                        r: parseInt(r, 16),
+                        g: parseInt(g, 16),
+                        b: parseInt(b, 16),
+                    });
+                }
+            }
+
+            return result;
         },
     },
     tuya_led_controller: {
