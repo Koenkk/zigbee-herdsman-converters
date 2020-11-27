@@ -14993,6 +14993,18 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],
+        model: 'FB20-002',
+        vendor: 'Silvercrest',
+        description: 'Switch and dimming light remote control',
+        exposes: [e.action([
+            'on', 'off', 'brightness_stop', 'brightenss_step_up', 'brightness_step_down', 'brightness_move_up',
+            'brightness_move_down',
+        ])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+    },
+    {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
@@ -15011,21 +15023,6 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
-    },
-    {
-        zigbeeModel: ['TS1001'],
-        model: 'FB20-002',
-        vendor: 'Silvercrest',
-        description: 'Silvercrest switch and dimming light remote control',
-        exposes: [e.action([
-            'on', 'off', 'brightness_stop',
-            'brightenss_step_up', 'brightness_step_down',
-            'brightness_move_up', 'brightness_move_down',
-        ])],
-        fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop
-        ],
-        toZigbee: [],
     },
 ];
 
