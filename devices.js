@@ -15013,21 +15013,19 @@ const devices = [
         },
     },
 
-    // Livarnolux (Lidl) remote control dimmer
+    // Silvercrest (Livarnolux) remote control dimmer
     {
         zigbeeModel: ['TS1001'],
-        model: 'TS1001',
-        vendor: 'Livarnolux',
-        description: 'Livarnolux remote control dimmer',
-        supports: 'switch and dimming',
+        model: 'FB20-002',
+        vendor: 'Silvercrest',
+        description: 'Silvercrest switch and dimming light remote control',
         exposes: [e.action([
-            'on', 'off', 'brightness_down_click', 'brightness_up_click', 'brightness_down_hold', 'brightness_up_hold',
-            'brightness_down_release', 'brightness_up_release',
+            'on', 'off', 'brightness_stop',
+            'brightenss_step_up', 'brightness_step_down',
+            'brightness_move_up', 'brightness_move_down',
         ])],
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
-            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
-            fz.ignore_basic_report,
+            fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop
         ],
         toZigbee: [],
     },
