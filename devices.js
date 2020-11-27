@@ -4501,7 +4501,8 @@ const devices = [
         model: 'DIYRuZ_AirSense',
         vendor: 'DIYRuZ',
         description: '[Air quality sensor](https://modkam.ru/?p=1715)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure],
+        fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure, fz.diyruz_airsense_config_co2,
+          fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
         toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
