@@ -3899,9 +3899,12 @@ const converters = {
                         b: '03e8', // 1000
                     };
 
-                    // The device expects 0-359
                     if (h) {
-                        hsb.h = make4sizedString((h - 1).toString(16));
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
+                        hsb.h = make4sizedString(h.toString(16));
                     } else if (state.color && state.color.h) {
                         hsb.h = make4sizedString(state.color.h.toString(16));
                     }
