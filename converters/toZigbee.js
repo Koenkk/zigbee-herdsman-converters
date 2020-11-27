@@ -3503,7 +3503,7 @@ const converters = {
         },
     },
     diyruz_airsense_config: {
-        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
+        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2', 'temperature_offset', 'pressure_offset', 'humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {
                 'OFF': 0x00,
@@ -3511,12 +3511,30 @@ const converters = {
             };
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
-                led_feedback: {0x0203: {value, type: 0x10}},
-                enable_abc: {0x0202: {value, type: 0x10}},
-                threshold1: {0x0204: {value, type: 0x21}},
-                threshold2: {0x0205: {value, type: 0x21}},
+                led_feedback: ['msCO2', {0x0203: {value, type: 0x10}}],
+                enable_abc: ['msCO2', {0x0202: {value, type: 0x10}}],
+                threshold1: ['msCO2', {0x0204: {value, type: 0x21}}],
+                threshold2: ['msCO2', {0x0205: {value, type: 0x21}}],
+                temperature_offset: ['msTemperatureMeasurement', {0x0210: {value, type: 0x29}}],
+                pressure_offset: ['msPressureMeasurement', {0x0210: {value, type: 0x2b}}],
+                humidity_offset: ['msRelativeHumidity', {0x0210: {value, type: 0x29}}],
             };
-            await entity.write('msCO2', payloads[key]);
+            await entity.write(payloads[key][0], payloads[key][1]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                led_feedback: ['msCO2', 0x0203],
+                enable_abc: ['msCO2', 0x0202],
+                threshold1: ['msCO2', 0x0204],
+                threshold2: ['msCO2', 0x0205],
+                temperature_offset: ['msTemperatureMeasurement', 0x0210],
+                pressure_offset: ['msPressureMeasurement', 0x0210],
+                humidity_offset: ['msRelativeHumidity', 0x0210],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
     neo_t_h_alarm: {

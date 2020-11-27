@@ -4522,10 +4522,13 @@ const devices = [
         },
         exposes: [
             e.co2(), e.temperature(), e.humidity(), e.pressure(),
-            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF'),
-            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF'),
-            exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm'),
-            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm'),
+            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable LEDs feedback'),
+            exposes.binary('enable_abc', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable ABC (Automatic Baseline Correction)'),
+            exposes.numeric('threshold1', exposes.access.ALL).withUnit('ppm').withDescription('Warning (LED2) CO2 level'),
+            exposes.numeric('threshold2', exposes.access.ALL).withUnit('ppm').withDescription('Critical (LED3) CO2 level'),
+            exposes.numeric('temperature_offset', exposes.access.ALL).withUnit('°C').withDescription('Adjust temperature'),
+            exposes.numeric('humidity_offset', exposes.access.ALL).withUnit('%').withDescription('Adjust humidity'),
+            exposes.numeric('pressure_offset', exposes.access.ALL).withUnit('hPa').withDescription('Adjust pressure'),
         ],
     },
 
