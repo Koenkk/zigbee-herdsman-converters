@@ -12911,7 +12911,7 @@ const devices = [
         zigbeeModel: ['TERNCY-LS01'],
         model: 'TERNCY-LS01',
         vendor: 'TERNCY',
-        description: 'Smart Light Socket',
+        description: 'Smart light socket',
         exposes: [e.switch(), e.action(['single'])],
         fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
