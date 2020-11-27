@@ -5808,6 +5808,7 @@ const converters = {
                 const s = parseInt(value.substring(4, 8), 16);
                 const b = parseInt(value.substring(8, 12), 16);
                 result.color = {b: (b / 1000) * 255, h, s: s / 10};
+                result.brightness = result.color.b;
             } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
                 result.effect = {
                     effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),

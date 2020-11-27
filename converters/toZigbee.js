@@ -3920,8 +3920,6 @@ const converters = {
                     // Scale 0-255 to 0-1000 what the device expects.
                     if (b) {
                         hsb.b = make4sizedString(Math.round(scale(b, 0, 255, 0, 1000)).toString(16));
-                    } else if (state.color && state.color.b) {
-                        hsb.b = make4sizedString(Math.round(scale(state.color.b, 0, 255, 0, 1000)).toString(16));
                     } else if (state.brightness) {
                         hsb.b = make4sizedString(Math.round(scale(state.brightness, 0, 255, 0, 1000)).toString(16));
                     }
