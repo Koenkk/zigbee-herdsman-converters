@@ -12907,6 +12907,20 @@ const devices = [
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', exposes.access.STATE)],
     },
+    {
+        zigbeeModel: ['TERNCY-LS01'],
+        model: 'TERNCY-LS01',
+        vendor: 'TERNCY',
+        description: 'Smart Light Socket',
+        exposes: [e.switch(), e.action(['single'])],
+        fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // ORVIBO
     {
