@@ -3649,7 +3649,7 @@ const converters = {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
                         membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
                     } else {
-                        meta.logger.warn(`unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
+                        meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
@@ -3659,7 +3659,7 @@ const converters = {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
                     return {state: entity.meta.scenes[metaKey].state};
                 } else {
-                    meta.logger.warn(`unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
+                    meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
                 }
             }
