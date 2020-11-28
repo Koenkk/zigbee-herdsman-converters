@@ -6613,7 +6613,7 @@ const devices = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-THM14FB2.4'],
+        zigbeeModel: ['FNB56-THM14FB2.4', 'FNB54-THM17ML1.1'],
         model: 'STH01ZB',
         vendor: 'Feibit',
         description: 'Smart temperature & humidity Sensor',
