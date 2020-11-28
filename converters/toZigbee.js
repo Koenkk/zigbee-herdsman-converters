@@ -17,6 +17,9 @@ const options = {
     eurotronic: {
         manufacturerCode: 4151,
     },
+    danfoss: {
+        manufacturerCode: 4678,
+    },
     hue: {
         manufacturerCode: 4107,
     },
@@ -1503,6 +1506,126 @@ const converters = {
             }
         },
     },
+    danfoss_mounted_mode: {
+        key: ['mounted_mode_control'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4013: {
+                    value: (value ? 0x00: 0x01),
+                    type: 0x10,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4013], options.danfoss);
+        },
+    },
+    danfoss_thermostat_orientation: {
+        key: ['thermostat_orientation'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4014: {
+                    value: (value ? 0x01: 0x00),
+                    type: 0x10,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4014], options.danfoss);
+        },
+    },
+    danfoss_algorithm_scale_factor: {
+        key: ['algorithm_scale_factor'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4020: {
+                    value: value,
+                    type: 0x20,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4020], options.danfoss);
+        },
+    },
+    danfoss_heat_available: {
+        key: ['heat_available'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4030: {
+                    value: (value ? 0x01: 0x00),
+                    type: 0x10,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4030], options.danfoss);
+        },
+    },
+    danfoss_day_of_week: {
+        key: ['day_of_week'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4010: {
+                    value: (Math.abs(value) < 7 ? Math.abs(value) : 7),
+                    type: 0x30,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4010], options.danfoss);
+        },
+    },
+    danfoss_trigger_time: {
+        key: ['trigger_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4011: {
+                    value: (value ? 0x01: 0x00),
+                    type: 0x21,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4011], options.danfoss);
+        },
+    },
+    danfoss_window_open: {
+        key: ['window_open_external'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4003: {
+                    value: (value ? 0x01: 0x00),
+                    type: 0x10,
+                },
+            };
+            await entity.write('hvacThermostat', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4003], options.danfoss);
+        },
+    },
+    danfoss_display_orientation: {
+        key: ['display_orientation'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                0x4000: {
+                    value: value,
+                    type: 0x30,
+                },
+            };
+            await entity.write('hvacUserInterfaceCfg', payload, options.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', [0x4000], options.danfoss);
+        },
+    },
     eurotronic_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2831,6 +2954,28 @@ const converters = {
             }
         },
     },
+    RM01_light_brightness_step: {
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
+    RM01_light_brightness_move: {
+        key: ['brightness_move', 'brightness_move_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
     aqara_opple_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3358,7 +3503,7 @@ const converters = {
         },
     },
     diyruz_airsense_config: {
-        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2'],
+        key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2', 'temperature_offset', 'pressure_offset', 'humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {
                 'OFF': 0x00,
@@ -3366,12 +3511,30 @@ const converters = {
             };
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
-                led_feedback: {0x0203: {value, type: 0x10}},
-                enable_abc: {0x0202: {value, type: 0x10}},
-                threshold1: {0x0204: {value, type: 0x21}},
-                threshold2: {0x0205: {value, type: 0x21}},
+                led_feedback: ['msCO2', {0x0203: {value, type: 0x10}}],
+                enable_abc: ['msCO2', {0x0202: {value, type: 0x10}}],
+                threshold1: ['msCO2', {0x0204: {value, type: 0x21}}],
+                threshold2: ['msCO2', {0x0205: {value, type: 0x21}}],
+                temperature_offset: ['msTemperatureMeasurement', {0x0210: {value, type: 0x29}}],
+                pressure_offset: ['msPressureMeasurement', {0x0210: {value, type: 0x2b}}],
+                humidity_offset: ['msRelativeHumidity', {0x0210: {value, type: 0x29}}],
             };
-            await entity.write('msCO2', payloads[key]);
+            await entity.write(payloads[key][0], payloads[key][1]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                led_feedback: ['msCO2', 0x0203],
+                enable_abc: ['msCO2', 0x0202],
+                threshold1: ['msCO2', 0x0204],
+                threshold2: ['msCO2', 0x0205],
+                temperature_offset: ['msTemperatureMeasurement', 0x0210],
+                pressure_offset: ['msPressureMeasurement', 0x0210],
+                humidity_offset: ['msRelativeHumidity', 0x0210],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
     neo_t_h_alarm: {
@@ -3636,6 +3799,154 @@ const converters = {
             if (value < -6) value = -6;
             if (value < 0) value = 0xFFFFFFFF + value + 1;
             await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellTempCalibration, value);
+        },
+    },
+    silvercrest_smart_led_string: {
+        key: ['color', 'brightness', 'effect'],
+        convertSet: async (entity, key, value, meta) => {
+            const scale = (value, valueMin, valueMax, min, max) => {
+                return min + ((max-min) / (valueMax - valueMin)) * value;
+            };
+
+            if (key === 'effect') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.effect);
+
+                let data = [];
+                const effect = common.silvercrestEffects[value.effect];
+                data = data.concat(utils.convertStringToHexArray(effect));
+                let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
+
+                // Max speed what the gateways sends is 64.
+                if (speed > 64) {
+                    speed = 64;
+                }
+
+                // Make it a string and attach a leading zero (0x30)
+                let speedString = String(speed);
+                if (speedString.length === 1) {
+                    speedString = '0' + speedString;
+                }
+                if (!speedString) {
+                    speedString = '00';
+                }
+
+                data = data.concat(utils.convertStringToHexArray(speedString));
+                let colors = value.colors;
+                if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
+                    colors = meta.state.effect.colors;
+                }
+
+                if (colors) {
+                    for (const color of colors) {
+                        let r = '00';
+                        let g = '00';
+                        let b = '00';
+
+                        if (color.r) {
+                            r = color.r.toString(16);
+                        }
+                        if (r.length === 1) {
+                            r = '0'+r;
+                        }
+
+                        if (color.g) {
+                            g = color.g.toString(16);
+                        }
+                        if (g.length === 1) {
+                            g = '0'+g;
+                        }
+
+                        if (color.b) {
+                            b = color.b.toString(16);
+                        }
+                        if (b.length === 1) {
+                            b = '0'+b;
+                        }
+
+                        data = data.concat(utils.convertStringToHexArray(r));
+                        data = data.concat(utils.convertStringToHexArray(g));
+                        data = data.concat(utils.convertStringToHexArray(b));
+                    }
+                }
+
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetEffect, data);
+            } else if (key === 'brightness') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
+                // It expects 2 leading zero's.
+                let data = [0x00, 0x00];
+
+                // Scale it to what the device expects (0-1000 instead of 0-255)
+                const scaled = Math.round(scale(value, 0, 255, 0, 1000));
+                data = data.concat(utils.convertDecimalValueTo2ByteHexArray(scaled));
+
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.value, common.TuyaDataPoints.silvercrestSetBrightness, data);
+            } else if (key === 'color') {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.color);
+
+                const make4sizedString = (v) => {
+                    if (v.length >= 4) return v;
+                    else if (v.length === 3) return '0'+v;
+                    else if (v.length === 2) return '00'+v;
+                    else if (v.length === 1) return '000'+v;
+                    else return '0000';
+                };
+
+                const fillInHSB = (h, s, b, state) => {
+                    // Define default values. Device expects leading zero in string.
+                    const hsb = {
+                        h: '0168', // 360
+                        s: '03e8', // 1000
+                        b: '03e8', // 1000
+                    };
+
+                    if (h) {
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
+                        hsb.h = make4sizedString(h.toString(16));
+                    } else if (state.color && state.color.h) {
+                        hsb.h = make4sizedString(state.color.h.toString(16));
+                    }
+
+                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    // The device expects a round number, otherwise everything breaks
+                    if (s) {
+                        hsb.s = make4sizedString(Math.round(s * 10).toString(16));
+                    } else if (state.color && state.color.s) {
+                        hsb.s = make4sizedString(Math.round(state.color.s * 10).toString(16));
+                    }
+
+                    // Scale 0-255 to 0-1000 what the device expects.
+                    if (b) {
+                        hsb.b = make4sizedString(Math.round(scale(b, 0, 255, 0, 1000)).toString(16));
+                    } else if (state.brightness) {
+                        hsb.b = make4sizedString(Math.round(scale(state.brightness, 0, 255, 0, 1000)).toString(16));
+                    }
+
+                    return hsb;
+                };
+
+                let hsb = {};
+
+                if (value.hasOwnProperty('hsb')) {
+                    const splitted = value.hsb.split(',').map((i) => parseInt(i));
+                    hsb = fillInHSB(splitted[0], splitted[1], splitted[2], meta.state);
+                } else {
+                    hsb = fillInHSB(
+                        value.h || value.hue || null,
+                        value.s || value.saturation || null,
+                        value.b || value.brightness || null,
+                        meta.state);
+                }
+
+                let data = [];
+                data = data.concat(utils.convertStringToHexArray(hsb.h));
+                data = data.concat(utils.convertStringToHexArray(hsb.s));
+                data = data.concat(utils.convertStringToHexArray(hsb.b));
+
+                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetColor, data);
+            }
         },
     },
     tuya_data_point_test: {

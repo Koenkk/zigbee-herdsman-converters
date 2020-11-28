@@ -119,6 +119,31 @@ const TuyaDataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
+const silvercrestModes = {
+    white: 0,
+    color: 1,
+    effect: 2,
+};
+
+const silvercrestEffects = {
+    steady: '00',
+    snow: '01',
+    rainbow: '02',
+    snake: '03',
+    twinkle: '04',
+    firework: '08',
+    horizontal_flag: '06',
+    waves: '07',
+    updown: '08',
+    vintage: '09',
+    fading: '0a',
+    collide: '0b',
+    strobe: '0c',
+    sparkles: '0d',
+    carnaval: '0e',
+    glow: '0f',
+};
+
 const TuyaDataPoints = {
     // Common data points
     // Below data points are usually shared between devices
@@ -253,6 +278,11 @@ const TuyaDataPoints = {
     hyMode: 128,
     hyChildLock: 129,
     hyAlarm: 130,
+    // Silvercrest
+    silvercrestChangeMode: 2,
+    silvercrestSetBrightness: 3,
+    silvercrestSetColor: 5,
+    silvercrestSetEffect: 6,
 };
 
 const lockSourceName = {
@@ -314,6 +344,8 @@ module.exports = {
     thermostatSystemModes,
     thermostatRunningStates,
     fanMode,
+    silvercrestEffects,
+    silvercrestModes,
     temperatureDisplayMode,
     keypadLockoutMode,
     TuyaThermostatSystemModes,

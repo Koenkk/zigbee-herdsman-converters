@@ -183,6 +183,11 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : fallback;
 }
 
+function getKeyStringByValue(object, value, fallback) {
+    const key = Object.keys(object).find((k) => object[k] === value);
+    return key != null ? String(key) : fallback;
+}
+
 function hasEndpoints(device, endpoints) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
@@ -240,6 +245,14 @@ const replaceInArray = (arr, oldElements, newElements) => {
     }
 
     return clone;
+};
+
+const convertStringToHexArray = (value) => {
+    const asciiKeys = [];
+    for (let i = 0; i < value.length; i ++) {
+        asciiKeys.push(value[i].charCodeAt(0));
+    }
+    return asciiKeys;
 };
 
 async function getDoorLockPinCode(entity, user, options = null) {
@@ -329,6 +342,7 @@ module.exports = {
     hexToRgb,
     hslToHSV,
     getKeyByValue,
+    getKeyStringByValue,
     interpolateHue,
     hasEndpoints,
     miredsToXY,
@@ -347,4 +361,5 @@ module.exports = {
     sleepMs,
     toSnakeCase,
     toCamelCase,
+    convertStringToHexArray,
 };
