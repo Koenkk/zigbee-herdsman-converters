@@ -3668,8 +3668,12 @@ const converters = {
     scene_add: {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
-                throw new Error('Invalid payload');
+            if (typeof value !== 'object') {
+                throw new Error('Payload should be object.');
+            }
+
+            if (!value.hasOwnProperty('ID')) {
+                throw new Error('Payload missing ID.');
             }
 
             if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
