@@ -3646,20 +3646,34 @@ const converters = {
             if (isGroup) {
                 const membersState = {};
                 for (const member of entity.members) {
-                    membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                    if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
+                        membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                    } else {
+                        meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
+                        membersState[member.getDevice().ieeeAddr] = {};
+                    }
                 }
 
                 return {membersState};
             } else {
-                return {state: entity.meta.scenes[metaKey].state};
+                if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    return {state: entity.meta.scenes[metaKey].state};
+                } else {
+                    meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
+                    return {state: {}};
+                }
             }
         },
     },
     scene_add: {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
-                throw new Error('Invalid payload');
+            if (typeof value !== 'object') {
+                throw new Error('Payload should be object.');
+            }
+
+            if (!value.hasOwnProperty('ID')) {
+                throw new Error('Payload missing ID.');
             }
 
             if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
