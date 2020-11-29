@@ -73,15 +73,13 @@ function findByZigbeeModel(zigbeeModel) {
         // Multiple candidates possible, first try to find added in frontend.
         for (const candidate of candidates) {
             if (candidate.addInFront == true) {
-                        return candidate;
+                return candidate;
             }
         }
 
         // No external converters so return first one.
         return candidates[0];
     }
-    
-    return null;
 }
 
 function findByDevice(device) {
@@ -98,7 +96,7 @@ function findByDevice(device) {
         // Multiple candidates possible, first try to find added in frontend.
         for (const candidate of candidates) {
             if (candidate.addInFront == true) {
-                        return candidate;
+                return candidate;
             }
         }
 
