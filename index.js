@@ -79,7 +79,7 @@ function findByDevice(device) {
     } else {
         // Multiple candidates possible, to use external converters in priority, reverse the order of candidates before searching.
         const reversedCandidates = candidates.reverse();
-        
+
         // First try to match based on fingerprint, return the first matching one.
         for (const candidate of reversedCandidates) {
             if (candidate.hasOwnProperty('fingerprint')) {
