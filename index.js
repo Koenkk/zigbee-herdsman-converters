@@ -36,7 +36,9 @@ function getFromLookup(zigbeeModel) {
     return lookup.get(zigbeeModel);
 }
 
-function addDefinition(definition) {
+function addDefinition(definition, addInFront) {
+    definition['addInFront'] = addInFront ? true : false;
+
     definitions.push(definition);
 
     if (definition.hasOwnProperty('fingerprint')) {
@@ -62,8 +64,24 @@ function findByZigbeeModel(zigbeeModel) {
     }
 
     const candidates = getFromLookup(zigbeeModel);
-    // Multiple candidates possible, to use external converters in priority, use last one.
-    return candidates ? candidates[candidates.length-1] : null;
+
+    if (!candidates) {
+        return null;
+    } else if (candidates.length === 1) {
+        return candidates[0];
+    } else {
+        // Multiple candidates possible, first try to find added in frontend.
+        for (const candidate of candidates) {
+            if (candidate.addInFront == true) {
+                        return candidate;
+            }
+        }
+
+        // No external converters so return first one.
+        return candidates[0];
+    }
+    
+    return null;
 }
 
 function findByDevice(device) {
@@ -77,11 +95,15 @@ function findByDevice(device) {
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
-        // Multiple candidates possible, to use external converters in priority, reverse the order of candidates before searching.
-        const reversedCandidates = candidates.reverse();
+        // Multiple candidates possible, first try to find added in frontend.
+        for (const candidate of candidates) {
+            if (candidate.addInFront == true) {
+                        return candidate;
+            }
+        }
 
-        // First try to match based on fingerprint, return the first matching one.
-        for (const candidate of reversedCandidates) {
+        // No external converters so try to match based on fingerprint, return the first matching one.
+        for (const candidate of candidates) {
             if (candidate.hasOwnProperty('fingerprint')) {
                 for (const fingerprint of candidate.fingerprint) {
                     if (fingerprintMatch(fingerprint, device)) {
