@@ -14035,12 +14035,12 @@ const devices = [
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
         extend: generic.light_onoff_brightness_colortemp,
     },
-    {                                   
-        zigbeeModel: ['ZBT-CCTLight-BR300107'],                         
-        model: 'ZL100050004',                                           
-        vendor: 'Linkind',                                                                  
+    {
+        zigbeeModel: ['ZBT-CCTLight-BR300107'],
+        model: 'ZL100050004',
+        vendor: 'Linkind',
         description: 'Zigbee LED 7.4W BR30 bulb E26, dimmable & tunable',
-        extend: generic.light_onoff_brightness_colortemp,               
+        extend: generic.light_onoff_brightness_colortemp,
     },
     {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
