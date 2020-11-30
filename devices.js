@@ -8952,7 +8952,7 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'RC-N', manufacturerName: 'HEIMAN'}],
+        zigbeeModel: ['RC-N', 'RC-EF-3.0'],
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
