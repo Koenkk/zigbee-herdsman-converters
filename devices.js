@@ -9988,6 +9988,16 @@ const devices = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
         ota: ota.salus,
     },
+    {
+        zigbeeModel: ['WLS600'],
+        model: 'WLS600',
+        vendor: 'Salus Controls',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+        ota: ota.salus,
+    },
 
     // AduroSmart
     {
