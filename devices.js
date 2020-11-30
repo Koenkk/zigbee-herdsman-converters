@@ -14036,6 +14036,13 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['ZBT-CCTLight-BR300107'],
+        model: 'ZL100050004',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 7.4W BR30 bulb E26, dimmable & tunable',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
