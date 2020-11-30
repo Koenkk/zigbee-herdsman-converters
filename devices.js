@@ -9998,6 +9998,16 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
         ota: ota.salus,
     },
+    {
+        zigbeeModel: ['OS600'],
+        model: 'OS600',
+        vendor: 'Salus Controls',
+        description: 'Door or window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        ota: ota.salus,
+    },
 
     // AduroSmart
     {
