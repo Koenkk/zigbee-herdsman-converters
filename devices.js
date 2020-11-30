@@ -6920,7 +6920,7 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
         meta: {disableDefaultResponse: true},
     },
-     {
+    {
         zigbeeModel: ['GL-MC-001P'],
         model: 'GL-MC-001P',
         vendor: 'Gledopto',
