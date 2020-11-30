@@ -2002,6 +2002,32 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TS0014'],
+        model: 'TS0014',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 4 gang without neutral wire',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        whiteLabel: [
+            {vendor: 'TUYATEC', model: 'GDKES-04TZXD'},
+        ],
+        meta: {configureKey: 2, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            try {
+                for (const ID of [1, 2, 3, 4]) {
+                    const endpoint = device.getEndpoint(ID);
+                    await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                    await configureReporting.onOff(endpoint);
+                }
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
+            }
+        },
+    },
+    {
         zigbeeModel: ['gq8b1uv'],
         model: 'gq8b1uv',
         vendor: 'TuYa',
