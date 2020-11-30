@@ -10008,6 +10008,16 @@ const devices = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
         ota: ota.salus,
     },
+    {
+        zigbeeModel: ['RE600'],
+        model: 'RE600',
+        vendor: 'Salus Controls',
+        description: 'Router Zigbee',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+        ota: ota.salus,
+    },
 
     // AduroSmart
     {
