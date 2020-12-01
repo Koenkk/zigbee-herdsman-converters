@@ -2002,16 +2002,14 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['TS0014'],
+        fingerprint: [{modelID: 'TS0014', manufacturerName: '_TZ3000_jr2atpww'}],
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
         extend: generic.switch,
         exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'),
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
