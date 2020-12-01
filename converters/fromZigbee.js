@@ -3093,6 +3093,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
             if (msg.data.armmode != null) {
                 const lookup = {
                     0: 'disarm',
