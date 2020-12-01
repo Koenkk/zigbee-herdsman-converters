@@ -7198,18 +7198,25 @@ const devices = [
 
     // YSRSAI
     {
-        zigbeeModel: ['ZB-CL01', 'ZB-CL03', 'FB56-ZCW20FB1.2', 'ZB-DL01'],
-        model: 'YSR-MINI-01',
+        zigbeeModel: ['ZB-CL01', 'ZB-CL03', 'FB56-ZCW20FB1.2'],
+        model: 'YSR-MINI-01_rgbcct',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['ZB-CT01'],
-        model: 'ZB-CT01',
+        model: 'YSR-MINI-01_wwcw',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (WW/CW)',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['ZB-DL01'],
+        model: 'YSR-MINI-01_dimmer',
+        vendor: 'YSRSAI',
+        description: 'Zigbee LED controller (Dimmer)',
+        extend: generic.light_onoff_brightness,
     },
 
     // Somgoms
