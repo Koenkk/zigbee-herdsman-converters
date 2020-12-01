@@ -9673,6 +9673,7 @@ const devices = [
         model: 'ICZB-KPD14S',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 4S',
+        meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
@@ -9685,6 +9686,7 @@ const devices = [
         model: 'ICZB-KPD18S',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
+        meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [
             fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
             fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
