@@ -15349,6 +15349,13 @@ const devices = [
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
         exposes: [e.light_brightness_colorhs()],
     },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],
+        model: 'HG06106B',
+        vendor: 'Silvercrest',
+        description: 'E14 candle',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // LightSolutions
     {
