@@ -6926,7 +6926,6 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Zigbee USB mini LED controller RGB + CCT PRO',
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
-        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-S-004Z'],
