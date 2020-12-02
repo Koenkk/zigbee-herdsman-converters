@@ -269,7 +269,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {system_mode: value ? 'heat' : 'off'};
     case common.TuyaDataPoints.childLock:
         return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.heatingSetpoint:
+    case common.TuyaDataPoints.moesHeatingSetpoint:
         return {current_heating_setpoint: value};
     case common.TuyaDataPoints.moesMaxTempLimit:
         return {max_temperature_limit: value};
