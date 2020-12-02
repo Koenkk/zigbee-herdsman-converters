@@ -3607,6 +3607,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1745930P7'],
+        model: '1745930P7',
+        vendor: 'Philips',
+        description: 'Hue outdoor Impress wall lamp (low voltage)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1743230P7'],
         model: '1743230P7',
         vendor: 'Philips',
