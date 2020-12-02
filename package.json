@@ -43,6 +43,7 @@
     "eslint": "*",
     "eslint-config-google": "*",
     "eslint-plugin-jest": "*",
+    "fast-deep-equal": "*",
     "jest": "*"
   }
 }
