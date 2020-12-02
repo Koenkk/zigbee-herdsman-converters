@@ -15283,19 +15283,19 @@ const devices = [
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
 
-    // Silvercrest
+    // Lidl
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_kdi2o9m6'}],
         model: 'HG06337',
-        vendor: 'Silvercrest',
-        description: 'Smart Plug',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart plug',
         extend: generic.switch,
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
         model: 'HG06335',
-        vendor: 'Silvercrest',
-        description: 'Smart motion sensor',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
@@ -15308,8 +15308,8 @@ const devices = [
     {
         fingerprint: [{modelID: 'TY0203', manufacturerName: '_TZ1800_ejwkn2h2'}],
         model: 'HG06336',
-        vendor: 'Silvercrest',
-        description: 'Smart window and door sensor',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart window and door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
@@ -15322,8 +15322,8 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],
         model: 'FB20-002',
-        vendor: 'Silvercrest',
-        description: 'Switch and dimming light remote control',
+        vendor: 'Lidl',
+        description: 'Livarno Lux switch and dimming light remote control',
         exposes: [e.action([
             'on', 'off', 'brightness_stop', 'brightenss_step_up', 'brightness_step_down', 'brightness_move_up',
             'brightness_move_down',
@@ -15338,8 +15338,8 @@ const devices = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_4uf3d0ax'}, // Type J plug & socket
         ],
         model: 'HG06338',
-        vendor: 'Silvercrest',
-        description: '3 gang switch, possibly with USB',
+        vendor: 'Lidl',
+        description: 'Silvercrest 3 gang switch, possibly with USB',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
@@ -15355,16 +15355,16 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_riwp3k79'}],
         model: 'HG06104A',
-        vendor: 'Silvercrest',
-        description: 'Smart LED light strip 2M',
+        vendor: 'Lidl',
+        description: 'Livarno Lux smart LED light strip 2.5m',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
         meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
         model: 'HG06467',
-        vendor: 'Silvercrest',
-        description: 'Smart LED string lights',
+        vendor: 'Lidl',
+        description: 'Melinera smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
         exposes: [e.light_brightness_colorhs()],
@@ -15372,8 +15372,22 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],
         model: 'HG06106B',
-        vendor: 'Silvercrest',
-        description: 'E14 candle',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E14 candle RGB',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_kdpxju99'}],
+        model: 'HG06106A',
+        vendor: 'Lidl',
+        description: 'Livarno Lux GU10 spot RGB',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_dbou1ap4'}],
+        model: 'HG06106C',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 bulb RGB',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
