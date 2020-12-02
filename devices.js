@@ -10557,7 +10557,6 @@ const devices = [
         supports: 'on/off',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1}
     },
     {
         zigbeeModel: ['DM2500ZB'],
