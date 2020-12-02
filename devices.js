@@ -15387,7 +15387,7 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    
+
     // Led RGBCW Bulb, Lonsonho, Tuya
     {
         zigbeeModel: ['ZB-RGBCW'],
