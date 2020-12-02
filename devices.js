@@ -2304,7 +2304,7 @@ const devices = [
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
-        model: 'Zigbee 3, RGW+W+C',
+        model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
