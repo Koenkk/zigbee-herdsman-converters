@@ -17,8 +17,8 @@ function rgbToXY(red, green, blue) {
 
     // RGB values to XYZ using the Wide RGB D65 conversion formula
     const X = rgb.r * 0.664511 + rgb.g * 0.154324 + rgb.b * 0.162028;
-    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + blue * 0.047685;
-    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + blue * 0.986039;
+    const Y = rgb.r * 0.283881 + rgb.g * 0.668433 + rgb.b * 0.047685;
+    const Z = rgb.r * 0.000088 + rgb.g * 0.072310 + rgb.b * 0.986039;
 
     // Calculate the xy values from the XYZ values
     let x = (X / (X + Y + Z)).toFixed(4);
@@ -183,6 +183,11 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : fallback;
 }
 
+function getKeyStringByValue(object, value, fallback) {
+    const key = Object.keys(object).find((k) => object[k] === value);
+    return key != null ? String(key) : fallback;
+}
+
 function hasEndpoints(device, endpoints) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
@@ -218,6 +223,15 @@ const convertDecimalValueTo2ByteHexArray = (value) => {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 };
 
+const convertDecimalValueTo4ByteHexArray = (value) => {
+    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const chunk1 = hexValue.substr(0, 2);
+    const chunk2 = hexValue.substr(2, 2);
+    const chunk3 = hexValue.substr(4, 2);
+    const chunk4 = hexValue.substr(6);
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+};
+
 const replaceInArray = (arr, oldElements, newElements) => {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
@@ -231,6 +245,14 @@ const replaceInArray = (arr, oldElements, newElements) => {
     }
 
     return clone;
+};
+
+const convertStringToHexArray = (value) => {
+    const asciiKeys = [];
+    for (let i = 0; i < value.length; i ++) {
+        asciiKeys.push(value[i].charCodeAt(0));
+    }
+    return asciiKeys;
 };
 
 async function getDoorLockPinCode(entity, user, options = null) {
@@ -280,12 +302,47 @@ function filterObject(obj, keys) {
     return result;
 }
 
+const sleepMs = async (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+function toSnakeCase(value) {
+    if (typeof value === 'object') {
+        for (const key of Object.keys(value)) {
+            const keySnakeCase = toSnakeCase(key);
+            if (key !== keySnakeCase) {
+                value[keySnakeCase] = value[key];
+                delete value[key];
+            }
+        }
+        return value;
+    } else {
+        return value.replace(/\.?([A-Z])/g, (x, y) => '_' + y.toLowerCase()).replace(/^_/, '').replace('_i_d', '_id');
+    }
+}
+
+function toCamelCase(value) {
+    if (typeof value === 'object') {
+        for (const key of Object.keys(value)) {
+            const keyCamelCase = toCamelCase(key);
+            if (key !== keyCamelCase) {
+                value[keyCamelCase] = value[key];
+                delete value[key];
+            }
+        }
+        return value;
+    } else {
+        return value.replace(/_([a-z])/g, (x, y) => y.toUpperCase());
+    }
+}
+
 module.exports = {
     rgbToXY,
     hexToXY,
     hexToRgb,
     hslToHSV,
     getKeyByValue,
+    getKeyStringByValue,
     interpolateHue,
     hasEndpoints,
     miredsToXY,
@@ -296,8 +353,13 @@ module.exports = {
     isInRange,
     convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
+    convertDecimalValueTo4ByteHexArray,
     replaceInArray,
     getDoorLockPinCode,
     getMetaValue,
     filterObject,
+    sleepMs,
+    toSnakeCase,
+    toCamelCase,
+    convertStringToHexArray,
 };

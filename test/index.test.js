@@ -1,5 +1,8 @@
 const index = require('../index');
 const devices = require('../devices');
+const exposes = require('../lib/exposes');
+const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+const equals = require('fast-deep-equal/es6');
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -170,11 +173,12 @@ describe('index.js', () => {
 
         let foundZigbeeModels = [];
         let foundModels = [];
+        let foundFingerprints = [];
 
         devices.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee'],
+                ['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'],
                 Object.keys(device),
                 device.model,
             );
@@ -237,6 +241,19 @@ describe('index.js', () => {
                 throw new Error(`Duplicate model ${device.model}`)
             }
 
+            // Check for duplicate foundFingerprints
+            if (device.fingerprint) {
+                for (const fingerprint of device.fingerprint) {
+                    for (const foundFingerprint of foundFingerprints) {
+                        if (equals(foundFingerprint, fingerprint)) {
+                            throw new Error(`Duplicate fingerprint for ${device.model}: ${JSON.stringify(fingerprint)}`);
+                        }
+                    }
+
+                    foundFingerprints.push(fingerprint);
+                }
+            }
+
             // Verify meta
             if (device.configure && (!device.meta || !device.meta.configureKey)) {
                 throw new Error(`${device.model} requires configureKey because it has configure`)
@@ -249,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'commandArmIncludeTransaction'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'commandArmIncludeTransaction', 'thermostat'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -273,5 +290,58 @@ describe('index.js', () => {
         expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
         const device = index.findByZigbeeModel(mockZigbeeModel);
         expect(device.model).toBe(mockDevice.model);
+    });
+
+    it('Exposes light with endpoint', () => {
+        const expected = {
+            "type":"light",
+            "features":[
+              {
+                "type":"binary",
+                "name":"state",
+                "description": "On/off state of this light",
+                "property":"state_rgb",
+                "access":7,
+                "value_on":"ON",
+                "value_off":"OFF",
+                "value_toggle":"TOGGLE",
+                "endpoint":"rgb"
+              },
+              {
+                "type":"numeric",
+                "name":"brightness",
+                "description": "Brightness of this light",
+                "property":"brightness_rgb",
+                "access":7,
+                "value_min":0,
+                "value_max":254,
+                "endpoint":"rgb"
+              },
+              {
+                "type":"composite",
+                "property":"color_rgb",
+                "name":"color_xy",
+                "description": "Color of this light in the CIE 1931 color space (x/y)",
+                "features":[
+                  {
+                    "type":"numeric",
+                    "name":"x",
+                    "property":"x",
+                    "access":7
+                  },
+                  {
+                    "type":"numeric",
+                    "name":"y",
+                    "property":"y",
+                    "access":7
+                  }
+                ],
+                "endpoint":"rgb"
+              }
+            ],
+            "endpoint":"rgb"
+        };
+        const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
+        expect(expected).toStrictEqual(deepClone(actual));
     });
 });
