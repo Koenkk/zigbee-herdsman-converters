@@ -15387,6 +15387,15 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+    
+    // Led RGBCW Bulb, Lonsonho, Tuya
+    {
+        zigbeeModel: ['ZB-RGBCW'],
+        model: 'Zigbee 3, RGW+W+C',
+        vendor: 'Lonsonho',
+        description: 'ZigBee 3.0 LED-bulb, RGBW LED',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 
