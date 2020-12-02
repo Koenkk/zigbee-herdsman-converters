@@ -3661,6 +3661,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5060730P7_01', '5060730P7_02', '5060730P7_03', '5060730P7_04', '5060730P7_05'],
+        model: '5060730P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth White & Color Ambiance spot Centris',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5062131P7'],
         model: '5062131P7',
         vendor: 'Philips',
