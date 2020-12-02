@@ -3685,13 +3685,27 @@ const converters = {
             const sceneid = value.ID;
             const scenename = '';
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
-            let zclversion = 6;
-            if (value.hasOwnProperty('ZCL')) {
-                if (typeof value.ZCL !== 'number') {
-                    throw new Error('ZCL version must be a number.');
-                }
-                zclversion = value.ZCL;
-            }
+            /*
+             * ZCL version 7 added support for ColorTemperatureMireds
+             *
+             * Currently no devices seem to support this, so always
+             * fallback to XY conversion. In the future if a device
+             * supports this, or other features get added this can
+             * be uncomment to add version specific code paths.
+             *
+             * Conversion to XY is allowed according to the ZCL:
+             * `Since there is a direct relation between ColorTemperatureMireds and XY,
+             *  color temperature, if supported, is stored as XY in the scenes table.`
+             *
+             * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
+             */
+            // let zclversion = 6;
+            // if (value.hasOwnProperty('ZCL')) {
+            //     if (typeof value.ZCL !== 'number') {
+            //         throw new Error('ZCL version must be a number.');
+            //     }
+            //     zclversion = value.ZCL;
+            // }
 
             const state = {};
             const extensionfieldsets = [];
@@ -3703,17 +3717,17 @@ const converters = {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
                 } else if (attribute === 'color_temp') {
-                    // ColorTemperatureMireds was added in ZCL Version 7
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
-                    if (zclversion >= 7) {
-                        extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
-                    } else {
-                        const xy = utils.miredsToXY(val);
-                        extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [
-                            Math.round(xy.x * 65535),
-                            Math.round(xy.y * 65535),
-                        ]});
-                    }
+                    // if (zclversion >= 7) {
+                    //     // ColorTemperatureMireds was added in ZCL Version 7
+                    //     extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    // } else {
+                    // convert Mireds to XY as this is allowed by the ZCL
+                    const xy = utils.miredsToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [
+                        Math.round(xy.x * 65535),
+                        Math.round(xy.y * 65535),
+                    ]});
+                    // }
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
