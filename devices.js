@@ -3202,6 +3202,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCE001'],
+        model: '929002294101',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance E12 with bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCE002'],
         model: '929002294203',
         vendor: 'Philips',
