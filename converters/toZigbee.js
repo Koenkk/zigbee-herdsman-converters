@@ -3743,6 +3743,32 @@ const converters = {
             return {state: {}};
         },
     },
+    scene_remove: {
+        key: ['scene_remove'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
+                            delete member.meta.scenes[metaKey];
+                            member.save();
+                        }
+                    }
+                }
+            } else {
+                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    delete entity.meta.scenes[metaKey];
+                    entity.save();
+                }
+            }
+        },
+    },
     TS0003_curtain_switch: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
