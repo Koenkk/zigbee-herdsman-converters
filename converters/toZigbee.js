@@ -3696,7 +3696,21 @@ const converters = {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
                 } else if (attribute === 'color_temp') {
-                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    /*
+                     * ZCL version 7 added support for ColorTemperatureMireds
+                     *
+                     * Currently no devices seem to support this, so always fallback to XY conversion. In the future if a device
+                     * supports this, or other features get added this the following commit contains an implementation:
+                     * https://github.com/Koenkk/zigbee-herdsman-converters/pull/1837/commits/c22175b946b83230ce4e711c2a3796cf2029e78f
+                     *
+                     * Conversion to XY is allowed according to the ZCL:
+                     * `Since there is a direct relation between ColorTemperatureMireds and XY,
+                     *  color temperature, if supported, is stored as XY in the scenes table.`
+                     *
+                     * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
+                     */
+                    const xy = utils.miredsToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
