@@ -2303,6 +2303,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ZB-RGBCW'],
+        model: 'ZB-RGBCW',
+        vendor: 'Lonsonho',
+        description: 'Zigbee 3.0 LED-bulb, RGBW LED',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
