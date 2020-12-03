@@ -483,7 +483,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         // single value 1-100%
         break;
     case common.TuyaDataPoints.saswellBatteryLow:
-        return {battery_low: value ? 'true' : 'false'};
+        return {battery_low: value ? true : false};
     case common.TuyaDataPoints.saswellAwayMode:
         if (value) {
             return {away_mode: 'ON', preset_mode: 'away'};
