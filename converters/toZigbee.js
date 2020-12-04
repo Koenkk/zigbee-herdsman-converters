@@ -3490,7 +3490,18 @@ const converters = {
                 'OFF': 0x00,
                 'ON': 0x01,
             };
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const sensorsTypeLookup = {
+                'СБМ-20/СТС-5/BOI-33': '0',
+                'СБМ-19/СТС-6': '1',
+                'Others': '2',
+            };
+
+            var value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+
+            if (key == 'sensors_type') {
+                value = sensorsTypeLookup.hasOwnProperty(rawValue) ? sensorsTypeLookup[rawValue] : parseInt(rawValue, 10);
+            }
+
             const payloads = {
                 sensitivity: {0xF000: {value, type: 0x21}},
                 led_feedback: {0xF001: {value, type: 0x10}},
@@ -3499,7 +3510,19 @@ const converters = {
                 sensors_type: {0xF004: {value, type: 0x30}},
                 alert_threshold: {0xF005: {value, type: 0x23}},
             };
+
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                sensitivity: ['msIlluminanceLevelSensing', 0xF000],
+                led_feedback: ['msIlluminanceLevelSensing', 0xF001],
+                buzzer_feedback: ['msIlluminanceLevelSensing', 0xF002],
+                sensors_count: ['msIlluminanceLevelSensing', 0xF003],
+                sensors_type: ['msIlluminanceLevelSensing', 0xF004],
+                alert_threshold: ['msIlluminanceLevelSensing', 0xF005],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
     diyruz_airsense_config: {
