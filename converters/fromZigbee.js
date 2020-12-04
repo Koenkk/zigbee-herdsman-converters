@@ -435,15 +435,12 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.mode: {
         const ret = {};
         const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
-        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(value);
         if (presetOk) {
             ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
             ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-        }
-        if (modeOk) {
-            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[value];
+            ret.system_mode = 'heat';
         } else {
-            console.log(`TRV preset/mode ${value} is not recognized.`);
+            console.log(`TRV preset ${value} is not recognized.`);
             return;
         }
         return ret;
