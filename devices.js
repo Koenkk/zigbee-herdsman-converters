@@ -1365,7 +1365,7 @@ const devices = [
         zigbeeModel: ['lumi.switch.n0agl1'],
         model: 'SSM-U01',
         vendor: 'Xiaomi',
-        supports: 'on/off, power measurement, temperature',
+        description: 'Aqara single switch module T1 (with neutral)',
         fromZigbee: [fz.on_off, fz.metering_power, fz.electrical_measurement_power, fz.device_temperature],
         exposes: [e.switch(), e.energy(), e.power(), e.device_temperature()],
         toZigbee: [tz.on_off],
