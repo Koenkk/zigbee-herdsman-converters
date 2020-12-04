@@ -1587,6 +1587,11 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        fingerprint: [
+            {type: 'EndDevice', manufacturerID: 4098, endpoints: [
+                {ID: 1, inputClusters: [], outputClusters: []},
+            ]},
+        ],
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
         vendor: 'TuYa',
