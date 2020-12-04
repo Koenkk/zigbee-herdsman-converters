@@ -1366,8 +1366,8 @@ const devices = [
         model: 'SSM-U01',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (with neutral)',
-        fromZigbee: [fz.on_off, fz.metering_power, fz.electrical_measurement_power],
-        exposes: [e.switch(), e.energy(), e.power()],
+        fromZigbee: [fz.on_off, fz.metering_power, fz.electrical_measurement_power, fz.device_temperature],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -1379,6 +1379,7 @@ const devices = [
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
             await configureReporting.activePower(endpoint, {min: 5, max: 600, change: 10});
+            await configureReporting.deviceTemperature(endpoint);
         },
     },
 
