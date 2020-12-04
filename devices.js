@@ -4480,8 +4480,8 @@ const devices = [
                 .withDescription('Type of installed tubes'),
             exposes.numeric('sensors_count', exposes.access.ALL).withDescription('Count of installed tubes'),
             exposes.numeric('sensitivity', exposes.access.ALL).withDescription('This is applicable if tubes type is set to other'),
-      ],
-      toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
+        ],
+        toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
