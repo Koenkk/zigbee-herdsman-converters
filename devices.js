@@ -15444,8 +15444,8 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-    
-    //BYUN
+
+    // BYUN
     {
         zigbeeModel: ['Windows switch  '],
         model: 'M415-6C',
