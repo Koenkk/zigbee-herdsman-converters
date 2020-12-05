@@ -6625,6 +6625,24 @@ const converters = {
             await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
         },
     },
+    byun_smoke_off: {
+        cluster: 'pHMeasurement',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options) => {
+            if (msg.endpoint.ID == 1 && msg.data['measuredValue'] == 0) {
+                return {smoke: false};
+            }
+        },
+    },
+    byun_smoke_on: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification'],
+        convert: (model, msg, publish, options) => {
+            if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
+                return {smoke: true};
+            }
+        },
+    },
 
     // Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
