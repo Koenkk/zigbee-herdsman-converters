@@ -6628,7 +6628,7 @@ const converters = {
     byun_smoke_off: {
         cluster: 'pHMeasurement',
         type: ['attributeReport'],
-        convert: (model, msg, publish, options) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1 && msg.data['measuredValue'] == 0) {
                 return {smoke: false};
             }
@@ -6637,7 +6637,7 @@ const converters = {
     byun_smoke_on: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification'],
-        convert: (model, msg, publish, options) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
                 return {smoke: true};
             }
