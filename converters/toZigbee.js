@@ -3646,20 +3646,34 @@ const converters = {
             if (isGroup) {
                 const membersState = {};
                 for (const member of entity.members) {
-                    membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                    if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
+                        membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                    } else {
+                        meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
+                        membersState[member.getDevice().ieeeAddr] = {};
+                    }
                 }
 
                 return {membersState};
             } else {
-                return {state: entity.meta.scenes[metaKey].state};
+                if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    return {state: entity.meta.scenes[metaKey].state};
+                } else {
+                    meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
+                    return {state: {}};
+                }
             }
         },
     },
     scene_add: {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'object' || !value.hasOwnProperty('ID')) {
-                throw new Error('Invalid payload');
+            if (typeof value !== 'object') {
+                throw new Error('Payload should be object.');
+            }
+
+            if (!value.hasOwnProperty('ID')) {
+                throw new Error('Payload missing ID.');
             }
 
             if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
@@ -3682,7 +3696,21 @@ const converters = {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
                 } else if (attribute === 'color_temp') {
-                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    /*
+                     * ZCL version 7 added support for ColorTemperatureMireds
+                     *
+                     * Currently no devices seem to support this, so always fallback to XY conversion. In the future if a device
+                     * supports this, or other features get added this the following commit contains an implementation:
+                     * https://github.com/Koenkk/zigbee-herdsman-converters/pull/1837/commits/c22175b946b83230ce4e711c2a3796cf2029e78f
+                     *
+                     * Conversion to XY is allowed according to the ZCL:
+                     * `Since there is a direct relation between ColorTemperatureMireds and XY,
+                     *  color temperature, if supported, is stored as XY in the scenes table.`
+                     *
+                     * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
+                     */
+                    const xy = utils.miredsToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -3713,6 +3741,32 @@ const converters = {
             }
 
             return {state: {}};
+        },
+    },
+    scene_remove: {
+        key: ['scene_remove'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
+                            delete member.meta.scenes[metaKey];
+                            member.save();
+                        }
+                    }
+                }
+            } else {
+                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    delete entity.meta.scenes[metaKey];
+                    entity.save();
+                }
+            }
         },
     },
     TS0003_curtain_switch: {

@@ -269,7 +269,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {system_mode: value ? 'heat' : 'off'};
     case common.TuyaDataPoints.childLock:
         return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.heatingSetpoint:
+    case common.TuyaDataPoints.moesHeatingSetpoint:
         return {current_heating_setpoint: value};
     case common.TuyaDataPoints.moesMaxTempLimit:
         return {max_temperature_limit: value};
@@ -435,15 +435,12 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.mode: {
         const ret = {};
         const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
-        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(value);
         if (presetOk) {
             ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
             ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-        }
-        if (modeOk) {
-            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[value];
+            ret.system_mode = 'heat';
         } else {
-            console.log(`TRV preset/mode ${value} is not recognized.`);
+            console.log(`TRV preset ${value} is not recognized.`);
             return;
         }
         return ret;
@@ -483,7 +480,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         // single value 1-100%
         break;
     case common.TuyaDataPoints.saswellBatteryLow:
-        return {battery_low: value ? 'true' : 'false'};
+        return {battery_low: value ? true : false};
     case common.TuyaDataPoints.saswellAwayMode:
         if (value) {
             return {away_mode: 'ON', preset_mode: 'away'};
