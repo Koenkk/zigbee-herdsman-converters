@@ -15382,6 +15382,7 @@ const devices = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_4uf3d0ax'}, // Type J plug & socket
             {modelID: 'TS011F', manufacturerName: '_TZ3000_vzopcetz'}, // Lidl CZ
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_vmpbygs5'}, // UK HG06338-BS version
         ],
         model: 'HG06338',
         vendor: 'Lidl',
