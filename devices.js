@@ -15456,6 +15456,13 @@ const devices = [
         description: 'Livarno Lux E27 bulb RGB',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_el5kt5im'}],
+        model: 'HG06492A',
+        vendor: 'Lidl',
+        description: 'Livarno Lux GU10 spot CCT',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // ADEO
     {
