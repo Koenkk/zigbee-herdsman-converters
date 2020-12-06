@@ -1323,6 +1323,11 @@ const converters = {
                 action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+
+            if (msg.data.hasOwnProperty('transtime')) {
+                payload.action_transition_time = msg.data.transtime / 100;
+            }
+
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1339,6 +1344,34 @@ const converters = {
                 action_transition_time: msg.data.transtime,
             };
 
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_step_hue: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepHue'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_step_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepSaturation'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -2714,6 +2747,24 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.data[msg.data.length - 1]}`};
+        },
+    },
+    scenes_recall_scene_65024: {
+        cluster: 65024,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
+        },
+    },
+    color_stop_raw: {
+        cluster: 'lightingColorCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: postfixWithEndpointName(`color_stop`, msg, model),
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     HS2SK_SKHMP30I1_power: {

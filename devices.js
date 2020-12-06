@@ -15466,6 +15466,34 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
 
+    // ADEO
+    {
+        zigbeeModel: ['LXEK-5'],
+        model: 'HR-C99C-Z-C045',
+        vendor: 'ADEO',
+        description: 'RGB CTT LEXMAN ENKI remote control',
+        fromZigbee: [
+            fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_step_color_temperature,
+            fz.command_step_hue, fz.command_step_saturation, fz.color_stop_raw, fz.scenes_recall_scene_65024, fz.ignore_genOta,
+        ],
+        toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'on', 'off',
+            'scene_1', 'scene_2', 'scene_3', 'scene_4',
+            'color_saturation_step_up', 'color_saturation_step_down', 'color_stop',
+            'color_hue_step_up', 'color_hue_step_down',
+            'color_temperature_step_up', 'color_temperature_step_down',
+            'brightness_step_up', 'brightness_step_down', 'brightness_stop',
+        ])],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
+            await bind(endpoint, coordinatorEndpoint, binds);
+            await configureReporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+
     // LightSolutions
     {
         zigbeeModel: ['91-947'],
