@@ -485,7 +485,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         if (value) {
             return {away_mode: 'ON', preset_mode: 'away'};
         } else {
-            return {away_mode: 'OFF'};
+            return {away_mode: 'OFF', preset_mode: 'none'};
         }
     case common.TuyaDataPoints.saswellScheduleMode:
         if (common.TuyaThermostatScheduleMode.hasOwnProperty(value)) {
@@ -496,7 +496,10 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         }
         break;
     case common.TuyaDataPoints.saswellScheduleEnable:
-        return {preset_mode: value ? 'Schedule' : 'none'};
+        if ( value ) {
+            return {system_mode: 'auto'};
+        }
+        break;
     case common.TuyaDataPoints.saswellScheduleSet:
         // Never seen being reported, but put here to prevent warnings
         break;

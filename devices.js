@@ -13674,7 +13674,6 @@ const devices = [
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
-            tz.saswell_thermostat_standby,
             tz.saswell_thermostat_away,
             tz.saswell_thermostat_child_lock,
             tz.saswell_thermostat_window_detection,
@@ -13687,7 +13686,6 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
                 weeklyScheduleConversion: 'saswell',
             },
         },
@@ -13698,8 +13696,8 @@ const devices = [
         exposes: [
             e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-                .withPreset(['Schedule']).withAwayMode(),
+                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat'])
+                .withAwayMode(),
         ],
     },
     {
@@ -13723,7 +13721,6 @@ const devices = [
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
             tz.saswell_thermostat_mode,
-            tz.saswell_thermostat_standby,
             tz.saswell_thermostat_away,
             tz.saswell_thermostat_child_lock,
             tz.saswell_thermostat_window_detection,
@@ -13738,7 +13735,6 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.saswellSchedule,
                 weeklyScheduleConversion: 'saswell',
             },
         },
@@ -13749,8 +13745,8 @@ const devices = [
         exposes: [
             e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-                .withPreset(['Schedule']).withAwayMode(),
+                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat'])
+                .withAwayMode(),
         ],
     },
 
