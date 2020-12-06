@@ -1592,6 +1592,7 @@ const devices = [
             {type: 'EndDevice', manufacturerID: 4098, endpoints: [
                 {ID: 1, inputClusters: [], outputClusters: []},
             ]},
+            {modelID: 'undefined', manufacturerName: '_TZ2000_a476raq2'},
         ],
         zigbeeModel: ['TS0201'],
         model: 'TS0201',
