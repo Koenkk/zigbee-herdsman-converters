@@ -1348,6 +1348,34 @@ const converters = {
             return payload;
         },
     },
+    command_step_hue: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepHue'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_step_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepSaturation'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     command_color_loop_set: {
         cluster: 'lightingColorCtrl',
         type: 'commandColorLoopSet',
@@ -2726,34 +2754,6 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
-        },
-    },
-    command_step_hue: {
-        cluster: 'lightingColorCtrl',
-        type: ['commandStepHue'],
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-            const payload = {
-                action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
-                action_step_size: msg.data.stepsize,
-                action_transition_time: msg.data.transtime/100,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    command_step_saturation: {
-        cluster: 'lightingColorCtrl',
-        type: ['commandStepSaturation'],
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-            const payload = {
-                action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
-                action_step_size: msg.data.stepsize,
-                action_transition_time: msg.data.transtime/100,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
         },
     },
     color_stop_raw: {
