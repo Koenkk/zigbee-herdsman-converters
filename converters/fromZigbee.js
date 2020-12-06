@@ -5209,6 +5209,32 @@ const converters = {
             };
         },
     },
+    diyruz_geiger_config: {
+        cluster: 'msIlluminanceLevelSensing',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0xF001)) {
+                result.led_feedback = ['OFF', 'ON'][msg.data[0xF001]];
+            }
+            if (msg.data.hasOwnProperty(0xF002)) {
+                result.buzzer_feedback = ['OFF', 'ON'][msg.data[0xF002]];
+            }
+            if (msg.data.hasOwnProperty(0xF000)) {
+                result.sensitivity = msg.data[0xF000];
+            }
+            if (msg.data.hasOwnProperty(0xF003)) {
+                result.sensors_count = msg.data[0xF003];
+            }
+            if (msg.data.hasOwnProperty(0xF004)) {
+                result.sensors_type = ['СБМ-20/СТС-5/BOI-33', 'СБМ-19/СТС-6', 'Others'][msg.data[0xF004]];
+            }
+            if (msg.data.hasOwnProperty(0xF005)) {
+                result.alert_threshold = msg.data[0xF005];
+            }
+            return result;
+        },
+    },
     diyruz_airsense_config_co2: {
         cluster: 'msCO2',
         type: 'readResponse',

@@ -4467,10 +4467,19 @@ const devices = [
         model: 'DIYRuZ_Geiger',
         vendor: 'DIYRuZ',
         description: '[DiY Geiger counter](https://modkam.ru/?p=1591)',
-        fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off],
+        fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off, fz.diyruz_geiger_config],
         exposes: [
-            e.action(['on', 'off']), exposes.numeric('radioactive_events_per_minute', exposes.access.STATE).withUnit('rpm'),
-            exposes.numeric('radiation_dose_per_hour', exposes.access.STATE).withUnit('rph'),
+            e.action(['on', 'off']),
+            exposes.numeric('radioactive_events_per_minute', exposes.access.STATE).withUnit('rpm')
+                .withDescription('Current count radioactive pulses per minute'),
+            exposes.numeric('radiation_dose_per_hour', exposes.access.STATE).withUnit('μR/h').withDescription('Current radiation level'),
+            exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable LED feedback'),
+            exposes.binary('buzzer_feedback', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable buzzer feedback'),
+            exposes.numeric('alert_threshold', exposes.access.ALL).withUnit('μR/h').withDescription('Critical radiation level'),
+            exposes.enum('sensors_type', exposes.access.ALL, ['СБМ-20/СТС-5/BOI-33', 'СБМ-19/СТС-6', 'Others'])
+                .withDescription('Type of installed tubes'),
+            exposes.numeric('sensors_count', exposes.access.ALL).withDescription('Count of installed tubes'),
+            exposes.numeric('sensitivity', exposes.access.ALL).withDescription('This is applicable if tubes type is set to other'),
         ],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         meta: {configureKey: 1},
