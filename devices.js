@@ -15349,6 +15349,7 @@ const devices = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_kdi2o9m6'}, // EU
             {modelID: 'TS011F', manufacturerName: '_TZ3000_plyvnuf5'}, // CH
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wamqdr3f'}, // FR
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_00mk2xzy'}, // BS
         ],
         model: 'HG06337',
         vendor: 'Lidl',
