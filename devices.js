@@ -15429,23 +15429,16 @@ const devices = [
         description: 'Livarno Lux E27 bulb RGB',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
+
+    // ADEO
     {
         zigbeeModel: ['LXEK-5'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
-        description: 'RGB CTT LEXMAN ENKI Remote Control',
+        description: 'RGB CTT LEXMAN ENKI remote control',
         fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_step,
-            fz.command_stop,
-            fz.command_step_color_temperature,
-            fz.command_step_hue,
-            fz.command_step_saturation,
-            fz.color_stop_raw,
-            fz.scenes_recall_scene_65024,
-            fz.ignore_genOta,
+            fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_step_color_temperature,
+            fz.command_step_hue, fz.command_step_saturation, fz.color_stop_raw, fz.scenes_recall_scene_65024, fz.ignore_genOta,
         ],
         toZigbee: [],
         exposes: [e.battery(), e.action([
@@ -15459,13 +15452,8 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genBasic', 'genOnOff', 'genPowerCfg',
-                'lightingColorCtrl', 'genLevelCtrl',
-                // 'genIdentify', 'haDiagnostic', 'genGroups', 'genOta',
-            ];
+            const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
             await bind(endpoint, coordinatorEndpoint, binds);
-
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
     },
