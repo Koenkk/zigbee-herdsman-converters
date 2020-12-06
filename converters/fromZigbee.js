@@ -5078,6 +5078,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (typeof msg.data['27'] === 'number') {
                 return {
+                    action: 'rotate',
                     direction: (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise'),
                     number: (Math.abs(msg.data['27']) / 12),
                 };
