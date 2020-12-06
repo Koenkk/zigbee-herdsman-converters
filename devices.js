@@ -15330,13 +15330,6 @@ const devices = [
         extend: generic.switch,
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_00mk2xzy'}],
-        model: 'HG06337-BS',
-        vendor: 'Lidl',
-        description: 'Silvercrest smart plug',
-        extend: generic.switch,
-    },
-    {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
         model: 'HG06335',
         vendor: 'Lidl',
