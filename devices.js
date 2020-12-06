@@ -1822,28 +1822,6 @@ const devices = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}],
-        model: 'TS0121_switch',
-        description: 'Smart light switch module (1 gang)',
-        vendor: 'TuYa',
-        whiteLabel: [
-            {vendor: 'Moes', model: 'MS-104Z-1'},
-        ],
-        extend: generic.switch,
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            try {
-                // Fails for some devices.
-                // https://github.com/Koenkk/zigbee2mqtt/issues/4598
-                await configureReporting.onOff(endpoint);
-            } catch (e) {
-                e;
-            }
-        },
-    },
-    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
@@ -13655,6 +13633,28 @@ const devices = [
     },
 
     // Moes
+    {
+        fingerprint: [
+            {modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
+        ],
+        model: 'MS-104Z',
+        description: 'Smart light switch module (1 gang)',
+        vendor: 'Moes',
+        extend: generic.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            try {
+                // Fails for some devices.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/4598
+                await configureReporting.onOff(endpoint);
+            } catch (e) {
+                e;
+            }
+        },
+    },
     {
         zigbeeModel: ['TS0112'],
         model: 'ZK-EU-2U',
