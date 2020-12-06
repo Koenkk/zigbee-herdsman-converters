@@ -15398,14 +15398,15 @@ const devices = [
     },
     {
         fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}, // EU
             {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_4uf3d0ax'}, // Type J plug & socket
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_vzopcetz'}, // Lidl CZ
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_4uf3d0ax'}, // FR
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_vzopcetz'}, // CZ
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_vmpbygs5'}, // BS
         ],
         model: 'HG06338',
         vendor: 'Lidl',
-        description: 'Silvercrest 3 gang switch, possibly with USB',
+        description: 'Silvercrest 3 gang switch, possibly with USB (EU, FR, CZ, BS)',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
