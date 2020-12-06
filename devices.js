@@ -7188,6 +7188,9 @@ const devices = [
         vendor: 'Gledopto',
         description: 'Smart RGBW GU10 ',
         extend: gledopto.light_onoff_brightness_colorxy,
+        endpoint: (device) => {
+            return {default: 12};
+        },
     },
     {
         zigbeeModel: ['GL-S-005Z'],
