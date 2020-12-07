@@ -1253,7 +1253,7 @@ const converters = {
 
             if (panelStatus === undefined) {
                 throw new Error(
-                    `Unsupported status: '${value.panelstatus}', should be one of: ${Object.values(panStat)}`,
+                    `Unsupported status: '${value.panelstatus}', should be one of: ${Object.values(common.panStat)}`,
                 );
             }
 
