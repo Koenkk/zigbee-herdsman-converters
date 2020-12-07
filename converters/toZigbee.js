@@ -1260,7 +1260,7 @@ const converters = {
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: alarmStatus};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
-        },       
+        },
     },
     ballast_config: {
         key: ['ballast_config'],
