@@ -15467,6 +15467,13 @@ const devices = [
         description: 'Livarno Lux GU10 spot CCT',
         extend: generic.light_onoff_brightness_colortemp,
     },
+    {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'}],
+        model: '14147206L',
+        vendor: 'Lidl',
+        description: 'Livarno Lux ceiling light',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
 
     // ADEO
     {
