@@ -298,7 +298,7 @@ const armMode = {
     2: 'arm_night_zones',
     3: 'arm_all_zones',
     4: 'invalid_code',
-    5: 'not_ready',     // Added as per Table 8-15 of the ZigBee Cluster Library Specification
+    5: 'not_ready', // Added as per Table 8-15 of the ZigBee Cluster Library Specification
     6: 'already_disarmed', // Added as per Table 8-15 of the ZigBee Cluster Library Specification
 };
 
@@ -315,7 +315,7 @@ const panStat = {
     8: 'arming_stay',
     9: 'arming_night',
     10: 'arming_away',
-}
+};
 
 const zclStatus = {
     0: 'SUCCESS',
