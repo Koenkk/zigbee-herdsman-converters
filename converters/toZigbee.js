@@ -1243,7 +1243,7 @@ const converters = {
         },
     },
     //set the status of keypad in accordance with the assigned Zigbee standard IAS status'
-    set_status = {
+    set_status : {
         key: ['set_status'],
         convertSet: async (entity, key, value, meta) => {
             const panelStatus = utils.getKeyByValue(common.panStat, value.panelstatus, undefined);
