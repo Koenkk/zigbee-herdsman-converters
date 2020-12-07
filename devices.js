@@ -1041,8 +1041,10 @@ const devices = [
             fz.ignore_occupancy_report,
             fz.ignore_illuminance_report, fz.ignore_time_read,
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.current()],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_power_auto_off, tz.xiaomi_power_led_disabled],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.current(),
+            e.auto_off(), e.consumer_connected(), e.led_disabled(), e.power_outage_memory()],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],

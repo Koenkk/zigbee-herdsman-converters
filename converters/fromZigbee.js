@@ -1600,9 +1600,9 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['247']) {
+            const payload = {};
+            if (msg.data.hasOwnProperty('247')) {
                 const data = msg.data['247'];
-                const payload = {};
                 // Xiaomi struct parsing
                 const length = data.length;
                 // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
@@ -1643,20 +1643,62 @@ const converters = {
                     default:
                         // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
-                    payload[index] = value;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
+                    switch (index) {
+                    case 3:
+                        // temperature
+                        payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature');
+                        break;
+                    case 100:
+                        // state
+                        payload.state = value === 1 ? 'ON' : 'OFF';
+                        break;
+                    case 149:
+                        // consumption
+                        payload.consumption = precisionRound(value, 2);
+                        break;
+                    case 150:
+                        // voltage
+                        payload.voltage = precisionRound(value * 0.1, 1);
+                        break;
+                    case 151:
+                        // current
+                        payload.current = precisionRound(value * 0.001, 4);
+                        break;
+                    case 152:
+                        // power
+                        payload.power = precisionRound(value, 2);
+                        break;
+                    default:
+                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index $(index) with value ${value}`);
+                    }
+                    if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
                 }
-                return {
-                    state: payload['100'] === 1 ? 'ON' : 'OFF',
-                    power: precisionRound(payload['152'], 2),
-                    voltage: precisionRound(payload['150'] * 0.1, 1),
-                    current: precisionRound((payload['151'] * 0.001), 4),
-                    // Consumption is deprecated
-                    consumption: precisionRound(payload['149'], 2),
-                    energy: precisionRound(payload['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(payload['3'], options, 'temperature'),
-                };
             }
+            if (msg.data.hasOwnProperty('513')) {
+                // 0x0201
+                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 513 (pwr_out_mem) has value ${msg.data['513']}`);
+                payload.power_outage_memory = msg.data['513'] === 1;
+            }
+            if (msg.data.hasOwnProperty('514')) {
+                // 0x0202
+                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 514 (auto_off) has value ${msg.data['514']}`);
+                payload.auto_off = msg.data['514'] === 1;
+            }
+            if (msg.data.hasOwnProperty('515')) {
+                // 0x0203
+                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 515 (led_off) has value ${msg.data['515']}`);
+                payload.led_disabled = msg.data['515'] === 1;
+            }
+            if (msg.data.hasOwnProperty('519')) {
+                // 0x0207
+                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 519 (cons_conn) value ${msg.data['519']}`);
+                payload.consumer_connected = msg.data['519'] === 1;
+            }
+            if (msg.data.hasOwnProperty('523')) {
+                // 0x020B
+                if (meta.logger) meta.logger.debug(`plug.mmeu01: attribute 523 (max_load) has value ${msg.data['523']}`);
+            }
+            return payload;
         },
     },
     xiaomi_battery: {
