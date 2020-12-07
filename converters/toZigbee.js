@@ -192,6 +192,19 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped, entity));
         },
     },
+    ikea_power_on_behavior: {
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            // ZCL spec also has on: 1 and toggle: 2 but this is not supported
+            const lookup = {'off': 0, 'previous': 255};
+            if (!lookup.hasOwnProperty(value)) {
+                throw new Error(`'${value}' not supported, choose between: ${Object.keys(lookup)}`);
+            }
+
+            await entity.write('genOnOff', {startUpOnOff: lookup[value]});
+            return {state: {power_on_behavior: value}};
+        },
+    },
     kmpcil_res005_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -2247,7 +2260,7 @@ const converters = {
             }
 
             if (key === 'trigger') {
-                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: value, offwaittime: 0});
+                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
             } else if (key === 'interval') {
                 await entity.configureReporting('genOnOff', [{
                     attribute: 'onOff',
@@ -3490,7 +3503,18 @@ const converters = {
                 'OFF': 0x00,
                 'ON': 0x01,
             };
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const sensorsTypeLookup = {
+                'СБМ-20/СТС-5/BOI-33': '0',
+                'СБМ-19/СТС-6': '1',
+                'Others': '2',
+            };
+
+            let value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+
+            if (key == 'sensors_type') {
+                value = sensorsTypeLookup.hasOwnProperty(rawValue) ? sensorsTypeLookup[rawValue] : parseInt(rawValue, 10);
+            }
+
             const payloads = {
                 sensitivity: {0xF000: {value, type: 0x21}},
                 led_feedback: {0xF001: {value, type: 0x10}},
@@ -3499,7 +3523,19 @@ const converters = {
                 sensors_type: {0xF004: {value, type: 0x30}},
                 alert_threshold: {0xF005: {value, type: 0x23}},
             };
+
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                sensitivity: ['msIlluminanceLevelSensing', 0xF000],
+                led_feedback: ['msIlluminanceLevelSensing', 0xF001],
+                buzzer_feedback: ['msIlluminanceLevelSensing', 0xF002],
+                sensors_count: ['msIlluminanceLevelSensing', 0xF003],
+                sensors_type: ['msIlluminanceLevelSensing', 0xF004],
+                alert_threshold: ['msIlluminanceLevelSensing', 0xF005],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
     diyruz_airsense_config: {
@@ -3743,6 +3779,32 @@ const converters = {
             return {state: {}};
         },
     },
+    scene_remove: {
+        key: ['scene_remove'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
+                            delete member.meta.scenes[metaKey];
+                            member.save();
+                        }
+                    }
+                }
+            } else {
+                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    delete entity.meta.scenes[metaKey];
+                    entity.save();
+                }
+            }
+        },
+    },
     TS0003_curtain_switch: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -3763,13 +3825,14 @@ const converters = {
         },
     },
     saswell_thermostat_mode: {
-        key: ['preset'],
+        key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if ( value == 'off' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-            } else if ( value == 'Schedule' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, true);
-            }
+            const schedule = (value === 'auto');
+            const enable = !(value === 'off');
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, enable);
+            // Older versions of Saswell TRVs need the delay to work reliably
+            await utils.sleepMs(3000);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, schedule);
         },
     },
     saswell_thermostat_away: {
@@ -3779,19 +3842,7 @@ const converters = {
                 await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, true);
             } else {
                 await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, false);
-                // HA does not send preset_mode when exiting 'away'
-                // We have no way to check whether 'Schedule' is on, so we need to set it here
-                await utils.sleepMs(2000);
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-                meta.logger.error('Saswell: Sending prog 0');
-                // return {state: {preset_mode: 'none'}};
             }
-        },
-    },
-    saswell_thermostat_standby: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, value === 'heat');
         },
     },
     saswell_thermostat_child_lock: {
