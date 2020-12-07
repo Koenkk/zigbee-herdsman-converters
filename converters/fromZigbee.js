@@ -1643,57 +1643,20 @@ const converters = {
                     default:
                         if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
-                    switch (index) {
-                    case 3:
-                        // temperature
-                        payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature');
-                        break;
-                    case 100:
-                        // state
-                        payload.state = value === 1 ? 'ON' : 'OFF';
-                        break;
-                    case 149:
-                        // consumption
-                        payload.consumption = precisionRound(value, 2);
-                        break;
-                    case 150:
-                        // voltage
-                        payload.voltage = precisionRound(value * 0.1, 1);
-                        break;
-                    case 151:
-                        // current
-                        payload.current = precisionRound(value * 0.001, 4);
-                        break;
-                    case 152:
-                        // power
-                        payload.power = precisionRound(value, 2);
-                        break;
-                    default:
-                        if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index $(index) with value ${value}`);
-                    }
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
+                    if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
+                    else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
+                    else if (index === 149) payload.consumption = precisionRound(value, 2); // 0x95
+                    else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
+                    else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
+                    else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
+                    else if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index $(index) with value ${value}`);
                 }
             }
-            if (msg.data.hasOwnProperty('513')) {
-                // 0x0201
-                payload.power_outage_memory = msg.data['513'] === 1;
-            }
-            if (msg.data.hasOwnProperty('514')) {
-                // 0x0202
-                payload.auto_off = msg.data['514'] === 1;
-            }
-            if (msg.data.hasOwnProperty('515')) {
-                // 0x0203
-                payload.led_disabled_night = msg.data['515'] === 1;
-            }
-            if (msg.data.hasOwnProperty('519')) {
-                // 0x0207
-                payload.consumer_connected = msg.data['519'] === 1;
-            }
-            if (msg.data.hasOwnProperty('523')) {
-                // 0x020B
-                payload.consumer_overload = msg.data['523'] === 1;
-            }
+            if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
+            if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1; // 0x0202
+            if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1; // 0x0203
+            if (msg.data.hasOwnProperty('519')) payload.consumer_connected = msg.data['519'] === 1; // 0x0207
+            if (msg.data.hasOwnProperty('523')) payload.consumer_overload = msg.data['523'] === 1; // 0x020B
             return payload;
         },
     },
