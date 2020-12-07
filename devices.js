@@ -15451,7 +15451,6 @@ const devices = [
         model: 'M415-6C',
         vendor: 'BYUN',
         description: 'Smoke sensor',
-        supports: 'Smoke alarm',
         fromZigbee: [fz.byun_smoke_on, fz.byun_smoke_off],
         toZigbee: [],
         exposes: [e.smoke()],
