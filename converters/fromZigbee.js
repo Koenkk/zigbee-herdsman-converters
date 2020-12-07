@@ -5057,8 +5057,16 @@ const converters = {
                         } else {
                             nameAlt = nameLookup[unit];
                         }
+                        if (nameAlt === undefined) {
+                            const valueIndex = parseInt(unit, 10);
+                            if (! isNaN(valueIndex)) {
+                                nameAlt = 'val' + unit;
+                            }
+                        }
 
-                        payload[nameAlt + '_' + name] = val;
+                        if (nameAlt !== undefined) {
+                            payload[nameAlt + '_' + name] = val;
+                        }
                     }
                 }
             }

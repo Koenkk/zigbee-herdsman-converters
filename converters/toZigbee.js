@@ -2247,7 +2247,7 @@ const converters = {
             }
 
             if (key === 'trigger') {
-                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: value, offwaittime: 0});
+                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
             } else if (key === 'interval') {
                 await entity.configureReporting('genOnOff', [{
                     attribute: 'onOff',
