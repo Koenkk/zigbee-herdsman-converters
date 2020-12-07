@@ -269,7 +269,7 @@ const moesThermostat = (model, msg, publish, options, meta) => {
         return {system_mode: value ? 'heat' : 'off'};
     case common.TuyaDataPoints.childLock:
         return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.heatingSetpoint:
+    case common.TuyaDataPoints.moesHeatingSetpoint:
         return {current_heating_setpoint: value};
     case common.TuyaDataPoints.moesMaxTempLimit:
         return {max_temperature_limit: value};
@@ -435,15 +435,12 @@ const tuyaThermostat = (model, msg, publish, options, meta) => {
     case common.TuyaDataPoints.mode: {
         const ret = {};
         const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
-        const modeOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode').hasOwnProperty(value);
         if (presetOk) {
             ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
             ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-        }
-        if (modeOk) {
-            ret.system_mode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[value];
+            ret.system_mode = 'heat';
         } else {
-            console.log(`TRV preset/mode ${value} is not recognized.`);
+            console.log(`TRV preset ${value} is not recognized.`);
             return;
         }
         return ret;
@@ -483,7 +480,7 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
         // single value 1-100%
         break;
     case common.TuyaDataPoints.saswellBatteryLow:
-        return {battery_low: value ? 'true' : 'false'};
+        return {battery_low: value ? true : false};
     case common.TuyaDataPoints.saswellAwayMode:
         if (value) {
             return {away_mode: 'ON', preset_mode: 'away'};
@@ -1326,6 +1323,11 @@ const converters = {
                 action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
             };
+
+            if (msg.data.hasOwnProperty('transtime')) {
+                payload.action_transition_time = msg.data.transtime / 100;
+            }
+
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1342,6 +1344,34 @@ const converters = {
                 action_transition_time: msg.data.transtime,
             };
 
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_step_hue: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepHue'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_step_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandStepSaturation'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+            const payload = {
+                action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime/100,
+            };
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -2717,6 +2747,24 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.data[msg.data.length - 1]}`};
+        },
+    },
+    scenes_recall_scene_65024: {
+        cluster: 65024,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
+        },
+    },
+    color_stop_raw: {
+        cluster: 'lightingColorCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: postfixWithEndpointName(`color_stop`, msg, model),
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     },
     HS2SK_SKHMP30I1_power: {
@@ -5081,6 +5129,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (typeof msg.data['27'] === 'number') {
                 return {
+                    action: 'rotate',
                     direction: (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise'),
                     number: (Math.abs(msg.data['27']) / 12),
                 };
@@ -5210,6 +5259,32 @@ const converters = {
                 radioactive_events_per_minute: msg.data['61441'],
                 radiation_dose_per_hour: msg.data['61442'],
             };
+        },
+    },
+    diyruz_geiger_config: {
+        cluster: 'msIlluminanceLevelSensing',
+        type: 'readResponse',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0xF001)) {
+                result.led_feedback = ['OFF', 'ON'][msg.data[0xF001]];
+            }
+            if (msg.data.hasOwnProperty(0xF002)) {
+                result.buzzer_feedback = ['OFF', 'ON'][msg.data[0xF002]];
+            }
+            if (msg.data.hasOwnProperty(0xF000)) {
+                result.sensitivity = msg.data[0xF000];
+            }
+            if (msg.data.hasOwnProperty(0xF003)) {
+                result.sensors_count = msg.data[0xF003];
+            }
+            if (msg.data.hasOwnProperty(0xF004)) {
+                result.sensors_type = ['СБМ-20/СТС-5/BOI-33', 'СБМ-19/СТС-6', 'Others'][msg.data[0xF004]];
+            }
+            if (msg.data.hasOwnProperty(0xF005)) {
+                result.alert_threshold = msg.data[0xF005];
+            }
+            return result;
         },
     },
     diyruz_airsense_config_co2: {

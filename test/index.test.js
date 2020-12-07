@@ -2,6 +2,7 @@ const index = require('../index');
 const devices = require('../devices');
 const exposes = require('../lib/exposes');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+const equals = require('fast-deep-equal/es6');
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -172,6 +173,7 @@ describe('index.js', () => {
 
         let foundZigbeeModels = [];
         let foundModels = [];
+        let foundFingerprints = [];
 
         devices.forEach((device) => {
             // Verify device attributes.
@@ -237,6 +239,19 @@ describe('index.js', () => {
             // Check for duplicate model ids
             if (foundModels.includes(device.model)) {
                 throw new Error(`Duplicate model ${device.model}`)
+            }
+
+            // Check for duplicate foundFingerprints
+            if (device.fingerprint) {
+                for (const fingerprint of device.fingerprint) {
+                    for (const foundFingerprint of foundFingerprints) {
+                        if (equals(foundFingerprint, fingerprint)) {
+                            throw new Error(`Duplicate fingerprint for ${device.model}: ${JSON.stringify(fingerprint)}`);
+                        }
+                    }
+
+                    foundFingerprints.push(fingerprint);
+                }
             }
 
             // Verify meta

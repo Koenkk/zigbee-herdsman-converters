@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "13.0.6",
+  "version": "13.0.13",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
@@ -43,6 +43,7 @@
     "eslint": "*",
     "eslint-config-google": "*",
     "eslint-plugin-jest": "*",
+    "fast-deep-equal": "*",
     "jest": "*"
   }
 }

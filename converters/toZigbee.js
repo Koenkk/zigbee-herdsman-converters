@@ -3490,7 +3490,18 @@ const converters = {
                 'OFF': 0x00,
                 'ON': 0x01,
             };
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const sensorsTypeLookup = {
+                'СБМ-20/СТС-5/BOI-33': '0',
+                'СБМ-19/СТС-6': '1',
+                'Others': '2',
+            };
+
+            let value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+
+            if (key == 'sensors_type') {
+                value = sensorsTypeLookup.hasOwnProperty(rawValue) ? sensorsTypeLookup[rawValue] : parseInt(rawValue, 10);
+            }
+
             const payloads = {
                 sensitivity: {0xF000: {value, type: 0x21}},
                 led_feedback: {0xF001: {value, type: 0x10}},
@@ -3499,7 +3510,19 @@ const converters = {
                 sensors_type: {0xF004: {value, type: 0x30}},
                 alert_threshold: {0xF005: {value, type: 0x23}},
             };
+
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                sensitivity: ['msIlluminanceLevelSensing', 0xF000],
+                led_feedback: ['msIlluminanceLevelSensing', 0xF001],
+                buzzer_feedback: ['msIlluminanceLevelSensing', 0xF002],
+                sensors_count: ['msIlluminanceLevelSensing', 0xF003],
+                sensors_type: ['msIlluminanceLevelSensing', 0xF004],
+                alert_threshold: ['msIlluminanceLevelSensing', 0xF005],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
     diyruz_airsense_config: {
@@ -3696,7 +3719,21 @@ const converters = {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
                 } else if (attribute === 'color_temp') {
-                    extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
+                    /*
+                     * ZCL version 7 added support for ColorTemperatureMireds
+                     *
+                     * Currently no devices seem to support this, so always fallback to XY conversion. In the future if a device
+                     * supports this, or other features get added this the following commit contains an implementation:
+                     * https://github.com/Koenkk/zigbee-herdsman-converters/pull/1837/commits/c22175b946b83230ce4e711c2a3796cf2029e78f
+                     *
+                     * Conversion to XY is allowed according to the ZCL:
+                     * `Since there is a direct relation between ColorTemperatureMireds and XY,
+                     *  color temperature, if supported, is stored as XY in the scenes table.`
+                     *
+                     * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
+                     */
+                    const xy = utils.miredsToXY(val);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -3727,6 +3764,32 @@ const converters = {
             }
 
             return {state: {}};
+        },
+    },
+    scene_remove: {
+        key: ['scene_remove'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const sceneid = value;
+            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+
+            const isGroup = entity.constructor.name === 'Group';
+            const metaKey = `${sceneid}_${groupid}`;
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
+                            delete member.meta.scenes[metaKey];
+                            member.save();
+                        }
+                    }
+                }
+            } else {
+                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
+                    delete entity.meta.scenes[metaKey];
+                    entity.save();
+                }
+            }
         },
     },
     TS0003_curtain_switch: {
