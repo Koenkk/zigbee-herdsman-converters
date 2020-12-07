@@ -15517,6 +15517,17 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
+
+    // BYUN
+    {
+        zigbeeModel: ['Windows switch  '],
+        model: 'M415-6C',
+        vendor: 'BYUN',
+        description: 'Smoke sensor',
+        fromZigbee: [fz.byun_smoke_on, fz.byun_smoke_off],
+        toZigbee: [],
+        exposes: [e.smoke()],
+    },
 ];
 
 
