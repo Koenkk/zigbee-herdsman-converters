@@ -8517,10 +8517,11 @@ const devices = [
         vendor: 'Xfinity',
         description: 'Alarm Keypad',
         supports: 'action, arm',
-        meta: {configureKey: 1, commandArmIncludeTransaction: true},
+        meta: {configureKey: 1, commandArmIncludeTransaction: true} ,
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,],
-        exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), exposes.numeric('action_code','r'), exposes.numeric('action_zone','r'), e.temperature(), e.action([
-            'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+        exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), exposes.numeric('action_code','r'),
+            exposes.numeric('action_zone','r'), e.temperature(), e.action([
+                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
         ])],
         toZigbee: [tz.arm_mode, tz.set_status],
         configure: async (device, coordinatorEndpoint) => {
