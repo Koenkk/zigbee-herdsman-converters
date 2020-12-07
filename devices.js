@@ -7704,14 +7704,14 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await configureReporting.onOff(endpoint);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
+            // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/5198
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await configureReporting.activePower(endpoint);
-            await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
             await readMeteringPowerConverterAttributes(endpoint);
             await configureReporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['outlet'],
