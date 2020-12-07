@@ -1373,13 +1373,13 @@ const converters = {
             return {state: {auto_off: value}};
         },
     },
-    xiaomi_power_led_disabled: {
-        key: ['led_disabled'],
+    xiaomi_power_led_disabled_night: {
+        key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
             }
-            return {state: {led_disabled: value}};
+            return {state: {led_disabled_night: value}};
         },
     },
     xiaomi_switch_operation_mode: {

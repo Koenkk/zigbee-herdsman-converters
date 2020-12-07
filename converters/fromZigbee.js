@@ -1641,7 +1641,7 @@ const converters = {
                         i += 5;
                         break;
                     default:
-                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
+                        if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
                     switch (index) {
                     case 3:
@@ -1669,34 +1669,30 @@ const converters = {
                         payload.power = precisionRound(value, 2);
                         break;
                     default:
-                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index $(index) with value ${value}`);
+                        if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index $(index) with value ${value}`);
                     }
-                    if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
+                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
                 }
             }
             if (msg.data.hasOwnProperty('513')) {
                 // 0x0201
-                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 513 (pwr_out_mem) has value ${msg.data['513']}`);
                 payload.power_outage_memory = msg.data['513'] === 1;
             }
             if (msg.data.hasOwnProperty('514')) {
                 // 0x0202
-                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 514 (auto_off) has value ${msg.data['514']}`);
                 payload.auto_off = msg.data['514'] === 1;
             }
             if (msg.data.hasOwnProperty('515')) {
                 // 0x0203
-                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 515 (led_off) has value ${msg.data['515']}`);
-                payload.led_disabled = msg.data['515'] === 1;
+                payload.led_disabled_night = msg.data['515'] === 1;
             }
             if (msg.data.hasOwnProperty('519')) {
                 // 0x0207
-                if (meta.logger) meta.logger.debug(`plug.mmeu01: attr. 519 (cons_conn) value ${msg.data['519']}`);
                 payload.consumer_connected = msg.data['519'] === 1;
             }
             if (msg.data.hasOwnProperty('523')) {
                 // 0x020B
-                if (meta.logger) meta.logger.debug(`plug.mmeu01: attribute 523 (max_load) has value ${msg.data['523']}`);
+                payload.consumer_overload = msg.data['523'] === 1;
             }
             return payload;
         },
