@@ -1242,6 +1242,25 @@ const converters = {
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
+    //set the status of keypad in accordance with the assigned Zigbee standard IAS status'
+    set_status = {
+        key: ['set_status'],
+        convertSet: async (entity, key, value, meta) => {
+            const panelStatus = utils.getKeyByValue(common.panStat, value.panelstatus, undefined);
+            const secondsRemain = value.secondsremain = 0;
+            const audibleNotif = value.audiblenotif = 0;
+            const alarmStatus = value.alarmstatus = 0;
+
+            if (panelStatus === undefined) {
+                throw new Error(
+                    `Unsupported status: '${value.panelstatus}', should be one of: ${Object.values(panStat)}`,
+                );
+            }
+            
+            globalStore.putValue(entity, 'panelStatus', panelStatus);
+            const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: alarmStatus};
+            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+    },
     ballast_config: {
         key: ['ballast_config'],
         // zcl attribute names are camel case, but we want to use snake case in the outside communication

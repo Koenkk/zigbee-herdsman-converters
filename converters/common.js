@@ -298,7 +298,24 @@ const armMode = {
     2: 'arm_night_zones',
     3: 'arm_all_zones',
     4: 'invalid_code',
+    5: 'not_ready',     // Added as per Table 8-15 of the ZigBee Cluster Library Specification
+    6: 'already_disarmed', // Added as per Table 8-15 of the ZigBee Cluster Library Specification
 };
+
+// Zigbee IAS ACE Panel Status parameters as per Table 8-16 of the ZigBee Cluster Library Specification
+const panStat = {
+    0: 'disarmed',
+    1: 'armed_stay',
+    2: 'armed_night',
+    3: 'armed_away',
+    4: 'exit_delay',
+    5: 'entry_delay',
+    6: 'not_ready',
+    7: 'in_alarm',
+    8: 'arming_stay',
+    9: 'arming_night',
+    10: 'arming_away',
+}
 
 const zclStatus = {
     0: 'SUCCESS',
@@ -357,6 +374,7 @@ module.exports = {
     TuyaDataPoints,
     lockSourceName,
     armMode,
+    panStat,
     TuyaFanModes,
     TuyaThermostatSystemModes2,
     zclStatus,
