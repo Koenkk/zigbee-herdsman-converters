@@ -3812,13 +3812,14 @@ const converters = {
         },
     },
     saswell_thermostat_mode: {
-        key: ['preset'],
+        key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if ( value == 'off' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-            } else if ( value == 'Schedule' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, true);
-            }
+            const schedule = (value === 'auto');
+            const enable = !(value === 'off');
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, enable);
+            // Older versions of Saswell TRVs need the delay to work reliably
+            await utils.sleepMs(3000);
+            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, schedule);
         },
     },
     saswell_thermostat_away: {
@@ -3828,19 +3829,7 @@ const converters = {
                 await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, true);
             } else {
                 await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, false);
-                // HA does not send preset_mode when exiting 'away'
-                // We have no way to check whether 'Schedule' is on, so we need to set it here
-                await utils.sleepMs(2000);
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-                meta.logger.error('Saswell: Sending prog 0');
-                // return {state: {preset_mode: 'none'}};
             }
-        },
-    },
-    saswell_thermostat_standby: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, value === 'heat');
         },
     },
     saswell_thermostat_child_lock: {
