@@ -8522,7 +8522,7 @@ const devices = [
         exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), exposes.numeric('action_code','r'), exposes.numeric('action_zone','r'), e.temperature(), e.action([
             'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
         ])],
-        toZigbee: [arm_mode, set_status],
+        toZigbee: [tz.arm_mode, tz.set_status],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce', 'genBasic', 'genIdentify'];
