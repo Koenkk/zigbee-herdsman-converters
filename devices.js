@@ -8512,6 +8512,38 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['URC4450BC0-X-R'],
+        model: 'URC4450BC0-X-R',
+        vendor: 'Xfinity',
+        description: 'Alarm Keypad',
+        supports: 'action, arm',
+        meta: {configureKey: 1, commandArmIncludeTransaction: true},
+        fromZigbee: [fz.command_arm, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,],
+        exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), exposes.numeric('action_code','r'), exposes.numeric('action_zone','r'), e.temperature(), e.action([
+            'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+        ])],
+        toZigbee: [arm_mode, set_status],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce', 'genBasic', 'genIdentify'];
+            await bind(endpoint, coordinatorEndpoint, clusters);
+            await configureReporting.temperature(endpoint);
+            await configureReporting.batteryVoltage(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')) {
+                const payload = {
+                    panelstatus: globalStore.getValue(device.getEndpoint(1), 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await device.getEndpoint(1).commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
+            }
+        },
+    },
+    {
         zigbeeModel: ['3420'],
         model: '3420-G',
         vendor: 'Centralite',
