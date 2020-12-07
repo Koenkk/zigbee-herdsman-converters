@@ -2552,6 +2552,11 @@ const devices = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: generic.switch,
+        toZigbee: generic.switch.toZigbee.concat([tz.ikea_power_on_behavior]),
+        exposes: generic.switch.exposes.concat([
+            exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous'])
+                .withDescription('Controls the behaviour when the device is powered on'),
+        ]),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

@@ -192,6 +192,19 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped, entity));
         },
     },
+    ikea_power_on_behavior: {
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            // ZCL spec also has on: 1 and toggle: 2 but this is not supported
+            const lookup = {'off': 0, 'previous': 255};
+            if (!lookup.hasOwnProperty(value)) {
+                throw new Error(`'${value}' not supported, choose between: ${Object.keys(lookup)}`);
+            }
+
+            await entity.write('genOnOff', {startUpOnOff: lookup[value]});
+            return {state: {power_on_behavior: value}};
+        },
+    },
     kmpcil_res005_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
