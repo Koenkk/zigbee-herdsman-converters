@@ -10008,6 +10008,20 @@ const devices = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['ZBT-DIMController-D0800'],
+        model: 'MLI-404002',
+        description: 'Tint dim remote control',
+        vendor: 'Müller Licht',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
+        ],
+        exposes: [e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop',
+        ])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['tint Smart Switch'],
         model: '404021',
         description: 'Tint smart switch',
