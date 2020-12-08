@@ -9938,6 +9938,14 @@ const devices = [
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['ZBT-DimmableLight'],
+        model: '404001',
+        vendor: 'Müller Licht',
+        description: 'LED bulb E27 806 lumen, dimmable',
+        extend: generic.light_onoff_brightness,
+        toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.tint_scene]),
+    },    
+    {
         zigbeeModel: ['ZBT-ExtendedColor'],
         model: '404000/404005/404012',
         vendor: 'Müller Licht',
