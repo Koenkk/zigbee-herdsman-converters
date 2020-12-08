@@ -1377,6 +1377,28 @@ const converters = {
             await endpoint.read('genAnalogInput', ['presentValue']);
         },
     },
+    xiaomi_auto_off: {
+        key: ['auto_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['ZNCZ04LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0202: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+            return {state: {auto_off: value}};
+        },
+    },
+    xiaomi_led_disabled_night: {
+        key: ['led_disabled_night'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['ZNCZ04LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+            return {state: {led_disabled_night: value}};
+        },
+    },
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {

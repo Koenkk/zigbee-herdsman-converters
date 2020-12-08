@@ -1603,9 +1603,9 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['247']) {
+            const payload = {};
+            if (msg.data.hasOwnProperty('247')) {
                 const data = msg.data['247'];
-                const payload = {};
                 // Xiaomi struct parsing
                 const length = data.length;
                 // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
@@ -1644,22 +1644,23 @@ const converters = {
                         i += 5;
                         break;
                     default:
-                        // if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
+                        if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
-                    payload[index] = value;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: recorded index ${index} with value ${value}`);
+                    if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
+                    else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
+                    else if (index === 149) payload.consumption = precisionRound(value, 2); // 0x95
+                    else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
+                    else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
+                    else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
+                    else if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index ${index} with value ${value}`);
                 }
-                return {
-                    state: payload['100'] === 1 ? 'ON' : 'OFF',
-                    power: precisionRound(payload['152'], 2),
-                    voltage: precisionRound(payload['150'] * 0.1, 1),
-                    current: precisionRound((payload['151'] * 0.001), 4),
-                    // Consumption is deprecated
-                    consumption: precisionRound(payload['149'], 2),
-                    energy: precisionRound(payload['149'], 2),
-                    temperature: calibrateAndPrecisionRoundOptions(payload['3'], options, 'temperature'),
-                };
             }
+            if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
+            if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1; // 0x0202
+            if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1; // 0x0203
+            if (msg.data.hasOwnProperty('519')) payload.consumer_connected = msg.data['519'] === 1; // 0x0207
+            if (msg.data.hasOwnProperty('523')) payload.consumer_overload = precisionRound(msg.data['523'], 2); // 0x020B
+            return payload;
         },
     },
     xiaomi_battery: {
