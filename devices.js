@@ -15543,6 +15543,26 @@ const devices = [
         toZigbee: [],
         exposes: [e.smoke()],
     },
+    
+    //Atsmart Z6
+    {
+        zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
+        model: 'Z6',
+        vendor: 'Atsmart',
+        description: 'Atsmart Z6 3 gang smart wall switch (no neutral wire)',
+        supports: 'on/off',
+        fromZigbee: [fz.ignore_basic_report, fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
 
 
