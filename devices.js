@@ -9028,7 +9028,7 @@ const devices = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DOOR_TPV13'],
+        zigbeeModel: ['DOOR_TPV13', 'DOOR_TPV12'],
         model: 'HEIMAN-M1',
         vendor: 'HEIMAN',
         description: 'Door sensor',
