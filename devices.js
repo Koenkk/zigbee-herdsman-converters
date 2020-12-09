@@ -1884,6 +1884,11 @@ const devices = [
     },
     {
         zigbeeModel: ['RH3001'],
+        fingerprint: [
+            {type: 'EndDevice', manufacturerID: 4098, applicationVersion: 66, endpoints: [
+                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 10, 1, 1280], outputClusters: [25]},
+            ]},
+        ],
         model: 'SNTZ007',
         vendor: 'TuYa',
         description: 'Rechargeable Zigbee contact sensor',
