@@ -15550,7 +15550,8 @@ const devices = [
         model: 'Z6',
         vendor: 'Atsmart',
         description: 'Atsmart Z6 3 gang smart wall switch (no neutral wire)',
-        supports: 'on/off',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
         fromZigbee: [fz.ignore_basic_report, fz.on_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
@@ -15563,6 +15564,7 @@ const devices = [
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    
 ];
 
 
