@@ -1,13 +1,16 @@
-const url = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
+const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
+const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
 const assert = require('assert');
 const common = require('./common');
 const axios = common.getAxios();
+let useTestURL = false;
 
 /**
  * Helper functions
  */
 
 async function getImageMeta(current, logger, device) {
+    const url = useTestURL ? testURL : productionURL;
     const imageType = current.imageType;
     const images = (await axios.get(url)).data;
     const image = images.find((i) => i.fw_image_type === imageType);
@@ -33,4 +36,7 @@ async function updateToLatest(device, logger, onProgress) {
 module.exports = {
     isUpdateAvailable,
     updateToLatest,
+    useTestURL: () => {
+        useTestURL = true;
+    },
 };
