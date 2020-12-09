@@ -15452,7 +15452,10 @@ const devices = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_riwp3k79'}],
+        fingerprint: [
+            {modelID: 'TS0505A', manufacturerName: '_TZ3000_riwp3k79'},
+            {manufacturerName: '_TZ3000_riwp3k79'},
+        ],
         model: 'HG06104A',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED light strip 2.5m',
