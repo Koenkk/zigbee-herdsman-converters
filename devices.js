@@ -15543,8 +15543,8 @@ const devices = [
         toZigbee: [],
         exposes: [e.smoke()],
     },
-    
-    //Atsmart Z6
+
+    // Atsmart Z6
     {
         zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
         model: 'Z6',
@@ -15563,8 +15563,7 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
-    },
-    
+    }, 
 ];
 
 
