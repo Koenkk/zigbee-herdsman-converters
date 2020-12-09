@@ -15483,6 +15483,20 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_oborybow'}],
+        model: 'HG06492B',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E14 candle CCT',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_49qchf10'}],
+        model: 'HG06492C',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 bulb CCT',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'}],
         model: '14147206L',
         vendor: 'Lidl',
