@@ -15563,9 +15563,8 @@ const devices = [
             await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
-    }, 
+    },
 ];
-
 
 module.exports = devices.map((device) => {
     if (device.extend) {
