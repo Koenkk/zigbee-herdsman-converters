@@ -15490,6 +15490,29 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp,
     },
 
+    // Atsmart
+    {
+        zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
+        model: 'Z6',
+        vendor: 'Atsmart',
+        description: '3 gang smart wall switch (no neutral wire)',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            try {
+                await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+                await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+                await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            } catch (error) {
+                // dip switch for 1-3 gang
+            }
+        },
+    },
+
     // ADEO
     {
         zigbeeModel: ['LXEK-5'],
@@ -15543,32 +15566,8 @@ const devices = [
         toZigbee: [],
         exposes: [e.smoke()],
     },
-
-    // Atsmart Z6
-    {
-        zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
-        model: 'Z6',
-        vendor: 'Atsmart',
-        description: 'Atsmart Z6 3 gang smart wall switch (no neutral wire)',
-        extend: generic.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        fromZigbee: [fz.ignore_basic_report, fz.on_off],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            try {
-                await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-                await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-                await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            } catch (error) {
-                // dip switch for 1-3 gang
-            }
-        },
-    },
 ];
+
 
 module.exports = devices.map((device) => {
     if (device.extend) {
