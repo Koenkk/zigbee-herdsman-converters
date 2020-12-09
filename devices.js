@@ -1411,6 +1411,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'}
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -1426,6 +1427,7 @@ const devices = [
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
         ],
     },
     {
