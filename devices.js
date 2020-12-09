@@ -1448,11 +1448,11 @@ const devices = [
         vendor: 'UseeLink',
         description: '4 gang switch, with USB',
         exposes: [
-            e.switch().withEndpoint('l1'), 
-            e.switch().withEndpoint('l2'), 
-            e.switch().withEndpoint('l3'), 
-            e.switch().withEndpoint('l4'), 
-            e.switch().withEndpoint('l5')
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'),
+            e.switch().withEndpoint('l5'),
         ],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
