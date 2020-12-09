@@ -847,6 +847,14 @@ const devices = [
             'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release',
         ])],
         onEvent: xiaomi.prevent_reset,
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(device.getEndpoint(1));
+            await configureReporting.onOff(device.getEndpoint(2));
+            await configureReporting.onOff(device.getEndpoint(3));
+        },
     },
     {
         zigbeeModel: ['lumi.switch.n3acn3'],
