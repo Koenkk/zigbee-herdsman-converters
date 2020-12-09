@@ -1443,29 +1443,6 @@ const devices = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_o005nuxx'}],
-        model: 'SM-SO306E/K/M',
-        vendor: 'UseeLink',
-        description: '4 gang switch, with USB',
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'),
-            e.switch().withEndpoint('l5'),
-        ],
-        extend: generic.switch,
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3, 4, 5]) {
-                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-            }
-        },
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
-    },
-    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
@@ -2197,6 +2174,28 @@ const devices = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
+    },
+
+    // UseeLink
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_o005nuxx'}],
+        model: 'SM-SO306EZ-10',
+        vendor: 'UseeLink',
+        description: '4 gang switch, with USB',
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'),
+        ],
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ID of [1, 2, 3, 4, 5]) {
+                await bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
+        },
     },
 
     // Neo
