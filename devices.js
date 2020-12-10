@@ -14429,10 +14429,17 @@ const devices = [
         extend: generic.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['VIYU-A60-806-CCT-10011723'],
+        model: '10011723',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED bulb CCT E27',
+        extend: generic.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['VIYU-C35-470-CCT-10011722'],
         model: '10011722',
         vendor: 'HORNBACH',
-        description: 'FLAIR Viyu Smart LED candle E14',
+        description: 'FLAIR Viyu Smart LED candle CCT E14',
         extend: generic.light_onoff_brightness_colortemp,
     },
     {
@@ -14441,6 +14448,13 @@ const devices = [
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu Smart GU10 RGBW lamp',
         extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['VIYU-GU10-350-CCT-10011724'],
+        model: '10011724',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart GU10 CCT lamp',
+        extend: generic.light_onoff_brightness_colortemp,
     },
 
     // LifeControl
