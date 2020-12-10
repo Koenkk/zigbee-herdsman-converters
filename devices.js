@@ -13551,6 +13551,14 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ZB-SW01'],
+        model: 'ZB-SW01',
+        vendor: 'eWeLink',
+        description: 'Smart light switch - 1 gang',
+        extend: generic.switch,
+        fromZigbee: [fz.SA003_on_off],
+    },
+    {
         zigbeeModel: ['ZB-SW02'],
         model: 'ZB-SW02',
         vendor: 'eWeLink',
