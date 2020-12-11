@@ -3345,13 +3345,13 @@ const converters = {
     tuya_thermostat_min_temp: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.minTemperature, value);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.minTemp, value);
         },
     },
     tuya_thermostat_max_temp: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.maxTemperature, value);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.maxTemp, value);
         },
     },
     tuya_thermostat_boost_time: {
@@ -3363,13 +3363,13 @@ const converters = {
     tuya_thermostat_comfort_temp: {
         key: ['comfort_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.comfortTemperature, value);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.comfortTemp, value);
         },
     },
     tuya_thermostat_eco_temp: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.ecoTemperature, value);
+            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.ecoTemp, value);
         },
     },
     tuya_thermostat_force: {
