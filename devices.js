@@ -6888,6 +6888,13 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp,
     },
     {
+        zigbeeModel: ['GL-C-006P'],
+        model: 'GL-C-006P',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller WW/CW plus model',
+        extend: gledopto.light_onoff_brightness_colortemp,
+    },
+    {
         zigbeeModel: ['GL-C-006S'],
         model: 'GL-C-006S',
         vendor: 'Gledopto',
