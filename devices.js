@@ -13697,7 +13697,7 @@ const devices = [
         toZigbee: [],
         meta: {
             multiEndpoint: true,
-            battery: { dontDividePercentage: true }
+            battery: {dontDividePercentage: true,}
         },
     },
 
