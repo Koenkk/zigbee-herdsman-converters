@@ -13659,7 +13659,7 @@ const devices = [
         zigbeeModel: ['ED-10011'],
         model: 'ED-10011',
         vendor: 'EcoDim',
-        description: 'Zigbee 4 button wall switch',
+        description: 'Zigbee 2 button wall switch',
         fromZigbee: [
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
             fz.battery,
@@ -13672,7 +13672,7 @@ const devices = [
         zigbeeModel: ['ED-10012'],
         model: 'ED-10012',
         vendor: 'EcoDim',
-        description: 'Zigbee 2 button wall switch',
+        description: 'Zigbee 4 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action([
             'on_1', 'off_1', 'brighntess_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
