@@ -14316,7 +14316,7 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['ZBT-OnOffPlug-D0011'],
+        zigbeeModel: ['ZBT-OnOffPlug-D0011', 'ZBT-OnOffPlug-D0001'],
         model: 'ZS190000118',
         vendor: 'Linkind',
         description: 'Control outlet',
