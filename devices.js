@@ -1668,7 +1668,7 @@ const devices = [
         description: 'Wireless switch with 4 buttons',
         whiteLabel: [
             {vendor: 'Lonsonho', model: 'TS0044'},
-	    {vendor: 'Haozee', model: 'ESW-OZAA-EU'},
+            {vendor: 'Haozee', model: 'ESW-OZAA-EU'},
         ],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         exposes: [e.battery(), e.action([
