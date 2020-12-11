@@ -5143,7 +5143,7 @@ const devices = [
         zigbeeModel: ['A60 RGBW Value II'],
         model: 'AC25697',
         vendor: 'LEDVANCE',
-        description: 'SMART+ CLASSIC E27 RGBW',
+        description: 'SMART+ classic E27 RGBW',
         extend: ledvance.light_onoff_brightness_colortemp_colorhs,
         ota: ota.ledvance,
     },
