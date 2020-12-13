@@ -3782,20 +3782,37 @@ const converters = {
                 }
             }
 
-            const response = await entity.command(
-                'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+            /*
+             * Remove scene first
+             *
+             * Multiple add scene calls will result in the current and previous
+             * payloads to be merged. Resulting in unexpected behavior when
+             * trying to replace a scene.
+             *
+             * We accept a SUCESS or NOT_FOUND as a result of the remove call.
+             */
+            const removeresp = await entity.command(
+                'genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped),
             );
 
-            if (isGroup) {
-                if (meta.membersState) {
-                    for (const member of entity.members) {
-                        saveSceneState(member, sceneid, groupid, state);
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 139)) {
+                const response = await entity.command(
+                    'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+                );
+
+                if (isGroup) {
+                    if (meta.membersState) {
+                        for (const member of entity.members) {
+                            saveSceneState(member, sceneid, groupid, state);
+                        }
                     }
+                } else if (response.status === 0) {
+                    saveSceneState(entity, sceneid, groupid, state);
+                } else {
+                    throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
                 }
-            } else if (response.status === 0) {
-                saveSceneState(entity, sceneid, groupid, state);
             } else {
-                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+                throw new Error(`Scene add unable to remove existing scene ('${common.zclStatus[removeresp.status]}')`);
             }
 
             return {state: {}};
