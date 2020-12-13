@@ -12903,8 +12903,15 @@ const devices = [
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
-        exposes: [e.switch(), e.power()],
-        fromZigbee: [fz.on_off, fz.metering_power],
+        exposes: [e.switch(), e.power(), e.action([
+            'toggle', 'on', 'off', 'recall_*',
+            'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+        ])],
+        fromZigbee: [
+            fz.on_off, fz.metering_power,
+            fz.command_toggle, fz.command_on, fz.command_off,
+            fz.command_recall, fz.command_move, fz.command_stop,
+        ],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -12937,11 +12944,23 @@ const devices = [
         model: 'S2',
         vendor: 'Ubisys',
         description: 'Power switch S2',
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power()],
-        fromZigbee: [fz.on_off, fz.metering_power],
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power(), e.action([
+                'toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2',
+                'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1', 'brightness_move_up_s2',
+                'brightness_move_down_s1', 'brightness_move_down_s2',
+                'brightness_stop_s1', 'brightness_stop_s2',
+            ]),
+        ],
+        fromZigbee: [
+            fz.on_off, fz.metering_power,
+            fz.command_toggle, fz.command_on, fz.command_off,
+            fz.command_recall, fz.command_move, fz.command_stop,
+        ],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4};
         },
         meta: {configureKey: 3, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
