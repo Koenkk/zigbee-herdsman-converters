@@ -10236,6 +10236,20 @@ const devices = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
+    {
+        zigbeeModel: ['AD-Dimmer'],
+        model: '81849',
+        vendor: 'AduroSmart',
+        description: 'Eria build-in multi dimmer module 300W',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
 
     // Danfoss
     {
