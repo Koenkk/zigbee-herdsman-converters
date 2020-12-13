@@ -15,7 +15,7 @@ const thermostatSystemModes = {
     4: 'heat',
     5: 'emergency heating',
     6: 'precooling',
-    7: 'fan only',
+    7: 'fan_only',
     8: 'dry',
     9: 'Sleep',
 };
@@ -23,7 +23,7 @@ const thermostatRunningStates = {
     0: 'idle',
     1: 'heat',
     2: 'cool',
-    4: 'fan only',
+    4: 'fan_only',
     5: 'heat',
     6: 'cool',
     8: 'heat',
