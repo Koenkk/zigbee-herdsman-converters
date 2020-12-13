@@ -3305,7 +3305,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let temp = Math.round(value * 10);
             if (temp < 0) {
-                 temp = 0xFFFFFFFF+temp+1; 
+                temp = 0xFFFFFFFF + temp + 1;
             }
             await sendTuyaDataPointValue(entity, common.TuyaDataPoints.tempCalibration, temp);
         },
