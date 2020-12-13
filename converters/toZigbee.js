@@ -3806,7 +3806,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
             const sceneid = value;
-            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+            const response = await entity.command(
+                'genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped),
+            );
 
             const isGroup = entity.constructor.name === 'Group';
             const metaKey = `${sceneid}_${groupid}`;
@@ -3819,11 +3821,13 @@ const converters = {
                         }
                     }
                 }
-            } else {
+            } else if (response.status === 0) {
                 if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
                     delete entity.meta.scenes[metaKey];
                     entity.save();
                 }
+            } else {
+                throw new Error(`Scene remove not succesfull ('${common.zclStatus[response.status]}')`);
             }
         },
     },
