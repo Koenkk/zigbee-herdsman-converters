@@ -15483,6 +15483,12 @@ const devices = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS)',
         extend: generic.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
