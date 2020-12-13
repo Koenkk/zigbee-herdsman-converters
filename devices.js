@@ -12895,7 +12895,11 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S1',
         exposes: [e.switch(), e.power()],
-        fromZigbee: [fz.on_off, fz.metering_power],
+        fromZigbee: [
+            fz.on_off, fz.metering_power,
+            fz.command_toggle, fz.command_on, fz.command_off,
+            fz.command_recall, fz.command_move, fz.command_stop,
+        ],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -12929,10 +12933,14 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power()],
-        fromZigbee: [fz.on_off, fz.metering_power],
+        fromZigbee: [
+            fz.on_off, fz.metering_power,
+            fz.command_toggle, fz.command_on, fz.command_off,
+            fz.command_recall, fz.command_move, fz.command_stop,
+        ],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4};
         },
         meta: {configureKey: 3, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
