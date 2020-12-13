@@ -226,10 +226,11 @@ const ratelimitedDimmer = (model, msg, publish, options, meta) => {
 };
 
 const transactionStore = {};
-const hasAlreadyProcessedMessage = (msg, transaction=null) => {
+const hasAlreadyProcessedMessage = (msg, transaction=null, key=null) => {
     const current = transaction !== null ? transaction : msg.meta.zclTransactionSequenceNumber;
-    if (transactionStore[msg.device.ieeeAddr] === current) return true;
-    transactionStore[msg.device.ieeeAddr] = current;
+    key = key || msg.device.ieeeAddr;
+    if (transactionStore[key] === current) return true;
+    transactionStore[key] = current;
     return false;
 };
 
@@ -6396,7 +6397,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter)) return;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return; // Skip commisioning command.
             const lookup = {
                 0x00: 'identify',
@@ -6439,7 +6440,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter)) return;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return; // Skip commisioning command.
             let postfix = '';
 
