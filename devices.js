@@ -378,7 +378,7 @@ const ledvance = {
     light_onoff_brightness_colortemp_colorhs: {
         ...generic.light_onoff_brightness_colortemp_colorxy,
         toZigbee: generic.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-        exposes: [e.light_brightness_colortemp_colorhs()],
+        exposes: [e.light_brightness_colortemp_colorhs(), effectExpose],
     },
 };
 
