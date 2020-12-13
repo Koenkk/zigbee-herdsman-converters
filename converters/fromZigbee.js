@@ -6396,6 +6396,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter)) return;
             if (commandID === 224) return; // Skip commisioning command.
             const lookup = {
                 0x00: 'identify',
@@ -6438,6 +6439,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter)) return;
             if (commandID === 224) return; // Skip commisioning command.
             let postfix = '';
 
