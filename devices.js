@@ -10240,7 +10240,7 @@ const devices = [
         zigbeeModel: ['AD-Dimmer'],
         model: '81849',
         vendor: 'AduroSmart',
-        description: 'Eria build-in multi dimmer module 300W',
+        description: 'ERIA build-in multi dimmer module 300W',
         extend: generic.light_onoff_brightness,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
