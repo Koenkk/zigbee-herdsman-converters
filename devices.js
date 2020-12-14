@@ -10257,6 +10257,20 @@ const devices = [
             await configureReporting.brightness(endpoint);
         },
     },
+    {
+        zigbeeModel: ['BDP3001'],
+        model: '81855',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart plug (dimmer)',
+        extend: generic.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await configureReporting.onOff(endpoint);
+            await configureReporting.brightness(endpoint);
+        },
+    },
 
     // Danfoss
     {
