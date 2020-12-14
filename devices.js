@@ -696,7 +696,7 @@ const devices = [
         // eslint-disable-next-line
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
@@ -740,7 +740,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action,
             /* check these */
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
@@ -803,7 +803,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click, fz.QBKG04LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
@@ -819,7 +819,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.QBKG03LM_buttons,
+            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
@@ -835,7 +835,7 @@ const devices = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
+        fromZigbee: [fz.on_off, fz.legacy_QBKG25LM_click, fz.xiaomi_operation_mode_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
@@ -2706,8 +2706,9 @@ const devices = [
         fromZigbee: [fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         exposes: [
-            e.battery(), e.occupancy(), exposes.numeric('requested_brightness_level', exposes.access.STATE),
-            exposes.numeric('requested_brightness_percent', exposes.access.STATE),
+            e.battery(), e.occupancy(),
+            exposes.numeric('requested_brightness_level', exposes.access.STATE).withValueMin(76).withValueMax(254),
+            exposes.numeric('requested_brightness_percent', exposes.access.STATE).withValueMin(30).withValueMax(100),
         ],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
@@ -6322,7 +6323,7 @@ const devices = [
         model: 'SWO-KEF1PA',
         vendor: 'Swann',
         description: 'Key fob remote',
-        fromZigbee: [fz.KEF1PA_arm, fz.command_panic],
+        fromZigbee: [fz.legacy_KEF1PA_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(['home', 'sleep', 'away', 'panic'])],
     },
@@ -8331,7 +8332,7 @@ const devices = [
         model: 'AV2010/25',
         vendor: 'Bitron',
         description: 'Video wireless socket',
-        fromZigbee: [fz.on_off, fz.bitron_power],
+        fromZigbee: [fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
         meta: {configureKey: 2},
@@ -8339,6 +8340,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10, multiplier: 1});
         },
     },
     {
@@ -8346,10 +8348,7 @@ const devices = [
         model: 'AV2010/32',
         vendor: 'Bitron',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [
-            fz.bitron_thermostat_att_report,
-            fz.bitron_battery_att_report,
-        ],
+        fromZigbee: [fz.bitron_thermostat_att_report, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_running_state,
@@ -8360,7 +8359,7 @@ const devices = [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
         ],
-        meta: {configureKey: 2},
+        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -8797,7 +8796,7 @@ const devices = [
         model: '12050',
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',
-        fromZigbee: [fz.on_off, fz.bitron_power],
+        fromZigbee: [fz.on_off, fz.metering_power],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
@@ -8805,6 +8804,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.instantaneousDemand(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10, multiplier: 1});
         },
     },
     {
@@ -9255,10 +9255,10 @@ const devices = [
         model: 'SKHMP30-I1',
         description: 'Smart metering plug',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.on_off, fz.HS2SK_SKHMP30I1_power],
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
@@ -9266,6 +9266,11 @@ const devices = [
             await configureReporting.rmsVoltage(endpoint);
             await configureReporting.rmsCurrent(endpoint);
             await configureReporting.activePower(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 100,
+                acCurrentMultiplier: 1, acCurrentDivisor: 100,
+                acPowerMultiplier: 1, acPowerDivisor: 10,
+            });
         },
     },
     {
@@ -9573,7 +9578,7 @@ const devices = [
         model: 'CR701-YZ',
         vendor: 'Oujiabao',
         description: 'Gas and carbon monoxide alarm',
-        fromZigbee: [fz.OJBCR701YZ_statuschange],
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1_gas_alarm_2],
         toZigbee: [],
         exposes: [e.gas(), e.carbon_monoxide(), e.tamper(), e.battery_low()],
     },
@@ -10510,7 +10515,7 @@ const devices = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [fz.immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.legacy_immax_07046L_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
@@ -15496,7 +15501,7 @@ const devices = [
         model: 'W2-Module',
         description: 'Carbon monoxide sensor',
         vendor: 'FireAngel',
-        fromZigbee: [fz.fire_angel_carbon_monoxide, fz.battery],
+        fromZigbee: [fz.W2_module_carbon_monoxide, fz.battery],
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery()],
     },
