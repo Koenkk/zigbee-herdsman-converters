@@ -195,8 +195,8 @@ const converters = {
     ikea_power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            // ZCL spec also has on: 1 and toggle: 2 but this is not supported
-            const lookup = {'off': 0, 'previous': 255};
+            // ZCL spec also has toggle: 2 but this is not supported
+            const lookup = {'off': 0, 'on': 1, 'previous': 255};
             if (!lookup.hasOwnProperty(value)) {
                 throw new Error(`'${value}' not supported, choose between: ${Object.keys(lookup)}`);
             }
