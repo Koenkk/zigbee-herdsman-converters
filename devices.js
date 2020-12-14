@@ -14850,7 +14850,7 @@ const devices = [
         description: 'AOne smart remote',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightenss_step_up', 'brightness_step_down'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down'])],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -15576,7 +15576,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
         exposes: [e.action([
-            'on', 'off', 'brightness_stop', 'brightenss_step_up', 'brightness_step_down', 'brightness_move_up',
+            'on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
             'brightness_move_down',
         ])],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
