@@ -6415,18 +6415,20 @@ const devices = [
     // Nue, 3A
     {
         zigbeeModel: ['LXN59-1S7LX1.0'],
-        model: 'LXN59-1S7LX1.0',
+        model: 'HGZB-01',
         vendor: 'Nue / 3A',
-        description: 'Smart light relay - 1 gang',
+        description: 'Smart Zigbee 3.0 light controller',
         extend: generic.switch,
         whiteLabel: [
-            {vendor: 'Zemismart', model: 'ZW-EU-01'},
+            {vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await configureReporting.onOff(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
