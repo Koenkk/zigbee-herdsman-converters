@@ -11435,6 +11435,13 @@ const devices = [
         exposes: [e.action(['on', 'off', 'brightness_move_to_level'])],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['HK-SL-DIM-A'],
+        model: 'SR-ZG9040A',
+        vendor: 'Sunricher',
+        description: 'Zigbee micro smart dimmer',
+        extend: generic.light_onoff_brightness,
+    },
 
     // Samotech
     {
