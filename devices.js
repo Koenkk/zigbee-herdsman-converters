@@ -10620,7 +10620,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD226 TSDB'],
@@ -10636,18 +10636,14 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD256 TSDB'],
         model: 'YRD256HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        fromZigbee: [
-            fz.lock,
-            fz.lock_operation_event,
-            fz.battery,
-        ],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
@@ -10656,7 +10652,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
@@ -10673,7 +10669,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.lock()],
+        exposes: [e.battery(), e.lock(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -10689,7 +10685,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRL220 TS LL'],
@@ -10706,7 +10702,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD226/246 TSDB'],
@@ -10722,7 +10718,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD220/240 TSDB'],
@@ -10738,7 +10734,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD246 TSDB'],
@@ -10754,7 +10750,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['YRD216 PBDB'],
@@ -10770,7 +10766,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
 
     // JAVIS
@@ -10802,7 +10798,7 @@ const devices = [
         },
         // Note - Keypad triggered deletions do not cause a zigbee event, though Adds work fine.
         onEvent: pincodeLock.readPinCodeAfterProgramming,
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],
@@ -10818,7 +10814,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
 
     // Keen Home
@@ -11559,7 +11555,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
 
     // NET2GRID
@@ -14446,7 +14442,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10_L'],
@@ -14462,7 +14458,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5'],
@@ -14480,7 +14476,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5_L'],
@@ -14496,7 +14492,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
 
     // Schlage
@@ -14514,7 +14510,7 @@ const devices = [
             await configureReporting.lockState(endpoint);
             await configureReporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_state()],
     },
 
     // HORNBACH
