@@ -696,7 +696,7 @@ const devices = [
         // eslint-disable-next-line
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
@@ -720,7 +720,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_switch_basic,
             fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
@@ -740,7 +740,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action,
             /* check these */
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
@@ -766,7 +766,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
             fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
             fz.xiaomi_power,
         ],
@@ -803,7 +803,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
@@ -819,7 +819,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.on_off_xiaomi_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
@@ -1485,7 +1485,7 @@ const devices = [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
         ],
-        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
+        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         whiteLabel: [
@@ -1512,7 +1512,7 @@ const devices = [
         vendor: 'TuYa',
         description: '2 gang switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
+        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -1532,7 +1532,7 @@ const devices = [
         vendor: 'TuYa',
         description: '3 gang switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        fromZigbee: [fz.tuya_switch, fz.ignore_basic_report, fz.tuya_switch2],
+        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -1759,7 +1759,7 @@ const devices = [
         meta: {tuyaThermostatPreset: common.TuyaThermostatPresets},
         ota: ota.zigbeeOTA,
         onEvent: tuya.setLocalTime,
-        fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report, fz.tuya_ignore_set_time_request],
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_ignore_set_time_request],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_auto_lock,
@@ -2131,7 +2131,7 @@ const devices = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
         ],
-        fromZigbee: [fz.tuya_thermostat, fz.tuya_thermostat_on_set_data, fz.ignore_basic_report, fz.tuya_dimmer],
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
@@ -2258,7 +2258,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang switch',
         extend: generic.switch,
-        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
     },
     {
@@ -2268,7 +2268,7 @@ const devices = [
         description: '2 gang switch',
         extend: generic.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2283,7 +2283,7 @@ const devices = [
         description: '3 gang switch',
         extend: generic.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2614,10 +2614,7 @@ const devices = [
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.E1524_E1810_toggle, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold, fz.E1524_E1810_arrow_release,
-            fz.E1524_E1810_brightness_up_click, fz.E1524_E1810_brightness_down_click, fz.E1524_E1810_brightness_up_hold,
-            fz.E1524_E1810_brightness_up_release, fz.E1524_E1810_brightness_down_hold,
-            fz.E1524_E1810_brightness_down_release, fz.battery, fz.E1524_E1810_hold,
+            fz.battery, fz.E1524_E1810_levelctrl, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold, fz.E1524_E1810_arrow_release,
         ],
         exposes: [e.battery(), e.action([
             'toggle', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold', 'arrow_right_hold', 'arrow_left_release',
@@ -3900,7 +3897,7 @@ const devices = [
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.SmartButton_skip, fz.SmartButton_event, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy_SmartButton_skip, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
         meta: {configureKey: 4},
@@ -4294,9 +4291,13 @@ const devices = [
         model: 'DNCKATSW002',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
+        meta: {multiEndpoint: true},
         extend: generic.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.action(['release_left', 'hold_left', 'release_right', 'hold_right']),
+        ],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -4306,9 +4307,13 @@ const devices = [
         model: 'DNCKATSW003',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
+        meta: {multiEndpoint: true},
         extend: generic.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center')],
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center'),
+            e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center']),
+        ],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -4318,11 +4323,16 @@ const devices = [
         model: 'DNCKATSW004',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.DNCKAT_S00X_state, fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
+        meta: {multiEndpoint: true},
         extend: generic.switch,
         exposes: [
             e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right'),
             e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'),
+            e.action([
+                'release_bottom_left', 'hold_bottom_left', 'release_bottom_right', 'hold_bottom_right',
+                'release_top_left', 'hold_top_left', 'release_top_right', 'hold_top_right',
+            ]),
         ],
         endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
@@ -4380,7 +4390,7 @@ const devices = [
             e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'),
             e.switch().withEndpoint('center'),
         ],
-        fromZigbee: [fz.DNCKAT_S00X_state],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
         },
@@ -5008,11 +5018,11 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [
-            fz.osram_lightify_switch_cmdOn, fz.osram_lightify_switch_cmdMoveWithOnOff,
-            fz.osram_lightify_switch_AC0251100NJ_cmdStop, fz.osram_lightify_switch_cmdMoveToColorTemp,
-            fz.osram_lightify_switch_cmdMoveHue, fz.osram_lightify_switch_cmdMoveToSaturation,
-            fz.osram_lightify_switch_cmdOff, fz.osram_lightify_switch_cmdMove, fz.battery,
-            fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
+            fz.legacy_osram_lightify_switch_cmdOn, fz.legacy_osram_lightify_switch_cmdMoveWithOnOff,
+            fz.legacy_osram_lightify_switch_AC0251100NJ_cmdStop, fz.legacy_osram_lightify_switch_cmdMoveToColorTemp,
+            fz.legacy_osram_lightify_switch_cmdMoveHue, fz.legacy_osram_lightify_switch_cmdMoveToSaturation,
+            fz.legacy_osram_lightify_switch_cmdOff, fz.legacy_osram_lightify_switch_cmdMove, fz.battery,
+            fz.legacy_osram_lightify_switch_cmdMoveToLevelWithOnOff,
         ],
         exposes: [e.battery(), e.action([
             'up', 'up_hold', 'up_release', 'down_release', 'circle_release', 'circle_hold', 'down', 'down_hold', 'circle_click',
@@ -5042,14 +5052,14 @@ const devices = [
         ])],
         fromZigbee: [
             fz.battery,
-            fz.osram_lightify_switch_AB371860355_cmdOn,
-            fz.osram_lightify_switch_AB371860355_cmdOff,
-            fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
-            fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            fz.osram_lightify_switch_AB371860355_cmdMove,
-            fz.osram_lightify_switch_AB371860355_cmdStop,
-            fz.osram_lightify_switch_AB371860355_cmdMoveHue,
-            fz.osram_lightify_switch_AB371860355_cmdMoveSat,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdOn,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdOff,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdStepColorTemp,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdMove,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdStop,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveHue,
+            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveSat,
         ],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
@@ -5879,8 +5889,8 @@ const devices = [
         vendor: 'Sylvania',
         description: 'Lightify Smart Dimming Switch',
         fromZigbee: [
-            fz.osram_lightify_switch_cmdOn, fz.osram_lightify_switch_cmdMoveWithOnOff, fz.osram_lightify_switch_cmdOff,
-            fz.osram_lightify_switch_cmdMove, fz.osram_lightify_switch_73743_cmdStop, fz.battery,
+            fz.legacy_osram_lightify_switch_cmdOn, fz.legacy_osram_lightify_switch_cmdMoveWithOnOff, fz.legacy_osram_lightify_switch_cmdOff,
+            fz.legacy_osram_lightify_switch_cmdMove, fz.legacy_osram_lightify_switch_73743_cmdStop, fz.battery,
         ],
         exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
@@ -7383,7 +7393,7 @@ const devices = [
         vendor: ' Somgoms',
         description: '1 gang switch',
         extend: generic.switch,
-        fromZigbee: [fz.tuya_switch2, fz.ignore_time_read, fz.ignore_basic_report],
+        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
     },
     {
@@ -8587,7 +8597,7 @@ const devices = [
         model: '4256251-RZHAC',
         vendor: 'Centralite',
         description: 'White Swiss power outlet switch with power meter',
-        fromZigbee: [fz.on_off, fz.RZHAC_4256251_power],
+        fromZigbee: [fz.on_off, fz.electrical_measurement_power],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
@@ -9707,8 +9717,8 @@ const devices = [
             'brightness_down_release', 'brightness_up_release',
         ])],
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.CTR_U_brightness_updown_click,
-            fz.CTR_U_brightness_updown_hold, fz.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
+            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.legacy_CTR_U_brightness_updown_click,
+            fz.legacy_CTR_U_brightness_updown_hold, fz.legacy_CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
@@ -13463,7 +13473,7 @@ const devices = [
         model: 'SE21',
         vendor: 'ORVIBO',
         description: 'Smart emergency button',
-        fromZigbee: [fz.SE21_action],
+        fromZigbee: [fz.command_status_change_notification_action],
         exposes: [e.action(['off', 'single', 'double', 'hold'])],
         toZigbee: [],
     },
@@ -13622,7 +13632,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
         extend: generic.switch,
-        fromZigbee: [fz.SA003_on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13635,7 +13645,7 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
         extend: generic.switch,
-        fromZigbee: [fz.SA003_on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
     },
     {
         zigbeeModel: ['ZB-SW02'],
@@ -13712,7 +13722,7 @@ const devices = [
         model: 'TS0218',
         vendor: 'CR Smart Home',
         description: 'Button',
-        fromZigbee: [fz.TS0218_click, fz.battery],
+        fromZigbee: [fz.legacy_TS0218_click, fz.battery],
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
@@ -15015,11 +15025,7 @@ const devices = [
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
-        fromZigbee: [
-            fz.tuya_thermostat,
-            fz.tuya_thermostat_on_set_data,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report],
         meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
         toZigbee: [
             tz.tuya_thermostat_child_lock,
@@ -15757,7 +15763,7 @@ const devices = [
         model: 'M415-6C',
         vendor: 'BYUN',
         description: 'Smoke sensor',
-        fromZigbee: [fz.byun_smoke_on, fz.byun_smoke_off],
+        fromZigbee: [fz.byun_smoke_true, fz.byun_smoke_false],
         toZigbee: [],
         exposes: [e.smoke()],
     },

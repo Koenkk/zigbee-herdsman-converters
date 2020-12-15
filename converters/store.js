@@ -35,6 +35,13 @@ function putValue(entity, key, value) {
     store.get(entityKey)[key] = value;
 }
 
+function clearValue(entity, key) {
+    if (hasValue(entity, key)) {
+        const entityKey = getEntityKey(entity);
+        delete store.get(entityKey)[key];
+    }
+}
+
 function clear() {
     store = new Map();
 }
@@ -43,5 +50,6 @@ module.exports = {
     hasValue,
     getValue,
     putValue,
+    clearValue,
     clear,
 };
