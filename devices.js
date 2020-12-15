@@ -10804,22 +10804,6 @@ const devices = [
         },
         exposes: [e.lock(), e.battery(), e.lock_state()],
     },
-    {
-        zigbeeModel: ['YRD216 PBDB'],
-        model: 'YRD216-HA2-619',
-        vendor: 'Yale',
-        description: 'Assure Lock - Push Button',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
-        meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
-            await configureReporting.lockState(endpoint);
-            await configureReporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.lock(), e.battery(), e.lock_state()],
-    },
 
     // JAVIS
     {
