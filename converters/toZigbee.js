@@ -3123,13 +3123,13 @@ const converters = {
         key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value === 'string') {
-                if (value === 'IN') value = 0;
-                else if (value === 'AL') value = 1;
-                else if (value === 'OU') value = 2;
-                else value = -1;
+                const lookup = {'IN': 0, 'AL': 1, 'OU': 2};
+                value = lookup.hasOwnProperty(value) ? lookup[value] : -1;
             }
             if ((typeof value === 'number') && (value >=0) && (value <=2)) {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSensor, value);
+            } else {
+                throw new Error(`Unsupported value: ${value}`);
             }
         },
     },
