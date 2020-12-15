@@ -681,6 +681,13 @@ const converters = {
             return result;
         },
     },
+    linkquality_from_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {linkquality: msg.linkquality};
+        },
+    },
     battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -1600,6 +1607,907 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters, re-use if possible
+    eurotronic_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
+            // system_mode is always 'heat', we set it below based on eurotronic_host_flags
+            if (result.system_mode) {
+                delete result['system_mode'];
+            }
+            if (typeof msg.data[0x4003] == 'number') {
+                result.current_heating_setpoint =
+                    precisionRound(msg.data[0x4003], 2) / 100;
+            }
+            if (typeof msg.data[0x4008] == 'number') {
+                result.eurotronic_host_flags = msg.data[0x4008];
+                const resultHostFlags = {
+                    'mirror_display': false,
+                    'boost': false,
+                    'window_open': false,
+                    'child_protection': false,
+                };
+                if ((result.eurotronic_host_flags & 1 << 2) != 0) {
+                    // system_mode => 'heat', boost mode
+                    result.system_mode = common.thermostatSystemModes[4];
+                    resultHostFlags.boost = true;
+                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
+                    // system_mode => 'off', window open detected
+                    result.system_mode = common.thermostatSystemModes[0];
+                    resultHostFlags.window_open = true;
+                } else {
+                    // system_mode => 'auto', default
+                    result.system_mode = common.thermostatSystemModes[1];
+                }
+                if ((result.eurotronic_host_flags & (1 << 1)) != 0 ) {
+                    // mirror_display
+                    resultHostFlags.mirror_display = true;
+                }
+                if ((result.eurotronic_host_flags & (1 << 7)) != 0 ) {
+                    // child protection
+                    resultHostFlags.child_protection = true;
+                }
+                // keep eurotronic_system_mode for compatibility (is there a way to mark this as deprecated?)
+                result.eurotronic_system_mode = result.eurotronic_host_flags;
+                result.eurotronic_host_flags = resultHostFlags;
+            }
+            if (typeof msg.data[0x4002] == 'number') {
+                result.eurotronic_error_status = msg.data[0x4002];
+            }
+            if (typeof msg.data[0x4000] == 'number') {
+                result.eurotronic_trv_mode = msg.data[0x4000];
+            }
+            if (typeof msg.data[0x4001] == 'number') {
+                result.eurotronic_valve_position = msg.data[0x4001];
+            }
+            return result;
+        },
+    },
+    neo_t_h_alarm: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case common.TuyaDataPoints.neoAlarm:
+                return {alarm: value};
+            case common.TuyaDataPoints.neoUnknown2: // 0x0170 [0]
+                break;
+            case common.TuyaDataPoints.neoTempAlarm:
+                return {temperature_alarm: value};
+            case common.TuyaDataPoints.neoHumidityAlarm: // 0x0172 [0]/[1] Disable/Enable alarm by humidity
+                return {humidity_alarm: value};
+            case common.TuyaDataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
+                return {duration: value};
+            case common.TuyaDataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
+                return {temperature: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
+                return {humidity: value};
+            case common.TuyaDataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
+                return {temperature_min: value};
+            case common.TuyaDataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
+                return {temperature_max: value};
+            case common.TuyaDataPoints.neoMinHumidity: // 0x026D [0,0,0,45] min alarm humidity
+                return {humidity_min: value};
+            case common.TuyaDataPoints.neoMaxHumidity: // 0x026E [0,0,0,80] max alarm humidity
+                return {humidity_max: value};
+            case common.TuyaDataPoints.neoUnknown1: // 0x0465 [4]
+                break;
+            case common.TuyaDataPoints.neoMelody: // 0x0466 [5] Melody
+                return {melody: value};
+            case common.TuyaDataPoints.neoUnknown3: // 0x0473 [0]
+                break;
+            case common.TuyaDataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
+                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            default: // Unknown code
+                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    terncy_contact: {
+        cluster: 'genBinaryInput',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: (msg.data['presentValue']==0)};
+        },
+    },
+    terncy_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
+            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
+    ts0216_siren: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['duration'] = msg.data.maxDuration;
+            if (msg.data.hasOwnProperty('2')) result['volume'] = msg.data['2'];
+            if (msg.data.hasOwnProperty('61440')) {
+                result['alarm'] = (msg.data['61440'] == 0) ? false : true;
+            }
+            return result;
+        },
+    },
+    tuya_cover_options: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+                const value = msg.data['tuyaMovingState'];
+                const movingLookup = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
+                result.moving = movingLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaCalibration')) {
+                const value = msg.data['tuyaCalibration'];
+                const calibrationLookup = {0: 'ON', 1: 'OFF'};
+                result.calibration = calibrationLookup[value];
+            }
+            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+                const value = msg.data['tuyaMotorReversal'];
+                const reversalLookup = {0: 'OFF', 1: 'ON'};
+                result.motor_reversal = reversalLookup[value];
+            }
+            return result;
+        },
+    },
+    tuya_backlight_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+                const value = msg.data['tuyaBacklightMode'];
+                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
+                return {backlight_mode: backlightLookup[value]};
+            }
+        },
+    },
+    tuya_on_off_action: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            let buttonMapping = null;
+            if (model.model === 'TS0042') {
+                buttonMapping = {1: '1', 2: '2'};
+            } else if (model.model === 'TS0043') {
+                buttonMapping = {1: '1', 2: '2', 3: '3'};
+            } else if (model.model === 'TS0044') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${clickMapping[msg.data[3]]}`};
+        },
+    },
+    tuya_water_leak: {
+        cluster: 'manuSpecificTuya',
+        type: 'commandSetDataResponse',
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.dp === common.TuyaDataPoints.waterLeak) {
+                return {water_leak: tuyaGetDataValue(msg.data.datatype, msg.data.data)};
+            }
+        },
+    },
+    livolo_switch_state: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const status = msg.data.onOff;
+            return {
+                state_left: status & 1 ? 'ON' : 'OFF',
+                state_right: status & 2 ? 'ON' : 'OFF',
+            };
+        },
+    },
+    livolo_socket_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                const status = msg.data[14];
+                return {state: status & 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    livolo_new_switch_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                const status = msg.data[14];
+                return {state: status & 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    livolo_switch_state_raw: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            /*
+            header                ieee address            info data
+            new socket
+            [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
+            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
+            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
+            new switch
+            [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
+            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
+            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
+            old switch
+            [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,1] left: 1, right: 0
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,2] left: 0, right: 1
+            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,3] left: 1, right: 1
+            */
+            const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
+            const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
+            // status of old devices
+            if (msg.data.indexOf(malformedHeader) === 0) {
+                const status = msg.data[15];
+                return {
+                    state_left: status & 1 ? 'ON' : 'OFF',
+                    state_right: status & 2 ? 'ON' : 'OFF',
+                };
+            }
+            // info about device
+            if (msg.data.indexOf(infoHeader) === 0) {
+                if (msg.data.includes(Buffer.from([19, 7, 0]), 13)) {
+                    // new socket, hack
+                    meta.device.modelID = 'TI0001-socket';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
+                    // new switch, hack
+                    meta.device.modelID = 'TI0001-switch';
+                    meta.device.save();
+                }
+            }
+        },
+    },
+    hy_set_time_request: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetTimeRequest'],
+        convert: async (model, msg, publish, options, meta) => {
+            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+            const currentTime = new Date().getTime();
+            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
+            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
+            const endpoint = msg.device.getEndpoint(1);
+            const payload = {
+                payloadSize: 8,
+                payload: [
+                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                ],
+            };
+            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
+        },
+    },
+    ptvo_switch_uart: {
+        cluster: 'genMultistateValue',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let data = msg.data['stateText'];
+            if (typeof data === 'object') {
+                let bHex = false;
+                let code;
+                let index;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index];
+                    if ((code < 32) || (code > 127)) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString('latin1');
+                } else {
+                    data = [...data];
+                }
+            }
+            return {'action': data};
+        },
+    },
+    ptvo_switch_analog_input: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            payload[name] = precisionRound(msg.data['presentValue'], 3);
+            if (msg.data.hasOwnProperty('description')) {
+                const data1 = msg.data['description'];
+                if (data1) {
+                    const data2 = data1.split(',');
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload['device_' + name] = devid;
+                    }
+
+                    const valRaw = msg.data['presentValue'];
+                    if (unit) {
+                        let val = precisionRound(valRaw, 1);
+
+                        const nameLookup = {
+                            'C': 'temperature',
+                            '%': 'humidity',
+                            'm': 'altitude',
+                            'Pa': 'pressure',
+                            'ppm': 'quality',
+                            'psize': 'particle_size',
+                            'V': 'voltage',
+                            'A': 'current',
+                            'Wh': 'energy',
+                            'W': 'power',
+                            'Hz': 'frequency',
+                            'pf': 'power_factor',
+                            'lx': 'illuminance_lux',
+                        };
+
+                        let nameAlt = '';
+                        if (unit === 'A') {
+                            if (valRaw < 1) {
+                                val = precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith('mcpm') || unit.startsWith('ncpm')) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = (num === 'A')? unit.substr(0, 4) + '10': unit;
+                            val = precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+                        if (nameAlt === undefined) {
+                            const valueIndex = parseInt(unit, 10);
+                            if (! isNaN(valueIndex)) {
+                                nameAlt = 'val' + unit;
+                            }
+                        }
+
+                        if (nameAlt !== undefined) {
+                            payload[nameAlt + '_' + name] = val;
+                        }
+                    }
+                }
+            }
+            return payload;
+        },
+    },
+    keypad20states: {
+        cluster: 'genOnOff',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const state = msg.data['onOff'] === 1 ? true : false;
+            if (button) {
+                return {[button]: state};
+            }
+        },
+    },
+    keypad20_battery: {
+        cluster: 'genPowerCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const battery = {max: 3000, min: 2100};
+            const voltage = msg.data['mainsVoltage'] /10;
+            return {
+                battery: toPercentage(voltage, battery.min, battery.max),
+                voltage: voltage, // @deprecated
+                // voltage: voltage / 1000.0,
+            };
+        },
+    },
+    silvercrest_smart_led_string: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+
+            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
+                if (value !== common.silvercrestModes.effect) {
+                    result.effect = null;
+                }
+            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
+                result.brightness = (value / 1000) * 255;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color = {b: (b / 1000) * 255, h, s: s / 10};
+                result.brightness = result.color.b;
+            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
+                result.effect = {
+                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                    colors: [],
+                };
+
+                const colorsString = value.substring(4);
+                // Colors are 6 characters.
+                const n = Math.floor(colorsString.length / 6);
+
+                // The incoming message can contain anywhere between 0 to 6 colors.
+                // In the following loop we're extracting every color the led
+                // string gives us.
+                for (let i = 0; i < n; ++i) {
+                    const part = colorsString.substring(i * 6, (i + 1) * 6);
+                    const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
+                    result.effect.colors.push({
+                        r: parseInt(r, 16),
+                        g: parseInt(g, 16),
+                        b: parseInt(b, 16),
+                    });
+                }
+            }
+
+            return result;
+        },
+    },
+    heiman_ir_remote: {
+        cluster: 'heimanSpecificInfraRedRemote',
+        type: ['commandStudyKeyRsp', 'commandCreateIdRsp', 'commandGetIdAndKeyCodeListRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            switch (msg.type) {
+            case 'commandStudyKeyRsp':
+                return {
+                    action: 'learn',
+                    action_result: msg.data.result === 1 ? 'success' : 'error',
+                    action_key_code: msg.data.keyCode,
+                    action_id: msg.data.result === 1 ? msg.data.id : undefined,
+                };
+            case 'commandCreateIdRsp':
+                return {
+                    action: 'create',
+                    action_result: msg.data.id === 0xFF ? 'error' : 'success',
+                    action_model_type: msg.data.modelType,
+                    action_id: msg.data.id !== 0xFF ? msg.data.id : undefined,
+                };
+            case 'commandGetIdAndKeyCodeListRsp': {
+                // See cluster.js with data format description
+                if (msg.data.packetNumber === 1) {
+                    // start to collect and merge list
+                    // so, we use store instance for temp storage during merging
+                    globalStore.putValue(msg.endpoint, 'db', []);
+                }
+                const buffer = msg.data.learnedDevicesList;
+                for (let i = 0; i < msg.data.packetLength;) {
+                    const modelDescription = {
+                        id: buffer[i],
+                        model_type: buffer[i + 1],
+                        key_codes: [],
+                    };
+                    const numberOfKeys = buffer[i + 2];
+                    for (let j = i + 3; j < i + 3 + numberOfKeys; j++) {
+                        modelDescription.key_codes.push(buffer[j]);
+                    }
+                    i = i + 3 + numberOfKeys;
+                    globalStore.getValue(msg.endpoint, 'db').push(modelDescription);
+                }
+                if (msg.data.packetNumber === msg.data.packetsTotal) {
+                    // last packet, all data collected, can publish
+                    const result = {
+                        'devices': globalStore.getValue(msg.endpoint, 'db'),
+                    };
+                    globalStore.clearValue(msg.endpoint, 'db');
+                    return result;
+                }
+                break;
+            }
+            }
+        },
+    },
+    meazon_meter: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // typo on property name to stick with zcl definition
+            if (msg.data.hasOwnProperty('inletTempreature')) {
+                result.inlet_temperature = precisionRound(msg.data['inletTempreature'], 2);
+                result.inletTemperature = result.inlet_temperature; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('status')) {
+                result.status = precisionRound(msg.data['status'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8192')) {
+                result.line_frequency = precisionRound((parseFloat(msg.data['8192'])) / 100.0, 2);
+                result.linefrequency = result.line_frequency; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('8193')) {
+                result.power = precisionRound(msg.data['8193'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8196')) {
+                result.voltage = precisionRound(msg.data['8196'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8213')) {
+                result.voltage = precisionRound(msg.data['8213'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8199')) {
+                result.current = precisionRound(msg.data['8199'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8216')) {
+                result.current = precisionRound(msg.data['8216'], 2);
+            }
+
+            if (msg.data.hasOwnProperty('8202')) {
+                result.reactive_power = precisionRound(msg.data['8202'], 2);
+                result.reactivepower = result.reactive_power; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('12288')) {
+                result.energy_consumed = precisionRound(msg.data['12288'], 2);
+                result.energyconsumed = result.energy_consumed; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('12291')) {
+                result.energy_produced = precisionRound(msg.data['12291'], 2);
+                result.energyproduced = result.energy_produced; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('12294')) {
+                result.reactive_summation = precisionRound(msg.data['12294'], 2);
+                result.reactivesummation = result.reactive_summation; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('16408')) {
+                result.measure_serial = precisionRound(msg.data['16408'], 2);
+                result.measureserial = result.measure_serial; // deprecated
+            }
+
+            return result;
+        },
+    },
+    sinope_TH1300ZB_specific: {
+        cluster: 'manuSpecificSinope',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on'};
+            const result = {};
+            if (msg.data.hasOwnProperty('GFCiStatus')) {
+                result.gfci_status = lookup[msg.data['GFCiStatus']];
+            }
+            if (msg.data.hasOwnProperty('floorLimitStatus')) {
+                result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
+            }
+            return result;
+        },
+    },
+    danfoss_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // Danfoss sends pi_heating_demand as raw %
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
+                    precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            if (typeof msg.data[0x4000] == 'number') {
+                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
+            }
+            if (typeof msg.data[0x4003] == 'number') {
+                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
+            }
+            if (typeof msg.data[0x4010] == 'number') {
+                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
+            }
+            if (typeof msg.data[0x4011] == 'number') {
+                result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
+            }
+            if (typeof msg.data[0x4012] == 'number') {
+                result[postfixWithEndpointName('mounted_mode', msg, model)] = (msg.data[0x4012]==1);
+            }
+            if (typeof msg.data[0x4013] == 'number') {
+                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
+            }
+            if (typeof msg.data[0x4014] == 'number') {
+                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
+            }
+            if (typeof msg.data[0x4020] == 'number') {
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
+            }
+            if (typeof msg.data[0x4030] == 'number') {
+                result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
+            }
+            if (typeof msg.data[0x4031] == 'number') {
+                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
+            }
+            return result;
+        },
+    },
+    orvibo_raw_1: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // 25,0,8,3,0,0 - click btn 1
+            // 25,0,8,3,0,2 - hold btn 1
+            // 25,0,8,3,0,3 - release btn 1
+            // 25,0,8,11,0,0 - click btn 2
+            // 25,0,8,11,0,2 - hold btn 2
+            // 25,0,8,11,0,3 - release btn 2
+            // 25,0,8,7,0,0 - click btn 3
+            // 25,0,8,7,0,2 - hold btn 3
+            // 25,0,8,7,0,3 - release btn 3
+            // 25,0,8,15,0,0 - click btn 4
+            // 25,0,8,15,0,2 - hold btn 4
+            // 25,0,8,15,0,3 - release btn 4
+            // TODO: do not know how to get to use 5,6,7,8 buttons
+            const buttonLookup = {
+                3: 'button_1',
+                11: 'button_2',
+                7: 'button_3',
+                15: 'button_4',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    },
+    orvibo_raw_2: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {
+                1: 'button_1',
+                2: 'button_2',
+                3: 'button_3',
+                4: 'button_4',
+                5: 'button_5',
+                6: 'button_6',
+                7: 'button_7',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    },
+    tint_scene: {
+        cluster: 'genBasic',
+        type: 'write',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: `scene_${msg.data['16389']}`};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    ZNMS11LM_closuresDoorLock_report: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lockStatusLookup = {
+                1: 'finger_not_match',
+                2: 'password_not_match',
+                3: 'reverse_lock', // disable open from outside
+                4: 'reverse_lock_cancel', // enable open from outside
+                5: 'locked',
+                6: 'lock_opened',
+                7: 'finger_add',
+                8: 'finger_delete',
+                9: 'password_add',
+                10: 'password_delete',
+                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                12: 'lock_opened_outside', // Open form outside reverse lock disable
+                13: 'ring_bell',
+                14: 'change_language_to',
+                15: 'finger_open',
+                16: 'password_open',
+                17: 'door_closed',
+            };
+            if (msg.data['65296']) { // finger/password success
+                const data = msg.data['65296'].toString(16);
+                const command = data.substr(0, 1); // 1 finger open, 2 password open
+                const userId = data.substr(5, 2);
+                const userType = data.substr(1, 1); // 1 admin, 2 user
+                result.data = data;
+                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
+                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
+                result.action_user = parseInt(userId, 16);
+            } else if (msg.data['65297']) { // finger, password failed or bell
+                const data = msg.data['65297'].toString(16);
+                const times = data.substr(0, 1);
+                const type = data.substr(5, 2); // 00 bell, 02 password, 40 error finger
+                result.data = data;
+                if (type === '40') {
+                    result.action_action = lockStatusLookup[1];
+                    result.action_repeat = parseInt(times, 16);
+                } else if (type === '02') {
+                    result.action = lockStatusLookup[2];
+                    result.action_repeat = parseInt(times, 16);
+                } else if (type === '00') {
+                    result.action = lockStatusLookup[13];
+                }
+            } else if (msg.data['65281'] && msg.data['65281']['1']) { // user added/delete
+                const data = msg.data['65281']['1'].toString(16);
+                const command = data.substr(0, 1); // 1 add, 2 delete
+                const userId = data.substr(5, 2);
+                result.data = data;
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
+                result.action_user = parseInt(userId, 16);
+            }
+
+            if (isLegacyEnabled(options)) {
+                result.repeat = result.action_repeat;
+                result.user = result.action_user;
+            } else {
+                delete result.data;
+            }
+
+            return result;
+        },
+    },
+    ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lockStatusLookup = {
+                1: 'finger_not_match',
+                2: 'password_not_match',
+                3: 'reverse_lock', // disable open from outside
+                4: 'reverse_lock_cancel', // enable open from outside
+                5: 'locked',
+                6: 'lock_opened',
+                7: 'finger_add',
+                8: 'finger_delete',
+                9: 'password_add',
+                10: 'password_delete',
+                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                12: 'lock_opened_outside', // Open form outside reverse lock disable
+                13: 'ring_bell',
+                14: 'change_language_to',
+                15: 'finger_open',
+                16: 'password_open',
+                17: 'door_closed',
+            };
+
+            if (msg.data['65526']) { // lock final status
+                // Convert data back to hex to decode
+                const data = Buffer.from(msg.data['65526'], 'ascii').toString('hex');
+                const command = data.substr(6, 4);
+                if (
+                    command === '0301' || // ZNMS12LM
+                        command === '0341' // ZNMS13LM
+                ) {
+                    result.action = lockStatusLookup[4];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '0311' || // ZNMS12LM
+                        command === '0351' // ZNMS13LM
+                ) {
+                    result.action = lockStatusLookup[4];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '0205' || // ZNMS12LM
+                        command === '0245' // ZNMS13LM
+                ) {
+                    result.action = lockStatusLookup[3];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'LOCK';
+                } else if (
+                    command === '0215' || // ZNMS12LM
+                        command === '0255' || // ZNMS13LM
+                        command === '1355' // ZNMS13LM
+                ) {
+                    result.action = lockStatusLookup[3];
+                    result.state = 'LOCK';
+                    result.reverse = 'LOCK';
+                } else if (
+                    command === '0111' || // ZNMS12LM
+                        command === '1351' || // ZNMS13LM locked from inside
+                        command === '1451' // ZNMS13LM locked from outside
+                ) {
+                    result.action = lockStatusLookup[5];
+                    result.state = 'LOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '0b00' || // ZNMS12LM
+                        command === '0640' || // ZNMS13LM
+                        command === '0600' // ZNMS13LM
+
+                ) {
+                    result.action = lockStatusLookup[12];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '0c00' || // ZNMS12LM
+                        command === '2300' || // ZNMS13LM
+                        command === '0540' || // ZNMS13LM
+                        command === '0440' // ZNMS13LM
+                ) {
+                    result.action = lockStatusLookup[11];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                } else if (
+                    command === '2400' || // ZNMS13LM door closed from insed
+                        command === '2401' // ZNMS13LM door closed from outside
+                ) {
+                    result.action = lockStatusLookup[17];
+                    result.state = 'UNLOCK';
+                    result.reverse = 'UNLOCK';
+                }
+            } else if (msg.data['65296']) { // finger/password success
+                const data = Buffer.from(msg.data['65296'], 'ascii').toString('hex');
+                const command = data.substr(6, 2); // 1 finger open, 2 password open
+                const userId = data.substr(12, 2);
+                const userType = data.substr(8, 1); // 1 admin, 2 user
+                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
+                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
+                result.action_user = parseInt(userId, 16);
+            } else if (msg.data['65297']) { // finger, password failed or bell
+                const data = Buffer.from(msg.data['65297'], 'ascii').toString('hex');
+                const times = data.substr(6, 2);
+                const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
+                if (type === '40') {
+                    result.action = lockStatusLookup[1];
+                    result.action_repeat = parseInt(times, 16);
+                } else if (type === '00') {
+                    result.action = lockStatusLookup[13];
+                    result.action_repeat = null;
+                } else if (type === '02') {
+                    result.action = lockStatusLookup[2];
+                    result.action_repeat = parseInt(times, 16);
+                }
+            } else if (msg.data['65281']) { // password added/delete
+                const data = Buffer.from(msg.data['65281'], 'ascii').toString('hex');
+                const command = data.substr(18, 2); // 1 add, 2 delete
+                const userId = data.substr(12, 2);
+                result.action = lockStatusLookup[6+parseInt(command, 16)];
+                result.action_user = parseInt(userId, 16);
+            } else if (msg.data['65522']) { // set languge
+                const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
+                const langId = data.substr(6, 2); // 1 chinese, 2: english
+                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
+            }
+
+            if (isLegacyEnabled(options)) {
+                result.repeat = result.action_repeat;
+                result.user = result.action_user;
+            }
+
+            return result;
+        },
+    },
     moes_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -3722,6 +4630,76 @@ const converters = {
             }
         },
     },
+    legacy_RM01_on_click: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                return {action: `${button}_on`};
+            } else {
+                return converters.command_on.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_RM01_off_click: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                return {action: `${button}_off`};
+            } else {
+                return converters.command_off.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_RM01_down_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                return {
+                    action: `${button}_down`,
+                    step_mode: msg.data.stepmode,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_RM01_up_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                return {
+                    action: `${button}_up`,
+                    step_mode: msg.data.stepmode,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_RM01_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                return {action: `${button}_stop`};
+            } else {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     legacy_xiaomi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4194,6 +5172,246 @@ const converters = {
             }
         },
     },
+    legacy_insta_scene_click: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {
+                    action: `select_${msg.data.sceneid}`,
+                };
+            } else {
+                return converters.command_recall.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_insta_down_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {
+                    action: 'down',
+                    step_mode: msg.data.stepmode,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_insta_up_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStepWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {
+                    action: 'up',
+                    step_mode: msg.data.stepmode,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_insta_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {
+                    action: 'stop',
+                };
+            } else {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_tint404011_brightness_updown_click: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+                const payload = {
+                    action: `brightness_${direction}_click`,
+                    step_size: msg.data.stepsize,
+                    transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_tint404011_brightness_updown_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const deviceID = msg.device.ieeeAddr;
+                const direction = msg.data.movemode === 1 ? 'down' : 'up';
+
+                // Save last direction for release event
+                if (!store[deviceID]) {
+                    store[deviceID] = {};
+                }
+                store[deviceID].movemode = direction;
+
+                const payload = {
+                    action: `brightness_${direction}_hold`,
+                    rate: msg.data.rate,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            } else {
+                return converters.command_move.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_tint404011_brightness_updown_release: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const deviceID = msg.device.ieeeAddr;
+                if (!store[deviceID]) {
+                    return null;
+                }
+
+                const direction = store[deviceID].movemode;
+                const payload = {action: `brightness_${direction}_release`};
+                addActionGroup(payload, msg, model);
+                return payload;
+            } else {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_tint404011_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const payload = {
+                    action: `color_temp`,
+                    action_color_temperature: msg.data.colortemp,
+                    transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            } else {
+                return converters.command_move_to_color_temp.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_tint404011_move_to_color: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColor',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const payload = {
+                    action_color: {
+                        x: precisionRound(msg.data.colorx / 65535, 3),
+                        y: precisionRound(msg.data.colory / 65535, 3),
+                    },
+                    action: 'color_wheel',
+                    transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            } else {
+                return converters.command_move_to_color.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_heiman_smart_controller_armmode: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                if (msg.data.armmode != null) {
+                    const lookup = {
+                        0: 'disarm',
+                        1: 'arm_partial_zones',
+                        3: 'arm_all_zones',
+                    };
+
+                    const value = msg.data.armmode;
+                    return {action: lookup[value] || `armmode_${value}`};
+                }
+            } else {
+                return converters.command_arm.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_LZL4B_onoff: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {
+                    action: msg.data.level,
+                    transition_time: msg.data.transtime,
+                };
+            } else {
+                return converters.command_move_to_level.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_eria_81825_updown: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const direction = msg.data.stepmode === 0 ? 'up' : 'down';
+                return {action: `${direction}`};
+            } else {
+                return converters.command_step.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_ZYCT202_stop: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStop',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {action: 'stop', action_group: msg.groupID};
+            } else {
+                return converters.command_stop.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_ZYCT202_up_down: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                const value = msg.data['movemode'];
+                let action = null;
+                if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupID};
+                else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupID};
+                return action ? action : null;
+            } else {
+                return converters.command_move.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    legacy_STS_PRS_251_beeping: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options)) {
+                return {action: 'beeping'};
+            } else {
+                return converters.identify.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     // #endregion
 
     /**
@@ -4328,75 +5546,6 @@ const converters = {
             }
         },
     },
-    heiman_smart_controller_armmode: {
-        cluster: 'ssIasAce',
-        type: 'commandArm',
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.armmode != null) {
-                const lookup = {
-                    0: 'disarm',
-                    1: 'arm_partial_zones',
-                    3: 'arm_all_zones',
-                };
-
-                const value = msg.data.armmode;
-                return {action: lookup[value] || `armmode_${value}`};
-            }
-        },
-    },
-    heiman_ir_remote: {
-        cluster: 'heimanSpecificInfraRedRemote',
-        type: ['commandStudyKeyRsp', 'commandCreateIdRsp', 'commandGetIdAndKeyCodeListRsp'],
-        convert: (model, msg, publish, options, meta) => {
-            switch (msg.type) {
-            case 'commandStudyKeyRsp':
-                return {
-                    action: 'learn',
-                    action_result: msg.data.result === 1 ? 'success' : 'error',
-                    action_key_code: msg.data.keyCode,
-                    action_id: msg.data.result === 1 ? msg.data.id : undefined,
-                };
-            case 'commandCreateIdRsp':
-                return {
-                    action: 'create',
-                    action_result: msg.data.id === 0xFF ? 'error' : 'success',
-                    action_model_type: msg.data.modelType,
-                    action_id: msg.data.id !== 0xFF ? msg.data.id : undefined,
-                };
-            case 'commandGetIdAndKeyCodeListRsp': {
-                // See cluster.js with data format description
-                if (msg.data.packetNumber === 1) {
-                    // start to collect and merge list
-                    // so, we use device instance for temp storage during merging
-                    msg.device.heimanIrDb = [];
-                }
-                const buffer = msg.data.learnedDevicesList;
-                for (let i = 0; i < msg.data.packetLength;) {
-                    const modelDescription = {
-                        id: buffer[i],
-                        model_type: buffer[i + 1],
-                        key_codes: [],
-                    };
-                    const numberOfKeys = buffer[i + 2];
-                    for (let j = i + 3; j < i + 3 + numberOfKeys; j++) {
-                        modelDescription.key_codes.push(buffer[j]);
-                    }
-                    i = i + 3 + numberOfKeys;
-                    msg.device.heimanIrDb.push(modelDescription);
-                }
-                if (msg.data.packetNumber === msg.data.packetsTotal) {
-                    // last packet, all data collected, can publish
-                    const result = {
-                        'devices': msg.device.heimanIrDb,
-                    };
-                    msg.device.heimanIrDb = undefined;
-                    return result;
-                }
-                break;
-            }
-            }
-        },
-    },
     ZigUP_parse: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -4488,13 +5637,6 @@ const converters = {
             }, timeout * 1000);
 
             return {presence: true};
-        },
-    },
-    STS_PRS_251_beeping: {
-        cluster: 'genIdentify',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'beeping'};
         },
     },
     _324131092621_notification: {
@@ -4809,483 +5951,12 @@ const converters = {
             return result;
         },
     },
-    sinope_GFCi_status: {
-        // TH1300ZB specific
-        cluster: 'manuSpecificSinope',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
-                return {gfci_status: lookup[msg.data['GFCiStatus']]};
-            }
-        },
-    },
-    sinope_floor_limit_status: {
-        // TH1300ZB specific
-        cluster: 'manuSpecificSinope',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
-                return {floor_limit_status: lookup[msg.data['floorLimitStatus']]};
-            }
-        },
-    },
-    danfoss_thermostat_att_report: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // Danfoss sends pi_heating_demand as raw %
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
-                    precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
-            if (typeof msg.data[0x4000] == 'number') {
-                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
-            }
-            if (typeof msg.data[0x4003] == 'number') {
-                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
-            }
-            if (typeof msg.data[0x4010] == 'number') {
-                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
-            }
-            if (typeof msg.data[0x4011] == 'number') {
-                result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
-            }
-            if (typeof msg.data[0x4012] == 'number') {
-                result[postfixWithEndpointName('mounted_mode', msg, model)] = (msg.data[0x4012]==1);
-            }
-            if (typeof msg.data[0x4013] == 'number') {
-                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
-            }
-            if (typeof msg.data[0x4014] == 'number') {
-                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
-            }
-            if (typeof msg.data[0x4020] == 'number') {
-                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
-            }
-            if (typeof msg.data[0x4030] == 'number') {
-                result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
-            }
-            if (typeof msg.data[0x4031] == 'number') {
-                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
-            }
-            return result;
-        },
-    },
-
-    eurotronic_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = converters.thermostat_att_report.convert(model, msg, publish, options, meta);
-            // system_mode is always 'heat', we set it below based on eurotronic_host_flags
-            if (result.system_mode) {
-                delete result['system_mode'];
-            }
-            if (typeof msg.data[0x4003] == 'number') {
-                result.current_heating_setpoint =
-                    precisionRound(msg.data[0x4003], 2) / 100;
-            }
-            if (typeof msg.data[0x4008] == 'number') {
-                result.eurotronic_host_flags = msg.data[0x4008];
-                const resultHostFlags = {
-                    'mirror_display': false,
-                    'boost': false,
-                    'window_open': false,
-                    'child_protection': false,
-                };
-                if ((result.eurotronic_host_flags & 1 << 2) != 0) {
-                    // system_mode => 'heat', boost mode
-                    result.system_mode = common.thermostatSystemModes[4];
-                    resultHostFlags.boost = true;
-                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
-                    // system_mode => 'off', window open detected
-                    result.system_mode = common.thermostatSystemModes[0];
-                    resultHostFlags.window_open = true;
-                } else {
-                    // system_mode => 'auto', default
-                    result.system_mode = common.thermostatSystemModes[1];
-                }
-                if ((result.eurotronic_host_flags & (1 << 1)) != 0 ) {
-                    // mirror_display
-                    resultHostFlags.mirror_display = true;
-                }
-                if ((result.eurotronic_host_flags & (1 << 7)) != 0 ) {
-                    // child protection
-                    resultHostFlags.child_protection = true;
-                }
-                // keep eurotronic_system_mode for compatibility (is there a way to mark this as deprecated?)
-                result.eurotronic_system_mode = result.eurotronic_host_flags;
-                result.eurotronic_host_flags = resultHostFlags;
-            }
-            if (typeof msg.data[0x4002] == 'number') {
-                result.eurotronic_error_status = msg.data[0x4002];
-            }
-            if (typeof msg.data[0x4000] == 'number') {
-                result.eurotronic_trv_mode = msg.data[0x4000];
-            }
-            if (typeof msg.data[0x4001] == 'number') {
-                result.eurotronic_valve_position = msg.data[0x4001];
-            }
-            return result;
-        },
-    },
-    tuya_on_off_action: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
-            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
-            let buttonMapping = null;
-            if (model.model === 'TS0042') {
-                buttonMapping = {1: '1', 2: '2'};
-            } else if (model.model === 'TS0043') {
-                buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (model.model === 'TS0044') {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
-            }
-            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
-            return {action: `${button}${clickMapping[msg.data[3]]}`};
-        },
-    },
-    tuya_water_leak: {
-        cluster: 'manuSpecificTuya',
-        type: 'commandSetDataResponse',
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-            if (dp === common.TuyaDataPoints.waterLeak) {
-                return {water_leak: value};
-            }
-
-            return null;
-        },
-    },
-    tint404011_brightness_updown_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            const payload = {
-                action: `brightness_${direction}_click`,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    tint404011_brightness_updown_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
-
-            // Save last direction for release event
-            if (!store[deviceID]) {
-                store[deviceID] = {};
-            }
-            store[deviceID].movemode = direction;
-
-            const payload = {
-                action: `brightness_${direction}_hold`,
-                rate: msg.data.rate,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    tint404011_brightness_updown_release: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                return null;
-            }
-
-            const direction = store[deviceID].movemode;
-            const payload = {action: `brightness_${direction}_release`};
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    tint404011_scene: {
-        cluster: 'genBasic',
-        type: 'write',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {action: `scene_${msg.data['16389']}`};
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    tint404011_move_to_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {
-                action: `color_temp`,
-                action_color_temperature: msg.data.colortemp,
-                transition_time: msg.data.transtime,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    tint404011_move_to_color: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColor',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {
-                action_color: {
-                    x: precisionRound(msg.data.colorx / 65535, 3),
-                    y: precisionRound(msg.data.colory / 65535, 3),
-                },
-                action: 'color_wheel',
-                transition_time: msg.data.transtime,
-            };
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    },
-    livolo_switch_state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const status = msg.data.onOff;
-            const payload = {};
-            payload['state_left'] = status & 1 ? 'ON' : 'OFF';
-            payload['state_right'] = status & 2 ? 'ON' : 'OFF';
-            payload['linkquality'] = msg.linkquality;
-            return payload;
-        },
-    },
-    livolo_socket_state: {
-        cluster: 'genPowerCfg',
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            const stateHeader = Buffer.from([122, 209]);
-            if (msg.data.indexOf(stateHeader) === 0) {
-                const status = msg.data[14];
-                const state = {};
-                state['state'] = status & 1 ? 'ON' : 'OFF';
-                state['linkquality'] = msg.linkquality;
-                return state;
-            }
-            return;
-        },
-    },
-    livolo_new_switch_state: {
-        cluster: 'genPowerCfg',
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            const stateHeader = Buffer.from([122, 209]);
-            if (msg.data.indexOf(stateHeader) === 0) {
-                const status = msg.data[14];
-                const state = {};
-                state['state'] = status & 1 ? 'ON' : 'OFF';
-                state['linkquality'] = msg.linkquality;
-                return state;
-            }
-            return;
-        },
-    },
-    livolo_switch_state_raw: {
-        cluster: 'genPowerCfg',
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-            header                ieee address            info data
-            new socket
-            [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
-            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
-            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
-            new switch
-            [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
-            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
-            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
-            old switch
-            [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,1] left: 1, right: 0
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,2] left: 0, right: 1
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,3] left: 1, right: 1
-            */
-            const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
-            const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
-            // status of old devices
-            if (msg.data.indexOf(malformedHeader) === 0) {
-                const status = msg.data[15];
-                console.log(`status of old devices`);
-                const state = {};
-                state['state_left'] = status & 1 ? 'ON' : 'OFF';
-                state['state_right'] = status & 2 ? 'ON' : 'OFF';
-                state['linkquality'] = msg.linkquality;
-                return state;
-            }
-            // info about device
-            if (msg.data.indexOf(infoHeader) === 0) {
-                if (msg.data.includes(Buffer.from([19, 7, 0]), 13)) {
-                    // new socket
-                    // hack
-                    meta.device.modelID = 'TI0001-socket';
-                    meta.device.save();
-                }
-                if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
-                    // new switch
-                    // hack
-                    meta.device.modelID = 'TI0001-switch';
-                    meta.device.save();
-                }
-                // if (msg.data.includes(Buffer.from([17, 0, 1]), 13)) {
-                //     // old switch
-                //     // hack
-                //     meta.device.modelID = 'TI0001-old-switch';
-                //     meta.device.save();
-                // }
-                return null;
-            }
-            return null;
-        },
-    },
-    eria_81825_updown: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            const direction = msg.data.stepmode === 0 ? 'up' : 'down';
-            return {action: `${direction}`};
-        },
-    },
-    ZYCT202_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'stop', action_group: msg.groupID};
-        },
-    },
-    ZYCT202_up_down: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['movemode'];
-            let action = null;
-            if (value === 0) action = {'action': 'up-press', 'action_group': msg.groupID};
-            else if (value === 1) action = {'action': 'down-press', 'action_group': msg.groupID};
-            return action ? action : null;
-        },
-    },
     generic_fan_mode: {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const key = getKey(common.fanMode, msg.data.fanMode);
             return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
-        },
-    },
-    RM01_on_click: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            return {action: `${button}_on`};
-        },
-    },
-    RM01_off_click: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            return {action: `${button}_off`};
-        },
-    },
-    RM01_down_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            return {
-                action: `${button}_down`,
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-        },
-    },
-    RM01_up_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            return {
-                action: `${button}_up`,
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-        },
-    },
-    RM01_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            return {action: `${button}_stop`};
-        },
-    },
-    insta_scene_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                action: `select_${msg.data.sceneid}`,
-            };
-        },
-    },
-    insta_down_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                action: 'down',
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-        },
-    },
-    insta_up_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                action: 'up',
-                step_mode: msg.data.stepmode,
-                step_size: msg.data.stepsize,
-                transition_time: msg.data.transtime,
-            };
-        },
-    },
-    insta_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                action: 'stop',
-            };
-        },
-    },
-    LZL4B_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                action: msg.data.level,
-                transition_time: msg.data.transtime,
-            };
         },
     },
     SZ_ESW01_AU_power: {
@@ -5295,262 +5966,6 @@ const converters = {
             if (msg.data.hasOwnProperty('instantaneousDemand')) {
                 return {power: precisionRound(msg.data['instantaneousDemand'] / 1000, 2)};
             }
-        },
-    },
-    meazon_meter: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            // typo on property name to stick with zcl definition
-            if (msg.data.hasOwnProperty('inletTempreature')) {
-                result.inletTemperature = precisionRound(msg.data['inletTempreature'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('status')) {
-                result.status = precisionRound(msg.data['status'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8192')) {
-                result.linefrequency = precisionRound((parseFloat(msg.data['8192'])) / 100.0, 2);
-            }
-
-            if (msg.data.hasOwnProperty('8193')) {
-                result.power = precisionRound(msg.data['8193'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8196')) {
-                result.voltage = precisionRound(msg.data['8196'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8213')) {
-                result.voltage = precisionRound(msg.data['8213'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8199')) {
-                result.current = precisionRound(msg.data['8199'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8216')) {
-                result.current = precisionRound(msg.data['8216'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('8202')) {
-                result.reactivepower = precisionRound(msg.data['8202'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('12288')) {
-                result.energyconsumed = precisionRound(msg.data['12288'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('12291')) {
-                result.energyproduced = precisionRound(msg.data['12291'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('12294')) {
-                result.reactivesummation = precisionRound(msg.data['12294'], 2);
-            }
-
-            if (msg.data.hasOwnProperty('16408')) {
-                result.measureserial = precisionRound(msg.data['16408'], 2);
-            }
-
-            return result;
-        },
-    },
-    ZNMS11LM_closuresDoorLock_report: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const lockStatusLookup = {
-                1: 'finger_not_match',
-                2: 'password_not_match',
-                3: 'reverse_lock', // disable open from outside
-                4: 'reverse_lock_cancel', // enable open from outside
-                5: 'locked',
-                6: 'lock_opened',
-                7: 'finger_add',
-                8: 'finger_delete',
-                9: 'password_add',
-                10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enbable
-                12: 'lock_opened_outside', // Open form outside reverse lock disable
-                13: 'ring_bell',
-                14: 'change_language_to',
-                15: 'finger_open',
-                16: 'password_open',
-                17: 'door_closed',
-            };
-            result.user = null;
-            result.repeat = null;
-            result.data = null;
-            if (msg.data['65296']) { // finger/password success
-                const data = msg.data['65296'].toString(16);
-                const command = data.substr(0, 1); // 1 finger open, 2 password open
-                const userId = data.substr(5, 2);
-                const userType = data.substr(1, 1); // 1 admin, 2 user
-                result.data = data;
-                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
-                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
-                result.user = parseInt(userId, 16);
-            } else if (msg.data['65297']) { // finger, password failed or bell
-                const data = msg.data['65297'].toString(16);
-                const times = data.substr(0, 1);
-                const type = data.substr(5, 2); // 00 bell, 02 password, 40 error finger
-                result.data = data;
-                if (type === '40') {
-                    result.action = lockStatusLookup[1];
-                    result.repeat = parseInt(times, 16);
-                } else if (type === '02') {
-                    result.action = lockStatusLookup[2];
-                    result.repeat = parseInt(times, 16);
-                } else if (type === '00') {
-                    result.action = lockStatusLookup[13];
-                    result.repeat = null;
-                }
-            } else if (msg.data['65281'] && msg.data['65281']['1']) { // user added/delete
-                const data = msg.data['65281']['1'].toString(16);
-                const command = data.substr(0, 1); // 1 add, 2 delete
-                const userId = data.substr(5, 2);
-                result.data = data;
-                result.action = lockStatusLookup[6+parseInt(command, 16)];
-                result.user = parseInt(userId, 16);
-                result.repeat = null;
-            }
-            return result;
-        },
-    },
-    ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const lockStatusLookup = {
-                1: 'finger_not_match',
-                2: 'password_not_match',
-                3: 'reverse_lock', // disable open from outside
-                4: 'reverse_lock_cancel', // enable open from outside
-                5: 'locked',
-                6: 'lock_opened',
-                7: 'finger_add',
-                8: 'finger_delete',
-                9: 'password_add',
-                10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enbable
-                12: 'lock_opened_outside', // Open form outside reverse lock disable
-                13: 'ring_bell',
-                14: 'change_language_to',
-                15: 'finger_open',
-                16: 'password_open',
-                17: 'door_closed',
-            };
-            result.user = null;
-            result.repeat = null;
-            if (msg.data['65526']) { // lock final status
-                // Convert data back to hex to decode
-                const data = Buffer.from(msg.data['65526'], 'ascii').toString('hex');
-                const command = data.substr(6, 4);
-                if (
-                    command === '0301' || // ZNMS12LM
-                        command === '0341' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[4];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0311' || // ZNMS12LM
-                        command === '0351' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[4];
-                    result.state = 'LOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0205' || // ZNMS12LM
-                        command === '0245' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[3];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'LOCK';
-                } else if (
-                    command === '0215' || // ZNMS12LM
-                        command === '0255' || // ZNMS13LM
-                        command === '1355' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[3];
-                    result.state = 'LOCK';
-                    result.reverse = 'LOCK';
-                } else if (
-                    command === '0111' || // ZNMS12LM
-                        command === '1351' || // ZNMS13LM locked from inside
-                        command === '1451' // ZNMS13LM locked from outside
-                ) {
-                    result.action = lockStatusLookup[5];
-                    result.state = 'LOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0b00' || // ZNMS12LM
-                        command === '0640' || // ZNMS13LM
-                        command === '0600' // ZNMS13LM
-
-                ) {
-                    result.action = lockStatusLookup[12];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0c00' || // ZNMS12LM
-                        command === '2300' || // ZNMS13LM
-                        command === '0540' || // ZNMS13LM
-                        command === '0440' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[11];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '2400' || // ZNMS13LM door closed from insed
-                        command === '2401' // ZNMS13LM door closed from outside
-                ) {
-                    result.action = lockStatusLookup[17];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                }
-            } else if (msg.data['65296']) { // finger/password success
-                const data = Buffer.from(msg.data['65296'], 'ascii').toString('hex');
-                const command = data.substr(6, 2); // 1 finger open, 2 password open
-                const userId = data.substr(12, 2);
-                const userType = data.substr(8, 1); // 1 admin, 2 user
-                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
-                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
-                result.user = parseInt(userId, 16);
-            } else if (msg.data['65297']) { // finger, password failed or bell
-                const data = Buffer.from(msg.data['65297'], 'ascii').toString('hex');
-                const times = data.substr(6, 2);
-                const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
-                if (type === '40') {
-                    result.action = lockStatusLookup[1];
-                    result.repeat = parseInt(times, 16);
-                } else if (type === '00') {
-                    result.action = lockStatusLookup[13];
-                    result.repeat = null;
-                } else if (type === '02') {
-                    result.action = lockStatusLookup[2];
-                    result.repeat = parseInt(times, 16);
-                }
-            } else if (msg.data['65281']) { // password added/delete
-                const data = Buffer.from(msg.data['65281'], 'ascii').toString('hex');
-                const command = data.substr(18, 2); // 1 add, 2 delete
-                const userId = data.substr(12, 2);
-                result.action = lockStatusLookup[6+parseInt(command, 16)];
-                result.user = parseInt(userId, 16);
-                result.repeat = null;
-            } else if (msg.data['65522']) { // set languge
-                const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
-                const langId = data.substr(6, 2); // 1 chinese, 2: english
-                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
-                result.user = null;
-                result.repeat = null;
-            }
-            return result;
         },
     },
     ZNMS12LM_low_battery: {
@@ -5583,171 +5998,11 @@ const converters = {
             };
         },
     },
-    linkquality_from_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {linkquality: msg.linkquality};
-        },
-    },
-    ptvo_switch_state: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const key = `state_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-            const payload = {};
-            payload[key] = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
-            return payload;
-        },
-    },
-    ptvo_switch_uart: {
-        cluster: 'genMultistateValue',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let data = msg.data['stateText'];
-            if (typeof data === 'object') {
-                let bHex = false;
-                let code;
-                let index;
-                for (index = 0; index < data.length; index += 1) {
-                    code = data[index];
-                    if ((code < 32) || (code > 127)) {
-                        bHex = true;
-                        break;
-                    }
-                }
-                if (!bHex) {
-                    data = data.toString('latin1');
-                } else {
-                    data = [...data];
-                }
-            }
-            return {'action': data};
-        },
-    },
-    ptvo_switch_analog_input: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            const channel = msg.endpoint.ID;
-            const name = `l${channel}`;
-            payload[name] = precisionRound(msg.data['presentValue'], 3);
-            if (msg.data.hasOwnProperty('description')) {
-                const data1 = msg.data['description'];
-                if (data1) {
-                    const data2 = data1.split(',');
-                    const devid = data2[1];
-                    const unit = data2[0];
-                    if (devid) {
-                        payload['device_' + name] = devid;
-                    }
-
-                    const valRaw = msg.data['presentValue'];
-                    if (unit) {
-                        let val = precisionRound(valRaw, 1);
-
-                        const nameLookup = {
-                            'C': 'temperature',
-                            '%': 'humidity',
-                            'm': 'altitude',
-                            'Pa': 'pressure',
-                            'ppm': 'quality',
-                            'psize': 'particle_size',
-                            'V': 'voltage',
-                            'A': 'current',
-                            'Wh': 'energy',
-                            'W': 'power',
-                            'Hz': 'frequency',
-                            'pf': 'power_factor',
-                            'lx': 'illuminance_lux',
-                        };
-
-                        let nameAlt = '';
-                        if (unit === 'A') {
-                            if (valRaw < 1) {
-                                val = precisionRound(valRaw, 3);
-                            }
-                        }
-                        if (unit.startsWith('mcpm') || unit.startsWith('ncpm')) {
-                            const num = unit.substr(4, 1);
-                            nameAlt = (num === 'A')? unit.substr(0, 4) + '10': unit;
-                            val = precisionRound(valRaw, 2);
-                        } else {
-                            nameAlt = nameLookup[unit];
-                        }
-                        if (nameAlt === undefined) {
-                            const valueIndex = parseInt(unit, 10);
-                            if (! isNaN(valueIndex)) {
-                                nameAlt = 'val' + unit;
-                            }
-                        }
-
-                        if (nameAlt !== undefined) {
-                            payload[nameAlt + '_' + name] = val;
-                        }
-                    }
-                }
-            }
-            return payload;
-        },
-    },
-    ptvo_switch_level_control: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            const channel = msg.endpoint.ID;
-            const name = `l${channel}`;
-            payload[name] = msg.data['currentLevel'];
-            payload['brightness_' + name] = msg.data['currentLevel'];
-            return payload;
-        },
-    },
-    keypad20states: {
-        cluster: 'genOnOff',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const state = msg.data['onOff'] === 1 ? true : false;
-            if (button) {
-                return {[button]: state};
-            }
-        },
-    },
-    keypad20_battery: {
-        cluster: 'genPowerCfg',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const battery = {max: 3000, min: 2100};
-            const voltage = msg.data['mainsVoltage'] /10;
-            return {
-                battery: toPercentage(voltage, battery.min, battery.max),
-                voltage: voltage, // @deprecated
-                // voltage: voltage / 1000.0,
-            };
-        },
-    },
     dimmer_passthru_brightness: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveToLevelWithOnOff',
         convert: (model, msg, publish, options, meta) => {
             ratelimitedDimmer(model, msg, publish, options, meta);
-        },
-    },
-    terncy_contact: {
-        cluster: 'genBinaryInput',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: (msg.data['presentValue']==0)};
-        },
-    },
-    terncy_temperature: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
-            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     terncy_knob: {
@@ -5760,68 +6015,6 @@ const converters = {
                     direction: (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise'),
                     number: (Math.abs(msg.data['27']) / 12),
                 };
-            }
-        },
-    },
-    orvibo_raw: {
-        cluster: 23,
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            // 25,0,8,3,0,0 - click btn 1
-            // 25,0,8,3,0,2 - hold btn 1
-            // 25,0,8,3,0,3 - release btn 1
-            // 25,0,8,11,0,0 - click btn 2
-            // 25,0,8,11,0,2 - hold btn 2
-            // 25,0,8,11,0,3 - release btn 2
-            // 25,0,8,7,0,0 - click btn 3
-            // 25,0,8,7,0,2 - hold btn 3
-            // 25,0,8,7,0,3 - release btn 3
-            // 25,0,8,15,0,0 - click btn 4
-            // 25,0,8,15,0,2 - hold btn 4
-            // 25,0,8,15,0,3 - release btn 4
-            // TODO: do not know how to get to use 5,6,7,8 buttons
-            const buttonLookup = {
-                3: 'button_1',
-                11: 'button_2',
-                7: 'button_3',
-                15: 'button_4',
-            };
-
-            const actionLookup = {
-                0: 'click',
-                2: 'hold',
-                3: 'release',
-            };
-            const button = buttonLookup[msg.data[3]];
-            const action = actionLookup[msg.data[5]];
-            if (button) {
-                return {action: `${button}_${action}`};
-            }
-        },
-    },
-    orvibo_raw2: {
-        cluster: 23,
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const buttonLookup = {
-                1: 'button_1',
-                2: 'button_2',
-                3: 'button_3',
-                4: 'button_4',
-                5: 'button_5',
-                6: 'button_6',
-                7: 'button_7',
-            };
-
-            const actionLookup = {
-                0: 'click',
-                2: 'hold',
-                3: 'release',
-            };
-            const button = buttonLookup[msg.data[3]];
-            const action = actionLookup[msg.data[5]];
-            if (button) {
-                return {action: `${button}_${action}`};
             }
         },
     },
@@ -6063,54 +6256,6 @@ const converters = {
                     result['keypad_lockout'] = false;
                 }
             }
-            return result;
-        },
-    },
-    silvercrest_smart_led_string: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-            const result = {};
-
-            if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
-                if (value !== common.silvercrestModes.effect) {
-                    result.effect = null;
-                }
-            } if (dp === common.TuyaDataPoints.silvercrestSetBrightness) {
-                result.brightness = (value / 1000) * 255;
-            } else if (dp === common.TuyaDataPoints.silvercrestSetColor) {
-                const h = parseInt(value.substring(0, 4), 16);
-                const s = parseInt(value.substring(4, 8), 16);
-                const b = parseInt(value.substring(8, 12), 16);
-                result.color = {b: (b / 1000) * 255, h, s: s / 10};
-                result.brightness = result.color.b;
-            } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
-                result.effect = {
-                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
-                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
-                    colors: [],
-                };
-
-                const colorsString = value.substring(4);
-                // Colors are 6 characters.
-                const n = Math.floor(colorsString.length / 6);
-
-                // The incoming message can contain anywhere between 0 to 6 colors.
-                // In the following loop we're extracting every color the led
-                // string gives us.
-                for (let i = 0; i < n; ++i) {
-                    const part = colorsString.substring(i * 6, (i + 1) * 6);
-                    const r = part[0]+part[1]; const g = part[2]+part[3]; const b = part[4]+part[5];
-                    result.effect.colors.push({
-                        r: parseInt(r, 16),
-                        g: parseInt(g, 16),
-                        b: parseInt(b, 16),
-                    });
-                }
-            }
-
             return result;
         },
     },
@@ -6419,96 +6564,6 @@ const converters = {
             }
         },
     },
-    neo_t_h_alarm: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-            switch (dp) {
-            case common.TuyaDataPoints.neoAlarm:
-                return {alarm: value};
-            case common.TuyaDataPoints.neoUnknown2: // 0x0170 [0]
-                break;
-            case common.TuyaDataPoints.neoTempAlarm:
-                return {temperature_alarm: value};
-            case common.TuyaDataPoints.neoHumidityAlarm: // 0x0172 [0]/[1] Disable/Enable alarm by humidity
-                return {humidity_alarm: value};
-            case common.TuyaDataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
-                return {duration: value};
-            case common.TuyaDataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
-                return {temperature: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
-                return {humidity: value};
-            case common.TuyaDataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
-                return {temperature_min: value};
-            case common.TuyaDataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
-                return {temperature_max: value};
-            case common.TuyaDataPoints.neoMinHumidity: // 0x026D [0,0,0,45] min alarm humidity
-                return {humidity_min: value};
-            case common.TuyaDataPoints.neoMaxHumidity: // 0x026E [0,0,0,80] max alarm humidity
-                return {humidity_max: value};
-            case common.TuyaDataPoints.neoUnknown1: // 0x0465 [4]
-                break;
-            case common.TuyaDataPoints.neoMelody: // 0x0466 [5] Melody
-                return {melody: value};
-            case common.TuyaDataPoints.neoUnknown3: // 0x0473 [0]
-                break;
-            case common.TuyaDataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
-                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
-            default: // Unknown code
-                console.log(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
-            }
-        },
-    },
-    ts0216_siren: {
-        cluster: 'ssIasWd',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('maxDuration')) result['duration'] = msg.data.maxDuration;
-            if (msg.data.hasOwnProperty('2')) result['volume'] = msg.data['2'];
-            if (msg.data.hasOwnProperty('61440')) {
-                result['alarm'] = (msg.data['61440'] == 0) ? false : true;
-            }
-            return result;
-        },
-    },
-    tuya_cover_options: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('tuyaMovingState')) {
-                const value = msg.data['tuyaMovingState'];
-                const movingLookup = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
-                result.moving = movingLookup[value];
-            }
-            if (msg.data.hasOwnProperty('tuyaCalibration')) {
-                const value = msg.data['tuyaCalibration'];
-                const calibrationLookup = {0: 'ON', 1: 'OFF'};
-                result.calibration = calibrationLookup[value];
-            }
-            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
-                const value = msg.data['tuyaMotorReversal'];
-                const reversalLookup = {0: 'OFF', 1: 'ON'};
-                result.motor_reversal = reversalLookup[value];
-            }
-            return result;
-        },
-    },
-    tuya_backlight_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
-                return {backlight_mode: backlightLookup[value]};
-            }
-        },
-    },
     hy_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
@@ -6589,32 +6644,6 @@ const converters = {
                 console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
-        },
-    },
-    hy_thermostat_on_set_data: {
-        cluster: 'manuSpecificTuya',
-        type: 'commandSetDataResponse',
-        convert: (model, msg, publish, options, meta) => {
-            return converters.hy_thermostat.convert(model, msg, publish, options, meta);
-        },
-    },
-    hy_set_time_request: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetTimeRequest'],
-        convert: async (model, msg, publish, options, meta) => {
-            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-            const currentTime = new Date().getTime();
-            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
-            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
-            const endpoint = msg.device.getEndpoint(1);
-            const payload = {
-                payloadSize: 8,
-                payload: [
-                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
-                ],
-            };
-            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
         },
     },
 

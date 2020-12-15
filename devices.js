@@ -2181,10 +2181,7 @@ const devices = [
         model: 'HY08WE',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [
-            fz.hy_thermostat, fz.hy_thermostat_on_set_data, fz.ignore_basic_report,
-            fz.hy_set_time_request,
-        ],
+        fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report, fz.hy_set_time_request],
         toZigbee: [tz.hy_thermostat],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
@@ -4254,8 +4251,8 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
         fromZigbee: [
-            fz.ptvo_switch_state, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input, fz.ptvo_switch_level_control, fz.ignore_basic_report,
+            fz.on_off, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ptvo_switch_uart,
+            fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input,
             tz.ptvo_switch_light_brightness, tz.on_off,
@@ -4589,7 +4586,7 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
         fromZigbee: [
-            fz.ptvo_switch_state, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
+            fz.on_off, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
         ],
         extend: generic.switch,
         exposes: [
@@ -7707,10 +7704,7 @@ const devices = [
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
         description: 'Arrival sensor',
-        fromZigbee: [
-            fz.STS_PRS_251_presence, fz.battery,
-            fz.STS_PRS_251_beeping,
-        ],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.legacy_STS_PRS_251_beeping],
         exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', exposes.access.SET, [''])],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
@@ -8144,7 +8138,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Remote control',
         fromZigbee: [
-            fz.command_on, fz.command_off_with_effect, fz.ZYCT202_stop, fz.ZYCT202_up_down,
+            fz.command_on, fz.command_off_with_effect, fz.legacy_ZYCT202_stop, fz.legacy_ZYCT202_up_down,
         ],
         exposes: [e.action(['on', 'off', 'stop', 'up-press', 'down-press'])],
         toZigbee: [],
@@ -8293,7 +8287,7 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_toggle, fz.command_step,
             fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_stop,
             fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
-            fz.tint404011_scene,
+            fz.tint_scene,
         ],
         toZigbee: [],
         exposes: [e.action([
@@ -8310,7 +8304,7 @@ const devices = [
             fz.command_on, fz.command_off, fz.command_toggle, fz.command_step,
             fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_stop,
             fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
-            fz.tint404011_scene, fz.command_recall,
+            fz.tint_scene, fz.command_recall,
         ],
         exposes: [e.action([
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
@@ -9148,7 +9142,7 @@ const devices = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.legacy_heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
@@ -9164,7 +9158,7 @@ const devices = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.legacy_heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
@@ -9964,7 +9958,7 @@ const devices = [
             'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop',
         ])],
-        meta: {configureKey: 3},
+        meta: {configureKey: 3, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             let firstEndpoint = 0x0a;
 
@@ -9995,8 +9989,8 @@ const devices = [
             }
         },
         fromZigbee: [
-            fz.ignore_basic_report, fz.on_off, fz.brightness, fz.RM01_on_click, fz.RM01_off_click,
-            fz.RM01_up_hold, fz.RM01_down_hold, fz.RM01_stop,
+            fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy_RM01_on_click, fz.legacy_RM01_off_click,
+            fz.legacy_RM01_up_hold, fz.legacy_RM01_down_hold, fz.legacy_RM01_stop,
         ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
         onEvent: async (type, data, device) => {
@@ -10089,9 +10083,9 @@ const devices = [
         description: 'Tint remote control',
         vendor: 'Müller Licht',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_toggle, fz.tint404011_brightness_updown_click,
-            fz.tint404011_move_to_color_temp, fz.tint404011_move_to_color, fz.tint404011_scene,
-            fz.tint404011_brightness_updown_release, fz.tint404011_brightness_updown_hold,
+            fz.command_on, fz.command_off, fz.command_toggle, fz.legacy_tint404011_brightness_updown_click,
+            fz.legacy_tint404011_move_to_color_temp, fz.legacy_tint404011_move_to_color, fz.tint_scene,
+            fz.legacy_tint404011_brightness_updown_release, fz.legacy_tint404011_brightness_updown_hold,
         ],
         exposes: [e.action([
             'on', 'off', 'toggle', 'brightness_down_click', 'brightness_up_click', 'color_temp', 'color_wheel',
@@ -10260,7 +10254,7 @@ const devices = [
         model: '81825',
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.eria_81825_updown],
+        fromZigbee: [fz.command_on, fz.command_off, fz.legacy_eria_81825_updown],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -10304,11 +10298,7 @@ const devices = [
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
-        fromZigbee: [
-            fz.battery,
-            fz.thermostat_att_report,
-            fz.danfoss_thermostat_att_report,
-        ],
+        fromZigbee: [fz.battery, fz.thermostat_att_report, fz.danfoss_thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature,
@@ -10995,7 +10985,7 @@ const devices = [
         model: 'LVS-SC7',
         vendor: 'LivingWise',
         description: 'Scene controller ',
-        fromZigbee: [fz.orvibo_raw2],
+        fromZigbee: [fz.orvibo_raw_2],
         exposes: [e.action([
             'button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
             'button_3_click', 'button_3_hold', 'button_3_release', 'button_4_click', 'button_4_hold', 'button_4_release',
@@ -11814,8 +11804,8 @@ const devices = [
             {vendor: 'Jung', model: 'ZLLHS4'},
         ],
         fromZigbee: [
-            fz.insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.insta_down_hold,
-            fz.insta_up_hold, fz.insta_stop,
+            fz.legacy_insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.legacy_insta_down_hold,
+            fz.legacy_insta_up_hold, fz.legacy_insta_stop,
         ],
         exposes: [e.action(['select_*', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
@@ -12364,8 +12354,7 @@ const devices = [
             fz.hvac_user_interface,
             fz.ignore_temperature_report,
             fz.sinope_thermostat_state,
-            fz.sinope_GFCi_status,
-            fz.sinope_floor_limit_status,
+            fz.sinope_TH1300ZB_specific,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -12549,7 +12538,7 @@ const devices = [
         model: 'LZL4BWHL01',
         vendor: 'Lutron',
         description: 'Connected bulb remote control',
-        fromZigbee: [fz.insta_down_hold, fz.insta_up_hold, fz.LZL4B_onoff, fz.insta_stop],
+        fromZigbee: [fz.legacy_insta_down_hold, fz.legacy_insta_up_hold, fz.legacy_LZL4B_onoff, fz.legacy_insta_stop],
         toZigbee: [],
         exposes: [e.action(['down', 'up', 'stop'])],
     },
@@ -13281,7 +13270,7 @@ const devices = [
         model: 'CR11S8UZ',
         vendor: 'ORVIBO',
         description: 'Smart sticker switch',
-        fromZigbee: [fz.orvibo_raw],
+        fromZigbee: [fz.orvibo_raw_1],
         exposes: [e.action([
             'button_1_click', 'button_1_hold', 'button_1_release',
             'button_2_click', 'button_2_hold', 'button_2_release',
