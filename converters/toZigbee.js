@@ -3118,10 +3118,19 @@ const converters = {
         },
     },
     // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
+    // and string values is allowed too
     moes_thermostat_sensor: {
         key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSensor, value);
+            if (typeof value === 'string') {
+                const lookup = {'IN': 0, 'AL': 1, 'OU': 2};
+                value = lookup.hasOwnProperty(value) ? lookup[value] : -1;
+            }
+            if ((typeof value === 'number') && (value >=0) && (value <=2)) {
+                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSensor, value);
+            } else {
+                throw new Error(`Unsupported value: ${value}`);
+            }
         },
     },
     etop_thermostat_system_mode: {
