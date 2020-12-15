@@ -13853,17 +13853,17 @@ const devices = [
     },
 
     // Moes
-{
+    {
         fingerprint: [
             {modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
         ],
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
-    vendor: 'Moes',
-    extend: generic.switch,
+        vendor: 'Moes',
+        extend: generic.switch,
         meta: {configureKey: 1},
-    configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             try {
@@ -13873,8 +13873,8 @@ const devices = [
             } catch (e) {
                 e;
             }
+        },
     },
-},
     {
         zigbeeModel: ['TS0112'],
         model: 'ZK-EU-2U',
