@@ -7148,6 +7148,13 @@ const devices = [
         extend: gledopto.light_onoff_brightness_colortemp_colorxy,
     },
     {
+        zigbeeModel: ['GL-G-001ZS'],
+        model: 'GL-G-001ZS',
+        vendor: 'Gledopto',
+        description: 'Smart garden lamp',
+        extend: gledopto.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['GL-G-001P'],
         model: 'GL-G-001P',
         vendor: 'Gledopto',
