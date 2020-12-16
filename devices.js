@@ -15799,7 +15799,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageDivisor: 100});       
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageDivisor: 100});
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
