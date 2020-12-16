@@ -1395,6 +1395,15 @@ const devices = [
             await configureReporting.deviceTemperature(endpoint);
         },
     },
+    {
+        zigbeeModel: ['lumi.switch.l0agl1'],
+        model: 'SSM-U02',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
+        fromZigbee: [fz.on_off],
+        exposes: [e.switch()],
+        toZigbee: [tz.on_off],
+    },
 
     // TuYa
     {
