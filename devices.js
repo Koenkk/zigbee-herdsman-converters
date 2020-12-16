@@ -2213,7 +2213,7 @@ const devices = [
 
     // Neo
     {
-        zigbeeModel: ['0yu2xgi'],
+        zigbeeModel: ['0yu2xgi', 'TS0601'],
         model: 'NAS-AB02B0',
         vendor: 'Neo',
         description: 'Temperature & humidity sensor and alarm',
