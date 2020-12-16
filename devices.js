@@ -15786,6 +15786,23 @@ const devices = [
         toZigbee: [],
         exposes: [e.smoke()],
     },
+
+    {
+        zigbeeModel: ['PoP'],
+        model: 'HLU2909K',
+        vendor: 'Datek',
+        description: 'APEX Smart plug 16A',
+        fromZigbee: [fz.electrical_measurement_power, fz.on_off, fz.metering_power],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageDivisor: 100});       
+        },
+        exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+    },
 ];
 
 
