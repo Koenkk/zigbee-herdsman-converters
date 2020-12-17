@@ -4009,7 +4009,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LOM002'],
+        zigbeeModel: ['LOM002', 'LOM004'],
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
