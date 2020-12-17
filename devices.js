@@ -13866,6 +13866,26 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_pmz6mjyu'}],
+        model: 'MS-104BZ',
+        description: 'Smart light switch module (2 gang)',
+        vendor: 'Moes',
+        extend: generic.switch,
+        meta: {configureKey: 1, multiEndpoint: true},
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint2);
+        },
+    },
+    {
         zigbeeModel: ['TS0112'],
         model: 'ZK-EU-2U',
         vendor: 'Moes',
