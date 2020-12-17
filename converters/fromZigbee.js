@@ -2945,6 +2945,27 @@ const converters = {
             }
         },
     },
+    legrand_device_mode: {
+        cluster: 'manuSpecificLegrandDevices',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const option0 = msg.data['0'];
+            // Beware that mode depends on device type
+            // contactor
+            if (option0 === 0x0003) payload.device_mode = 'switch';
+            else if (option0 === 0x0004) payload.device_mode = 'auto';
+            // dimmer
+            else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
+            else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
+            // unknown case
+            else {
+                meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
+                payload.device_mode = 'unknown';
+            }
+            return payload;
+        },
+    },
     legrand_power_alarm: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
