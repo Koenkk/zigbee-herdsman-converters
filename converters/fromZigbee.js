@@ -3175,12 +3175,15 @@ const converters = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            // also trigger movement, because there is no illuminance without movement
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
+            msg.data.occupancy = 1;
+            const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
-            return {
-                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
-            };
+            payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
+            payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
+            return payload;
         },
     },
     xiaomi_WXKG01LM_action: {
