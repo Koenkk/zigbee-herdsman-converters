@@ -1400,9 +1400,7 @@ const devices = [
         model: 'SSM-U02',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.on_off],
-        exposes: [e.switch()],
-        toZigbee: [tz.on_off],
+        extend: generic.switch,
     },
 
     // TuYa
