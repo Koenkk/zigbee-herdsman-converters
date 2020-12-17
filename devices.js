@@ -2611,7 +2611,8 @@ const devices = [
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
         fromZigbee: [
-            fz.battery, fz.E1524_E1810_levelctrl, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold, fz.E1524_E1810_arrow_release,
+            fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold,
+            fz.E1524_E1810_arrow_release,
         ],
         exposes: [e.battery(), e.action([
             'toggle', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold', 'arrow_right_hold', 'arrow_left_release',
