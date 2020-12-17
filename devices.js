@@ -14135,11 +14135,9 @@ const devices = [
         fromZigbee: [
             fz.identify, fz.on_off, fz.electrical_measurement_power, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta,
         ],
-        toZigbee: [
-            tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.legrand_readActivePower,
-        ],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.legrand_readActivePower],
         exposes: [
-            e.switch().withDescription('On/Off (works only if device is in "switch" mode)'),
+            exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
             e.power(),
