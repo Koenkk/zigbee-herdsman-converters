@@ -93,14 +93,14 @@ async function setupHaElectricalMeasurementPolling(type, data, device, options) 
     if (type === 'stop') {
         clearInterval(store[device.ieeeAddr]);
     } else if (!store[device.ieeeAddr]) {
-        const interval = options && options.measurement_poll_interval ? options.measurement_poll_interval : 10;
+        const interval = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
         store[device.ieeeAddr] = setInterval(async () => {
             try {
                 await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
             } catch (error) {
                 // Do nothing
             }
-        }, interval*1000); // Every 10 seconds
+        }, interval*1000);
     }
 }
 
