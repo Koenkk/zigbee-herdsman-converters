@@ -15787,11 +15787,12 @@ const devices = [
         exposes: [e.smoke()],
     },
 
+    // Datek
     {
         zigbeeModel: ['PoP'],
         model: 'HLU2909K',
         vendor: 'Datek',
-        description: 'APEX Smart plug 16A',
+        description: 'APEX smart plug 16A',
         fromZigbee: [fz.electrical_measurement_power, fz.on_off, fz.metering_power],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
