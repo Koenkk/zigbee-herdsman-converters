@@ -2594,6 +2594,13 @@ const converters = {
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
+    E1524_E1810_toggle: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: postfixWithEndpointName('toggle', msg, model)};
+        },
+    },
     E1524_E1810_arrow_click: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
@@ -2634,7 +2641,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: [
             'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
-            'commandMoveToLevelWithOnOff', 'commandToggle',
+            'commandMoveToLevelWithOnOff',
         ],
         convert: (model, msg, publish, options, meta) => {
             const lookup = {
@@ -2645,7 +2652,6 @@ const converters = {
                 commandMove: 'brightness_down_hold',
                 commandStop: 'brightness_down_release',
                 commandMoveToLevelWithOnOff: 'toggle_hold',
-                commandToggle: 'toggle',
             };
             return {action: lookup[msg.type]};
         },
