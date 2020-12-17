@@ -2807,23 +2807,21 @@ const converters = {
         key: ['device_mode'],
         convertSet: async (entity, key, value, meta) => {
             // enable the dimmer, requires a recent firmware on the device
-            if ( key == 'device_mode') {
-                const lookup = {
-                    // dimmer
-                    'dimmer_on': 0x0101,
-                    'dimmer_off': 0x0100,
-                    // contactor
-                    'switch': 0x0003,
-                    'auto': 0x0004,
-                };
-                // ensure mode is known
-                if (!(value in lookup)) {
-                    throw new Error(`device_mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
-                }
-                const payload = {0: {value: lookup[value], type: 9}};
-                await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
-                return {state: {'device_mode': value}};
+            const lookup = {
+                // dimmer
+                'dimmer_on': 0x0101,
+                'dimmer_off': 0x0100,
+                // contactor
+                'switch': 0x0003,
+                'auto': 0x0004,
+            };
+            // ensure mode is known
+            if (!(value in lookup)) {
+                throw new Error(`device_mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
             }
+            const payload = {0: {value: lookup[value], type: 9}};
+            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+            return {state: {'device_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], options.legrand);
