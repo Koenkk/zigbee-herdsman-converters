@@ -807,7 +807,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
-                return {occupancy: msg.data.occupancy === 1};
+                return {occupancy: (msg.data.occupancy % 2) > 0};
             }
         },
     },
