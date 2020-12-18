@@ -205,17 +205,6 @@ function isInRange(min, max, value) {
 const getRandomInt = (min, max) =>
     Math.floor(Math.random() * (max - min)) + min;
 
-const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks) => {
-    // Destructuring "chunks" is needed because it's a Buffer
-    // and we need a simple array.
-    let value = 0;
-    for (let i = 0; i < chunks.length; i++) {
-        value = value << 8;
-        value += chunks[i];
-    }
-    return value;
-};
-
 const convertDecimalValueTo2ByteHexArray = (value) => {
     const hexValue = Number(value).toString(16).padStart(4, '0');
     const chunk1 = hexValue.substr(0, 2);
@@ -351,7 +340,6 @@ module.exports = {
     gammaCorrectRGB,
     getRandomInt,
     isInRange,
-    convertMultiByteNumberPayloadToSingleDecimalNumber,
     convertDecimalValueTo2ByteHexArray,
     convertDecimalValueTo4ByteHexArray,
     replaceInArray,

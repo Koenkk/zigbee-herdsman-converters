@@ -1766,7 +1766,7 @@ const devices = [
         meta: {tuyaThermostatPreset: common.TuyaThermostatPresets},
         ota: ota.zigbeeOTA,
         onEvent: tuya.setLocalTime,
-        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_ignore_set_time_request],
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time_request],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_auto_lock,
@@ -1788,10 +1788,10 @@ const devices = [
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
         fromZigbee: [
-            fz.tuya_thermostat_weekly_schedule,
+            fz.legacy.tuya_thermostat_weekly_schedule,
             fz.etop_thermostat,
             fz.ignore_basic_report,
-            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_tuya_set_time_request, // handled in onEvent
         ],
         toZigbee: [
             tz.etop_thermostat_system_mode,
@@ -1819,10 +1819,10 @@ const devices = [
         vendor: 'ETOP',
         description: 'Radiator valve',
         fromZigbee: [
-            fz.tuya_thermostat_weekly_schedule,
+            fz.legacy.tuya_thermostat_weekly_schedule,
             fz.etop_thermostat,
             fz.ignore_basic_report,
-            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_tuya_set_time_request, // handled in onEvent
         ],
         toZigbee: [
             tz.etop_thermostat_system_mode,
@@ -3891,8 +3891,8 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue dimmer switch',
         fromZigbee: [
-            fz._324131092621_ignore_on, fz._324131092621_ignore_off, fz._324131092621_ignore_step,
-            fz._324131092621_ignore_stop, fz._324131092621_notification,
+            fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step,
+            fz.ignore_command_stop, fz._324131092621_notification,
             fz.battery,
         ],
         exposes: [e.battery(), e.action([
@@ -10602,10 +10602,10 @@ const devices = [
         vendor: 'Immax',
         description: 'Radiator valve',
         fromZigbee: [
-            fz.tuya_thermostat_weekly_schedule,
+            fz.legacy.tuya_thermostat_weekly_schedule,
             fz.etop_thermostat,
             fz.ignore_basic_report,
-            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_tuya_set_time_request, // handled in onEvent
         ],
         toZigbee: [
             tz.etop_thermostat_system_mode,
@@ -13121,7 +13121,7 @@ const devices = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [fz.ubisys_c4_scenes, fz.ubisys_c4_onoff, fz.ubisys_c4_level, fz.ubisys_c4_cover],
+        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover],
         toZigbee: [tz.ubisys_device_setup],
         exposes: [e.action([
             '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
@@ -13937,9 +13937,9 @@ const devices = [
         description: 'Thermostatic radiator valve',
         fromZigbee: [
             fz.saswell_thermostat,
-            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_tuya_set_time_request, // handled in onEvent
             fz.ignore_basic_report,
-            fz.tuya_thermostat_weekly_schedule,
+            fz.legacy.tuya_thermostat_weekly_schedule,
         ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
@@ -13984,9 +13984,9 @@ const devices = [
         ],
         fromZigbee: [
             fz.saswell_thermostat,
-            fz.tuya_ignore_set_time_request, // handled in onEvent
+            fz.ignore_tuya_set_time_request, // handled in onEvent
             fz.ignore_basic_report,
-            fz.tuya_thermostat_weekly_schedule,
+            fz.legacy.tuya_thermostat_weekly_schedule,
         ],
         toZigbee: [
             tz.saswell_thermostat_current_heating_setpoint,
@@ -14032,7 +14032,7 @@ const devices = [
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
             fz.legacy.wiser_thermostat,
-            fz.wiser_itrv_battery,
+            fz.legacy.wiser_itrv_battery,
             fz.hvac_user_interface,
             fz.wiser_device_info,
         ],

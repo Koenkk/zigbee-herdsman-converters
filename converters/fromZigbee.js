@@ -12,37 +12,13 @@
 const common = require('./common');
 const utils = require('./utils');
 const {precisionRound, isLegacyEnabled, toLocalISOString} = require('../lib/utils');
+const tuya = require('../lib/tuya');
 const globalStore = require('./store');
-
-const occupancyTimeout = 90; // In seconds
 
 const defaultPrecision = {
     temperature: 2,
     humidity: 2,
     pressure: 1,
-};
-
-const tuyaGetDataValue = (dataType, data) => {
-    switch (dataType) {
-    case common.TuyaDataTypes.raw:
-        return data;
-    case common.TuyaDataTypes.bool:
-        return data[0] === 1;
-    case common.TuyaDataTypes.value:
-        return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-    case common.TuyaDataTypes.string:
-        // eslint-disable-next-line
-        let dataString = '';
-        // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
-        for (let i = 0; i < data.length; ++i) {
-            dataString += String.fromCharCode(data[i]);
-        }
-        return dataString;
-    case common.TuyaDataTypes.enum:
-        return data[0];
-    case common.TuyaDataTypes.bitmap:
-        return utils.convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-    }
 };
 
 const calibrateAndPrecisionRoundOptions = (number, options, type) => {
@@ -146,345 +122,6 @@ const holdUpdateBrightness324131092621 = (deviceID) => {
         const delta = (duration / 10) * (store[deviceID].brightnessDirection === 'up' ? 1 : -1);
         const newValue = store[deviceID].brightnessValue + delta;
         store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
-    }
-};
-
-const moesThermostat = (model, msg, publish, options, meta) => {
-    const dp = msg.data.dp;
-    const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-    let temperature;
-    /* See tuyaThermostat above for message structure comment */
-    switch (dp) {
-    case common.TuyaDataPoints.moesSchedule:
-        return {
-            program: [
-                {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
-                {p2: value[3] + 'h:' + value[4] + 'm ' + value[5] + '°C'},
-                {p3: value[6] + 'h:' + value[7] + 'm ' + value[8] + '°C'},
-                {p4: value[9] + 'h:' + value[10] + 'm ' + value[11] + '°C'},
-                {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14] + '°C'},
-                {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17] + '°C'},
-                {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20] + '°C'},
-                {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23] + '°C'},
-                {su1: value[24] + 'h:' + value[25] + 'm ' + value[26] + '°C'},
-                {su2: value[27] + 'h:' + value[28] + 'm ' + value[29] + '°C'},
-                {su3: value[30] + 'h:' + value[31] + 'm ' + value[32] + '°C'},
-                {su4: value[33] + 'h:' + value[34] + 'm ' + value[35] + '°C'},
-            ],
-        };
-    case common.TuyaDataPoints.state: // Thermostat on standby = OFF, running = ON
-        return {system_mode: value ? 'heat' : 'off'};
-    case common.TuyaDataPoints.childLock:
-        return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.moesHeatingSetpoint:
-        return {current_heating_setpoint: value};
-    case common.TuyaDataPoints.moesMaxTempLimit:
-        return {max_temperature_limit: value};
-    case common.TuyaDataPoints.moesMaxTemp:
-        return {max_temperature: value};
-    case common.TuyaDataPoints.moesMinTemp:
-        return {min_temperature: value};
-    case common.TuyaDataPoints.moesLocalTemp:
-        return {local_temperature: parseFloat((value / 10).toFixed(1))};
-    case common.TuyaDataPoints.moesTempCalibration:
-        temperature = value;
-        // for negative values produce complimentary hex (equivalent to negative values)
-        if (temperature > 4000) temperature = temperature - 4096;
-        return {local_temperature_calibration: temperature};
-    case common.TuyaDataPoints.moesHold: // state is inverted
-        return {preset_mode: value ? 'program' : 'hold'};
-    case common.TuyaDataPoints.moesScheduleEnable: // state is inverted
-        return {preset_mode: value ? 'hold' : 'program'};
-    case common.TuyaDataPoints.moesValve:
-        return {heat: value ? 'OFF' : 'ON'};
-    case common.TuyaDataPoints.moesSensor:
-        switch (value) {
-        case 0:
-            return {sensor: 'IN'};
-        case 1:
-            return {sensor: 'AL'};
-        case 2:
-            return {sensor: 'OU'};
-        default:
-            return {sensor: 'Not supported'};
-        }
-    default: // DataPoint 17 is unknown
-        meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: NOT RECOGNIZED DP #${
-            dp} with data ${JSON.stringify(msg.data)}`);
-    }
-};
-function utf8FromStr(s) {
-    const a = [];
-    for (let i = 0, enc = encodeURIComponent(s); i < enc.length;) {
-        if (enc[i] === '%') {
-            a.push(parseInt(enc.substr(i + 1, 2), 16));
-            i += 3;
-        } else {
-            a.push(enc.charCodeAt(i++));
-        }
-    }
-    return a;
-}
-
-const eTopThermostat = (model, msg, publish, options, meta) => {
-    const dp = msg.data.dp;
-    const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-    if (dp >= 101 && dp <=107) return; // handled by tuya_thermostat_weekly_schedule
-
-    switch (dp) {
-    case common.TuyaDataPoints.state: // on/off
-        return !value ? {system_mode: 'off'} : {};
-    case common.TuyaDataPoints.etopErrorStatus:
-        return {
-            high_temperature: (value & 1<<0) > 0 ? 'ON' : 'OFF',
-            low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
-            internal_sensor_error: (value & 1<<2) > 0 ? 'ON' : 'OFF',
-            external_sensor_error: (value & 1<<3) > 0 ? 'ON' : 'OFF',
-            battery_low: (value & 1<<4) > 0 ? 'ON' : 'OFF',
-            device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
-        };
-    case common.TuyaDataPoints.childLock:
-        return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.heatingSetpoint:
-        return {current_heating_setpoint: (value / 10).toFixed(1)};
-    case common.TuyaDataPoints.localTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
-    case common.TuyaDataPoints.mode:
-        switch (value) {
-        case 0: // manual
-            return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
-        case 1: // away
-            return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
-        case 2: // auto
-            return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
-        default:
-            meta.logger.warn('zigbee-herdsman-converters:eTopThermostat: ' +
-                `preset ${value} is not recognized.`);
-            break;
-        }
-        break;
-    case common.TuyaDataPoints.runningState:
-        return {running_state: value ? 'heat' : 'idle'};
-    default:
-        meta.logger.warn(`zigbee-herdsman-converters:eTopThermostat: NOT RECOGNIZED DP #${
-            dp} with data ${JSON.stringify(msg.data)}`);
-    }
-};
-
-const tuyaThermostat = (model, msg, publish, options, meta) => {
-    const dp = msg.data.dp;
-    const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-    switch (dp) {
-    case common.TuyaDataPoints.windowDetection:
-        return {
-            window_detection: value[0] ? 'ON' : 'OFF',
-            window_detection_params: {
-                temperature: value[1],
-                minutes: value[2],
-            },
-        };
-    case common.TuyaDataPoints.scheduleWorkday: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
-        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
-        // Top bits in hours have special meaning
-        // 8: ??
-        // 7: Current schedule indicator
-        return {workdays: [
-            {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-            {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-            {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-            {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-            {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-            {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-        ]};
-    case common.TuyaDataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
-        // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
-        // Top bits in hours have special meaning
-        // 8: ??
-        // 7: Current schedule indicator
-        return {holidays: [
-            {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-            {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-            {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-            {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-            {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-            {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-        ]};
-    case common.TuyaDataPoints.childLock:
-        return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.siterwellWindowDetection:
-        return {window_detection: value ? 'ON' : 'OFF'};
-    case common.TuyaDataPoints.valveDetection:
-        return {valve_detection: value ? 'ON' : 'OFF'};
-    case common.TuyaDataPoints.autoLock: // 0x7401 auto lock mode
-        return {auto_lock: value ? 'AUTO' : 'MANUAL'};
-    case common.TuyaDataPoints.heatingSetpoint:
-        return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
-    case common.TuyaDataPoints.localTemp:
-        return {local_temperature: parseFloat((value / 10).toFixed(1))};
-    case common.TuyaDataPoints.tempCalibration:
-        return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
-    case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
-        return {battery: value};
-    case common.TuyaDataPoints.batteryLow:
-        return {battery_low: value};
-    case common.TuyaDataPoints.minTemp:
-        return {min_temperature: value};
-    case common.TuyaDataPoints.maxTemp:
-        return {max_temperature: value};
-    case common.TuyaDataPoints.boostTime: // 0x6902 boost time
-        return {boost_time: value};
-    case common.TuyaDataPoints.comfortTemp:
-        return {comfort_temperature: value};
-    case common.TuyaDataPoints.ecoTemp:
-        return {eco_temperature: value};
-    case common.TuyaDataPoints.valvePos:
-        return {position: value};
-    case common.TuyaDataPoints.awayTemp:
-        return {away_preset_temperature: value};
-    case common.TuyaDataPoints.awayDays:
-        return {away_preset_days: value};
-    case common.TuyaDataPoints.mode: {
-        const ret = {};
-        const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
-        if (presetOk) {
-            ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
-            ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-            ret.system_mode = 'heat';
-        } else {
-            console.log(`TRV preset ${value} is not recognized.`);
-            return;
-        }
-        return ret;
-    }
-    case common.TuyaDataPoints.fanMode: // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
-        return {fan_mode: common.TuyaFanModes[value]};
-    case common.TuyaDataPoints.forceMode: // force mode 0 - normal, 1 - open, 2 - close
-        return {force: common.TuyaThermostatForceMode[value]};
-    case common.TuyaDataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-        return {week: common.TuyaThermostatWeekFormat[value]};
-    default: // The purpose of the dps 17 & 19 is still unknown
-        console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
-            dp} with data ${JSON.stringify(msg.data)}`);
-    }
-};
-
-const saswellThermostat = (model, msg, publish, options, meta) => {
-    const dp = msg.data.dp;
-    const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-    switch (dp) {
-    case common.TuyaDataPoints.saswellWindowDetection:
-        return {window_detection: value ? 'ON' : 'OFF'};
-    case common.TuyaDataPoints.saswellFrostDetection:
-        return {frost_detection: value ? 'ON' : 'OFF'};
-    case common.TuyaDataPoints.saswellTempCalibration:
-        return {local_temperature_calibration: value > 6 ? 0xFFFFFFFF - value : value};
-    case common.TuyaDataPoints.saswellChildLock:
-        return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-    case common.TuyaDataPoints.saswellState:
-        return {system_mode: value ? 'heat' : 'off'};
-    case common.TuyaDataPoints.saswellLocalTemp:
-        return {local_temperature: (value / 10).toFixed(1)};
-    case common.TuyaDataPoints.saswellHeatingSetpoint:
-        return {current_heating_setpoint: (value / 10).toFixed(1)};
-    case common.TuyaDataPoints.saswellValvePos:
-        // single value 1-100%
-        break;
-    case common.TuyaDataPoints.saswellBatteryLow:
-        return {battery_low: value ? true : false};
-    case common.TuyaDataPoints.saswellAwayMode:
-        if (value) {
-            return {away_mode: 'ON', preset_mode: 'away'};
-        } else {
-            return {away_mode: 'OFF', preset_mode: 'none'};
-        }
-    case common.TuyaDataPoints.saswellScheduleMode:
-        if (common.TuyaThermostatScheduleMode.hasOwnProperty(value)) {
-            return {schedule_mode: common.TuyaThermostatScheduleMode[value]};
-        } else {
-            meta.logger.warn('zigbee-herdsman-converters:SaswellThermostat: ' +
-                `Unknown schedule mode ${value}`);
-        }
-        break;
-    case common.TuyaDataPoints.saswellScheduleEnable:
-        if ( value ) {
-            return {system_mode: 'auto'};
-        }
-        break;
-    case common.TuyaDataPoints.saswellScheduleSet:
-        // Never seen being reported, but put here to prevent warnings
-        break;
-    case common.TuyaDataPoints.saswellSetpointHistoryDay:
-        // 24 values - 1 value for each hour
-        break;
-    case common.TuyaDataPoints.saswellTimeSync:
-        // uint8: year - 2000
-        // uint8: month (1-12)
-        // uint8: day (1-21)
-        // uint8: hour (0-23)
-        // uint8: minute (0-59)
-        break;
-    case common.TuyaDataPoints.saswellSetpointHistoryWeek:
-        // 7 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellSetpointHistoryMonth:
-        // 31 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellSetpointHistoryYear:
-        // 12 values - 1 value for each month
-        break;
-    case common.TuyaDataPoints.saswellLocalHistoryDay:
-        // 24 values - 1 value for each hour
-        break;
-    case common.TuyaDataPoints.saswellLocalHistoryWeek:
-        // 7 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellLocalHistoryMonth:
-        // 31 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellLocalHistoryYear:
-        // 12 values - 1 value for each month
-        break;
-    case common.TuyaDataPoints.saswellMotorHistoryDay:
-        // 24 values - 1 value for each hour
-        break;
-    case common.TuyaDataPoints.saswellMotorHistoryWeek:
-        // 7 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellMotorHistoryMonth:
-        // 31 values - 1 value for each day
-        break;
-    case common.TuyaDataPoints.saswellMotorHistoryYear:
-        // 12 values - 1 value for each month
-        break;
-    case common.TuyaDataPoints.saswellScheduleSunday:
-    case common.TuyaDataPoints.saswellScheduleMonday:
-    case common.TuyaDataPoints.saswellScheduleTuesday:
-    case common.TuyaDataPoints.saswellScheduleWednesday:
-    case common.TuyaDataPoints.saswellScheduleThursday:
-    case common.TuyaDataPoints.saswellScheduleFriday:
-    case common.TuyaDataPoints.saswellScheduleSaturday:
-        // Handled by tuya_thermostat_weekly_schedule
-        // Schedule for each day
-        // [
-        //     uint8: schedule mode - see above,
-        //     uint16: time (60 * hour + minute)
-        //     uint16: temperature * 10
-        //     uint16: time (60 * hour + minute)
-        //     uint16: temperature * 10
-        //     uint16: time (60 * hour + minute)
-        //     uint16: temperature * 10
-        //     uint16: time (60 * hour + minute)
-        //     uint16: temperature * 10
-        // ]
-        break;
-    case common.TuyaDataPoints.saswellAntiScaling:
-        return {anti_scaling: value ? 'ON' : 'OFF'};
-    default:
-        meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
-            dp} with data ${JSON.stringify(msg.data)}`);
     }
 };
 
@@ -856,7 +493,7 @@ const converters = {
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
-                options.occupancy_timeout : occupancyTimeout;
+                options.occupancy_timeout : 90;
             const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timers because motion is detected and set a new one.
@@ -1240,7 +877,7 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             const deviceID = msg.device.ieeeAddr;
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
-                options.occupancy_timeout : occupancyTimeout;
+                options.occupancy_timeout : 90;
 
             if (store[deviceID]) {
                 clearTimeout(store[deviceID]);
@@ -1677,6 +1314,237 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    tuya_thermostat_weekly_schedule: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            const thermostatMeta = utils.getMetaValue(msg.endpoint, model, 'thermostat');
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            let dataOffset = 0;
+            let conversion = 'generic';
+
+            function dataToTransitions(data, maxTransitions, offset) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also toZigbee.tuya_thermostat_weekly_schedule()
+                function dataToTransition(data, index) {
+                    return {
+                        time: (data[index+0] << 8) + data [index+1],
+                        heating_setpoint: (parseFloat((data[index+2] << 8) + data [index+3]) / 10.0).toFixed(1),
+                    };
+                }
+                const result = [];
+                for (let i = 0; i < maxTransitions; i++) {
+                    result.push(dataToTransition(data, i * 4 + offset));
+                }
+                return result;
+            }
+
+            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+                conversion = thermostatMeta.weeklyScheduleConversion;
+            }
+            if (conversion == 'saswell') {
+                // Saswell has scheduling mode in the first byte
+                dataOffset = 1;
+            }
+            if (dp >= firstDayDpId && dp < firstDayDpId+7) {
+                const dayOfWeek = dp - firstDayDpId + 1;
+                return {
+                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
+                    weekly_schedule: {
+                        days: [common.dayOfWeek[dayOfWeek]],
+                        transitions: dataToTransitions(value, maxTransitions, dataOffset),
+                    },
+                };
+            }
+        },
+    },
+    hy_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case common.TuyaDataPoints.hyWorkdaySchedule1: // schedule for workdays [5,9,12,8,0,15,10,0,15]
+                return {workdays: [
+                    {hour: value[0], minute: value[1], temperature: value[2]},
+                    {hour: value[3], minute: value[4], temperature: value[5]},
+                    {hour: value[6], minute: value[7], temperature: value[8]},
+                ], range: 'am'};
+            case common.TuyaDataPoints.hyWorkdaySchedule2: // schedule for workdays [15,0,25,145,2,17,22,50,14]
+                return {workdays: [
+                    {hour: value[0], minute: value[1], temperature: value[2]},
+                    {hour: value[3], minute: value[4], temperature: value[5]},
+                    {hour: value[6], minute: value[7], temperature: value[8]},
+                ], range: 'pm'};
+            case common.TuyaDataPoints.hyHolidaySchedule1: // schedule for holidays [5,5,20,8,4,13,11,30,15]
+                return {holidays: [
+                    {hour: value[0], minute: value[1], temperature: value[2]},
+                    {hour: value[3], minute: value[4], temperature: value[5]},
+                    {hour: value[6], minute: value[7], temperature: value[8]},
+                ], range: 'am'};
+            case common.TuyaDataPoints.hyHolidaySchedule2: // schedule for holidays [13,30,15,17,0,15,22,0,15]
+                return {holidays: [
+                    {hour: value[0], minute: value[1], temperature: value[2]},
+                    {hour: value[3], minute: value[4], temperature: value[5]},
+                    {hour: value[6], minute: value[7], temperature: value[8]},
+                ], range: 'pm'};
+            case common.TuyaDataPoints.hyHeating: // heating
+                return {heating: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.hyMaxTempProtection: // max temperature protection
+                return {max_temperature_protection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.hyMinTempProtection: // min temperature protection
+                return {min_temperature_protection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.hyState: // 0x017D work state
+                return {state: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.hyChildLock: // 0x0181 Changed child lock status
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case common.TuyaDataPoints.hyExternalTemp: // external sensor temperature
+                return {external_temperature: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.hyAwayDays: // away preset days
+                return {away_preset_days: value};
+            case common.TuyaDataPoints.hyAwayTemp: // away preset temperature
+                return {away_preset_temperature: value};
+            case common.TuyaDataPoints.hyTempCalibration: // 0x026D Temperature correction
+                return {local_temperature_calibration: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.hyHysteresis: // 0x026E Temperature hysteresis
+                return {hysteresis: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.hyProtectionHysteresis: // 0x026F Temperature protection hysteresis
+                return {hysteresis_for_protection: value};
+            case common.TuyaDataPoints.hyProtectionMaxTemp: // 0x027A max temperature for protection
+                return {max_temperature_for_protection: value};
+            case common.TuyaDataPoints.hyProtectionMinTemp: // 0x027B min temperature for protection
+                return {min_temperature_for_protection: value};
+            case common.TuyaDataPoints.hyMaxTemp: // 0x027C max temperature limit
+                return {max_temperature: value};
+            case common.TuyaDataPoints.hyMinTemp: // 0x027D min temperature limit
+                return {min_temperature: value};
+            case common.TuyaDataPoints.hyHeatingSetpoint: // 0x027E Changed target temperature
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.hyLocalTemp: // 0x027F MCU reporting room temperature
+                return {local_temperature: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.hySensor: // Sensor type
+                return {sensor_type: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+            case common.TuyaDataPoints.hyPowerOnBehavior: // 0x0475 State after power on
+                return {power_on_behavior: {0: 'restore', 1: 'off', 2: 'on'}[value]};
+            case common.TuyaDataPoints.hyWeekFormat: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week: common.TuyaThermostatWeekFormat[value]};
+            case common.TuyaDataPoints.hyMode: // 0x0480 mode
+                return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
+            case common.TuyaDataPoints.hyAlarm: // [16] [0]
+                return {alarm: (value > 0) ? true : false};
+            default: // The purpose of the codes 17 & 19 are still unknown
+                meta.logger.warn(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    tuya_led_controller: {
+        cluster: 'lightingColorCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+
+            if (msg.data.hasOwnProperty('colorTemperature')) {
+                const value = Number(msg.data['colorTemperature']);
+                // Mapping from
+                // Warmwhite 0 -> 255 Coldwhite
+                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
+                result.color_temp = Math.round(-1.36 * value + 500);
+            }
+
+            if (msg.data.hasOwnProperty('tuyaBrightness')) {
+                result.brightness = msg.data['tuyaBrightness'];
+            }
+
+            result.color = {};
+
+            if (msg.data.hasOwnProperty('currentHue')) {
+                result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+                result.color.h = result.color.hue; // deprecated
+            }
+
+            if (msg.data.hasOwnProperty('currentSaturation')) {
+                result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+                result.color.s = result.color.saturation; // deprecated
+            }
+
+            return result;
+        },
+    },
+    tuya_cover: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            // Protocol description
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            switch (dp) {
+            case common.TuyaDataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
+            case common.TuyaDataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+            case common.TuyaDataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
+                return {running: true};
+            case common.TuyaDataPoints.coverArrived: { // Arrived at position
+                const position = options.invert_cover ? value : 100 - value;
+
+                if (position > 0 && position <= 100) {
+                    return {running: false, position: position};
+                } else if (position == 0) { // Report fully closed
+                    return {running: false, position: position};
+                } else {
+                    return {running: false}; // Not calibrated yet, no position is available
+                }
+            }
+            case common.TuyaDataPoints.config: // 0x01 0x05: Returned by configuration set; ignore
+                break;
+            default: // Unknown code
+                meta.logger.warn(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    wiser_device_info: {
+        cluster: 'wiserDeviceInfo',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data['deviceInfo'].split(',');
+            if (data[0] === 'ALG') {
+                // TODO What is ALG
+                const alg = data.slice(1);
+                result['ALG'] = alg.join(',');
+                result['occupied_heating_setpoint'] = alg[2]/10;
+                result['local_temperature'] = alg[3]/10;
+                result['pi_heating_demand'] = parseInt(alg[9]);
+            } else if (data[0] === 'ADC') {
+                // TODO What is ADC
+                const adc = data.slice(1);
+                result['ADC'] = adc.join(',');
+                result['occupied_heating_setpoint'] = adc[5]/100;
+                result['local_temperature'] = adc[3]/10;
+            } else if (data[0] === 'UI') {
+                if (data[1] === 'BoostUp') {
+                    result['boost'] = 'Up';
+                } else if (data[1] === 'BoostDown') {
+                    result['boost'] = 'Down';
+                } else {
+                    result['boost'] = 'None';
+                }
+            } else if (data[0] === 'MOT') {
+                // Info about the motor
+                result['MOT'] = data[1];
+            }
+            return result;
+        },
+    },
     terncy_knob: {
         cluster: 'manuSpecificClusterAduroSmart',
         type: ['attributeReport', 'readResponse'],
@@ -1882,7 +1750,7 @@ const converters = {
         type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
             case common.TuyaDataPoints.neoAlarm:
@@ -2005,7 +1873,7 @@ const converters = {
         type: 'commandSetDataResponse',
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.dp === common.TuyaDataPoints.waterLeak) {
-                return {water_leak: tuyaGetDataValue(msg.data.datatype, msg.data.data)};
+                return {water_leak: tuya.getDataValue(msg.data.datatype, msg.data.data)};
             }
         },
     },
@@ -2228,7 +2096,7 @@ const converters = {
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const result = {};
 
             if (dp === common.TuyaDataPoints.silvercrestChangeMode) {
@@ -2724,28 +2592,348 @@ const converters = {
     moes_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
-        convert: moesThermostat,
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            let temperature;
+            /* See tuyaThermostat above for message structure comment */
+            switch (dp) {
+            case common.TuyaDataPoints.moesSchedule:
+                return {
+                    program: [
+                        {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
+                        {p2: value[3] + 'h:' + value[4] + 'm ' + value[5] + '°C'},
+                        {p3: value[6] + 'h:' + value[7] + 'm ' + value[8] + '°C'},
+                        {p4: value[9] + 'h:' + value[10] + 'm ' + value[11] + '°C'},
+                        {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14] + '°C'},
+                        {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17] + '°C'},
+                        {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20] + '°C'},
+                        {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23] + '°C'},
+                        {su1: value[24] + 'h:' + value[25] + 'm ' + value[26] + '°C'},
+                        {su2: value[27] + 'h:' + value[28] + 'm ' + value[29] + '°C'},
+                        {su3: value[30] + 'h:' + value[31] + 'm ' + value[32] + '°C'},
+                        {su4: value[33] + 'h:' + value[34] + 'm ' + value[35] + '°C'},
+                    ],
+                };
+            case common.TuyaDataPoints.state: // Thermostat on standby = OFF, running = ON
+                return {system_mode: value ? 'heat' : 'off'};
+            case common.TuyaDataPoints.childLock:
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case common.TuyaDataPoints.moesHeatingSetpoint:
+                return {current_heating_setpoint: value};
+            case common.TuyaDataPoints.moesMaxTempLimit:
+                return {max_temperature_limit: value};
+            case common.TuyaDataPoints.moesMaxTemp:
+                return {max_temperature: value};
+            case common.TuyaDataPoints.moesMinTemp:
+                return {min_temperature: value};
+            case common.TuyaDataPoints.moesLocalTemp:
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+            case common.TuyaDataPoints.moesTempCalibration:
+                temperature = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (temperature > 4000) temperature = temperature - 4096;
+                return {local_temperature_calibration: temperature};
+            case common.TuyaDataPoints.moesHold: // state is inverted
+                return {preset_mode: value ? 'program' : 'hold'};
+            case common.TuyaDataPoints.moesScheduleEnable: // state is inverted
+                return {preset_mode: value ? 'hold' : 'program'};
+            case common.TuyaDataPoints.moesValve:
+                return {heat: value ? 'OFF' : 'ON'};
+            case common.TuyaDataPoints.moesSensor:
+                switch (value) {
+                case 0:
+                    return {sensor: 'IN'};
+                case 1:
+                    return {sensor: 'AL'};
+                case 2:
+                    return {sensor: 'OU'};
+                default:
+                    return {sensor: 'not_supported'};
+                }
+            default: // DataPoint 17 is unknown
+                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
     },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
-        convert: saswellThermostat,
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case common.TuyaDataPoints.saswellWindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.saswellFrostDetection:
+                return {frost_detection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.saswellTempCalibration:
+                return {local_temperature_calibration: value > 6 ? 0xFFFFFFFF - value : value};
+            case common.TuyaDataPoints.saswellChildLock:
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case common.TuyaDataPoints.saswellState:
+                return {system_mode: value ? 'heat' : 'off'};
+            case common.TuyaDataPoints.saswellLocalTemp:
+                return {local_temperature: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.saswellHeatingSetpoint:
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.saswellValvePos:
+                // single value 1-100%
+                break;
+            case common.TuyaDataPoints.saswellBatteryLow:
+                return {battery_low: value ? true : false};
+            case common.TuyaDataPoints.saswellAwayMode:
+                if (value) {
+                    return {away_mode: 'ON', preset_mode: 'away'};
+                } else {
+                    return {away_mode: 'OFF', preset_mode: 'none'};
+                }
+            case common.TuyaDataPoints.saswellScheduleMode:
+                if (common.TuyaThermostatScheduleMode.hasOwnProperty(value)) {
+                    return {schedule_mode: common.TuyaThermostatScheduleMode[value]};
+                } else {
+                    meta.logger.warn('zigbee-herdsman-converters:SaswellThermostat: ' +
+                        `Unknown schedule mode ${value}`);
+                }
+                break;
+            case common.TuyaDataPoints.saswellScheduleEnable:
+                if ( value ) {
+                    return {system_mode: 'auto'};
+                }
+                break;
+            case common.TuyaDataPoints.saswellScheduleSet:
+                // Never seen being reported, but put here to prevent warnings
+                break;
+            case common.TuyaDataPoints.saswellSetpointHistoryDay:
+                // 24 values - 1 value for each hour
+                break;
+            case common.TuyaDataPoints.saswellTimeSync:
+                // uint8: year - 2000
+                // uint8: month (1-12)
+                // uint8: day (1-21)
+                // uint8: hour (0-23)
+                // uint8: minute (0-59)
+                break;
+            case common.TuyaDataPoints.saswellSetpointHistoryWeek:
+                // 7 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellSetpointHistoryMonth:
+                // 31 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellSetpointHistoryYear:
+                // 12 values - 1 value for each month
+                break;
+            case common.TuyaDataPoints.saswellLocalHistoryDay:
+                // 24 values - 1 value for each hour
+                break;
+            case common.TuyaDataPoints.saswellLocalHistoryWeek:
+                // 7 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellLocalHistoryMonth:
+                // 31 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellLocalHistoryYear:
+                // 12 values - 1 value for each month
+                break;
+            case common.TuyaDataPoints.saswellMotorHistoryDay:
+                // 24 values - 1 value for each hour
+                break;
+            case common.TuyaDataPoints.saswellMotorHistoryWeek:
+                // 7 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellMotorHistoryMonth:
+                // 31 values - 1 value for each day
+                break;
+            case common.TuyaDataPoints.saswellMotorHistoryYear:
+                // 12 values - 1 value for each month
+                break;
+            case common.TuyaDataPoints.saswellScheduleSunday:
+            case common.TuyaDataPoints.saswellScheduleMonday:
+            case common.TuyaDataPoints.saswellScheduleTuesday:
+            case common.TuyaDataPoints.saswellScheduleWednesday:
+            case common.TuyaDataPoints.saswellScheduleThursday:
+            case common.TuyaDataPoints.saswellScheduleFriday:
+            case common.TuyaDataPoints.saswellScheduleSaturday:
+                // Handled by tuya_thermostat_weekly_schedule
+                // Schedule for each day
+                // [
+                //     uint8: schedule mode - see above,
+                //     uint16: time (60 * hour + minute)
+                //     uint16: temperature * 10
+                //     uint16: time (60 * hour + minute)
+                //     uint16: temperature * 10
+                //     uint16: time (60 * hour + minute)
+                //     uint16: temperature * 10
+                //     uint16: time (60 * hour + minute)
+                //     uint16: temperature * 10
+                // ]
+                break;
+            case common.TuyaDataPoints.saswellAntiScaling:
+                return {anti_scaling: value ? 'ON' : 'OFF'};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
     },
     etop_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
-        convert: eTopThermostat,
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            if (dp >= 101 && dp <=107) return; // handled by tuya_thermostat_weekly_schedule
+
+            switch (dp) {
+            case common.TuyaDataPoints.state: // on/off
+                return !value ? {system_mode: 'off'} : {};
+            case common.TuyaDataPoints.etopErrorStatus:
+                return {
+                    high_temperature: (value & 1<<0) > 0 ? 'ON' : 'OFF',
+                    low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
+                    internal_sensor_error: (value & 1<<2) > 0 ? 'ON' : 'OFF',
+                    external_sensor_error: (value & 1<<3) > 0 ? 'ON' : 'OFF',
+                    battery_low: (value & 1<<4) > 0 ? 'ON' : 'OFF',
+                    device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
+                };
+            case common.TuyaDataPoints.childLock:
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case common.TuyaDataPoints.heatingSetpoint:
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.localTemp:
+                return {local_temperature: (value / 10).toFixed(1)};
+            case common.TuyaDataPoints.mode:
+                switch (value) {
+                case 0: // manual
+                    return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
+                case 1: // away
+                    return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
+                case 2: // auto
+                    return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
+                default:
+                    meta.logger.warn('zigbee-herdsman-converters:eTopThermostat: ' +
+                        `preset ${value} is not recognized.`);
+                    break;
+                }
+                break;
+            case common.TuyaDataPoints.runningState:
+                return {running_state: value ? 'heat' : 'idle'};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:eTopThermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
     },
     tuya_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
-        convert: tuyaThermostat,
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case common.TuyaDataPoints.windowDetection:
+                return {
+                    window_detection: value[0] ? 'ON' : 'OFF',
+                    window_detection_params: {
+                        temperature: value[1],
+                        minutes: value[2],
+                    },
+                };
+            case common.TuyaDataPoints.scheduleWorkday: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+                // Top bits in hours have special meaning
+                // 8: ??
+                // 7: Current schedule indicator
+                return {workdays: [
+                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
+                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
+                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
+                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
+                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
+                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
+                ]};
+            case common.TuyaDataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+                // Top bits in hours have special meaning
+                // 8: ??
+                // 7: Current schedule indicator
+                return {holidays: [
+                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
+                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
+                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
+                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
+                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
+                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
+                ]};
+            case common.TuyaDataPoints.childLock:
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case common.TuyaDataPoints.siterwellWindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.valveDetection:
+                return {valve_detection: value ? 'ON' : 'OFF'};
+            case common.TuyaDataPoints.autoLock: // 0x7401 auto lock mode
+                return {auto_lock: value ? 'AUTO' : 'MANUAL'};
+            case common.TuyaDataPoints.heatingSetpoint:
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+            case common.TuyaDataPoints.localTemp:
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+            case common.TuyaDataPoints.tempCalibration:
+                return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
+            case common.TuyaDataPoints.battery: // 0x1502 MCU reporting battery status
+                return {battery: value};
+            case common.TuyaDataPoints.batteryLow:
+                return {battery_low: value};
+            case common.TuyaDataPoints.minTemp:
+                return {min_temperature: value};
+            case common.TuyaDataPoints.maxTemp:
+                return {max_temperature: value};
+            case common.TuyaDataPoints.boostTime: // 0x6902 boost time
+                return {boost_time: value};
+            case common.TuyaDataPoints.comfortTemp:
+                return {comfort_temperature: value};
+            case common.TuyaDataPoints.ecoTemp:
+                return {eco_temperature: value};
+            case common.TuyaDataPoints.valvePos:
+                return {position: value};
+            case common.TuyaDataPoints.awayTemp:
+                return {away_preset_temperature: value};
+            case common.TuyaDataPoints.awayDays:
+                return {away_preset_days: value};
+            case common.TuyaDataPoints.mode: {
+                const ret = {};
+                const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                if (presetOk) {
+                    ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
+                    ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
+                    ret.system_mode = 'heat';
+                } else {
+                    console.log(`TRV preset ${value} is not recognized.`);
+                    return;
+                }
+                return ret;
+            }
+            // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
+            case common.TuyaDataPoints.fanMode:
+                return {fan_mode: common.TuyaFanModes[value]};
+            case common.TuyaDataPoints.forceMode: // force mode 0 - normal, 1 - open, 2 - close
+                return {force: common.TuyaThermostatForceMode[value]};
+            case common.TuyaDataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week: common.TuyaThermostatWeekFormat[value]};
+            default: // The purpose of the dps 17 & 19 is still unknown
+                console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
     },
     tuya_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             if (msg.data.dp === common.TuyaDataPoints.state) {
                 return {state: value ? 'ON': 'OFF'};
             } else { // TODO: Unknown dp, assumed value type
@@ -3085,7 +3273,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const state = value ? 'ON' : 'OFF';
             if (multiEndpoint) {
                 const lookup = {1: 'l1', 2: 'l2', 3: 'l3'};
@@ -4073,6 +4261,77 @@ const converters = {
             }
         },
     },
+    ZMCSW032D_cover_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const timeCoverSetMiddle = 60;
+
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+                if (!globalStore.hasValue(msg.endpoint, 'position')) {
+                    globalStore.putValue(msg.endpoint, 'position', {lastPreviousAction: -1, CurrentPosition: -1, since: false});
+                }
+
+                const entry = globalStore.getValue(msg.endpoint, 'position');
+                // ignore if first action is middle and ignore action middle if previous action is middle
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if ((entry.CurrentPosition == -1 && entry.lastPreviousAction == -1) ||
+                        entry.lastPreviousAction == 50 ) {
+                        meta.logger.warn(`ZMCSW032D ignore action `);
+                        return;
+                    }
+                }
+                let currentPosition = entry.CurrentPosition;
+                const lastPreviousAction = entry.lastPreviousAction;
+                const deltaTimeSec = Math.floor((Date.now() - entry.since)/1000); // convert to sec
+
+                entry.since = Date.now();
+                entry.lastPreviousAction = msg.data['currentPositionLiftPercentage'];
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50 ) {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        if (lastPreviousAction == 100 ) {
+                            // Open
+                            currentPosition = currentPosition == -1 ? 0 : currentPosition;
+                            currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
+                        } else if (lastPreviousAction == 0 ) {
+                            // Close
+                            currentPosition = currentPosition == -1 ? 100 : currentPosition;
+                            currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
+                        }
+                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
+                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                    }
+                }
+                entry.CurrentPosition = currentPosition;
+
+                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50 ) {
+                    // postion cast float to int
+                    result.position = currentPosition | 0;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
+                } else {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        // postion cast float to int
+                        result.position = currentPosition | 0;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
+                    } else {
+                        entry.CurrentPosition = lastPreviousAction;
+                        result.position = lastPreviousAction;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
+                    }
+                }
+            } else if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
+                // Previous solution without time_close and time_open
+                const liftPercentage = msg.data['currentPositionLiftPercentage'];
+                result.position = liftPercentage;
+                result.position = options.invert_cover ? 100 - result.position : result.position;
+            }
+            return result;
+        },
+    },
     PGC410EU_presence: {
         cluster: 'manuSpecificSmartThingsArrivalSensor',
         type: 'commandArrivalSensorNotify',
@@ -4154,6 +4413,19 @@ const converters = {
                 2: 'rfid_card_unlock',
                 3: 'touch_unlock',
             };
+            const utf8FromStr = (s) => {
+                const a = [];
+                for (let i = 0, enc = encodeURIComponent(s); i < enc.length;) {
+                    if (enc[i] === '%') {
+                        a.push(parseInt(enc.substr(i + 1, 2), 16));
+                        i += 3;
+                    } else {
+                        a.push(enc.charCodeAt(i++));
+                    }
+                }
+                return a;
+            };
+
             const data = utf8FromStr(msg['data']['16896']);
             return {
                 action: 'unlock',
@@ -4579,375 +4851,6 @@ const converters = {
             return payload;
         },
     },
-    wiser_device_info: {
-        cluster: 'wiserDeviceInfo',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const data = msg.data['deviceInfo'].split(',');
-            if (data[0] === 'ALG') {
-                // TODO What is ALG
-                const alg = data.slice(1);
-                result['ALG'] = alg.join(',');
-                result['occupied_heating_setpoint'] = alg[2]/10;
-                result['local_temperature'] = alg[3]/10;
-                result['pi_heating_demand'] = parseInt(alg[9]);
-            } else if (data[0] === 'ADC') {
-                // TODO What is ADC
-                const adc = data.slice(1);
-                result['ADC'] = adc.join(',');
-                result['occupied_heating_setpoint'] = adc[5]/100;
-                result['local_temperature'] = adc[3]/10;
-            } else if (data[0] === 'UI') {
-                if (data[1] === 'BoostUp') {
-                    result['boost'] = 'Up';
-                } else if (data[1] === 'BoostDown') {
-                    result['boost'] = 'Down';
-                } else {
-                    result['boost'] = 'None';
-                }
-            } else if (data[0] === 'MOT') {
-                // Info about the motor
-                result['MOT'] = data[1];
-            }
-            return result;
-        },
-    },
-    wiser_itrv_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (typeof msg.data['batteryVoltage'] == 'number') {
-                const battery = {max: 30, min: 22};
-                const voltage = msg.data['batteryVoltage'];
-                result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage / 10;
-            }
-            if (typeof msg.data['batteryAlarmState'] == 'number') {
-                const battLow = msg.data['batteryAlarmState'];
-                if (battLow) {
-                    result['battery_low'] = true;
-                } else {
-                    result['battery_low'] = false;
-                }
-            }
-            return result;
-        },
-    },
-    tuya_led_controller: {
-        cluster: 'lightingColorCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data.hasOwnProperty('colorTemperature')) {
-                const value = Number(msg.data['colorTemperature']);
-                // Mapping from
-                // Warmwhite 0 -> 255 Coldwhite
-                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
-                result.color_temp = Math.round(-1.36 * value + 500);
-            }
-
-            if (msg.data.hasOwnProperty('tuyaBrightness')) {
-                result.brightness = msg.data['tuyaBrightness'];
-            }
-
-            result.color = {};
-
-            if (msg.data.hasOwnProperty('currentHue')) {
-                result.color.h = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
-            }
-
-            if (msg.data.hasOwnProperty('currentSaturation')) {
-                result.color.s = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
-            }
-
-            return result;
-        },
-    },
-    tuya_thermostat_weekly_schedule: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-            const thermostatMeta = utils.getMetaValue(msg.endpoint, model, 'thermostat');
-            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
-            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
-            let dataOffset = 0;
-            let conversion = 'generic';
-
-            function dataToTransitions(data, maxTransitions, offset) {
-                // Later it is possible to move converter to meta or to other place outside if other type of converter
-                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
-                // see also toZigbee.tuya_thermostat_weekly_schedule()
-                function dataToTransition(data, index) {
-                    return {
-                        transitionTime: (data[index+0] << 8) + data [index+1],
-                        heatSetpoint: (parseFloat((data[index+2] << 8) + data [index+3]) / 10.0).toFixed(1),
-                    };
-                }
-                const result = [];
-                for (let i = 0; i < maxTransitions; i++) {
-                    result.push(dataToTransition(data, i * 4 + offset));
-                }
-                return result;
-            }
-
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                conversion = thermostatMeta.weeklyScheduleConversion;
-            }
-            if (conversion == 'saswell') {
-                // Saswell has scheduling mode in the first byte
-                dataOffset = 1;
-            }
-            if (dp >= firstDayDpId && dp < firstDayDpId+7) {
-                const dayOfWeek = dp - firstDayDpId + 1;
-                return {
-                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
-                    weekly_schedule: {
-                        [dayOfWeek]: {
-                            dayofweek: dayOfWeek,
-                            numoftrans: maxTransitions,
-                            mode: 1, // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                            transitions: dataToTransitions(value, maxTransitions, dataOffset),
-                        },
-                    },
-                };
-            }
-        },
-    },
-    tuya_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-            // Protocol description
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
-
-            switch (dp) {
-            case common.TuyaDataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
-            case common.TuyaDataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case common.TuyaDataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
-                return {'running': true};
-            case common.TuyaDataPoints.coverArrived: { // Arrived at position
-                const position = options.invert_cover ? value : 100 - value;
-
-                if (position > 0 && position <= 100) {
-                    return {running: false, position: position};
-                } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position};
-                } else {
-                    return {running: false}; // Not calibrated yet, no position is available
-                }
-            }
-            case common.TuyaDataPoints.config: // 0x01 0x05: Returned by configuration set; ignore
-                break;
-            default: // Unknown code
-                console.log(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
-            }
-        },
-    },
-    ubisys_c4_scenes: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
-        },
-    },
-    ubisys_c4_onoff: {
-        cluster: 'genOnOff',
-        type: ['commandOn', 'commandOff', 'commandToggle'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `${msg.endpoint.ID}_${msg.type.substr(7).toLowerCase()}`};
-        },
-    },
-    ubisys_c4_level: {
-        cluster: 'genLevelCtrl',
-        type: ['commandMoveWithOnOff', 'commandStopWithOnOff'],
-        convert: (model, msg, publish, options, meta) => {
-            switch (msg.type) {
-            case 'commandMoveWithOnOff':
-                return {action: `${msg.endpoint.ID}_level_move_${msg.data.movemode ? 'down' : 'up'}`};
-            case 'commandStopWithOnOff':
-                return {action: `${msg.endpoint.ID}_level_stop`};
-            }
-        },
-    },
-    ubisys_c4_cover: {
-        cluster: 'closuresWindowCovering',
-        type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {
-                'commandUpOpen': 'open',
-                'commandDownClose': 'close',
-                'commandStop': 'stop',
-            };
-            return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    },
-    ZMCSW032D_cover_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const timeCoverSetMiddle = 60;
-
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
-            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!store[deviceID]) {
-                    store[deviceID] = {lastPreviousAction: -1, CurrentPosition: -1, since: false};
-                }
-                // ignore if first action is middle and ignore action middle if previous action is middle
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                    msg.data['currentPositionLiftPercentage'] == 50 ) {
-                    if ((store[deviceID].CurrentPosition == -1 && store[deviceID].lastPreviousAction == -1) ||
-                        store[deviceID].lastPreviousAction == 50 ) {
-                        console.log(`ZMCSW032D ignore action `);
-                        return;
-                    }
-                }
-                let currentPosition = store[deviceID].CurrentPosition;
-                const lastPreviousAction = store[deviceID].lastPreviousAction;
-                const deltaTimeSec = Math.floor((Date.now() - store[deviceID].since)/1000); // convert to sec
-
-                store[deviceID].since = Date.now();
-                store[deviceID].lastPreviousAction = msg.data['currentPositionLiftPercentage'];
-
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                    msg.data['currentPositionLiftPercentage'] == 50 ) {
-                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                        if (lastPreviousAction == 100 ) {
-                            // Open
-                            currentPosition = currentPosition == -1 ? 0 : currentPosition;
-                            currentPosition = currentPosition + ((deltaTimeSec * 100)/options.time_open);
-                        } else if (lastPreviousAction == 0 ) {
-                            // Close
-                            currentPosition = currentPosition == -1 ? 100 : currentPosition;
-                            currentPosition = currentPosition - ((deltaTimeSec * 100)/options.time_close);
-                        }
-                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
-                    }
-                }
-                store[deviceID].CurrentPosition = currentPosition;
-
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                    msg.data['currentPositionLiftPercentage'] !== 50 ) {
-                    // postion cast float to int
-                    result.position = currentPosition | 0;
-                    result.position = options.invert_cover ? 100 - result.position : result.position;
-                } else {
-                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                        // postion cast float to int
-                        result.position = currentPosition | 0;
-                        result.position = options.invert_cover ? 100 - result.position : result.position;
-                    } else {
-                        store[deviceID].CurrentPosition = lastPreviousAction;
-                        result.position = lastPreviousAction;
-                        result.position = options.invert_cover ? 100 - result.position : result.position;
-                    }
-                }
-            } else {
-                // Previous solution without time_close and time_open
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') &&
-                    msg.data['currentPositionLiftPercentage'] !== 50) {
-                    const liftPercentage = msg.data['currentPositionLiftPercentage'];
-                    result.position = liftPercentage;
-                    result.position = options.invert_cover ? 100 - result.position : result.position;
-                }
-            }
-            return result;
-        },
-    },
-    hy_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuyaGetDataValue(msg.data.datatype, msg.data.data);
-
-            switch (dp) {
-            case common.TuyaDataPoints.hyWorkdaySchedule1: // schedule for workdays [5,9,12,8,0,15,10,0,15]
-                return {workdays: [
-                    {hour: value[0], minute: value[1], temperature: value[2]},
-                    {hour: value[3], minute: value[4], temperature: value[5]},
-                    {hour: value[6], minute: value[7], temperature: value[8]},
-                ], range: 'am'};
-            case common.TuyaDataPoints.hyWorkdaySchedule2: // schedule for workdays [15,0,25,145,2,17,22,50,14]
-                return {workdays: [
-                    {hour: value[0], minute: value[1], temperature: value[2]},
-                    {hour: value[3], minute: value[4], temperature: value[5]},
-                    {hour: value[6], minute: value[7], temperature: value[8]},
-                ], range: 'pm'};
-            case common.TuyaDataPoints.hyHolidaySchedule1: // schedule for holidays [5,5,20,8,4,13,11,30,15]
-                return {holidays: [
-                    {hour: value[0], minute: value[1], temperature: value[2]},
-                    {hour: value[3], minute: value[4], temperature: value[5]},
-                    {hour: value[6], minute: value[7], temperature: value[8]},
-                ], range: 'am'};
-            case common.TuyaDataPoints.hyHolidaySchedule2: // schedule for holidays [13,30,15,17,0,15,22,0,15]
-                return {holidays: [
-                    {hour: value[0], minute: value[1], temperature: value[2]},
-                    {hour: value[3], minute: value[4], temperature: value[5]},
-                    {hour: value[6], minute: value[7], temperature: value[8]},
-                ], range: 'pm'};
-            case common.TuyaDataPoints.hyHeating: // heating
-                return {heating: value ? 'ON' : 'OFF'};
-            case common.TuyaDataPoints.hyMaxTempProtection: // max temperature protection
-                return {max_temperature_protection: value ? 'ON' : 'OFF'};
-            case common.TuyaDataPoints.hyMinTempProtection: // min temperature protection
-                return {min_temperature_protection: value ? 'ON' : 'OFF'};
-            case common.TuyaDataPoints.hyState: // 0x017D work state
-                return {state: value ? 'ON' : 'OFF'};
-            case common.TuyaDataPoints.hyChildLock: // 0x0181 Changed child lock status
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
-            case common.TuyaDataPoints.hyExternalTemp: // external sensor temperature
-                return {external_temperature: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.hyAwayDays: // away preset days
-                return {away_preset_days: value};
-            case common.TuyaDataPoints.hyAwayTemp: // away preset temperature
-                return {away_preset_temperature: value};
-            case common.TuyaDataPoints.hyTempCalibration: // 0x026D Temperature correction
-                return {local_temperature_calibration: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.hyHysteresis: // 0x026E Temperature hysteresis
-                return {hysteresis: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.hyProtectionHysteresis: // 0x026F Temperature protection hysteresis
-                return {hysteresis_for_protection: value};
-            case common.TuyaDataPoints.hyProtectionMaxTemp: // 0x027A max temperature for protection
-                return {max_temperature_for_protection: value};
-            case common.TuyaDataPoints.hyProtectionMinTemp: // 0x027B min temperature for protection
-                return {min_temperature_for_protection: value};
-            case common.TuyaDataPoints.hyMaxTemp: // 0x027C max temperature limit
-                return {max_temperature: value};
-            case common.TuyaDataPoints.hyMinTemp: // 0x027D min temperature limit
-                return {min_temperature: value};
-            case common.TuyaDataPoints.hyHeatingSetpoint: // 0x027E Changed target temperature
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.hyLocalTemp: // 0x027F MCU reporting room temperature
-                return {local_temperature: (value / 10).toFixed(1)};
-            case common.TuyaDataPoints.hySensor: // Sensor type
-                return {sensor_type: {0: 'internal', 1: 'external', 2: 'both'}[value]};
-            case common.TuyaDataPoints.hyPowerOnBehavior: // 0x0475 State after power on
-                return {power_on_behavior: {0: 'restore', 1: 'off', 2: 'on'}[value]};
-            case common.TuyaDataPoints.hyWeekFormat: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {week: common.TuyaThermostatWeekFormat[value]};
-            case common.TuyaDataPoints.hyMode: // 0x0480 mode
-                return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
-            case common.TuyaDataPoints.hyAlarm: // [16] [0]
-                return {alarm: (value > 0) ? true : false};
-            default: // The purpose of the codes 17 & 19 are still unknown
-                console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
-                    dp} with data ${JSON.stringify(msg.data)}`);
-            }
-        },
-    },
     _324131092621_notification: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -5085,7 +4988,7 @@ const converters = {
         },
     },
 
-    // Ignore converters (these message dont need parsing).
+    // #region Ignore converters (these message dont need parsing).
     ignore_onoff_report: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5176,22 +5079,22 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
     },
-    _324131092621_ignore_on: {
+    ignore_command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => null,
     },
-    _324131092621_ignore_off: {
+    ignore_command_off: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => null,
     },
-    _324131092621_ignore_step: {
+    ignore_command_step: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => null,
     },
-    _324131092621_ignore_stop: {
+    ignore_command_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => null,
@@ -5226,11 +5129,12 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
-    tuya_ignore_set_time_request: {
+    ignore_tuya_set_time_request: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetTimeRequest'],
         convert: (model, msg, publish, options, meta) => null,
     },
+    // #endregion
 };
 
 module.exports = converters;
