@@ -2213,6 +2213,7 @@ const devices = [
 
     // Neo
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
         zigbeeModel: ['0yu2xgi'],
         model: 'NAS-AB02B0',
         vendor: 'Neo',
