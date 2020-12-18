@@ -1118,7 +1118,7 @@ const converters = {
     thermostat_control_sequence_of_operation: {
         key: ['control_sequence_of_operation'],
         convertSet: async (entity, key, value, meta) => {
-            const ctrlSeqeOfOper = utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value);
+            const ctrlSeqeOfOper = utils.getKeyByValue(common.thermostatControlSequenceOfOperationsLegacy, value, value);
             await entity.write('hvacThermostat', {ctrlSeqeOfOper});
         },
         convertGet: async (entity, key, meta) => {
@@ -1128,7 +1128,7 @@ const converters = {
     thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
+            const systemMode = utils.getKeyByValue(common.thermostatSystemModesLegacy, value, value);
             await entity.write('hvacThermostat', {systemMode});
             return {readAfterWriteTime: 250, state: {system_mode: value}};
         },
@@ -1664,7 +1664,7 @@ const converters = {
     eurotronic_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
+            const systemMode = utils.getKeyByValue(common.thermostatSystemModesLegacy, value, value);
             const hostFlags = {};
             switch (systemMode) {
             case 0: // off (window_open for eurotronic)

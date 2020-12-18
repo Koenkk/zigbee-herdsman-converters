@@ -1,6 +1,6 @@
 'use strict';
 
-const thermostatControlSequenceOfOperations = {
+const thermostatControlSequenceOfOperationsLegacy = {
     0: 'cooling only',
     1: 'cooling with reheat',
     2: 'heating only',
@@ -8,7 +8,31 @@ const thermostatControlSequenceOfOperations = {
     4: 'cooling and heating 4-pipes',
     5: 'cooling and heating 4-pipes with reheat',
 };
+const thermostatControlSequenceOfOperations = {
+    0: 'cooling_only',
+    1: 'cooling_with_reheat',
+    2: 'heating_only',
+    3: 'heating_with_reheat',
+    4: 'cooling_and_heating_4-pipes',
+    5: 'cooling_and_heating_4-pipes_with_reheat',
+};
 const thermostatSystemModes = {
+    0: 'off',
+    1: 'auto',
+    3: 'cool',
+    4: 'heat',
+    5: 'emergency_heating',
+    6: 'precooling',
+    7: 'fan_only',
+    8: 'dry',
+    9: 'sleep',
+};
+const thermostatRunningMode= {
+    0: 'off',
+    3: 'cool',
+    4: 'heat',
+};
+const thermostatSystemModesLegacy = {
     0: 'off',
     1: 'auto',
     3: 'cool',
@@ -340,7 +364,7 @@ const zclStatus = {
 
 
 module.exports = {
-    thermostatControlSequenceOfOperations,
+    thermostatControlSequenceOfOperationsLegacy,
     thermostatSystemModes,
     thermostatRunningStates,
     fanMode,
@@ -360,4 +384,7 @@ module.exports = {
     TuyaFanModes,
     TuyaThermostatSystemModes2,
     zclStatus,
+    thermostatControlSequenceOfOperations,
+    thermostatSystemModesLegacy,
+    thermostatRunningMode,
 };

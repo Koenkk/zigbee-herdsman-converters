@@ -21,7 +21,7 @@
  */
 
 const common = require('./converters/common');
-const fz = require('./converters/fromZigbee');
+const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
 const utils = require('./converters/utils');
 const globalStore = require('./converters/store');
@@ -543,7 +543,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy_WXKG01LM_click],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
         exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
         toZigbee: [],
     },
@@ -556,7 +556,7 @@ const devices = [
         exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [
             fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
-            fz.legacy_WXKG11LM_click, fz.legacy_xiaomi_action_click_multistate,
+            fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -568,7 +568,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake'])],
         fromZigbee: [
-            fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy_WXKG12LM_action_click_multistate,
+            fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy.WXKG12LM_action_click_multistate,
         ],
         toZigbee: [],
     },
@@ -581,7 +581,7 @@ const devices = [
         exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release'])],
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
-            fz.legacy_WXKG03LM_click, fz.legacy_xiaomi_action_click_multistate,
+            fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate,
         ],
         toZigbee: [],
         onEvent: xiaomi.prevent_reset,
@@ -615,7 +615,7 @@ const devices = [
         ],
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
-            /* check these: */ fz.legacy_WXKG02LM_click, fz.legacy_WXKG02LM_click_multistate,
+            /* check these: */ fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate,
         ],
         toZigbee: [],
         endpoint: (device) => {
@@ -696,7 +696,7 @@ const devices = [
         // eslint-disable-next-line
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
@@ -720,9 +720,9 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_switch_basic,
-            fz.xiaomi_operation_mode_basic, fz.legacy_QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
+            fz.xiaomi_operation_mode_basic, fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power,
         ],
         exposes: [e.switch(), e.power(), e.temperature(), e.action(['single', 'double', 'release', 'hold'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
@@ -740,7 +740,7 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action,
             /* check these */
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy.QBKG03LM_QBKG12LM_click, fz.legacy.QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
@@ -766,8 +766,8 @@ const devices = [
         fromZigbee: [
             fz.xiaomi_on_off_action, fz.xiaomi_multistate_action,
             /* check these: */
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy_QBKG03LM_QBKG12LM_click,
-            fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy_QBKG12LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy.QBKG03LM_QBKG12LM_click,
+            fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy.QBKG12LM_click,
             fz.xiaomi_power,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.power(), e.action([
@@ -787,7 +787,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 double key wireless wall switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.legacy_xiaomi_on_off_action, fz.legacy_xiaomi_multistate_action],
+        fromZigbee: [fz.xiaomi_battery, fz.legacy.xiaomi_on_off_action, fz.legacy.xiaomi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -803,7 +803,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG04LM_QBKG11LM_click,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
@@ -819,7 +819,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
         fromZigbee: [
-            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy_QBKG03LM_QBKG12LM_click, fz.legacy_QBKG03LM_buttons,
+            fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG03LM_QBKG12LM_click, fz.legacy.QBKG03LM_buttons,
             fz.xiaomi_operation_mode_basic,
         ],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
@@ -835,7 +835,7 @@ const devices = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.legacy_QBKG25LM_click, fz.xiaomi_operation_mode_opple],
+        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
@@ -2095,7 +2095,7 @@ const devices = [
         model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
         description: 'Environment controller',
-        fromZigbee: [fz.thermostat_att_report, fz.generic_fan_mode],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.generic_fan_mode],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -2525,8 +2525,8 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
         fromZigbee: [
-            fz.legacy_cmd_move, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop, fz.legacy_cmd_stop_with_onoff,
-            fz.legacy_cmd_move_to_level_with_onoff, fz.battery,
+            fz.legacy.cmd_move, fz.legacy.cmd_move_with_onoff, fz.legacy.cmd_stop, fz.legacy.cmd_stop_with_onoff,
+            fz.legacy.cmd_move_to_level_with_onoff, fz.battery,
         ],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
         toZigbee: [],
@@ -2637,9 +2637,9 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.command_move,
-            fz.legacy_E1743_brightness_up, fz.legacy_E1743_brightness_down, fz.command_stop,
-            fz.legacy_E1743_brightness_stop, fz.battery,
+            fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.command_move,
+            fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop,
+            fz.legacy.E1743_brightness_stop, fz.battery,
         ],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
@@ -2680,7 +2680,7 @@ const devices = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
-        fromZigbee: [fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.legacy_E1744_play_pause, fz.legacy_E1744_skip, fz.battery],
+        fromZigbee: [fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.legacy.E1744_play_pause, fz.legacy.E1744_skip, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action([
             'brightness_move_up', 'brightness_move_down', 'brighntess_stop', 'toggle', 'brighntess_step_up', 'brightness_step_down',
@@ -2770,8 +2770,8 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
         fromZigbee: [
-            fz.battery, fz.command_cover_close, fz.legacy_cover_close, fz.command_cover_open, fz.legacy_cover_open,
-            fz.command_cover_stop, fz.legacy_cover_stop,
+            fz.battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
+            fz.command_cover_stop, fz.legacy.cover_stop,
         ],
         exposes: [e.battery(), e.action(['close', 'open', 'stop'])],
         toZigbee: [],
@@ -3904,7 +3904,7 @@ const devices = [
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy_SmartButton_skip, fz.hue_smart_button_event, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
         meta: {configureKey: 4},
@@ -4252,7 +4252,7 @@ const devices = [
         vendor: 'Custom devices (DiY)',
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
         fromZigbee: [
-            fz.on_off, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ptvo_switch_uart,
+            fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report,
         ],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input,
@@ -4587,7 +4587,7 @@ const devices = [
         vendor: 'DIYRuZ',
         description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
         fromZigbee: [
-            fz.on_off, fz.ptvo_multistate_action, fz.legacy_ptvo_switch_buttons, fz.ignore_basic_report,
+            fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ignore_basic_report,
         ],
         extend: generic.switch,
         exposes: [
@@ -4710,7 +4710,7 @@ const devices = [
         description: 'Smart heating thermostat',
         fromZigbee: [
             fz.battery,
-            fz.thermostat_att_report,
+            fz.legacy.thermostat_att_report,
         ],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
@@ -5025,11 +5025,11 @@ const devices = [
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [
-            fz.legacy_osram_lightify_switch_cmdOn, fz.legacy_osram_lightify_switch_cmdMoveWithOnOff,
-            fz.legacy_osram_lightify_switch_AC0251100NJ_cmdStop, fz.legacy_osram_lightify_switch_cmdMoveToColorTemp,
-            fz.legacy_osram_lightify_switch_cmdMoveHue, fz.legacy_osram_lightify_switch_cmdMoveToSaturation,
-            fz.legacy_osram_lightify_switch_cmdOff, fz.legacy_osram_lightify_switch_cmdMove, fz.battery,
-            fz.legacy_osram_lightify_switch_cmdMoveToLevelWithOnOff,
+            fz.legacy.osram_lightify_switch_cmdOn, fz.legacy.osram_lightify_switch_cmdMoveWithOnOff,
+            fz.legacy.osram_lightify_switch_AC0251100NJ_cmdStop, fz.legacy.osram_lightify_switch_cmdMoveToColorTemp,
+            fz.legacy.osram_lightify_switch_cmdMoveHue, fz.legacy.osram_lightify_switch_cmdMoveToSaturation,
+            fz.legacy.osram_lightify_switch_cmdOff, fz.legacy.osram_lightify_switch_cmdMove, fz.battery,
+            fz.legacy.osram_lightify_switch_cmdMoveToLevelWithOnOff,
         ],
         exposes: [e.battery(), e.action([
             'up', 'up_hold', 'up_release', 'down_release', 'circle_release', 'circle_hold', 'down', 'down_hold', 'circle_click',
@@ -5059,14 +5059,14 @@ const devices = [
         ])],
         fromZigbee: [
             fz.battery,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdOn,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdOff,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdStepColorTemp,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdMove,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdStop,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveHue,
-            fz.legacy_osram_lightify_switch_AB371860355_cmdMoveSat,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdOn,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdOff,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdStepColorTemp,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdMove,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdStop,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdMoveHue,
+            fz.legacy.osram_lightify_switch_AB371860355_cmdMoveSat,
         ],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
@@ -5281,7 +5281,7 @@ const devices = [
         model: 'UK7004240',
         vendor: 'Hive',
         description: 'Radiator valve',
-        fromZigbee: [fz.thermostat_att_report, fz.battery],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
@@ -5308,7 +5308,7 @@ const devices = [
         model: 'SLR1b',
         vendor: 'Hive',
         description: 'Heating thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
@@ -5338,7 +5338,7 @@ const devices = [
         model: 'SLR2',
         vendor: 'Hive',
         description: 'Dual channel heating and hot water thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
@@ -5896,8 +5896,8 @@ const devices = [
         vendor: 'Sylvania',
         description: 'Lightify Smart Dimming Switch',
         fromZigbee: [
-            fz.legacy_osram_lightify_switch_cmdOn, fz.legacy_osram_lightify_switch_cmdMoveWithOnOff, fz.legacy_osram_lightify_switch_cmdOff,
-            fz.legacy_osram_lightify_switch_cmdMove, fz.legacy_osram_lightify_switch_73743_cmdStop, fz.battery,
+            fz.legacy.osram_lightify_switch_cmdOn, fz.legacy.osram_lightify_switch_cmdMoveWithOnOff, fz.legacy.osram_lightify_switch_cmdOff,
+            fz.legacy.osram_lightify_switch_cmdMove, fz.legacy.osram_lightify_switch_73743_cmdStop, fz.battery,
         ],
         exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
@@ -6071,7 +6071,7 @@ const devices = [
         model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.generic_fan_mode],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.generic_fan_mode],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -6340,7 +6340,7 @@ const devices = [
         model: 'SWO-KEF1PA',
         vendor: 'Swann',
         description: 'Key fob remote',
-        fromZigbee: [fz.legacy_KEF1PA_arm, fz.command_panic],
+        fromZigbee: [fz.legacy.KEF1PA_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(['home', 'sleep', 'away', 'panic'])],
     },
@@ -6478,7 +6478,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart 1 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -6488,7 +6488,7 @@ const devices = [
         description: 'Smart 2 key scene wall switch',
         toZigbee: [tz.on_off],
         exposes: [e.action(['recall_*']), e.switch()],
-        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
@@ -6496,7 +6496,7 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, fz.legacy_scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -7705,7 +7705,7 @@ const devices = [
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
         description: 'Arrival sensor',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.legacy_STS_PRS_251_beeping],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.legacy.STS_PRS_251_beeping],
         exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', exposes.access.SET, [''])],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
@@ -8078,7 +8078,7 @@ const devices = [
         description: 'Button',
         fromZigbee: [
             fz.command_status_change_notification_action,
-            fz.legacy_st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport,
+            fz.legacy.st_button_state, fz.battery, fz.temperature, fz.ignore_iaszone_attreport,
         ],
         exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
@@ -8139,7 +8139,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Remote control',
         fromZigbee: [
-            fz.command_on, fz.command_off_with_effect, fz.legacy_ZYCT202_stop, fz.legacy_ZYCT202_up_down,
+            fz.command_on, fz.command_off_with_effect, fz.legacy.ZYCT202_stop, fz.legacy.ZYCT202_up_down,
         ],
         exposes: [e.action(['on', 'off', 'stop', 'up-press', 'down-press'])],
         toZigbee: [],
@@ -8321,7 +8321,7 @@ const devices = [
         model: 'AV2010/34',
         vendor: 'Bitron',
         description: '4-Touch single click buttons',
-        fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy_AV2010_34_click],
+        fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy.AV2010_34_click],
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
         meta: {configureKey: 1},
@@ -8369,7 +8369,7 @@ const devices = [
         model: 'AV2010/32',
         vendor: 'Bitron',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [fz.bitron_thermostat_att_report, fz.battery],
+        fromZigbee: [fz.legacy.bitron_thermostat_att_report, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_running_state,
@@ -8730,12 +8730,7 @@ const devices = [
         model: '3157100',
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat,',
-        fromZigbee: [
-            fz.battery,
-            fz.thermostat_att_report,
-            fz.generic_fan_mode,
-            fz.ignore_time_read,
-        ],
+        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.generic_fan_mode, fz.ignore_time_read],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
@@ -9143,7 +9138,7 @@ const devices = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.legacy_heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
@@ -9159,7 +9154,7 @@ const devices = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.legacy_heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
@@ -9345,7 +9340,7 @@ const devices = [
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        fromZigbee: [fz.command_status_change_notification_action, fz.legacy_st_button_state, fz.battery],
+        fromZigbee: [fz.command_status_change_notification_action, fz.legacy.st_button_state, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         meta: {configureKey: 1},
@@ -9728,8 +9723,8 @@ const devices = [
             'brightness_down_release', 'brightness_up_release',
         ])],
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.legacy_CTR_U_brightness_updown_click,
-            fz.legacy_CTR_U_brightness_updown_hold, fz.legacy_CTR_U_brightness_updown_release, fz.command_recall, fz.legacy_CTR_U_scene,
+            fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.legacy.CTR_U_brightness_updown_click,
+            fz.legacy.CTR_U_brightness_updown_hold, fz.legacy.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy.CTR_U_scene,
             fz.ignore_basic_report,
         ],
         toZigbee: [],
@@ -9867,8 +9862,8 @@ const devices = [
         description: 'Zigbee 3.0 Keypad Pulse 4S',
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [
-            fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
-            fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
+            fz.command_recall, fz.legacy.scenes_recall_click, fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off,
+            fz.legacy.genOnOff_cmdOff, fz.battery, fz.legacy.cmd_move_with_onoff, fz.legacy.cmd_stop_with_onoff,
         ],
         exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -9880,8 +9875,8 @@ const devices = [
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [
-            fz.command_recall, fz.legacy_scenes_recall_click, fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off,
-            fz.legacy_genOnOff_cmdOff, fz.battery, fz.legacy_cmd_move_with_onoff, fz.legacy_cmd_stop_with_onoff,
+            fz.command_recall, fz.legacy.scenes_recall_click, fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off,
+            fz.legacy.genOnOff_cmdOff, fz.battery, fz.legacy.cmd_move_with_onoff, fz.legacy.cmd_stop_with_onoff,
         ],
         exposes: [e.battery(), e.action(['on', 'recall_*', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
@@ -9990,8 +9985,8 @@ const devices = [
             }
         },
         fromZigbee: [
-            fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy_RM01_on_click, fz.legacy_RM01_off_click,
-            fz.legacy_RM01_up_hold, fz.legacy_RM01_down_hold, fz.legacy_RM01_stop,
+            fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
+            fz.legacy.RM01_up_hold, fz.legacy.RM01_down_hold, fz.legacy.RM01_stop,
         ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
         onEvent: async (type, data, device) => {
@@ -10084,9 +10079,9 @@ const devices = [
         description: 'Tint remote control',
         vendor: 'Müller Licht',
         fromZigbee: [
-            fz.command_on, fz.command_off, fz.command_toggle, fz.legacy_tint404011_brightness_updown_click,
-            fz.legacy_tint404011_move_to_color_temp, fz.legacy_tint404011_move_to_color, fz.tint_scene,
-            fz.legacy_tint404011_brightness_updown_release, fz.legacy_tint404011_brightness_updown_hold,
+            fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
+            fz.legacy.tint404011_move_to_color_temp, fz.legacy.tint404011_move_to_color, fz.tint_scene,
+            fz.legacy.tint404011_brightness_updown_release, fz.legacy.tint404011_brightness_updown_hold,
         ],
         exposes: [e.action([
             'on', 'off', 'toggle', 'brightness_down_click', 'brightness_up_click', 'color_temp', 'color_wheel',
@@ -10255,7 +10250,7 @@ const devices = [
         model: '81825',
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.legacy_eria_81825_updown],
+        fromZigbee: [fz.command_on, fz.command_off, fz.legacy.eria_81825_updown],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -10299,7 +10294,7 @@ const devices = [
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
-        fromZigbee: [fz.battery, fz.thermostat_att_report, fz.danfoss_thermostat],
+        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.danfoss_thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature,
@@ -10348,7 +10343,7 @@ const devices = [
         model: 'SPZB0001',
         vendor: 'Eurotronic',
         description: 'Spirit Zigbee wireless heater thermostat',
-        fromZigbee: [fz.eurotronic_thermostat, fz.battery],
+        fromZigbee: [fz.legacy.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration, tz.eurotronic_thermostat_system_mode,
@@ -10546,7 +10541,7 @@ const devices = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [fz.legacy_immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.legacy.immax_07046L_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
@@ -11016,7 +11011,7 @@ const devices = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        fromZigbee: [fz.thermostat_att_report, fz.stelpro_thermostat, fz.hvac_user_interface],
+        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -11064,12 +11059,7 @@ const devices = [
         model: 'STZB402',
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-            fz.humidity,
-        ],
+        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -11117,12 +11107,7 @@ const devices = [
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-            fz.humidity,
-        ],
+        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -11172,12 +11157,7 @@ const devices = [
         model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [
-            fz.thermostat_att_report,
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface,
-            fz.humidity,
-        ],
+        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -11600,7 +11580,7 @@ const devices = [
         model: 'N2G-SP',
         vendor: 'NET2GRID',
         description: 'White Net2Grid power outlet switch with power meter',
-        fromZigbee: [fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
+        fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.on_off,
             fz.metering_power],
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
@@ -11805,8 +11785,8 @@ const devices = [
             {vendor: 'Jung', model: 'ZLLHS4'},
         ],
         fromZigbee: [
-            fz.legacy_insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.legacy_insta_down_hold,
-            fz.legacy_insta_up_hold, fz.legacy_insta_stop,
+            fz.legacy.insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.legacy.insta_down_hold,
+            fz.legacy.insta_up_hold, fz.legacy.insta_stop,
         ],
         exposes: [e.action(['select_*', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
@@ -11847,9 +11827,9 @@ const devices = [
         vendor: 'RGB Genie',
         description: '3 Zone remote and dimmer',
         fromZigbee: [
-            fz.battery, fz.command_move, fz.legacy_ZGRC013_brightness_onoff,
-            fz.legacy_ZGRC013_brightness, fz.command_stop, fz.legacy_ZGRC013_brightness_stop, fz.command_on,
-            fz.legacy_ZGRC013_cmdOn, fz.command_off, fz.legacy_ZGRC013_cmdOff, fz.command_recall,
+            fz.battery, fz.command_move, fz.legacy.ZGRC013_brightness_onoff,
+            fz.legacy.ZGRC013_brightness, fz.command_stop, fz.legacy.ZGRC013_brightness_stop, fz.command_on,
+            fz.legacy.ZGRC013_cmdOn, fz.command_off, fz.legacy.ZGRC013_cmdOff, fz.command_recall,
         ],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
@@ -12004,7 +11984,7 @@ const devices = [
         fromZigbee: [
             fz.command_on,
             fz.command_off,
-            fz.legacy_CCTSwitch_D0001_on_off,
+            fz.legacy.CCTSwitch_D0001_on_off,
             fz.CCTSwitch_D0001_move_to_level_recall,
             fz.CCTSwitch_D0001_move_to_colortemp_recall,
             fz.CCTSwitch_D0001_colortemp_updown_hold_release,
@@ -12059,7 +12039,7 @@ const devices = [
         vendor: 'Meazon',
         description: 'Bizy plug meter',
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
+            fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
@@ -12088,7 +12068,7 @@ const devices = [
         vendor: 'Meazon',
         description: 'DinRail 1-phase meter',
         fromZigbee: [
-            fz.command_on, fz.legacy_genOnOff_cmdOn, fz.command_off, fz.legacy_genOnOff_cmdOff, fz.on_off,
+            fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.on_off,
             fz.meazon_meter,
         ],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
@@ -12116,7 +12096,7 @@ const devices = [
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
         description: 'Multi-function button',
-        fromZigbee: [fz.konke_action, fz.battery, fz.legacy_konke_click],
+        fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
@@ -12228,11 +12208,11 @@ const devices = [
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [
-            fz.sinope_thermostat_att_report,
-            fz.hvac_user_interface,
+            fz.legacy.sinope_thermostat_att_report,
+            fz.legacy.hvac_user_interface,
             fz.metering_power,
             fz.ignore_temperature_report,
-            fz.sinope_thermostat_state,
+            fz.legacy.sinope_thermostat_state,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -12290,11 +12270,11 @@ const devices = [
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [
-            fz.thermostat_att_report,
-            fz.hvac_user_interface,
+            fz.legacy.thermostat_att_report,
+            fz.legacy.hvac_user_interface,
             fz.metering_power,
             fz.ignore_temperature_report,
-            fz.sinope_thermostat_state,
+            fz.legacy.sinope_thermostat_state,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -12351,10 +12331,10 @@ const devices = [
         vendor: 'Sinope',
         description: 'Zigbee smart floor heating thermostat',
         fromZigbee: [
-            fz.thermostat_att_report,
-            fz.hvac_user_interface,
+            fz.legacy.thermostat_att_report,
+            fz.legacy.hvac_user_interface,
             fz.ignore_temperature_report,
-            fz.sinope_thermostat_state,
+            fz.legacy.sinope_thermostat_state,
             fz.sinope_TH1300ZB_specific,
         ],
         toZigbee: [
@@ -12423,7 +12403,7 @@ const devices = [
         vendor: 'Sinope',
         description: 'Zigbee low volt thermostat',
         fromZigbee: [
-            fz.sinope_thermostat_att_report,
+            fz.legacy.sinope_thermostat_att_report,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -12456,7 +12436,7 @@ const devices = [
         vendor: 'Sinope',
         description: 'Zigbee dual pole line volt thermostat',
         fromZigbee: [
-            fz.thermostat_att_report,
+            fz.legacy.thermostat_att_report,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -12539,7 +12519,7 @@ const devices = [
         model: 'LZL4BWHL01',
         vendor: 'Lutron',
         description: 'Connected bulb remote control',
-        fromZigbee: [fz.legacy_insta_down_hold, fz.legacy_insta_up_hold, fz.legacy_LZL4B_onoff, fz.legacy_insta_stop],
+        fromZigbee: [fz.legacy.insta_down_hold, fz.legacy.insta_up_hold, fz.legacy.LZL4B_onoff, fz.legacy.insta_stop],
         toZigbee: [],
         exposes: [e.action(['down', 'up', 'stop'])],
     },
@@ -12548,7 +12528,7 @@ const devices = [
         model: 'Z3-1BRL',
         vendor: 'Lutron',
         description: 'Aurora smart bulb dimmer',
-        fromZigbee: [fz.dimmer_passthru_brightness],
+        fromZigbee: [fz.legacy.dimmer_passthru_brightness],
         toZigbee: [],
         exposes: [e.action(['brightness']), exposes.numeric('brightness', exposes.access.STATE)],
         meta: {configureKey: 1},
@@ -12565,10 +12545,7 @@ const devices = [
         model: 'Zen-01-W',
         vendor: 'Zen',
         description: 'Thermostat',
-        fromZigbee: [
-            fz.battery,
-            fz.thermostat_att_report,
-        ],
+        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
@@ -13232,7 +13209,7 @@ const devices = [
         description: 'Awareness switch',
         fromZigbee: [
             fz.terncy_temperature, fz.occupancy_with_timeout,
-            fz.illuminance, fz.terncy_raw, fz.legacy_terncy_raw, fz.battery,
+            fz.illuminance, fz.terncy_raw, fz.legacy.terncy_raw, fz.battery,
         ],
         exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(), e.action([
             'single', 'double', 'triple', 'quadruple',
@@ -13245,7 +13222,7 @@ const devices = [
         model: 'TERNCY-SD01',
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
-        fromZigbee: [fz.terncy_raw, fz.legacy_terncy_raw, fz.terncy_knob, fz.battery],
+        fromZigbee: [fz.terncy_raw, fz.legacy.terncy_raw, fz.terncy_knob, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', exposes.access.STATE)],
@@ -13742,7 +13719,7 @@ const devices = [
         model: 'TS0218',
         vendor: 'CR Smart Home',
         description: 'Button',
-        fromZigbee: [fz.legacy_TS0218_click, fz.battery],
+        fromZigbee: [fz.legacy.TS0218_click, fz.battery],
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
@@ -14019,9 +13996,9 @@ const devices = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            fz.wiser_thermostat,
+            fz.legacy.wiser_thermostat,
             fz.wiser_itrv_battery,
-            fz.wiser_user_interface,
+            fz.hvac_user_interface,
             fz.wiser_device_info,
         ],
         toZigbee: [
@@ -14230,7 +14207,7 @@ const devices = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.legacy_cmd_move, fz.legacy_cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
@@ -15190,7 +15167,7 @@ const devices = [
         model: 'ZK03840',
         vendor: 'Viessmann',
         description: 'ViCare radiator thermostat valve',
-        fromZigbee: [fz.viessmann_thermostat_att_report, fz.battery, fz.hvac_user_interface],
+        fromZigbee: [fz.legacy.viessmann_thermostat_att_report, fz.battery, fz.legacy.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
