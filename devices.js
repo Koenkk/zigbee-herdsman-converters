@@ -15675,7 +15675,7 @@ const devices = [
         ],
         model: 'HG06338',
         vendor: 'Lidl',
-        description: 'Silvercrest 3 gang switch, possibly with USB (EU, FR, CZ, BS)',
+        description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: generic.switch,
         meta: {configureKey: 1, multiEndpoint: true},
