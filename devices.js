@@ -3680,6 +3680,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929002376801'],
+        model: '929002376801',
+        vendor: 'Philips',
+        description: 'Hue Iris (generation 4)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1742930P7'],
         model: '1742930P7',
         vendor: 'Philips',
