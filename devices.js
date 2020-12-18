@@ -5701,6 +5701,14 @@ const devices = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['PL 115'],
+        model: 'PL 115',
+        vendor: 'Innr',
+        description: 'Puck Light',
+        extend: generic.light_onoff_brightness,
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['ST 110'],
         model: 'ST 110',
         vendor: 'Innr',
