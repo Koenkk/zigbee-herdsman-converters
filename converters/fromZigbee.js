@@ -489,7 +489,15 @@ const saswellThermostat = (model, msg, publish, options, meta) => {
 };
 
 const converters = {
-    // #region Generic/recommended converters, re-use if possible.
+    // #region Generic/recommended converters
+    fan: {
+        cluster: 'hvacFanCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const key = getKey(common.fanMode, msg.data.fanMode);
+            return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+        },
+    },
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -568,6 +576,32 @@ const converters = {
                 result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
             }
             return result;
+        },
+    },
+    thermostat_weekly_schedule: {
+        cluster: 'hvacThermostat',
+        type: ['commandGetWeeklyScheduleRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            const days = [];
+            for (let i = 0; i < 8; i++) {
+                if ((msg.data['dayofweek'] & 1<<i) > 0) {
+                    days.push(common.dayOfWeek[i]);
+                }
+            }
+
+            const transitions = [];
+            for (const transition of msg.data.transitions) {
+                const entry = {time: transition.transitionTime};
+                if (transition.hasOwnProperty('heatSetpoint')) {
+                    entry['heating_setpoint'] = transition['heatSetpoint'] / 100;
+                }
+                if (transition.hasOwnProperty('coolSetpoint')) {
+                    entry['cooling_setpoint'] = transition['coolSetpoint'] / 100;
+                }
+                transitions.push(entry);
+            }
+
+            return {[postfixWithEndpointName('weekly_schedule', msg, model)]: {days, transitions}};
         },
     },
     hvac_user_interface: {
@@ -874,6 +908,47 @@ const converters = {
                 const property = postfixWithEndpointName('brightness', msg, model);
                 return {[property]: msg.data['currentLevel']};
             }
+        },
+    },
+    color_colortemp: {
+        cluster: 'lightingColorCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+
+            if (msg.data.hasOwnProperty('colorTemperature')) {
+                result.color_temp = msg.data['colorTemperature'];
+            }
+
+            if (msg.data.hasOwnProperty('colorMode')) {
+                result.color_mode = msg.data['colorMode'];
+            }
+
+            if (
+                msg.data.hasOwnProperty('currentX') || msg.data.hasOwnProperty('currentY') ||
+                msg.data.hasOwnProperty('currentSaturation') || msg.data.hasOwnProperty('currentHue') ||
+                msg.data.hasOwnProperty('enhancedCurrentHue')
+            ) {
+                result.color = {};
+
+                if (msg.data.hasOwnProperty('currentX')) {
+                    result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
+                }
+                if (msg.data.hasOwnProperty('currentY')) {
+                    result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
+                }
+                if (msg.data.hasOwnProperty('currentSaturation')) {
+                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+                }
+                if (msg.data.hasOwnProperty('currentHue')) {
+                    result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+                }
+                if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
+                    result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                }
+            }
+
+            return result;
         },
     },
     metering: {
@@ -1601,7 +1676,104 @@ const converters = {
     },
     // #endregion
 
-    // #region Non-generic converters, re-use if possible
+    // #region Non-generic converters
+    terncy_knob: {
+        cluster: 'manuSpecificClusterAduroSmart',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (typeof msg.data['27'] === 'number') {
+                const direction = (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise');
+                const number = (Math.abs(msg.data['27']) / 12);
+                return {action: 'rotate', action_direction: direction, action_number: number};
+            }
+        },
+    },
+    DTB190502A1: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookupKEY = {
+                '0': 'KEY_SYS',
+                '1': 'KEY_UP',
+                '2': 'KEY_DOWN',
+                '3': 'KEY_NONE',
+            };
+            const lookupLED = {'0': 'OFF', '1': 'ON'};
+            return {
+                cpu_temperature: precisionRound(msg.data['41361'], 2),
+                key_state: lookupKEY[msg.data['41362']],
+                led_state: lookupLED[msg.data['41363']],
+            };
+        },
+    },
+    ZNMS12LM_low_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('batteryAlarmMask')) {
+                return {battery_low: msg.data['batteryAlarmMask'] === 1};
+            }
+        },
+    },
+    xiaomi_lock_report: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65328']) {
+                const data = msg.data['65328'];
+                const state = data.substr(2, 2);
+                const action = data.substr(4, 2);
+                const keynum = data.substr(6, 2);
+                if (state == 11) {
+                    if (action == 1) {
+                        // unknown key
+                        return {keyerror: true, inserted: 'unknown'};
+                    }
+                    if (action == 3) {
+                        // explicitly disabled key (i.e. reported lost)
+                        return {keyerror: true, inserted: keynum};
+                    }
+                    if (action == 7) {
+                        // strange object introduced into the cylinder (e.g. a lock pick)
+                        return {keyerror: true, inserted: 'strange'};
+                    }
+                }
+                if (state == 12) {
+                    if (action == 1) {
+                        return {inserted: keynum};
+                    }
+                    if (action == 11) {
+                        return {forgotten: keynum};
+                    }
+                }
+            }
+        },
+    },
+    SP600_power: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === '20160120') {
+                // Cannot use metering, divisor/multiplier is not according to ZCL.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2233
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
+
+                const result = {};
+                if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                    result.power = msg.data['instantaneousDemand'];
+                }
+                // Summation is reported in Watthours
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy = value / 1000.0;
+                }
+                return result;
+            } else {
+                return converters.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     sinope_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -1642,7 +1814,7 @@ const converters = {
             return result;
         },
     },
-    ZigUP_parse: {
+    ZigUP: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3856,6 +4028,51 @@ const converters = {
             return {occupancy: true};
         },
     },
+    almond_click: {
+        cluster: 'ssIasAce',
+        type: ['commandArm'],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data['armmode'];
+            const lookup = {3: 'single', 0: 'double', 2: 'long'};
+
+            // Workaround to ignore duplicated (false) presses that
+            // are 100ms apart, since the button often generates
+            // multiple duplicated messages for a single click event.
+            if (!globalStore.hasValue(msg.endpoint, 'since')) {
+                globalStore.putValue(msg.endpoint, 'since', 0);
+            }
+
+            const now = Date.now();
+            const since = globalStore.getValue(msg.endpoint, 'since');
+
+            if ((now-since)>100 && lookup[action]) {
+                globalStore.putValue(msg.endpoint, 'since', now);
+                return {action: lookup[action]};
+            }
+        },
+    },
+    SAGE206612_state: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const timeout = 28;
+
+            if (!globalStore.hasValue(msg.endpoint, 'action')) {
+                globalStore.putValue(msg.endpoint, 'action', []);
+            }
+
+
+            const timer = setTimeout(() => globalStore.getValue(msg.endpoint, 'action').pop(), timeout * 1000);
+
+            const list = globalStore.getValue(msg.endpoint, 'action');
+            if (list.length === 0 || list.length > 4) {
+                list.push(timer);
+                return {action: 'on'};
+            } else if (timeout > 0) {
+                list.push(timer);
+            }
+        },
+    },
     PGC410EU_presence: {
         cluster: 'manuSpecificSmartThingsArrivalSensor',
         type: 'commandArrivalSensorNotify',
@@ -4211,368 +4428,6 @@ const converters = {
     /**
      * TODO: Converters to be checked
      */
-    SP600_power: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (meta.device.dateCode === '20160120') {
-                // Cannot use metering, divisor/multiplier is not according to ZCL.
-                // https://github.com/Koenkk/zigbee2mqtt/issues/2233
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
-
-                const result = {};
-                if (msg.data.hasOwnProperty('instantaneousDemand')) {
-                    result.power = msg.data['instantaneousDemand'];
-                }
-                // Summation is reported in Watthours
-                if (msg.data.hasOwnProperty('currentSummDelivered')) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    result.energy = value / 1000.0;
-                }
-                return result;
-            } else {
-                return converters.metering.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
-    color_colortemp: {
-        cluster: 'lightingColorCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-
-            if (msg.data.hasOwnProperty('colorTemperature')) {
-                result.color_temp = msg.data['colorTemperature'];
-            }
-
-            if (msg.data.hasOwnProperty('colorMode')) {
-                result.color_mode = msg.data['colorMode'];
-            }
-
-            if (
-                msg.data.hasOwnProperty('currentX') || msg.data.hasOwnProperty('currentY') ||
-                msg.data.hasOwnProperty('currentSaturation') || msg.data.hasOwnProperty('currentHue') ||
-                msg.data.hasOwnProperty('enhancedCurrentHue')
-            ) {
-                result.color = {};
-
-                if (msg.data.hasOwnProperty('currentX')) {
-                    result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
-                }
-
-                if (msg.data.hasOwnProperty('currentY')) {
-                    result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
-                }
-
-                if (msg.data.hasOwnProperty('currentSaturation')) {
-                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
-                }
-
-                if (msg.data.hasOwnProperty('currentHue')) {
-                    result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
-                }
-
-                if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
-                    result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
-                }
-            }
-
-            return result;
-        },
-    },
-    xiaomi_lock_report: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65328']) {
-                const data = msg.data['65328'];
-                const state = data.substr(2, 2);
-                const action = data.substr(4, 2);
-                const keynum = data.substr(6, 2);
-                if (state == 11) {
-                    if (action == 1) {
-                        // unknown key
-                        return {keyerror: true, inserted: 'unknown'};
-                    }
-                    if (action == 3) {
-                        // explicitly disabled key (i.e. reported lost)
-                        return {keyerror: true, inserted: keynum};
-                    }
-                    if (action == 7) {
-                        // strange object introduced into the cylinder (e.g. a lock pick)
-                        return {keyerror: true, inserted: 'strange'};
-                    }
-                }
-                if (state == 12) {
-                    if (action == 1) {
-                        return {inserted: keynum};
-                    }
-                    if (action == 11) {
-                        return {forgotten: keynum};
-                    }
-                }
-            }
-        },
-    },
-    peanut_electrical: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const deviceID = msg.device.ieeeAddr;
-
-            // initialize stored defaults with observed values
-            if (!store[deviceID]) {
-                store[deviceID] = {
-                    acVoltageMultiplier: 180, acVoltageDivisor: 39321, acCurrentMultiplier: 72,
-                    acCurrentDivisor: 39321, acPowerMultiplier: 10255, acPowerDivisor: 39321,
-                };
-            }
-
-            // if new multipliers/divisors come in, replace prior values or defaults
-            Object.keys(store[deviceID]).forEach((key) => {
-                if (msg.data.hasOwnProperty(key)) {
-                    store[deviceID][key] = msg.data[key];
-                }
-            });
-
-            // if raw measurement comes in, apply stored/default multiplier and divisor
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                result.voltage = (msg.data['rmsVoltage'] * store[deviceID].acVoltageMultiplier /
-                    store[deviceID].acVoltageDivisor).toFixed(2);
-            }
-
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                result.current = (msg.data['rmsCurrent'] * store[deviceID].acCurrentMultiplier /
-                    store[deviceID].acCurrentDivisor).toFixed(2);
-            }
-
-            if (msg.data.hasOwnProperty('activePower')) {
-                result.power = (msg.data['activePower'] * store[deviceID].acPowerMultiplier /
-                    store[deviceID].acPowerDivisor).toFixed(2);
-            }
-
-            return result;
-        },
-    },
-    _324131092621_notification: {
-        cluster: 'manuSpecificPhilips',
-        type: 'commandHueNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ?
-                options.multiple_press_timeout : 0.25;
-
-            const getPayload = function(button, pressType, pressDuration, pressCounter,
-                brightnessSend, brightnessValue) {
-                const payLoad = {};
-                payLoad['action'] = `${button}-${pressType}`;
-                payLoad['duration'] = pressDuration / 1000;
-                if (pressCounter) {
-                    payLoad['counter'] = pressCounter;
-                }
-                if (brightnessSend) {
-                    payLoad['brightness'] = store[deviceID].brightnessValue;
-                }
-                return payLoad;
-            };
-
-            const deviceID = msg.device.ieeeAddr;
-            let button = null;
-            switch (msg.data['button']) {
-            case 1:
-                button = 'on';
-                break;
-            case 2:
-                button = 'up';
-                break;
-            case 3:
-                button = 'down';
-                break;
-            case 4:
-                button = 'off';
-                break;
-            }
-            let type = null;
-            switch (msg.data['type']) {
-            case 0:
-                type = 'press';
-                break;
-            case 1:
-                type = 'hold';
-                break;
-            case 2:
-            case 3:
-                type = 'release';
-                break;
-            }
-
-            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ?
-                options.send_brightess : true;
-            const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
-
-            // Initialize store
-            if (!store[deviceID]) {
-                store[deviceID] = {pressStart: null, pressType: null,
-                    delayedButton: null, delayedBrightnessSend: null, delayedType: null,
-                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
-                if (brightnessEnabled) {
-                    store[deviceID].brightnessValue = 255;
-                    store[deviceID].brightnessSince = null;
-                    store[deviceID].brightnessDirection = null;
-                }
-            }
-
-            if (button && type) {
-                if (type == 'press') {
-                    store[deviceID].pressStart = Date.now();
-                    store[deviceID].pressType = 'press';
-                    if (brightnessSend) {
-                        const newValue = store[deviceID].brightnessValue + (button === 'up' ? 32 : -32);
-                        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
-                    }
-                } else if (type == 'hold') {
-                    store[deviceID].pressType = 'hold';
-                    if (brightnessSend) {
-                        holdUpdateBrightness324131092621(deviceID);
-                        store[deviceID].brightnessSince = Date.now();
-                        store[deviceID].brightnessDirection = button;
-                    }
-                } else if (type == 'release') {
-                    if (brightnessSend) {
-                        store[deviceID].brightnessSince = null;
-                        store[deviceID].brightnessDirection = null;
-                    }
-                    if (store[deviceID].pressType == 'hold') {
-                        store[deviceID].pressType += '-release';
-                    }
-                }
-                if (type == 'press') {
-                    // pressed different button
-                    if (store[deviceID].delayedTimer && (store[deviceID].delayedButton != button)) {
-                        clearTimeout(store[deviceID].delayedTimer);
-                        store[deviceID].delayedTimer = null;
-                        publish(getPayload(store[deviceID].delayedButton,
-                            store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
-                            store[deviceID].delayedBrightnessSend,
-                            store[deviceID].brightnessValue));
-                    }
-                } else {
-                    // released after press: start timer
-                    if (store[deviceID].pressType == 'press') {
-                        if (store[deviceID].delayedTimer) {
-                            clearTimeout(store[deviceID].delayedTimer);
-                            store[deviceID].delayedTimer = null;
-                        } else {
-                            store[deviceID].delayedCounter = 0;
-                        }
-                        store[deviceID].delayedButton = button;
-                        store[deviceID].delayedBrightnessSend = brightnessSend;
-                        store[deviceID].delayedType = store[deviceID].pressType;
-                        store[deviceID].delayedCounter++;
-                        store[deviceID].delayedTimerStart = Date.now();
-                        store[deviceID].delayedTimer = setTimeout(() => {
-                            publish(getPayload(store[deviceID].delayedButton,
-                                store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
-                                store[deviceID].delayedBrightnessSend,
-                                store[deviceID].brightnessValue));
-                            store[deviceID].delayedTimer = null;
-                        }, multiplePressTimeout * 1000);
-                    } else {
-                        const pressDuration =
-                            (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
-                                Date.now() - store[deviceID].pressStart : 0;
-                        return getPayload(button,
-                            store[deviceID].pressType, pressDuration, null, brightnessSend,
-                            store[deviceID].brightnessValue);
-                    }
-                }
-            }
-
-            return {};
-        },
-    },
-    thermostat_weekly_schedule_rsp: {
-        cluster: 'hvacThermostat',
-        type: ['commandGetWeeklyScheduleRsp'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const key = postfixWithEndpointName('weekly_schedule', msg, model);
-            result[key] = {};
-            if (typeof msg.data['dayofweek'] == 'number') {
-                result[key][msg.data['dayofweek']] = msg.data;
-                for (const elem of result[key][msg.data['dayofweek']]['transitions']) {
-                    if (typeof elem['heatSetpoint'] == 'number') {
-                        elem['heatSetpoint'] /= 100;
-                    }
-                    if (typeof elem['coolSetpoint'] == 'number') {
-                        elem['coolSetpoint'] /= 100;
-                    }
-                }
-            }
-            return result;
-        },
-    },
-    generic_fan_mode: {
-        cluster: 'hvacFanCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const key = getKey(common.fanMode, msg.data.fanMode);
-            return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
-        },
-    },
-    SZ_ESW01_AU_power: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('instantaneousDemand')) {
-                return {power: precisionRound(msg.data['instantaneousDemand'] / 1000, 2)};
-            }
-        },
-    },
-    ZNMS12LM_low_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (typeof msg.data['batteryAlarmMask'] == 'number') {
-                return {battery_low: msg.data['batteryAlarmMask'] === 1};
-            }
-        },
-    },
-    DTB190502A1_parse: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookupKEY = {
-                '0': 'KEY_SYS',
-                '1': 'KEY_UP',
-                '2': 'KEY_DOWN',
-                '3': 'KEY_NONE',
-            };
-            const lookupLED = {
-                '0': 'OFF',
-                '1': 'ON',
-            };
-            return {
-                cpu_temperature: precisionRound(msg.data['41361'], 2),
-                key_state: lookupKEY[msg.data['41362']],
-                led_state: lookupLED[msg.data['41363']],
-            };
-        },
-    },
-    terncy_knob: {
-        cluster: 'manuSpecificClusterAduroSmart',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (typeof msg.data['27'] === 'number') {
-                return {
-                    action: 'rotate',
-                    direction: (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise'),
-                    number: (Math.abs(msg.data['27']) / 12),
-                };
-            }
-        },
-    },
     CCTSwitch_D0001_move_to_level_recall: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
@@ -4897,37 +4752,6 @@ const converters = {
             }
         },
     },
-    almond_click: {
-        cluster: 'ssIasAce',
-        type: ['commandArm'],
-        convert: (model, msg, publish, options, meta) => {
-            const action = msg.data['armmode'];
-            delete msg.data['armmode'];
-            const lookup = {
-                3: {action: 'single'}, // single click
-                0: {action: 'double'}, // double
-                2: {action: 'long'}, // hold
-            };
-
-            // Workaround to ignore duplicated (false) presses that
-            // are 100ms apart, since the button often generates
-            // multiple duplicated messages for a single click event.
-            const deviceID = msg.device.ieeeAddr;
-            if (!store[deviceID]) {
-                store[deviceID] = {since: 0};
-            }
-
-            const now = Date.now();
-            const since = store[deviceID].since;
-
-            if ((now-since)>100) {
-                store[deviceID].since = now;
-                return lookup[action] ? lookup[action] : null;
-            } else {
-                return;
-            }
-        },
-    },
     ubisys_c4_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -4964,22 +4788,6 @@ const converters = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    },
-    EMIZB_132_power: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // Cannot use electrical_measurement here as the reported divisor is not correct
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-600834722
-            const payload = {};
-            if (msg.data.hasOwnProperty('rmsCurrent')) {
-                payload.current = precisionRound(msg.data['rmsCurrent'] / 10, 2);
-            }
-            if (msg.data.hasOwnProperty('rmsVoltage')) {
-                payload.voltage = precisionRound(msg.data['rmsVoltage'] / 10, 2);
-            }
-            return payload;
         },
     },
     ZMCSW032D_cover_position_tilt: {
@@ -5056,33 +4864,6 @@ const converters = {
                 }
             }
             return result;
-        },
-    },
-    SAGE206612_state: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            const deviceId = msg.endpoint.deviceIeeeAddress;
-            const timeout = 28;
-
-            if (!store[deviceId]) {
-                store[deviceId] = [];
-            }
-
-            const timer = setTimeout(() => {
-                store[deviceId].pop();
-            }, timeout * 1000);
-
-            if (store[deviceId].length === 0 || store[deviceId].length > 4) {
-                store[deviceId].push(timer);
-                return {action: 'on'};
-            } else {
-                if (timeout > 0) {
-                    store[deviceId].push(timer);
-                }
-
-                return null;
-            }
         },
     },
     hy_thermostat: {
@@ -5165,6 +4946,142 @@ const converters = {
                 console.log(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
+        },
+    },
+    _324131092621_notification: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ?
+                options.multiple_press_timeout : 0.25;
+
+            const getPayload = function(button, pressType, pressDuration, pressCounter,
+                brightnessSend, brightnessValue) {
+                const payLoad = {};
+                payLoad['action'] = `${button}-${pressType}`;
+                payLoad['duration'] = pressDuration / 1000;
+                if (pressCounter) {
+                    payLoad['counter'] = pressCounter;
+                }
+                if (brightnessSend) {
+                    payLoad['brightness'] = store[deviceID].brightnessValue;
+                }
+                return payLoad;
+            };
+
+            const deviceID = msg.device.ieeeAddr;
+            let button = null;
+            switch (msg.data['button']) {
+            case 1:
+                button = 'on';
+                break;
+            case 2:
+                button = 'up';
+                break;
+            case 3:
+                button = 'down';
+                break;
+            case 4:
+                button = 'off';
+                break;
+            }
+            let type = null;
+            switch (msg.data['type']) {
+            case 0:
+                type = 'press';
+                break;
+            case 1:
+                type = 'hold';
+                break;
+            case 2:
+            case 3:
+                type = 'release';
+                break;
+            }
+
+            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ?
+                options.send_brightess : true;
+            const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
+
+            // Initialize store
+            if (!store[deviceID]) {
+                store[deviceID] = {pressStart: null, pressType: null,
+                    delayedButton: null, delayedBrightnessSend: null, delayedType: null,
+                    delayedCounter: 0, delayedTimerStart: null, delayedTimer: null};
+                if (brightnessEnabled) {
+                    store[deviceID].brightnessValue = 255;
+                    store[deviceID].brightnessSince = null;
+                    store[deviceID].brightnessDirection = null;
+                }
+            }
+
+            if (button && type) {
+                if (type == 'press') {
+                    store[deviceID].pressStart = Date.now();
+                    store[deviceID].pressType = 'press';
+                    if (brightnessSend) {
+                        const newValue = store[deviceID].brightnessValue + (button === 'up' ? 32 : -32);
+                        store[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
+                    }
+                } else if (type == 'hold') {
+                    store[deviceID].pressType = 'hold';
+                    if (brightnessSend) {
+                        holdUpdateBrightness324131092621(deviceID);
+                        store[deviceID].brightnessSince = Date.now();
+                        store[deviceID].brightnessDirection = button;
+                    }
+                } else if (type == 'release') {
+                    if (brightnessSend) {
+                        store[deviceID].brightnessSince = null;
+                        store[deviceID].brightnessDirection = null;
+                    }
+                    if (store[deviceID].pressType == 'hold') {
+                        store[deviceID].pressType += '-release';
+                    }
+                }
+                if (type == 'press') {
+                    // pressed different button
+                    if (store[deviceID].delayedTimer && (store[deviceID].delayedButton != button)) {
+                        clearTimeout(store[deviceID].delayedTimer);
+                        store[deviceID].delayedTimer = null;
+                        publish(getPayload(store[deviceID].delayedButton,
+                            store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
+                            store[deviceID].delayedBrightnessSend,
+                            store[deviceID].brightnessValue));
+                    }
+                } else {
+                    // released after press: start timer
+                    if (store[deviceID].pressType == 'press') {
+                        if (store[deviceID].delayedTimer) {
+                            clearTimeout(store[deviceID].delayedTimer);
+                            store[deviceID].delayedTimer = null;
+                        } else {
+                            store[deviceID].delayedCounter = 0;
+                        }
+                        store[deviceID].delayedButton = button;
+                        store[deviceID].delayedBrightnessSend = brightnessSend;
+                        store[deviceID].delayedType = store[deviceID].pressType;
+                        store[deviceID].delayedCounter++;
+                        store[deviceID].delayedTimerStart = Date.now();
+                        store[deviceID].delayedTimer = setTimeout(() => {
+                            publish(getPayload(store[deviceID].delayedButton,
+                                store[deviceID].delayedType, 0, store[deviceID].delayedCounter,
+                                store[deviceID].delayedBrightnessSend,
+                                store[deviceID].brightnessValue));
+                            store[deviceID].delayedTimer = null;
+                        }, multiplePressTimeout * 1000);
+                    } else {
+                        const pressDuration =
+                            (store[deviceID].pressType == 'hold' || store[deviceID].pressType == 'hold-release') ?
+                                Date.now() - store[deviceID].pressStart : 0;
+                        return getPayload(button,
+                            store[deviceID].pressType, pressDuration, null, brightnessSend,
+                            store[deviceID].brightnessValue);
+                    }
+                }
+            }
+
+            return {};
         },
     },
 

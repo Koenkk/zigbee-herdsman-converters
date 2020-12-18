@@ -2102,7 +2102,7 @@ const devices = [
         model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
         description: 'Environment controller',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.generic_fan_mode],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -4367,7 +4367,7 @@ const devices = [
         model: 'ZigUP',
         vendor: 'Custom devices (DiY)',
         description: '[CC2530 based ZigBee relais, switch, sensor and router](https://github.com/formtapez/ZigUP/)',
-        fromZigbee: [fz.ZigUP_parse],
+        fromZigbee: [fz.ZigUP],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
         exposes: [e.switch()],
     },
@@ -4387,7 +4387,7 @@ const devices = [
         model: 'DTB190502A1',
         vendor: 'databyte.ch',
         description: '[CC2530 based IO Board](https://databyte.ch/zigbee-dev-board-dtb190502a)',
-        fromZigbee: [fz.DTB190502A1_parse],
+        fromZigbee: [fz.DTB190502A1],
         toZigbee: [tz.DTB190502A1_LED],
         exposes: [
             exposes.binary('led_state', exposes.access.STATE, 'ON', 'OFF'),
@@ -5325,7 +5325,7 @@ const devices = [
         model: 'SLR1b',
         vendor: 'Hive',
         description: 'Heating thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.thermostat_weekly_schedule_rsp],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
@@ -5355,7 +5355,7 @@ const devices = [
         model: 'SLR2',
         vendor: 'Hive',
         description: 'Dual channel heating and hot water thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.thermostat_weekly_schedule_rsp],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.thermostat_weekly_schedule_rsp],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
@@ -6096,7 +6096,7 @@ const devices = [
         model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.generic_fan_mode],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -8755,7 +8755,7 @@ const devices = [
         model: '3157100',
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat,',
-        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.generic_fan_mode, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.fan, fz.ignore_time_read],
         toZigbee: [
             tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
@@ -11296,17 +11296,17 @@ const devices = [
         model: 'PP-WHT-US',
         vendor: 'Securifi',
         description: 'Peanut Smart Plug',
-        fromZigbee: [fz.on_off, fz.peanut_electrical],
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await endpoint.read('haElectricalMeasurement', [
-                'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
-                'acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor',
-            ]);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 180, acVoltageDivisor: 39321, acCurrentMultiplier: 72,
+                acCurrentDivisor: 39321, acPowerMultiplier: 10255, acPowerDivisor: 39321,
+            });
             await configureReporting.onOff(endpoint);
             await configureReporting.rmsVoltage(endpoint, {change: 110}); // Voltage reports in 0.00458V
             await configureReporting.rmsCurrent(endpoint, {change: 55}); // Current reports in 0.00183A
@@ -11669,7 +11669,7 @@ const devices = [
         vendor: 'Hampton Bay',
         description: 'Universal wink enabled white ceiling fan premier remote control',
         fromZigbee: generic.light_onoff_brightness.fromZigbee.concat([
-            fz.generic_fan_mode,
+            fz.fan,
         ]),
         toZigbee: generic.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
         exposes: [e.light_brightness(), e.fan()],
@@ -11872,15 +11872,19 @@ const devices = [
         model: 'SZ-ESW01',
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
-        fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
+        fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 1000000,
+                multiplier: 1,
+            });
         },
     },
     {
@@ -11889,14 +11893,18 @@ const devices = [
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
         exposes: [e.switch(), e.power()],
-        fromZigbee: [fz.on_off, fz.SZ_ESW01_AU_power],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await configureReporting.onOff(endpoint);
             await configureReporting.instantaneousDemand(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {
+                divisor: 1000000,
+                multiplier: 1,
+            });
         },
     },
     {
@@ -13247,10 +13255,12 @@ const devices = [
         model: 'TERNCY-SD01',
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
-        fromZigbee: [fz.terncy_raw, fz.legacy.terncy_raw, fz.terncy_knob, fz.battery],
+        fromZigbee: [fz.terncy_raw, fz.legacy.terncy_raw, fz.legacy.terncy_knob, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple']), exposes.text('direction', exposes.access.STATE)],
+        exposes: [
+            e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']), exposes.text('direction', exposes.access.STATE),
+        ],
     },
     {
         zigbeeModel: ['TERNCY-LS01'],

@@ -361,7 +361,16 @@ const zclStatus = {
     194: 'CALIBRATION_ERROR',
     195: 'UNSUPPORTED_CLUSTER',
 };
-
+const dayOfWeek = {
+    0: 'sunday',
+    1: 'monday',
+    2: 'tuesday',
+    3: 'wednesday',
+    4: 'thursday',
+    5: 'friday',
+    6: 'saturday',
+    7: 'away_or_vacation',
+};
 
 module.exports = {
     thermostatControlSequenceOfOperationsLegacy,
@@ -387,4 +396,5 @@ module.exports = {
     thermostatControlSequenceOfOperations,
     thermostatSystemModesLegacy,
     thermostatRunningMode,
+    dayOfWeek,
 };
