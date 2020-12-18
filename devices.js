@@ -10795,10 +10795,10 @@ const devices = [
         zigbeeModel: ['YRD216 PBDB'],
         model: 'YRD216-HA2-619',
         vendor: 'Yale',
-        description: 'Assure Lock - Push Button',
+        description: 'Real living keyless push button deadbolt lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.generic_lock],
-        meta: {configureKey: 3},
+        meta: {configureKey: 3, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
