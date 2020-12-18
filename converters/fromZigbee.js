@@ -876,7 +876,7 @@ const converters = {
             }
         },
     },
-    metering_power: {
+    metering: {
         /**
          * When using this converter also add the following to the configure method of the device:
          * await readMeteringPowerConverterAttributes(endpoint);
@@ -916,7 +916,7 @@ const converters = {
             return payload;
         },
     },
-    electrical_measurement_power: {
+    electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
          * await readEletricalMeasurementConverterAttributes(endpoint);
@@ -4216,7 +4216,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20160120') {
-                // Cannot use metering_power, divisor/multiplier is not according to ZCL.
+                // Cannot use metering, divisor/multiplier is not according to ZCL.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2233
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
 
@@ -4232,7 +4232,7 @@ const converters = {
                 }
                 return result;
             } else {
-                return converters.metering_power.convert(model, msg, publish, options, meta);
+                return converters.metering.convert(model, msg, publish, options, meta);
             }
         },
     },
@@ -4970,7 +4970,7 @@ const converters = {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // Cannot use electrical_measurement_power here as the reported divisor is not correct
+            // Cannot use electrical_measurement here as the reported divisor is not correct
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-600834722
             const payload = {};
             if (msg.data.hasOwnProperty('rmsCurrent')) {
