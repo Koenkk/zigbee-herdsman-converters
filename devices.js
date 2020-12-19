@@ -3212,6 +3212,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWO003'],
+        model: '929001873401',
+        vendor: 'Philips',
+        description: 'Hue white Filament bulb G125 E27 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LST001'],
         model: '7299355PH',
         vendor: 'Philips',
