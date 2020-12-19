@@ -11,44 +11,12 @@
 
 const common = require('./common');
 const utils = require('./utils');
-const {precisionRound, isLegacyEnabled, toLocalISOString, numberWithinRange} = require('../lib/utils');
+const {
+    precisionRound, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
+    calibrateAndPrecisionRoundOptions, toPercentage,
+} = require('../lib/utils');
 const tuya = require('../lib/tuya');
 const globalStore = require('./store');
-
-const defaultPrecision = {
-    temperature: 2,
-    humidity: 2,
-    pressure: 1,
-};
-
-const calibrateAndPrecisionRoundOptions = (number, options, type) => {
-    // Calibrate
-    const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0;
-    if (type == 'illuminance' || type === 'illuminance_lux') {
-        // linear calibration because measured value is zero based
-        // +/- percent
-        calibrationOffset = Math.round(number * calibrationOffset / 100);
-    }
-    number = number + calibrationOffset;
-
-    // Precision round
-    const precisionKey = `${type}_precision`;
-    const defaultValue = defaultPrecision[type] || 0;
-    const precision = options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue;
-    return precisionRound(number, precision);
-};
-
-const toPercentage = (value, min, max) => {
-    if (value > max) {
-        value = max;
-    } else if (value < min) {
-        value = min;
-    }
-
-    const normalised = (value - min) / (max - min);
-    return Math.round(normalised * 100);
-};
 
 const toPercentage3V = (voltage) => {
     let percentage = null;
@@ -95,15 +63,6 @@ const addActionGroup = (payload, msg, definition) => {
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
-};
-
-const transactionStore = {};
-const hasAlreadyProcessedMessage = (msg, transaction=null, key=null) => {
-    const current = transaction !== null ? transaction : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr;
-    if (transactionStore[key] === current) return true;
-    transactionStore[key] = current;
-    return false;
 };
 
 const converters = {
