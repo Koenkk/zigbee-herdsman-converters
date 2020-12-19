@@ -3893,7 +3893,7 @@ const devices = [
         description: 'Hue dimmer switch',
         fromZigbee: [
             fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step,
-            fz.ignore_command_stop, fz._324131092621_notification,
+            fz.ignore_command_stop, fz.legacy.hue_dimmer_switch,
             fz.battery,
         ],
         exposes: [e.battery(), e.action([
@@ -12016,14 +12016,8 @@ const devices = [
         vendor: 'Leedarson',
         description: '4-Key Remote Controller',
         fromZigbee: [
-            fz.command_on,
-            fz.command_off,
-            fz.legacy.CCTSwitch_D0001_on_off,
-            fz.CCTSwitch_D0001_move_to_level_recall,
-            fz.CCTSwitch_D0001_move_to_colortemp_recall,
-            fz.CCTSwitch_D0001_colortemp_updown_hold_release,
-            fz.CCTSwitch_D0001_brightness_updown_hold_release,
-            fz.battery,
+            fz.command_on, fz.command_off, fz.legacy.CCTSwitch_D0001_on_off, fz.CCTSwitch_D0001_levelctrl,
+            fz.CCTSwitch_D0001_lighting, fz.battery,
         ],
         exposes: [e.battery(), e.action([
             'on', 'off', 'brightness_up', 'brightness_down', 'colortemp_up', 'colortemp_down', 'colortemp_up_hold', 'colortemp_down_hold',
