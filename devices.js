@@ -27,6 +27,7 @@ const utils = require('./converters/utils');
 const globalStore = require('./converters/store');
 const ota = require('./ota');
 const exposes = require('./lib/exposes');
+const tuya = require('./lib/tuya');
 const e = exposes.presets;
 const store = {};
 
@@ -425,7 +426,7 @@ const livolo = {
     },
 };
 
-const tuya = {
+const tuyaOnEvent = {
     setTime: async (type, data, device) => {
         if (data.type === 'commandSetTimeRequest' && data.cluster === 'manuSpecificTuya') {
             const utcTime = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
@@ -434,8 +435,8 @@ const tuya = {
             const payload = {
                 payloadSize: 8,
                 payload: [
-                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(localTime),
                 ],
             };
             await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
@@ -449,8 +450,8 @@ const tuya = {
             const payload = {
                 payloadSize: 8,
                 payload: [
-                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(localTime),
                 ],
             };
             await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
@@ -1766,7 +1767,7 @@ const devices = [
         ],
         meta: {tuyaThermostatPreset: common.TuyaThermostatPresets},
         ota: ota.zigbeeOTA,
-        onEvent: tuya.setLocalTime,
+        onEvent: tuyaOnEvent.setLocalTime,
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time_request],
         toZigbee: [
             tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
@@ -1801,7 +1802,7 @@ const devices = [
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.setTime,
+        onEvent: tuyaOnEvent.setTime,
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
@@ -1832,7 +1833,7 @@ const devices = [
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.setTime,
+        onEvent: tuyaOnEvent.setTime,
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
             thermostat: {
@@ -10615,7 +10616,7 @@ const devices = [
             tz.tuya_thermostat_current_heating_setpoint,
             tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.setTime,
+        onEvent: tuyaOnEvent.setTime,
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
             thermostat: {
@@ -13945,7 +13946,7 @@ const devices = [
             tz.saswell_thermostat_frost_detection,
             tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.setTime,
+        onEvent: tuyaOnEvent.setTime,
         meta: {
             configureKey: 1,
             thermostat: {
@@ -13994,7 +13995,7 @@ const devices = [
             tz.saswell_thermostat_anti_scaling,
             tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.setTime,
+        onEvent: tuyaOnEvent.setTime,
         meta: {
             configureKey: 1,
             thermostat: {

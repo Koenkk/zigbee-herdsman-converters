@@ -10,60 +10,13 @@
  */
 
 const common = require('./common');
-const utils = require('./utils');
 const {
     precisionRound, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    calibrateAndPrecisionRoundOptions, toPercentage,
+    calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
+    batteryVoltageToPercentage, getMetaValue,
 } = require('../lib/utils');
 const tuya = require('../lib/tuya');
 const globalStore = require('./store');
-
-const toPercentage3V = (voltage) => {
-    let percentage = null;
-
-    if (voltage < 2100) {
-        percentage = 0;
-    } else if (voltage < 2440) {
-        percentage = 6 - ((2440 - voltage) * 6) / 340;
-    } else if (voltage < 2740) {
-        percentage = 18 - ((2740 - voltage) * 12) / 300;
-    } else if (voltage < 2900) {
-        percentage = 42 - ((2900 - voltage) * 24) / 160;
-    } else if (voltage < 3000) {
-        percentage = 100 - ((3000 - voltage) * 58) / 100;
-    } else if (voltage >= 3000) {
-        percentage = 100;
-    }
-
-    return Math.round(percentage);
-};
-
-// get object property name (key) by it's value
-const getKey = (object, value) => {
-    for (const key in object) {
-        if (object[key]==value) return key;
-    }
-};
-
-// Global variable store that can be used by devices.
-const store = {};
-
-const postfixWithEndpointName = (name, msg, definition) => {
-    if (definition.meta && definition.meta.multiEndpoint) {
-        const endpointName = definition.hasOwnProperty('endpoint') ?
-            getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
-        return `${name}_${endpointName}`;
-    } else {
-        return name;
-    }
-};
-
-const addActionGroup = (payload, msg, definition) => {
-    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
-    if (!disableActionGroup && msg.groupID) {
-        payload.action_group = msg.groupID;
-    }
-};
 
 const converters = {
     // #region Generic/recommended converters
@@ -313,13 +266,7 @@ const converters = {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    if (model.meta.battery.voltageToPercentage === '3V_2100') {
-                        payload.battery = toPercentage3V(payload.voltage);
-                    } else if (model.meta.battery.voltageToPercentage === '3V_2500') {
-                        payload.battery = toPercentage(payload.voltage, 2500, 3000);
-                    } else if (model.meta.battery.voltageToPercentage === '3V_2500_3200') {
-                        payload.battery = toPercentage(payload.voltage, 2500, 3200);
-                    }
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
             }
 
@@ -434,21 +381,17 @@ const converters = {
             // Therefore we need to publish the no_motion detected by ourselves.
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
                 options.occupancy_timeout : 90;
-            const deviceID = msg.device.ieeeAddr;
 
             // Stop existing timers because motion is detected and set a new one.
-            if (store[deviceID]) {
-                store[deviceID].forEach((t) => clearTimeout(t));
-            }
-
-            store[deviceID] = [];
+            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
+            globalStore.putValue(msg.endpoint, 'timers', []);
 
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
                 }, timeout * 1000);
 
-                store[deviceID].push(timer);
+                globalStore.getValue(msg.endpoint, 'timers').push(timer);
             }
 
             // No occupancy since
@@ -457,7 +400,7 @@ const converters = {
                     const timer = setTimeout(() => {
                         publish({no_occupancy_since: since});
                     }, since * 1000);
-                    store[deviceID].push(timer);
+                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
                 });
             }
 
@@ -815,20 +758,14 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            const deviceID = msg.device.ieeeAddr;
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
                 options.occupancy_timeout : 90;
 
-            if (store[deviceID]) {
-                clearTimeout(store[deviceID]);
-                store[deviceID] = null;
-            }
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
 
             if (timeout !== 0) {
-                store[deviceID] = setTimeout(() => {
-                    publish({occupancy: false});
-                    store[deviceID] = null;
-                }, timeout * 1000);
+                const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+                globalStore.putValue(msg.endpoint, 'timer', timer);
             }
 
             return {
@@ -1261,7 +1198,7 @@ const converters = {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
-            const thermostatMeta = utils.getMetaValue(msg.endpoint, model, 'thermostat');
+            const thermostatMeta = getMetaValue(msg.endpoint, model, 'thermostat');
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
             let dataOffset = 0;
@@ -1908,8 +1845,8 @@ const converters = {
             const payload = {
                 payloadSize: 8,
                 payload: [
-                    ...utils.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...utils.convertDecimalValueTo4ByteHexArray(localTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(utcTime),
+                    ...tuya.convertDecimalValueTo4ByteHexArray(localTime),
                 ],
             };
             await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
@@ -2022,10 +1959,9 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            const battery = {max: 3000, min: 2100};
             const voltage = msg.data['mainsVoltage'] /10;
             return {
-                battery: toPercentage(voltage, battery.min, battery.max),
+                battery: batteryVoltageToPercentage(voltage, '3V_2100'),
                 voltage: voltage, // @deprecated
                 // voltage: voltage / 1000.0,
             };
@@ -2053,7 +1989,7 @@ const converters = {
                 result.brightness = result.color.b;
             } else if (dp === common.TuyaDataPoints.silvercrestSetEffect) {
                 result.effect = {
-                    effect: utils.getKeyStringByValue(common.silvercrestEffects, value.substring(0, 2), ''),
+                    effect: getKey(common.silvercrestEffects, value.substring(0, 2), '', String),
                     speed: (parseInt(value.substring(2, 4)) / 64) * 100,
                     colors: [],
                 };
@@ -2845,9 +2781,9 @@ const converters = {
                 return {away_preset_days: value};
             case common.TuyaDataPoints.mode: {
                 const ret = {};
-                const presetOk = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
                 if (presetOk) {
-                    ret.preset = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
+                    ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                     ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
                     ret.system_mode = 'heat';
                 } else {
@@ -3453,11 +3389,7 @@ const converters = {
                 };
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    if (model.meta.battery.voltageToPercentage === '3V_2100') {
-                        payload.battery = toPercentage3V(payload.voltage);
-                    } else if (model.meta.battery.voltageToPercentage === '4LR6AA1_5v') {
-                        payload.battery = toPercentage(voltage, 3000, 4200);
-                    }
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
 
                 return payload;
@@ -3553,31 +3485,31 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
-            const deviceID = msg.device.ieeeAddr;
             const state = msg.data['onOff'];
-            if (!store[deviceID]) store[deviceID] = {};
 
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
-                store[deviceID].timer = setTimeout(() => {
+                const timer = setTimeout(() => {
                     publish({action: 'hold'});
-                    store[deviceID].timer = null;
-                    store[deviceID].hold = Date.now();
-                    store[deviceID].hold_timer = setTimeout(() => {
-                        store[deviceID].hold = false;
+                    globalStore.putValue(msg.endpoint, 'timer', null);
+                    globalStore.putValue(msg.endpoint, 'hold', Date.now());
+                    const holdTimer = setTimeout(() => {
+                        globalStore.putValue(msg.endpoint, 'hold', false);
                     }, options.hold_timeout_expire || 4000);
+                    globalStore.putValue(msg.endpoint, 'hold_timer', holdTimer);
                     // After 4000 milliseconds of not reciving release we assume it will not happen.
                 }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+                globalStore.putValue(msg.endpoint, 'timer', timer);
             } else if (state === 1) {
-                if (store[deviceID].hold) {
-                    const duration = Date.now() - store[deviceID].hold;
+                if (globalStore.getValue(msg.endpiont, 'hold')) {
+                    const duration = Date.now() - globalStore.getValue(msg.endpiont, 'hold');
                     publish({action: 'release', duration: duration});
-                    store[deviceID].hold = false;
+                    globalStore.putValue(msg.endpoint, 'hold', false);
                 }
 
-                if (store[deviceID].timer) {
-                    clearTimeout(store[deviceID].timer);
-                    store[deviceID].timer = null;
+                if (globalStore.getValue(msg.endpoint, 'timer')) {
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+                    globalStore.putValue(msg.endpoint, 'timer', null);
                     publish({action: 'single'});
                 }
             } else {
@@ -3865,7 +3797,7 @@ const converters = {
             if (msg.data['247']) {
                 const voltage = msg.data['247'][2] + msg.data['247'][3]*256;
                 if (voltage) {
-                    return {battery: toPercentage3V(voltage), voltage: voltage};
+                    return {battery: batteryVoltageToPercentage(voltage, '3V_2100'), voltage: voltage};
                 }
             }
 

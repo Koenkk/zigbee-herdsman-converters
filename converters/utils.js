@@ -183,11 +183,6 @@ function getKeyByValue(object, value, fallback) {
     return key != null ? Number(key) : fallback;
 }
 
-function getKeyStringByValue(object, value, fallback) {
-    const key = Object.keys(object).find((k) => object[k] === value);
-    return key != null ? String(key) : fallback;
-}
-
 function hasEndpoints(device, endpoints) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
@@ -210,15 +205,6 @@ const convertDecimalValueTo2ByteHexArray = (value) => {
     const chunk1 = hexValue.substr(0, 2);
     const chunk2 = hexValue.substr(2);
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
-};
-
-const convertDecimalValueTo4ByteHexArray = (value) => {
-    const hexValue = Number(value).toString(16).padStart(8, '0');
-    const chunk1 = hexValue.substr(0, 2);
-    const chunk2 = hexValue.substr(2, 2);
-    const chunk3 = hexValue.substr(4, 2);
-    const chunk4 = hexValue.substr(6);
-    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
 };
 
 const replaceInArray = (arr, oldElements, newElements) => {
@@ -252,33 +238,6 @@ async function getDoorLockPinCode(entity, user, options = null) {
             'userid': user,
         },
         options | {});
-}
-
-// groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
-//                first: return the first property
-function getMetaValue(entity, definition, key, groupStrategy='first') {
-    if (entity.constructor.name === 'Group' && entity.members.length > 0) {
-        const values = [];
-        for (const memberMeta of definition) {
-            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
-                if (groupStrategy === 'first') {
-                    return memberMeta.meta[key];
-                }
-
-                values.push(memberMeta.meta[key]);
-            } else {
-                values.push(undefined);
-            }
-        }
-
-        if (groupStrategy === 'allEqual' && (new Set(values)).size === 1) {
-            return values[0];
-        }
-    } else if (definition && definition.meta && definition.meta.hasOwnProperty(key)) {
-        return definition.meta[key];
-    }
-
-    return undefined;
 }
 
 function filterObject(obj, keys) {
@@ -331,7 +290,6 @@ module.exports = {
     hexToRgb,
     hslToHSV,
     getKeyByValue,
-    getKeyStringByValue,
     interpolateHue,
     hasEndpoints,
     miredsToXY,
@@ -341,10 +299,8 @@ module.exports = {
     getRandomInt,
     isInRange,
     convertDecimalValueTo2ByteHexArray,
-    convertDecimalValueTo4ByteHexArray,
     replaceInArray,
     getDoorLockPinCode,
-    getMetaValue,
     filterObject,
     sleepMs,
     toSnakeCase,

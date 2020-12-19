@@ -3,6 +3,8 @@
 const utils = require('./utils');
 const common = require('./common');
 const globalStore = require('./store');
+const tuya = require('../lib/tuya');
+const {getMetaValue} = require('../lib/utils');
 
 const store = {};
 
@@ -66,7 +68,7 @@ async function sendTuyaDataPointValue(entity, dp, value) {
         entity,
         common.TuyaDataTypes.value,
         dp,
-        utils.convertDecimalValueTo4ByteHexArray(value));
+        tuya.convertDecimalValueTo4ByteHexArray(value));
 }
 
 async function sendTuyaDataPointBool(entity, dp, value) {
@@ -394,7 +396,7 @@ const converters = {
                 brightness = Math.min(254, brightness);
                 brightness = Math.max(onOff || meta.state.state === 'OFF' ? 0 : 1, brightness);
 
-                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
+                if (getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
                     if (onOff && value < 0 && brightness === 1) {
                         brightness = 0;
                     } else if (onOff && value > 0 && meta.state.brightness === 0) {
@@ -553,7 +555,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
             const transition = getTransition(entity, 'brightness', meta);
-            const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1');
+            const turnsOffAtBrightness1 = getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1');
             const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
             if (message.hasOwnProperty('brightness')) brightness = Number(message.brightness);
@@ -3195,7 +3197,7 @@ const converters = {
     tuya_thermostat_weekly_schedule: {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
-            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            const thermostatMeta = getMetaValue(entity, meta.mapped, 'thermostat');
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
@@ -3314,7 +3316,7 @@ const converters = {
     tuya_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
+            const modeId = utils.getKeyByValue(getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
             if (modeId !== null) {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(modeId));
             } else {
@@ -3325,7 +3327,7 @@ const converters = {
     tuya_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
+            const presetId = utils.getKeyByValue(getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
             if (presetId !== null) {
                 await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(presetId));
             } else {
@@ -3337,8 +3339,8 @@ const converters = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
-            const awayPresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
-            const schedulePresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
+            const awayPresetId = utils.getKeyByValue(getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
+            const schedulePresetId = utils.getKeyByValue(getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
             if (awayPresetId !== null) {
                 if (value == 'ON') {
                     await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(awayPresetId));
