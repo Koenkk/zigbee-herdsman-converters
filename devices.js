@@ -1390,8 +1390,8 @@ const devices = [
         description: '10A UK or 16A EU smart plug',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-SHP13'}],
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1404,6 +1404,9 @@ const devices = [
         },
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(),
+            exposes.enum('power_outage_memory', exposes.access.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
         onEvent: (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
@@ -1418,7 +1421,6 @@ const devices = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
