@@ -7009,7 +7009,7 @@ const devices = [
         vendor: 'Namron',
         description: 'LED Strip RGB+W (5m) IP20',
         meta: {turnsOffAtBrightness1: true},
-        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 
     // SmartThings
