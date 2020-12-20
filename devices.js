@@ -1877,7 +1877,9 @@ const devices = [
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         onEvent: setupHaElectricalMeasurementPolling,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(),
+            exposes.enum('power_outage_memory', exposes.access.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
     },
     {
         zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
