@@ -13850,8 +13850,8 @@ const devices = [
 
     // Siterwell
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'}],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'}, {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -13862,7 +13862,8 @@ const devices = [
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp, tz.tuya_thermostat_boost_time,
             tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp, tz.tuya_thermostat_force, tz.tuya_thermostat_preset],
         whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
-            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'}],
+            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'},
+            {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat'])
             .withRunningState(['idle', 'heat'])],
