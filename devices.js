@@ -7003,6 +7003,14 @@ const devices = [
         description: 'LED 5,3W CCT E14',
         extend: preset.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['89665'],
+        model: '89665',
+        vendor: 'Namron',
+        description: 'LED Strip RGB+W (5m) IP20',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // SmartThings
     {
