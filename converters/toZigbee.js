@@ -3585,6 +3585,9 @@ const converters = {
             };
 
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
+            return {
+                state: {[key]: rawValue},
+            };
         },
         convertGet: async (entity, key, meta) => {
             const payloads = {
