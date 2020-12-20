@@ -1,4 +1,4 @@
-const common = require("../ota/common");
+const common = require("../lib/ota/common");
 const otaImages = require("./stub/otaImages");
 
 describe("ota/common.js", () => {
