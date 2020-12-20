@@ -2,7 +2,7 @@
 
 const utils = require('./utils');
 const common = require('./common');
-const globalStore = require('./store');
+const globalStore = require('../lib/store');
 const tuya = require('../lib/tuya');
 const {getMetaValue} = require('../lib/utils');
 
