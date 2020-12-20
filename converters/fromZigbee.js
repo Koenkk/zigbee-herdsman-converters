@@ -16,7 +16,7 @@ const {
     batteryVoltageToPercentage, getMetaValue,
 } = require('../lib/utils');
 const tuya = require('../lib/tuya');
-const globalStore = require('./store');
+const globalStore = require('../lib/store');
 
 const converters = {
     // #region Generic/recommended converters
@@ -803,10 +803,17 @@ const converters = {
                 action_code: msg.data.code,
                 action_zone: msg.data.zoneid,
             };
-            if (model.meta && model.meta.commandArmIncludeTransaction) {
-                payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
-            }
             if (msg.groupID) payload.action_group = msg.groupID;
+            return payload;
+        },
+    },
+    command_arm_with_transaction: {
+        cluster: 'ssIasAce',
+        type: 'commandArm',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
+            const payload = converters.command_arm.convert(model, msg, publish, options, meta);
+            payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
             return payload;
         },
     },
@@ -4894,7 +4901,7 @@ const converters = {
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
     },
-    ignore_tuya_set_time_request: {
+    ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetTimeRequest'],
         convert: (model, msg, publish, options, meta) => null,

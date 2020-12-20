@@ -7,7 +7,6 @@
     "/index.js",
     "/converters",
     "/devices.js",
-    "/ota",
     "/lib"
   ],
   "repository": {
