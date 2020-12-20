@@ -5186,6 +5186,14 @@ const devices = [
         extend: ledvance.light_onoff_brightness_colortemp_colorxy,
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['P40 TW Value'],
+        model: '4058075485174',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Lighting - Classic E14 tunable white',
+        extend: ledvance.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
