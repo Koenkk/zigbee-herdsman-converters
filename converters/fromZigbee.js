@@ -3508,8 +3508,8 @@ const converters = {
                 }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             } else if (state === 1) {
-                if (globalStore.getValue(msg.endpiont, 'hold')) {
-                    const duration = Date.now() - globalStore.getValue(msg.endpiont, 'hold');
+                if (globalStore.getValue(msg.endpoint, 'hold')) {
+                    const duration = Date.now() - globalStore.getValue(msg.endpoint, 'hold');
                     publish({action: 'release', duration: duration});
                     globalStore.putValue(msg.endpoint, 'hold', false);
                 }
