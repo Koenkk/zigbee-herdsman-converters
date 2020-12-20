@@ -13789,6 +13789,19 @@ const devices = [
 
     // EcoDim
     {
+        zigbeeModel: ['ED-10010'],
+        model: 'ED-10010',
+        vendor: 'EcoDim',
+        description: 'Zigbee 2 button wall switch',
+        fromZigbee: [
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop,
+            fz.battery,
+        ],
+        exposes: [e.battery(), e.action(['on', 'off', 'brighntess_move_up', 'brightness_move_down', 'brightness_stop'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ['ED-10011'],
         model: 'ED-10011',
         vendor: 'EcoDim',
