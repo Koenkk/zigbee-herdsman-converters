@@ -4751,6 +4751,22 @@ const converters = {
             return payload;
         },
     },
+    tuya_switch_power_outage_memory: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 0x8002;
+
+            if (msg.data.hasOwnProperty(property)) {
+                const dict = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
+                const value = msg.data[property];
+
+                if (dict.hasOwnProperty(value)) {
+                    return {[postfixWithEndpointName('power_outage_memory', msg, model)]: dict[value]};
+                }
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
@@ -4900,24 +4916,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => null,
     },
     // #endregion
-
-    tuya_switch_power_outage_memory: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 0x8002;
-
-            if (msg.data.hasOwnProperty(property)) {
-                const dict = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const value = msg.data[property];
-
-                if (dict.hasOwnProperty(value)) {
-                    return {[postfixWithEndpointName('power_outage_memory', msg, model)]: dict[value]};
-                }
-            }
-        },
-    },
-
 };
 
 module.exports = converters;
