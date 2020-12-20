@@ -4299,6 +4299,21 @@ const converters = {
             }
         },
     },
+    tuya_switch_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            const dict = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
+            value = value && value.toString().toLowerCase();
+
+            if (value && dict.hasOwnProperty(value) === false) {
+                throw new Error(`${value} not supported, supported values: 'on', 'off', 'restore'`);
+            }
+
+            const payload = dict[value];
+            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
+            return {state: {power_outage_memory: value}};
+        },
+    },
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
