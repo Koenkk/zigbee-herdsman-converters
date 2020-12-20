@@ -14532,6 +14532,22 @@ const devices = [
         toZigbee: [],
         exposes: [e.occupancy()],
     },
+    {
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_digziiav'}],
+        model: 'BW-SS7',
+        vendor: 'BlitzWolf',
+        description: 'Zigbee 3.0 smart light switch module 2 gang',
+        extend: generic.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 
     // Kwikset
     {
