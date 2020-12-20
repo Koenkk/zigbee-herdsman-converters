@@ -7730,6 +7730,7 @@ const devices = [
         meta: {turnsOffAtBrightness1: true},
         extend: hue.light_onoff_brightness_colortemp_colorxy,
     },
+
     // SmartThings
     {
         zigbeeModel: ['PGC313'],
