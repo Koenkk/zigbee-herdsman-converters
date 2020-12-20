@@ -2116,7 +2116,8 @@ const devices = [
         ],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -4746,7 +4747,7 @@ const devices = [
         ],
         exposes: [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -5321,7 +5322,7 @@ const devices = [
         ],
         exposes: [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -6136,7 +6137,8 @@ const devices = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
-                .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1),
+                .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
+                .withLocalTemperatureCalibration(),
         ],
     },
 
@@ -8418,7 +8420,7 @@ const devices = [
         ],
         exposes: [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -8782,7 +8784,7 @@ const devices = [
         exposes: [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1),
+                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -10394,7 +10396,7 @@ const devices = [
         ],
         exposes: [
             e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
@@ -12598,7 +12600,8 @@ const devices = [
         ],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(),
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
