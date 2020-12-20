@@ -15127,7 +15127,7 @@ const devices = [
 
     // Siterwell
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000','kfvq6avy\u0000'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'}, {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
