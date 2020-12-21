@@ -5149,7 +5149,7 @@ const devices = [
         description: 'Smart plug',
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 5},
+        meta: {configureKey: 6},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -5163,10 +5163,7 @@ const devices = [
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
-            endpoint.saveClusterAttributeKeyValue('seMetering', {
-                multiplier: 1,
-                divisor: 1,
-            });
+            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
             await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
