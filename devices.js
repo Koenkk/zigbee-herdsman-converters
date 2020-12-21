@@ -28,14 +28,14 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
-const common = require('./converters/common');
 const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
-const utils = require('./converters/utils');
+const utils = require('./lib/utils');
 const globalStore = require('./lib/store');
 const ota = require('./lib/ota');
 const exposes = require('./lib/exposes');
 const tuya = require('./lib/tuya');
+const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
 const xiaomi = require('./lib/xiaomi');
@@ -1327,7 +1327,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
         whiteLabel: [{vendor: 'Moes', model: 'HY369RT'}, {vendor: 'SHOJZJ', model: '378RT'}],
-        meta: {tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatPreset: tuya.thermostatPresets},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
@@ -1356,7 +1356,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
@@ -1376,7 +1376,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [
@@ -1650,7 +1650,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])],
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2, tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state],
     },
@@ -9776,7 +9776,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5)
@@ -10008,9 +10008,9 @@ const devices = [
                 data.data &&
                 data.data.userid !== undefined &&
                 // Don't read RF events, we can do this with retrieve_state
-                (data.data.programeventsrc === undefined || common.lockSourceName[data.data.programeventsrc] != 'rf')
+                (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
-                await utils.getDoorLockPinCode( device.endpoints[0], data.data.userid );
+                await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
         exposes: [e.lock(), e.battery()],
@@ -13869,7 +13869,7 @@ const devices = [
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_child_lock, tz.siterwell_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp, tz.tuya_thermostat_boost_time,
