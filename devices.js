@@ -8448,7 +8448,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['COSensor-EM', 'COSensor-N'],
+        zigbeeModel: ['COSensor-EM', 'COSensor-N', 'COSensor-EF-3.0'],
         model: 'HS1CA-E',
         vendor: 'HEIMAN',
         description: 'Smart carbon monoxide sensor',
