@@ -11595,6 +11595,12 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await configureReporting.temperature(endpoint);
+        },
     },
 
     // Dawon DNS
