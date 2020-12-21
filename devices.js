@@ -6999,6 +6999,14 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['3802962'],
+        model: '3802962',
+        vendor: 'Namron',
+        description: 'LED 9W RGBW E27',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['3802964'],
         model: '3802964',
         vendor: 'Namron',
