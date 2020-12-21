@@ -28,14 +28,14 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
-const common = require('./converters/common');
 const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
-const utils = require('./converters/utils');
+const utils = require('./lib/utils');
 const globalStore = require('./lib/store');
 const ota = require('./lib/ota');
 const exposes = require('./lib/exposes');
 const tuya = require('./lib/tuya');
+const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
 const xiaomi = require('./lib/xiaomi');
@@ -1018,7 +1018,7 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
         model: 'TS0207_repeater',
-        vendor: 'Tuya',
+        vendor: 'TuYa',
         description: 'Repeater',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
@@ -1306,7 +1306,7 @@ const devices = [
             {vendor: 'Binthen', model: 'BCM100D'},
             {vendor: 'Binthen', model: 'CV01A'},
             {vendor: 'Zemismart', model: 'M515EGB'},
-            {vendor: 'Tuya', model: 'DT82LEMA-1.2N'},
+            {vendor: 'TuYa', model: 'DT82LEMA-1.2N'},
             {vendor: 'Moes', model: 'AM43-0.45/40-ES-EB'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
@@ -1329,7 +1329,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
         whiteLabel: [{vendor: 'Moes', model: 'HY369RT'}, {vendor: 'SHOJZJ', model: '378RT'}],
-        meta: {tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatPreset: tuya.thermostatPresets},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
@@ -1358,7 +1358,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
@@ -1378,7 +1378,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [
@@ -1652,7 +1652,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])],
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes2, tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state],
     },
@@ -1750,10 +1750,13 @@ const devices = [
         model: '11830304',
         vendor: 'Lonsonho',
         description: 'Curtain switch',
-        fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_backlight_mode, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
         meta: {configureKey: 1, coverInverted: true},
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position(), exposes.enum('moving', exposes.access.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.binary('calibration', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.enum('backlight_mode', exposes.access.ALL, ['LOW', 'MEDIUM', 'HIGH']),
+            exposes.binary('motor_reversal', exposes.access.ALL, 'ON', 'OFF')],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'}],
@@ -5148,7 +5151,7 @@ const devices = [
         description: 'Smart plug',
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 5},
+        meta: {configureKey: 6},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -5162,10 +5165,7 @@ const devices = [
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
-            endpoint.saveClusterAttributeKeyValue('seMetering', {
-                multiplier: 1,
-                divisor: 1,
-            });
+            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
             await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
@@ -9775,7 +9775,7 @@ const devices = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: common.TuyaDataPoints.schedule,
+                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
         exposes: [e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5)
@@ -10007,9 +10007,9 @@ const devices = [
                 data.data &&
                 data.data.userid !== undefined &&
                 // Don't read RF events, we can do this with retrieve_state
-                (data.data.programeventsrc === undefined || common.lockSourceName[data.data.programeventsrc] != 'rf')
+                (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
-                await utils.getDoorLockPinCode( device.endpoints[0], data.data.userid );
+                await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
         exposes: [e.lock(), e.battery()],
@@ -11597,6 +11597,12 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+        },
     },
 
     // Dawon DNS
@@ -13868,13 +13874,13 @@ const devices = [
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report],
-        meta: {tuyaThermostatSystemMode: common.TuyaThermostatSystemModes, tuyaThermostatPreset: common.TuyaThermostatPresets},
+        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_child_lock, tz.siterwell_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp, tz.tuya_thermostat_boost_time,
             tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp, tz.tuya_thermostat_force, tz.tuya_thermostat_preset],
         whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
-            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'},
+            {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat'])
