@@ -12126,6 +12126,7 @@ const devices = [
         description: 'Knob smart dimmer',
         fromZigbee: [fz.terncy_raw, fz.legacy.terncy_raw, fz.legacy.terncy_knob, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']),
             exposes.text('direction', exposes.access.STATE)],
