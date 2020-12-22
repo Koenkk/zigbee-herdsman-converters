@@ -12810,7 +12810,8 @@ const devices = [
             .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat', 'cool']).withPreset(['hold', 'program'])],
     },
     {
-        fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'}],
+        fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'}],
         model: 'SEA801-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
@@ -12837,8 +12838,7 @@ const devices = [
     },
     {
         fingerprint: [{modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
-            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'}],
+            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'}],
         model: 'SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
