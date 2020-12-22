@@ -1839,6 +1839,7 @@ const devices = [
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
+        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
