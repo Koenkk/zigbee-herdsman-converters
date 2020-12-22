@@ -12406,6 +12406,12 @@ const devices = [
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
         extend: preset.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['S31 Lite zb'],
