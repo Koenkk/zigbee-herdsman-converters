@@ -6736,7 +6736,8 @@ const devices = [
 
     // YSRSAI
     {
-        zigbeeModel: ['ZB-CL01', 'ZB-CL03', 'FB56-ZCW20FB1.2'],
+        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'YSRSAI'}],
+        zigbeeModel: ['ZB-CL03', 'FB56-ZCW20FB1.2'],
         model: 'YSR-MINI-01_rgbcct',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
