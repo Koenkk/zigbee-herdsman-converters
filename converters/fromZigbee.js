@@ -2500,7 +2500,7 @@ const converters = {
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 return {system_mode: value ? 'heat' : 'off'};
-            case tuya.dataPoints.childLock:
+            case tuya.dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
