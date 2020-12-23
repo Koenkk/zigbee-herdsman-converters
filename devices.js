@@ -5735,6 +5735,13 @@ const devices = [
         description: 'Wireless Bulb E27 9W RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['FB56-ZBW02KU1.5'],
+        model: 'JW-A04-CT',
+        vendor: 'JIAWEN',
+        description: 'LED strip light controller',
+        extend: preset.light_onoff_brightness,
+    },
 
     // Netvox
     {
