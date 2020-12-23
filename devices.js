@@ -2091,8 +2091,9 @@ const devices = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: preset.switch,
-        toZigbee: preset.switch.toZigbee.concat([tz.ikea_power_on_behavior]),
-        exposes: preset.switch.exposes.concat([exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous'])
+        toZigbee: preset.switch.toZigbee.concat([tz.power_on_behavior]),
+        // power_on_behavior 'toggle' does not seem to be supported
+        exposes: preset.switch.exposes.concat([exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
@@ -8065,7 +8066,7 @@ const devices = [
         vendor: 'Blaupunkt',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8086,7 +8087,7 @@ const devices = [
         vendor: 'Lupus',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position()],
     },
     {
@@ -8095,7 +8096,7 @@ const devices = [
         vendor: 'Lupus',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position()],
     },
     {
@@ -8159,7 +8160,7 @@ const devices = [
         vendor: 'Climax',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_position_via_brightness, tz.cover_open_close_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position()],
     },
     {
@@ -8859,7 +8860,7 @@ const devices = [
         vendor: 'HEIMAN',
         description: 'Gear window shade motor',
         fromZigbee: [fz.cover_position_via_brightness],
-        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10050,7 +10051,7 @@ const devices = [
         description: 'Smart vent',
         fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report],
-        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10069,7 +10070,7 @@ const devices = [
         description: 'Smart vent',
         fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report],
-        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10089,7 +10090,7 @@ const devices = [
         vendor: 'AXIS',
         description: 'Gear window shade motor',
         fromZigbee: [fz.cover_position_via_brightness, fz.battery],
-        toZigbee: [tz.cover_open_close_via_brightness, tz.cover_position_via_brightness],
+        toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
