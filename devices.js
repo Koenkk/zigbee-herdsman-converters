@@ -4529,6 +4529,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['A60 RGBW Value II'],
+        model: 'AC25697',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['B40 TW Z3'],
         model: '4058075208414',
         vendor: 'LEDVANCE',
