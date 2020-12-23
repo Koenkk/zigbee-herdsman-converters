@@ -1018,7 +1018,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
-    }, 
+    },
 
     // TuYa
     {
