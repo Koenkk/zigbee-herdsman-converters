@@ -14596,6 +14596,42 @@ const devices = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
+    
+    // Bticino
+    {
+        zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: 'L4531C',
+        vendor: 'Bticino',
+        description: 'Power socket with power consumption monitoring',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+        exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+     },
+     {
+        zigbeeModel: [' DIN power consumption module\u0000\u0000', ' DIN power consumption module'],
+        model: 'F20T60A',
+        vendor: 'Bticino',
+        description: 'DIN power consumption module',
+        fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
+        toZigbee: [tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm],
+        exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false)],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
+        },
+    },    
 ];
 
 module.exports = devices.map((device) => {
