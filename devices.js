@@ -14598,6 +14598,7 @@ const devices = [
     },
     
     // Bticino
+    
     {
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'L4531C',
@@ -14613,6 +14614,8 @@ const devices = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+    
+        },
      },
      {
         zigbeeModel: [' DIN power consumption module\u0000\u0000', ' DIN power consumption module'],
