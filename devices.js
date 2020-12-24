@@ -14599,7 +14599,7 @@ const devices = [
     
     // Bticino    
     {
-        zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000', 'Power socket Bticino'],
         model: 'L4531C',
         vendor: 'Bticino',
         description: 'Power socket with power consumption monitoring',
