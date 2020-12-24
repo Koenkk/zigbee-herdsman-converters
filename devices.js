@@ -14599,6 +14599,26 @@ const devices = [
 
     // Bticino
     {
+        zigbeeModel: ['Bticino Din power consumption module '],
+        model: 'F20T60A',
+        description: 'DIN power consumption module',
+        vendor: 'Bticino',
+        extend: preset.switch,
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.legrand_readActivePower],
+        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'), e.power(),
+            exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
+                .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['Power socket Bticino Serie LL '],
         model: 'L4531C',
         vendor: 'Bticino',
