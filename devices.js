@@ -14616,24 +14616,7 @@ const devices = [
     
         },
      },
-     {
-        zigbeeModel: [' DIN power consumption module\u0000\u0000', ' DIN power consumption module'],
-        model: 'F20T60A',
-        vendor: 'Bticino',
-        description: 'DIN power consumption module',
-        fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
-        toZigbee: [tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm],
-        exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false)],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            // Read configuration values that are not sent periodically as well as current power (activePower).
-            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
-        },
-     },    
+   
 ];
 
 module.exports = devices.map((device) => {
