@@ -10914,6 +10914,24 @@ const devices = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['RGBgenie ZB-5028'],
+        model: 'ZB-5028',
+        vendor: 'RGB Genie',
+        description: 'RGB remote with 4 endpoints and 3 scene recalls',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, 
+            fz.command_move_hue, fz.command_move_to_color, fz.command_move_to_color_temp],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
+            'brightness_move_down', 'brightness_stop', 'recall_*'])],
+        toZigbee: [],
+        meta: {configureKey: 1, multiEndpoint: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 
     // Sercomm
     {
