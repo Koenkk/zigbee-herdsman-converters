@@ -14597,8 +14597,7 @@ const devices = [
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
     
-    // Bticino
-    
+    // Bticino    
     {
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'L4531C',
@@ -14634,7 +14633,7 @@ const devices = [
             // Read configuration values that are not sent periodically as well as current power (activePower).
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
-    },    
+     },    
 ];
 
 module.exports = devices.map((device) => {
