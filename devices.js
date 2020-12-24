@@ -14596,10 +14596,10 @@ const devices = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
-    
-    // Bticino    
+
+    // Bticino
     {
-        zigbeeModel: ['Power socket Bticino Serie LL'],
+        zigbeeModel: ['Power socket Bticino Serie LL '],
         model: 'L4531C',
         vendor: 'Bticino',
         description: 'Power socket with power consumption monitoring',
@@ -14614,7 +14614,7 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
         },
-    },   
+    },
 ];
 
 module.exports = devices.map((device) => {
