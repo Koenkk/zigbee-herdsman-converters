@@ -2916,7 +2916,7 @@ const converters = {
         },
     },
     moes_thermostat_mode: {
-        key: ['preset', 'preset_mode'], // to make it identical with fromZigbee
+        key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const hold = value === 'hold' ? 0 : 1;
             const schedule = value === 'program' ? 0 : 1;

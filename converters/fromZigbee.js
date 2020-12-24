@@ -2517,10 +2517,10 @@ const converters = {
                 // for negative values produce complimentary hex (equivalent to negative values)
                 if (temperature > 4000) temperature = temperature - 4096;
                 return {local_temperature_calibration: temperature};
-            case tuya.dataPoints.moesHold: // state is inverted
-                return {preset_mode: value ? 'program' : 'hold'};
-            case tuya.dataPoints.moesScheduleEnable: // state is inverted
-                return {preset_mode: value ? 'hold' : 'program'};
+            case tuya.dataPoints.moesHold: // state is inverted, preset_mode is deprecated
+                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
+            case tuya.dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
+                return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case tuya.dataPoints.moesValve:
                 return {heat: value ? 'OFF' : 'ON'};
             case tuya.dataPoints.moesSensor:
