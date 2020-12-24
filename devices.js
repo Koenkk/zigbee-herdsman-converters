@@ -1065,7 +1065,10 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'}
+        ],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
