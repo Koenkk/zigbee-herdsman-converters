@@ -479,10 +479,11 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
-            'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
-            'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
-            'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
+        exposes: [e.switch().withEndpoint('left'), e.power_outage_memory(), e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'), e.action([
+                'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
+                'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
+                'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
         onEvent: xiaomi.prevent_reset,
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -656,7 +657,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature()],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.power_outage_memory()],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -723,7 +724,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.power_outage_memory()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
