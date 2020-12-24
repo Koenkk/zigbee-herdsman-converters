@@ -2762,6 +2762,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1743930P7'],
+        model: '1743930P7',
+        vendor: 'Philips',
+        description: 'Philips 1743930P7 Hue Outdoor Econic Wall Lantern',
+        extend: hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCE001'],
         model: '929002294101',
         vendor: 'Philips',
