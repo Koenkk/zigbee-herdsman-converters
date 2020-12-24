@@ -14556,6 +14556,20 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['LXEK-1'],
+        model: '9CZA-A806ST',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
+        zigbeeModel: ['LXEK-4'],
+        model: '9CZA-M350ST-Q1A',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN GU-10 LED RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // LightSolutions
     {
