@@ -1272,6 +1272,10 @@ const devices = [
         extend: preset.switch,
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'}],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         zigbeeModel: ['TS0002'],
