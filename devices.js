@@ -769,7 +769,7 @@ const devices = [
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
             e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', exposes.access.STATE),
-            exposes.enum('sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']),
         ],
     },
     {
@@ -823,7 +823,9 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power(), e.energy(), e.temperature(), e.voltage(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        exposes: [e.power(), e.energy(), e.temperature(), e.voltage(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            exposes.binary('interlock', exposes.access.STATE_SET, true, false)
+                .withDescription('Enabling prevents both relais being on at the same time')],
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],

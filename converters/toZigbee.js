@@ -911,6 +911,46 @@ const converters = {
             return await converters.light_onoff_brightness.convertGet(entity, key, meta);
         },
     },
+    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'low': 0x04010000, 'medium': 0x04020000, 'high': 0x04030000};
+            utils.validateValue(value, Object.keys(lookup));
+
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, options);
+            return {state: {sensitivity: value}};
+        },
+    },
+    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
+        key: ['selftest'],
+        convertSet: async (entity, key, value, meta) => {
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
+        },
+    },
+    LLKZMK11LM_interlock: {
+        key: ['interlock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
+            return {state: {interlock: value}};
+        },
+    },
+    DJT11LM_vibration_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'low': 0x15, 'medium': 0x0B, 'high': 0x01};
+            utils.validateValue(value, Object.keys(lookup));
+
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, options);
+            return {state: {sensitivity: value}};
+        },
+    },
     // #endregion
 
     thermostat_remote_sensing: {
@@ -1088,57 +1128,6 @@ const converters = {
     /**
      * Device specific
      */
-    LLKZMK11LM_interlock: {
-        key: ['interlock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
-            return {state: {interlock: value}};
-        },
-    },
-    DJT11LM_vibration_sensitivity: {
-        key: ['sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'low': 0x15,
-                'medium': 0x0B,
-                'high': 0x01,
-            };
-
-            if (lookup.hasOwnProperty(value)) {
-                const opts = {...manufacturerOptions.xiaomi, timeout: 35000};
-                await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, opts);
-            }
-
-            return {state: {sensitivity: value}};
-        },
-    },
-    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
-        key: ['sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'low': 0x04010000,
-                'medium': 0x04020000,
-                'high': 0x04030000,
-            };
-
-
-            if (lookup.hasOwnProperty(value)) {
-                // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-                const opts = {...manufacturerOptions.xiaomi, timeout: 35000};
-                await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, opts);
-            }
-
-            return {state: {sensitivity: value}};
-        },
-    },
-    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
-        key: ['selftest'],
-        convertSet: async (entity, key, value, meta) => {
-            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-            const opts = {...manufacturerOptions.xiaomi, timeout: 35000};
-            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
-        },
-    },
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
