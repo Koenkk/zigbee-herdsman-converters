@@ -14599,21 +14599,21 @@ const devices = [
     
     // Bticino    
     {
-       zigbeeModel: ['Power socket Bticino Serie LL'],
-       model: 'L4531C',
-       vendor: 'Bticino',
-       description: 'Power socket with power consumption monitoring',
-       fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
-       toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
-       exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
-       meta: {configureKey: 3},
-       configure: async (device, coordinatorEndpoint) => {
-           const endpoint = device.getEndpoint(1);
-           await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
-           await reporting.onOff(endpoint);
-           await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-           await reporting.activePower(endpoint);
-       },
+         zigbeeModel: ['Power socket Bticino Serie LL'],
+         model: 'L4531C',
+         vendor: 'Bticino',
+         description: 'Power socket with power consumption monitoring',
+         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+         exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
+         meta: {configureKey: 3},
+         configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+        },
     },   
 ];
 
