@@ -2306,6 +2306,14 @@ const devices = [
         ota: ota.tradfri,
         extend: preset.light_onoff_brightness_colortemp,
     },
+    {
+        zigbeeModel: ['TRADFRI bulb GU10 CWS 345lm'],
+        model: 'LED1923R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, colour spectrum',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.tradfri,
+    },
 
     // Philips
     {
