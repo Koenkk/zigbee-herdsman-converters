@@ -4589,6 +4589,13 @@ const devices = [
         extend: preset.ledvance.light_onoff_brightness_colortemp,
         ota: ota.ledvance,
     },
+        vendor: 'LEDVANCE',
+        description: 'SMART+ candle E14 tunable white',
+        extend: preset.ledvance.light_onoff_brightness,
+        ota: ota.ledvance,
+    },
+
+
 
     // Hive
     {
