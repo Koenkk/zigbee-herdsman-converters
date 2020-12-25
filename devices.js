@@ -9879,7 +9879,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9895,7 +9895,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9911,7 +9911,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock SL',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9927,7 +9927,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         fromZigbee: [fz.lock_operation_event, fz.battery, fz.lock],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
         meta: {configureKey: 2, timeout: 20000},
         configure: async (device, coordinatorEndpoint) => {
@@ -9944,7 +9944,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9961,7 +9961,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living keyless leveler lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9977,7 +9977,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock',
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -9993,7 +9993,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10009,7 +10009,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Assure lock key free deadbolt with Zigbee',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10025,7 +10025,7 @@ const devices = [
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -10055,7 +10055,7 @@ const devices = [
         vendor: 'Weiser',
         description: 'SmartCode 10',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
-        toZigbee: [tz.generic_lock, tz.pincode_lock],
+        toZigbee: [tz.lock, tz.pincode_lock],
         meta: {configureKey: 4, pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -10084,7 +10084,7 @@ const devices = [
         vendor: 'Weiser',
         description: 'SmartCode 10 Touch',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -10696,7 +10696,7 @@ const devices = [
         vendor: 'Danalock',
         description: 'BT/ZB smartlock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13038,7 +13038,7 @@ const devices = [
         vendor: 'Legrand',
         extend: preset.switch,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.legrand_readActivePower],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'), e.power(),
             exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
@@ -13228,8 +13228,9 @@ const devices = [
         vendor: 'Legrand',
         description: 'DIN power consumption module',
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
-        toZigbee: [tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.legrand_readActivePower, tz.legrand_powerAlarm],
-        exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false)],
+        toZigbee: [tz.legrand_settingAlwaysEnableLed, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
+        exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false),
+            exposes.binary('power_alarm', exposes.access.ALL, true, false).withDescription('Enable/disable the power alarm')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -13277,7 +13278,7 @@ const devices = [
         vendor: 'BTicino',
         extend: preset.switch,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.legrand_readActivePower],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'), e.power(),
             exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
@@ -13413,7 +13414,7 @@ const devices = [
         vendor: 'Kwikset',
         description: 'Home connect smart lock conversion kit',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -13429,7 +13430,7 @@ const devices = [
         vendor: 'Kwikset',
         description: 'SmartCode traditional electronic deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -13445,7 +13446,7 @@ const devices = [
         vendor: 'Kwikset',
         description: '910 SmartCode traditional electronic deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
-        toZigbee: [tz.generic_lock, tz.pincode_lock],
+        toZigbee: [tz.lock, tz.pincode_lock],
         meta: {configureKey: 4, pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -13463,7 +13464,7 @@ const devices = [
         vendor: 'Kwikset',
         description: '910 SmartCode traditional electronic deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -13481,7 +13482,7 @@ const devices = [
         vendor: 'Schlage',
         description: 'Connect smart deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.generic_lock],
+        toZigbee: [tz.lock],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.endpoints[0];

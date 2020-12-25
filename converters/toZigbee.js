@@ -37,6 +37,80 @@ const converters = {
             return {state: {power_on_behavior: value}};
         },
     },
+    lock: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(
+                'closuresDoorLock',
+                `${value.toLowerCase()}Door`,
+                {'pincodevalue': ''},
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            return {readAfterWriteTime: 200};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', ['lockState']);
+        },
+    },
+    pincode_lock: {
+        key: ['pin_code'],
+        convertSet: async (entity, key, value, meta) => {
+            const user = value.user;
+            const pinCode = value.pin_code;
+            if ( isNaN(user) ) {
+                throw new Error('user must be numbers');
+            }
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                throw new Error('user must be in range for device');
+            }
+            if (pinCode === undefined || pinCode === null) {
+                await entity.command(
+                    'closuresDoorLock',
+                    'clearPinCode',
+                    {
+                        'userid': user,
+                    },
+                    utils.getOptions(meta.mapped),
+                );
+            } else {
+                if (isNaN(pinCode)) {
+                    throw new Error('pinCode must be a number or pinCode');
+                }
+                await entity.command(
+                    'closuresDoorLock',
+                    'setPinCode',
+                    {
+                        'userid': user,
+                        'userstatus': 1,
+                        'usertype': 0,
+                        'pincodevalue': pinCode.toString(),
+                    },
+                    utils.getOptions(meta.mapped),
+                );
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
+            if (user === undefined) {
+                const max = meta.mapped.meta.pinCodeCount;
+                // Get all
+                const options = utils.getOptions(meta);
+                for (let i = 0; i < max; i++) {
+                    await entity.command('closuresDoorLock', 'getPinCode', {userid: i}, options);
+                }
+            } else {
+                if (isNaN(user)) {
+                    throw new Error('user must be numbers');
+                }
+                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                    throw new Error('userId must be in range for device');
+                }
+
+                await entity.command('closuresDoorLock', 'getPinCode', {userid: user}, utils.getOptions(meta));
+            }
+        },
+    },
     on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -866,6 +940,12 @@ const converters = {
         key: ['running_mode'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['runningMode']);
+        },
+    },
+    electrical_measurement_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePower']);
         },
     },
     // #endregion
@@ -2057,83 +2137,6 @@ const converters = {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
         },
     },
-    generic_lock: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'closuresDoorLock',
-                `${value.toLowerCase()}Door`,
-                {'pincodevalue': ''},
-                utils.getOptions(meta.mapped, entity),
-            );
-
-            return {readAfterWriteTime: 200};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', ['lockState']);
-        },
-    },
-    pincode_lock: {
-        key: ['pin_code'],
-        convertSet: async (entity, key, value, meta) => {
-            const user = value.user;
-            const pinCode = value.pin_code;
-            if ( isNaN(user) ) {
-                throw new Error('user must be numbers');
-            }
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                throw new Error('user must be in range for device');
-            }
-            if (pinCode === undefined || pinCode === null) {
-                await entity.command(
-                    'closuresDoorLock',
-                    'clearPinCode',
-                    {
-                        'userid': user,
-                    },
-                    utils.getOptions(meta.mapped),
-                );
-            } else {
-                if (isNaN(pinCode)) {
-                    throw new Error('pinCode must be a number or pinCode');
-                }
-                await entity.command(
-                    'closuresDoorLock',
-                    'setPinCode',
-                    {
-                        'userid': user,
-                        'userstatus': 1,
-                        'usertype': 0,
-                        'pincodevalue': pinCode.toString(),
-                    },
-                    utils.getOptions(meta.mapped),
-                );
-            }
-            return {readAfterWriteTime: 200};
-        },
-        convertGet: async (entity, key, meta) => {
-            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
-            if (user === undefined) {
-                const max = meta.mapped.meta.pinCodeCount;
-                // Get all
-                const options = utils.getOptions(meta);
-                for (let i = 0; i < max; i++) {
-                    await entity.command('closuresDoorLock', 'getPinCode', {userid: i}, options);
-                }
-            } else {
-                if (isNaN(user)) {
-                    throw new Error('user must be numbers');
-                }
-                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                    throw new Error('userId must be in range for device');
-                }
-
-                await entity.command('closuresDoorLock', 'getPinCode', {userid: user}, utils.getOptions(meta));
-            }
-        },
-    },
-
-    // Sinope
     sinope_thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
@@ -2386,8 +2389,6 @@ const converters = {
             }
         },
     },
-
-    // ubisys configuration / calibration converters
     ubisys_configure_j1: {
         key: ['configure_j1'],
         convertSet: async (entity, key, value, meta) => {
@@ -2748,15 +2749,12 @@ const converters = {
             log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions']));
         },
     },
-
     tint_scene: {
         key: ['tint_scene'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genBasic', {0x4005: {value, type: 0x20}}, manufacturerOptions.tint);
         },
     },
-
-    // legrand custom cluster : settings
     legrand_identify: {
         key: ['identify'],
         convertSet: async (entity, key, value, meta) => {
@@ -2787,11 +2785,10 @@ const converters = {
             } else {
                 await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
             }
-            // await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
         },
     },
-    // connected power outlet is on attribute 2 and not 1
     legrand_settingAlwaysEnableLed: {
+        // connected power outlet is on attribute 2 and not 1
         key: ['permanent_led'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
@@ -2832,10 +2829,9 @@ const converters = {
                 'switch': 0x0003,
                 'auto': 0x0004,
             };
-            // ensure mode is known
-            if (!(value in lookup)) {
-                throw new Error(`device_mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
-            }
+
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
             const payload = {0: {value: lookup[value], type: 9}};
             await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
             return {state: {'device_mode': value}};
@@ -2844,16 +2840,10 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     },
-    legrand_readActivePower: {
-        key: ['power'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['activePower']);
-        },
-    },
     legrand_powerAlarm: {
         key: ['power_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const enableAlarm = (value === 'DISABLE' ? false : true);
+            const enableAlarm = (value === 'DISABLE' || value === false ? false : true);
             const payloadBolean = {0xf001: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
             const payloadValue = {0xf002: {value: value, type: 0x29}};
             await entity.write('haElectricalMeasurement', payloadValue);
@@ -2863,22 +2853,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
-        },
-    },
-
-    /**
-     * Ignore converters
-     */
-    ignore_transition: {
-        key: ['transition'],
-        attr: [],
-        convertSet: async (entity, key, value, meta) => {
-        },
-    },
-    ignore_rate: {
-        key: ['rate'],
-        attr: [],
-        convertSet: async (entity, key, value, meta) => {
         },
     },
     etop_thermostat_system_mode: {
@@ -3042,7 +3016,7 @@ const converters = {
             if (modeId !== null) {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(modeId));
             } else {
-                console.log(`TRV system mode ${value} is not recognized.`);
+                throw new Error(`TRV system mode ${value} is not recognized.`);
             }
         },
     },
@@ -3053,7 +3027,7 @@ const converters = {
             if (presetId !== null) {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(presetId));
             } else {
-                console.log(`TRV preset ${value} is not recognized.`);
+                throw new Error(`TRV preset ${value} is not recognized.`);
             }
         },
     },
@@ -3073,7 +3047,7 @@ const converters = {
                 }
                 // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
-                console.log(`TRV preset ${value} is not recognized.`);
+                throw new Error(`TRV preset ${value} is not recognized.`);
             }
         },
     },
@@ -3084,7 +3058,7 @@ const converters = {
             if (modeId !== null) {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.fanMode, parseInt(modeId));
             } else {
-                console.log(`TRV fan mode ${value} is not recognized.`);
+                throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
         },
     },
@@ -3141,7 +3115,7 @@ const converters = {
             if (modeId !== null) {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.forceMode, parseInt(modeId));
             } else {
-                console.log(`TRV force mode ${value} is not recognized.`);
+                throw new Error(`TRV force mode ${value} is not recognized.`);
             }
         },
     },
@@ -3162,10 +3136,7 @@ const converters = {
         key: ['window_detect'],
         convertSet: async (entity, key, value, meta) => {
             const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
-            await tuya.sendDataPointRaw(
-                entity,
-                tuya.dataPoints.windowDetection,
-                [detect, value.temperature, value.minutes]);
+            await tuya.sendDataPointRaw(entity, tuya.dataPoints.windowDetection, [detect, value.temperature, value.minutes]);
         },
     },
     tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
@@ -3215,7 +3186,7 @@ const converters = {
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
-                    meta.logger.debug('TuYa_cover_control: Curtain motor position is out of range');
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
                 const isRoller = meta.mapped.model === 'TS0601_roller_blind';
@@ -3231,8 +3202,7 @@ const converters = {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
                     break;
                 default:
-                    meta.logger.debug('TuYa_cover_control: Invalid command received');
-                    break;
+                    throw new Error('TuYa_cover_control: Invalid command received');
                 }
             }
         },
@@ -3328,10 +3298,7 @@ const converters = {
     diyruz_airsense_config: {
         key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2', 'temperature_offset', 'pressure_offset', 'humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {
-                'OFF': 0x00,
-                'ON': 0x01,
-            };
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
                 led_feedback: ['msCO2', {0x0203: {value, type: 0x10}}],
@@ -3402,7 +3369,7 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.neoHumidityAlarm, value);
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
@@ -3430,7 +3397,7 @@ const converters = {
                 await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, utils.getOptions(meta.mapped, entity));
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
@@ -3617,7 +3584,9 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'close': 1, 'stop': 2, 'open': 1};
-            const endpointID = lookup[value.toLowerCase()];
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const endpointID = lookup[value];
             const endpoint = entity.getDevice().getEndpoint(endpointID);
             await endpoint.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
         },
@@ -3904,9 +3873,11 @@ const converters = {
         key: ['calibration'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 0, 'OFF': 1};
-            const calibration = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const calibration = lookup[value];
             await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
-            return {state: {calibration: value.toUpperCase()}};
+            return {state: {calibration: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaCalibration']);
@@ -3916,9 +3887,11 @@ const converters = {
         key: ['motor_reversal'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 1, 'OFF': 0};
-            const reversal = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const reversal = lookup[value];
             await entity.write('closuresWindowCovering', {tuyaMotorReversal: reversal});
-            return {state: {motor_reversal: value.toUpperCase()}};
+            return {state: {motor_reversal: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
@@ -3928,9 +3901,11 @@ const converters = {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
-            const backlight = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const backlight = lookup[value];
             await entity.write('genOnOff', {tuyaBacklightMode: backlight});
-            return {state: {backlight_mode: value.toUpperCase()}};
+            return {state: {backlight_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
@@ -4019,10 +3994,25 @@ const converters = {
                     {'manual': 0, 'auto': 1, 'away': 2}[value]);
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
+
+    // #region Ignore converters
+    ignore_transition: {
+        key: ['transition'],
+        attr: [],
+        convertSet: async (entity, key, value, meta) => {
+        },
+    },
+    ignore_rate: {
+        key: ['rate'],
+        attr: [],
+        convertSet: async (entity, key, value, meta) => {
+        },
+    },
+    // #endregion
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
