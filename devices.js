@@ -4598,8 +4598,6 @@ const devices = [
         ota: ota.ledvance,
     },
 
-
-
     // Hive
     {
         zigbeeModel: ['MOT003'],
