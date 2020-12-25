@@ -8836,7 +8836,7 @@ const devices = [
         zigbeeModel: ['HS2SW1L-EF-3.0', 'HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
         fingerprint: [
             {modelID: 'HS2SW1A-EF-3.0', manufacturerName: 'HEIMAN'},
-            {modelID: 'HS2SW1A-EFR-3.0', manufacturerName: 'HEIMAN'}
+            {modelID: 'HS2SW1A-EFR-3.0', manufacturerName: 'HEIMAN'},
         ],
         model: 'HS2SW1A/HS2SW1A-N',
         vendor: 'HEIMAN',
@@ -8856,7 +8856,7 @@ const devices = [
         zigbeeModel: ['HS2SW2L-EF-3.0', 'HS2SW2L-EFR-3.0', 'HS2SW2A-N'],
         fingerprint: [
             {modelID: 'HS2SW2A-EF-3.0', manufacturerName: 'HEIMAN'},
-            {modelID: 'HS2SW2A-EFR-3.0', manufacturerName: 'HEIMAN'}
+            {modelID: 'HS2SW2A-EFR-3.0', manufacturerName: 'HEIMAN'},
         ],
         model: 'HS2SW2A/HS2SW2A-N',
         vendor: 'HEIMAN',
@@ -8879,7 +8879,7 @@ const devices = [
         zigbeeModel: ['HS2SW3L-EF-3.0', 'HS2SW3L-EFR-3.0', 'HS2SW3A-N'],
         fingerprint: [
             {modelID: 'HS2SW3A-EF-3.0', manufacturerName: 'HEIMAN'},
-            {modelID: 'HS2SW3A-EFR-3.0', manufacturerName: 'HEIMAN'}
+            {modelID: 'HS2SW3A-EFR-3.0', manufacturerName: 'HEIMAN'},
         ],
         model: 'HS2SW3A/HS2SW3A-N',
         vendor: 'HEIMAN',
