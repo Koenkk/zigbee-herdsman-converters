@@ -9890,7 +9890,7 @@ const devices = [
         exposes: [e.lock(), e.battery()],
     },
     {
-        zigbeeModel: ['YRD226 TSDB'],
+        zigbeeModel: ['YRD226 TSDB', 'YRD226L TSDB'],
         model: 'YRD226HA2619',
         vendor: 'Yale',
         description: 'Assure lock',
