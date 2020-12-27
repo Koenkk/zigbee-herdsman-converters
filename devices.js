@@ -3405,8 +3405,8 @@ const devices = [
         description: 'Hue dimmer switch',
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
             fz.legacy.hue_dimmer_switch, fz.battery],
-        exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-release', 'up-press', 'up-hold', 'up-release',
-            'down-press', 'down-hold', 'down-release', 'off-press', 'off-hold', 'off-release'])],
+        exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
+            'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release'])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
