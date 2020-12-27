@@ -1339,7 +1339,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
         whiteLabel: [{vendor: 'Moes', model: 'HY369RT'}, {vendor: 'SHOJZJ', model: '378RT'}],
-        meta: {tuyaThermostatPreset: tuya.thermostatPresets},
+        meta: {tuyaThermostatPreset: tuya.thermostatPresets, tuyaThermostatSystemMode: tuya.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
@@ -1352,7 +1352,7 @@ const devices = [
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-                .withSystemMode(['heat']).withRunningState(['idle', 'heat']).withAwayMode()
+                .withSystemMode(['heat', 'auto', 'off']).withRunningState(['idle', 'heat']).withAwayMode()
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])],
     },
     {
