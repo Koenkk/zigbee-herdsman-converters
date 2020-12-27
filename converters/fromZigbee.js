@@ -3571,9 +3571,8 @@ const converters = {
                 const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
-                // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
-                // -20 till +60, don't produce messages beyond these values.
-                if (temperature > -25 && temperature < 65) {
+                // Sometimes the sensor publishes non-realistic vales, filter these
+                if (temperature > -65 && temperature < 65) {
                     result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
                 }
 
@@ -3599,9 +3598,8 @@ const converters = {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales, as the sensor only works from
-            // -20 till +60, don't produce messages beyond these values.
-            if (temperature > -25 && temperature < 65) {
+            // Sometimes the sensor publishes non-realistic vales.
+            if (temperature > -65 && temperature < 65) {
                 return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
