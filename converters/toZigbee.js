@@ -3111,6 +3111,17 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_force_to_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            if (modeId !== null) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.forceMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    },
     tuya_thermostat_away_preset: {
         key: ['away_preset_temperature', 'away_preset_days'],
         convertSet: async (entity, key, value, meta) => {
