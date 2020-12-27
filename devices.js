@@ -4598,6 +4598,14 @@ const devices = [
         extend: preset.ledvance.light_onoff_brightness_colortemp,
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['LEDVANCE DIM'],
+        model: '4058075208421',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ candle E14 tunable white',
+        extend: preset.ledvance.light_onoff_brightness,
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
