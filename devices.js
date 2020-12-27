@@ -12028,7 +12028,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {

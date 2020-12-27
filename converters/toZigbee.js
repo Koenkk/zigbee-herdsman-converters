@@ -2528,6 +2528,32 @@ const converters = {
             ], manufacturerOptions.ubisys));
         },
     },
+    ubisys_dimmer_setup: {
+        key: ['ubisys_dimmer_setup'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.hasOwnProperty('mode')) {
+                const mode = value.mode.toLowerCase();
+                const phaseControl = {'automatic': 0, 'forward': 1, 'reverse': 2};
+                if (phaseControl.hasOwnProperty(mode)) {
+                    meta.logger.warn(`ubisys: Setting ${mode}(${phaseControl[mode]}) dimming strategy.`);
+                    await entity.write('manuSpecificUbisysDimmerSetup', {'mode': phaseControl[mode]});
+                } else {
+                    meta.logger.warn(`ubisys: dimming strategy ${mode} not supported.`);
+                }
+            }
+            // re-read effective settings and dump them to the log
+            converters.ubisys_dimmer_setup.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            const log = (dataRead) => {
+                meta.logger.warn(
+                    `ubisys: Dimmer setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
+            };
+            log(await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities']));
+            log(await entity.read('manuSpecificUbisysDimmerSetup', ['status']));
+            log(await entity.read('manuSpecificUbisysDimmerSetup', ['mode']));
+        },
+    },
     ubisys_device_setup: {
         key: ['configure_device_setup'],
         convertSet: async (entity, key, value, meta) => {
