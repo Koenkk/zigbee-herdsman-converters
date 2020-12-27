@@ -27,6 +27,24 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, utils.getOptions(meta.mapped, entity));
         },
     },
+    arm_mode: {
+        key: ['arm_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
+            if (mode === undefined) {
+                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`);
+            }
+
+            if (value.hasOwnProperty('transaction')) {
+                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+            }
+
+            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
+            globalStore.putValue(entity, 'panelStatus', panelStatus);
+            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
+            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+        },
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -218,6 +236,47 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+    },
+    ballast_config: {
+        key: ['ballast_config'],
+        // zcl attribute names are camel case, but we want to use snake case in the outside communication
+        convertSet: async (entity, key, value, meta) => {
+            value = utils.toCamelCase(value);
+            for (const [attrName, attrValue] of Object.entries(value)) {
+                const attributes = {};
+                attributes[attrName] = attrValue;
+                await entity.write('lightingBallastCfg', attributes);
+            }
+            converters.ballast_config.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            let result = {};
+            for (const attrName of [
+                'physical_min_level',
+                'physical_max_level',
+                'ballast_status',
+                'min_level',
+                'max_level',
+                'power_on_level',
+                'power_on_fade_time',
+                'intrinsic_ballast_factor',
+                'ballast_factor_adjustment',
+                'lamp_quantity',
+                'lamp_type',
+                'lamp_manufacturer',
+                'lamp_rated_hours',
+                'lamp_burn_hours',
+                'lamp_alarm_mode',
+                'lamp_burn_hours_trip_point',
+            ]) {
+                try {
+                    result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
+                } catch (ex) {
+                    // continue regardless of error
+                }
+            }
+            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
         },
     },
     light_brightness_step: {
@@ -841,6 +900,114 @@ const converters = {
                 const payload = {effectid, effectvariant: 0};
                 await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
             }
+        },
+    },
+    thermostat_remote_sensing: {
+        key: ['remote_sensing'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {remoteSensing: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['remoteSensing']);
+        },
+    },
+    thermostat_weekly_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                numoftrans: value.numoftrans,
+                dayofweek: value.dayofweek,
+                mode: value.mode,
+                transitions: value.transitions,
+            };
+            for (const elem of payload['transitions']) {
+                if (typeof elem['heatSetpoint'] == 'number') {
+                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
+                }
+                if (typeof elem['coolSetpoint'] == 'number') {
+                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                }
+            }
+            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            const payload = {
+                daystoreturn: 0xff, // Sun-Sat and vacation
+                modetoreturn: 3, // heat + cool
+            };
+            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+        },
+    },
+    thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+            if (systemMode === undefined) {
+                systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            }
+            await entity.write('hvacThermostat', {systemMode});
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['systemMode']);
+        },
+    },
+    thermostat_control_sequence_of_operation: {
+        key: ['control_sequence_of_operation'],
+        convertSet: async (entity, key, value, meta) => {
+            let val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, undefined, Number);
+            if (val === undefined) {
+                val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
+            }
+            await entity.write('hvacThermostat', {ctrlSeqeOfOper: val});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
+        },
+    },
+    thermostat_temperature_display_mode: {
+        key: ['temperature_display_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
+            await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
+        },
+    },
+    thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+        },
+    },
+    thermostat_temperature_setpoint_hold: {
+        key: ['temperature_setpoint_hold'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHold = value;
+            await entity.write('hvacThermostat', {tempSetpointHold});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHold']);
+        },
+    },
+    thermostat_temperature_setpoint_hold_duration: {
+        key: ['temperature_setpoint_hold_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHoldDuration = value;
+            await entity.write('hvacThermostat', {tempSetpointHoldDuration});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHoldDuration']);
+        },
+    },
+    fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            const fanMode = constants.fanMode[value.toLowerCase()];
+            await entity.write('hvacFanCtrl', {fanMode});
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacFanCtrl', ['fanMode']);
         },
     },
     thermostat_local_temperature: {
@@ -1860,177 +2027,6 @@ const converters = {
             return {state: {interface_mode: value}};
         },
     },
-    // #endregion
-
-    thermostat_remote_sensing: {
-        key: ['remote_sensing'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {remoteSensing: value});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['remoteSensing']);
-        },
-    },
-    thermostat_control_sequence_of_operation: {
-        key: ['control_sequence_of_operation'],
-        convertSet: async (entity, key, value, meta) => {
-            const ctrlSeqeOfOper = utils.getKey(legacy.thermostatControlSequenceOfOperations, value, value, Number);
-            await entity.write('hvacThermostat', {ctrlSeqeOfOper});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
-        },
-    },
-    thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
-            await entity.write('hvacThermostat', {systemMode});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['systemMode']);
-        },
-    },
-    thermostat_weekly_schedule: {
-        key: ['weekly_schedule'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                numoftrans: value.numoftrans,
-                dayofweek: value.dayofweek,
-                mode: value.mode,
-                transitions: value.transitions,
-            };
-            for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] == 'number') {
-                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
-                }
-                if (typeof elem['coolSetpoint'] == 'number') {
-                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
-                }
-            }
-            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
-        },
-        convertGet: async (entity, key, meta) => {
-            const payload = {
-                daystoreturn: 0xff, // Sun-Sat and vacation
-                modetoreturn: 3, // heat + cool
-            };
-            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
-        },
-    },
-    thermostat_temperature_display_mode: {
-        key: ['temperature_display_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
-            await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
-        },
-    },
-    thermostat_keypad_lockout: {
-        key: ['keypad_lockout'],
-        convertSet: async (entity, key, value, meta) => {
-            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
-            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
-        },
-    },
-    thermostat_temperature_setpoint_hold: {
-        key: ['temperature_setpoint_hold'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempSetpointHold = value;
-            await entity.write('hvacThermostat', {tempSetpointHold});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['tempSetpointHold']);
-        },
-    },
-    thermostat_temperature_setpoint_hold_duration: {
-        key: ['temperature_setpoint_hold_duration'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempSetpointHoldDuration = value;
-            await entity.write('hvacThermostat', {tempSetpointHoldDuration});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['tempSetpointHoldDuration']);
-        },
-    },
-    fan_mode: {
-        key: ['fan_mode', 'fan_state'],
-        convertSet: async (entity, key, value, meta) => {
-            const fanMode = constants.fanMode[value.toLowerCase()];
-            await entity.write('hvacFanCtrl', {fanMode});
-            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacFanCtrl', ['fanMode']);
-        },
-    },
-    arm_mode: {
-        key: ['arm_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
-            if (mode === undefined) {
-                throw new Error(
-                    `Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`,
-                );
-            }
-
-            if (value.hasOwnProperty('transaction')) {
-                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
-            }
-
-            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
-            globalStore.putValue(entity, 'panelStatus', panelStatus);
-            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
-            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
-        },
-    },
-    ballast_config: {
-        key: ['ballast_config'],
-        // zcl attribute names are camel case, but we want to use snake case in the outside communication
-        convertSet: async (entity, key, value, meta) => {
-            value = utils.toCamelCase(value);
-            for (const [attrName, attrValue] of Object.entries(value)) {
-                const attributes = {};
-                attributes[attrName] = attrValue;
-                await entity.write('lightingBallastCfg', attributes);
-            }
-            converters.ballast_config.convertGet(entity, key, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            let result = {};
-            for (const attrName of [
-                'physical_min_level',
-                'physical_max_level',
-                'ballast_status',
-                'min_level',
-                'max_level',
-                'power_on_level',
-                'power_on_fade_time',
-                'intrinsic_ballast_factor',
-                'ballast_factor_adjustment',
-                'lamp_quantity',
-                'lamp_type',
-                'lamp_manufacturer',
-                'lamp_rated_hours',
-                'lamp_burn_hours',
-                'lamp_alarm_mode',
-                'lamp_burn_hours_trip_point',
-            ]) {
-                try {
-                    result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
-                } catch (ex) {
-                    // continue regardless of error
-                }
-            }
-            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
-        },
-    },
-
-    /**
-     * Device specific
-     */
     eurotronic_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2105,12 +2101,8 @@ const converters = {
     eurotronic_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4003: {
-                    value: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
-                    type: 0x29,
-                },
-            };
+            const val = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            const payload = {0x4003: {value: val, type: 0x29}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
         },
         convertGet: async (entity, key, meta) => {
@@ -3998,6 +3990,7 @@ const converters = {
             }
         },
     },
+    // #endregion
 
     // #region Ignore converters
     ignore_transition: {
