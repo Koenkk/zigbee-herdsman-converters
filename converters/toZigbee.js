@@ -3130,7 +3130,7 @@ const converters = {
             // }
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(modeId));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
             }
