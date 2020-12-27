@@ -2803,8 +2803,7 @@ const converters = {
             case tuya.dataPoints.fanMode:
                 return {fan_mode: tuya.fanModes[value]};
             case tuya.dataPoints.forceMode: // force mode 0 - normal, 1 - open, 2 - close
-                return {system_mode: {0: 'auto', 1: 'heat', 2: 'off'}[value]};
-                // return {force: tuya.thermostatForceMode[value]};
+                return {system_mode: {0: 'auto', 1: 'heat', 2: 'off'}[value], force: tuya.thermostatForceMode[value]};
             case tuya.dataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {week: tuya.thermostatWeekFormat[value]};
             default: // The purpose of the dps 17 & 19 is still unknown
