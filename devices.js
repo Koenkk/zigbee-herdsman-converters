@@ -3087,6 +3087,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4096730P6'],
+        model: '4096730P6',
+        vendor: 'Philips',
+        description: 'Hue Cher ceiling light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC013'],
         model: '3216131P5',
         vendor: 'Philips',
