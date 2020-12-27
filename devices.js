@@ -13901,6 +13901,11 @@ const devices = [
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
         extend: preset.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+        },
     },
     {
         zigbeeModel: ['SmartPlug51AU'],
