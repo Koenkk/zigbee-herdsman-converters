@@ -9844,6 +9844,7 @@ const devices = [
     },
     {
         zigbeeModel: ['losfena'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wlosfena'}],
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
