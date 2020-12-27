@@ -207,7 +207,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
-            const position = invert ? 100 - value : value;
+            let position = invert ? 100 - value : value;
+            position = utils.minMaxPosition(position, meta.options);
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
