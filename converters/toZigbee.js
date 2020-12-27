@@ -475,7 +475,7 @@ const converters = {
 
             if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
                 if (transition.specified && (state === 'off' || state === 'on')) {
-                    if (state === 'off' && meta.state.brightness) {
+                    if (state === 'off' && meta.state.brightness && meta.state.state === 'ON') {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
                         // it once we turn it on again.
