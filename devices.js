@@ -246,7 +246,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -259,7 +259,7 @@ const devices = [
         description: 'Aqara D1 single key wireless wall switch',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single'])],
         onEvent: xiaomi.prevent_reset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -273,9 +273,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action([
-            'single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
-            'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both'])],
+        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
@@ -435,8 +433,7 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
-        exposes: [e.battery(), e.action([
-            'left', 'right', 'both', 'left_long', 'left_double', 'right_long', 'right_double', 'both_long', 'both_double'])],
+        exposes: [e.battery(), e.action(['left', 'right', 'both'])],
         onEvent: xiaomi.prevent_reset,
     },
     {
