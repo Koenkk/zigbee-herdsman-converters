@@ -5986,7 +5986,7 @@ const devices = [
         extend: preset.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5'],
+        zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5', 'FB56+ZSW1HKJ2.7'],
         model: 'HGZB-042',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
