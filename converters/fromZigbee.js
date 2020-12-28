@@ -3414,9 +3414,9 @@ const converters = {
 
             let mapping = null;
             if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
-            if (['WXKG02LM', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
+            if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
 
-            // Maybe other QKBG also support release/hold? Confirmed that release/hold doesn't work on WXKG02LM
+            // Maybe other QKBG also support release/hold?
             const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
 
@@ -3442,7 +3442,7 @@ const converters = {
             }
 
             let buttonLookup = null;
-            if (['WXKG02LM', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
 
