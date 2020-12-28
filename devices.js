@@ -1072,6 +1072,7 @@ const devices = [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
         ],
     },
     {
