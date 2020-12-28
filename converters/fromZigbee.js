@@ -3462,7 +3462,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
-                // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+                // DEPRECATED: remove illuminance_lux here.
                 const illuminance = msg.data['65281']['11'];
                 return {
                     illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
@@ -3479,7 +3479,7 @@ const converters = {
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
             msg.data.occupancy = 1;
             const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+            // DEPRECATED: remove illuminance_lux here.
             const illuminance = msg.data['measuredValue'];
             payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
