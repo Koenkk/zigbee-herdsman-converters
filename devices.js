@@ -8048,7 +8048,7 @@ const devices = [
         model: '3400-D',
         vendor: 'CentraLite',
         description: '3-Series security keypad',
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
         exposes: [e.battery(), e.temperature(), e.action([
             'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
