@@ -4160,6 +4160,23 @@ const devices = [
         },
     },
 
+    // GS
+    {
+        zigbeeModel: ['SSHM-I1'],
+        model: 'SSHM-I1',
+        vendor: 'GS',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+    },
+
     // M-ELEC - https://melec.com.au/stitchy/
     {
         zigbeeModel: ['ML-ST-D200'],
