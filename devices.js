@@ -12898,35 +12898,10 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
+            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
+            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'}],
-        model: 'SEA801-Zigbee',
-        vendor: 'Saswell',
-        description: 'Thermostatic radiator valve',
-        fromZigbee: [fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule],
-        toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
-            tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
-            tz.tuya_thermostat_weekly_schedule],
-        onEvent: tuya.onEventSetTime,
-        meta: {
-            configureKey: 1,
-            thermostat: {
-                weeklyScheduleMaxTransitions: 4,
-                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleConversion: 'saswell',
-            },
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5)
-            .withLocalTemperature().withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
-    },
-    {
-        fingerprint: [{modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
-            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'}],
-        model: 'SEA802-Zigbee',
+        model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}],
