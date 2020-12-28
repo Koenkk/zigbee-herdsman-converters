@@ -13280,6 +13280,23 @@ const devices = [
         },
     },
     {
+        zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
+        model: 'L441C/N4411C/NT4411C',
+        vendor: 'BTicino',
+        description: 'Dimmer switch with neutral',
+        extend: preset.light_onoff_brightness,
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_settingEnableDimmer, tz.legrand_identify],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['Bticino Din power consumption module '],
         model: 'F20T60A',
         description: 'DIN power consumption module',
