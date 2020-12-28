@@ -8064,7 +8064,7 @@ const devices = [
     {
         zigbeeModel: ['3400-D', '3400'],
         model: '3400-D',
-        vendor: 'CentraLite',
+        vendor: 'Centralite',
         description: '3-Series security keypad',
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
