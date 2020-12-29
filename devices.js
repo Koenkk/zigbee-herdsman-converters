@@ -12102,7 +12102,8 @@ const devices = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off, fz.brightness, fz.metering],
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
+            fz.command_move, fz.command_stop],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power()],
         meta: {configureKey: 3},
@@ -12111,6 +12112,20 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 23 section 7.3.4, 7.3.5
+             * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+                ep2.addBinding('genLevelCtrl', ep1);
+            }
         },
         ota: ota.ubisys,
     },
