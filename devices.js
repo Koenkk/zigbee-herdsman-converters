@@ -249,7 +249,7 @@ const devices = [
         exposes: [e.battery(), e.action(['single'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG03LM_click],
         toZigbee: [],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn01'],
@@ -261,7 +261,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn02'],
@@ -271,7 +271,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
         exposes: [e.battery(), e.action(['single'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[1];
@@ -287,7 +287,7 @@ const devices = [
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG02LM_click],
         toZigbee: [],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn01'],
@@ -300,7 +300,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1laus01'],
@@ -380,7 +380,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
@@ -401,7 +401,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -417,7 +417,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
@@ -440,7 +440,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
@@ -454,7 +454,7 @@ const devices = [
             return {left: 1, right: 2, both: 3};
         },
         exposes: [e.battery(), e.action(['left', 'right', 'both'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1lacn02'],
@@ -468,7 +468,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b2lacn02'],
@@ -483,7 +483,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.l3acn3'],
@@ -501,7 +501,7 @@ const devices = [
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -530,7 +530,7 @@ const devices = [
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
@@ -543,7 +543,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
@@ -560,7 +560,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power(), e.action([
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
             'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
