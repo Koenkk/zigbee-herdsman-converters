@@ -35,6 +35,7 @@ const globalStore = require('./lib/store');
 const ota = require('./lib/ota');
 const exposes = require('./lib/exposes');
 const tuya = require('./lib/tuya');
+const ikea = require('./lib/ikea');
 const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
@@ -1919,6 +1920,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI Light Engine'],
@@ -1926,6 +1928,7 @@ const devices = [
         description: 'Osvalla panel round',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -1935,6 +1938,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 opal 1000lm', 'TRADFRI bulb E27 W opal 1000lm'],
@@ -1943,6 +1947,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, opal white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
@@ -1951,6 +1956,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 W 400lm'],
@@ -1959,6 +1965,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
@@ -1967,6 +1974,7 @@ const devices = [
         description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
@@ -1975,6 +1983,7 @@ const devices = [
         description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
@@ -1983,6 +1992,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm', 'TRADFRI bulb E26 WW clear 250lm'],
@@ -1991,6 +2001,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
@@ -1999,6 +2010,7 @@ const devices = [
         description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
@@ -2007,6 +2019,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm',
@@ -2017,6 +2030,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colorxy,
         ota: ota.tradfri,
         meta: {supportsHueAndSaturation: false},
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm', 'TRADFRI bulb E17 W op/ch 400lm'],
@@ -2025,6 +2039,7 @@ const devices = [
         description: 'TRADFRI LED bulb E12/E14/E17 400 lumen, dimmable warm white, chandelier opal',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E26 WS opal 1000lm'],
@@ -2033,6 +2048,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E26 WW 806lm'],
@@ -2041,6 +2057,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, warm white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm', 'TRADFRI bulb E26 WS clear 806lm'],
@@ -2049,6 +2066,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, white spectrum, clear',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['LEPTITER Recessed spot light'],
@@ -2057,6 +2075,7 @@ const devices = [
         description: 'LEPTITER Recessed spot light, dimmable, white spectrum',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI wireless dimmer'],
@@ -2082,6 +2101,7 @@ const devices = [
         description: 'TRADFRI driver for wireless control (10 watt)',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
@@ -2090,6 +2110,7 @@ const devices = [
         description: 'TRADFRI driver for wireless control (30 watt)',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
@@ -2098,6 +2119,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x30 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 60x60'],
@@ -2106,6 +2128,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (60x60 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x90'],
@@ -2114,6 +2137,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['SURTE door WS 38x64'],
@@ -2122,6 +2146,7 @@ const devices = [
         description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
@@ -2313,6 +2338,7 @@ const devices = [
         description: 'GUNNARP panel round',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2321,6 +2347,7 @@ const devices = [
         description: 'GUNNARP panel 40*40',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2329,6 +2356,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2338,6 +2366,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, colour spectrum',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
 
     // Philips
