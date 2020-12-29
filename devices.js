@@ -8997,7 +8997,7 @@ const devices = [
             e.device_temperature()],
     },
     {
-        zigbeeModel: ['CurtainMo-EF'],
+        zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
         model: 'HS2CM-N-DC',
         vendor: 'HEIMAN',
         description: 'Gear window shade motor',
