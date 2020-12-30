@@ -27,12 +27,12 @@ describe('index.js', () => {
 
     it('Legacy: Find by zigbeeModel with strange characters 2', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
     it('Legacy: Find by zigbeeModel with strange characters 3', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
     it('Legacy: Find by zigbeeModel without strange characters', () => {
