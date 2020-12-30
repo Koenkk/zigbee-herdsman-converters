@@ -1760,6 +1760,15 @@ const devices = [
         extend: preset.switch,
     },
 
+    // Mycket
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_evag0pvn'}],
+        model: 'MS-SP-LE27WRGB',
+        description: 'E27 RGBW bulb',
+        vendor: 'Mycket',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+
     // Neo
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
