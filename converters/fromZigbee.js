@@ -4814,7 +4814,7 @@ const converters = {
                     mode_phase_control: phaseControlValues[phaseControl],
                 };
             }
-        }
+        },
     },
     // #endregion
 
