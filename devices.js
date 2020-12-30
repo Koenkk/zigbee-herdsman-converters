@@ -12040,7 +12040,7 @@ const devices = [
             exposes.binary('status_overload', exposes.access.STATE_GET, true, false).withDescription('The output is currently turned off, because the dimmer has detected an overload.'),
             exposes.binary('status_capacitive_load', exposes.access.STATE_GET, true, false).withDescription('The dimmer\'s reactance discriminator had detected a capacitive load.'),
             exposes.binary('status_inductive_load', exposes.access.STATE_GET, true, false).withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
-            exposes.enum('mode_phase_control',exposes.access.ALL, ['automatic', 'forward', 'reverse']).withDescription('Configures the dimming technique.')],
+            exposes.enum('mode_phase_control', exposes.access.ALL, ['automatic', 'forward', 'reverse']).withDescription('Configures the dimming technique.')],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
