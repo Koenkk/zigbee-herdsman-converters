@@ -35,6 +35,7 @@ const globalStore = require('./lib/store');
 const ota = require('./lib/ota');
 const exposes = require('./lib/exposes');
 const tuya = require('./lib/tuya');
+const ikea = require('./lib/ikea');
 const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
@@ -241,16 +242,27 @@ const devices = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw1', 'lumi.remote.b186acn01'],
-        model: 'WXKG03LM',
+        zigbeeModel: ['lumi.sensor_86sw1'],
+        model: 'WXKG03LM_rev1',
         vendor: 'Xiaomi',
-        description: 'Aqara single key wireless wall switch',
+        description: 'Aqara single key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.action(['single'])],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG03LM_click],
+        toZigbee: [],
+        onEvent: xiaomi.preventReset,
+    },
+    {
+        zigbeeModel: ['lumi.remote.b186acn01'],
+        model: 'WXKG03LM_rev2',
+        vendor: 'Xiaomi',
+        description: 'Aqara single key wireless wall switch (2018 model)',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn02'],
@@ -259,28 +271,37 @@ const devices = [
         description: 'Aqara D1 single key wireless wall switch',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['single'])],
-        onEvent: xiaomi.prevent_reset,
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[1];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
-        zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1', 'lumi.remote.b286acn01'],
-        model: 'WXKG02LM',
+        zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1'],
+        model: 'WXKG02LM_rev1',
         vendor: 'Xiaomi',
-        description: 'Aqara double key wireless wall switch',
+        description: 'Aqara double key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both'])],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG02LM_click],
+        toZigbee: [],
+        onEvent: xiaomi.preventReset,
+    },
+    {
+        zigbeeModel: ['lumi.remote.b286acn01'],
+        model: 'WXKG02LM_rev2',
+        vendor: 'Xiaomi',
+        description: 'Aqara double key wireless wall switch (2018 model)',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
+            'hold_left', 'hold_right', 'hold_both'])],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2, 'both': 3};
-        },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1laus01'],
@@ -289,7 +310,7 @@ const devices = [
         description: 'Aqara smart wall switch (no neutral, single rocker)',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -306,7 +327,7 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -322,7 +343,7 @@ const devices = [
         description: 'Aqara smart wall switch (neutral, single rocker)',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -339,7 +360,7 @@ const devices = [
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -360,9 +381,9 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
@@ -381,7 +402,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -397,8 +418,8 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.prevent_reset,
-        configure: async (device, coordinatorEndpoint) => {
+        onEvent: xiaomi.preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
@@ -420,7 +441,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
@@ -434,7 +455,7 @@ const devices = [
             return {left: 1, right: 2, both: 3};
         },
         exposes: [e.battery(), e.action(['left', 'right', 'both'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1lacn02'],
@@ -448,7 +469,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b2lacn02'],
@@ -463,7 +484,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.l3acn3'],
@@ -481,8 +502,8 @@ const devices = [
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
-        onEvent: xiaomi.prevent_reset,
-        configure: async (device, coordinatorEndpoint) => {
+        onEvent: xiaomi.preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -502,7 +523,7 @@ const devices = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -510,7 +531,7 @@ const devices = [
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
@@ -523,7 +544,7 @@ const devices = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
         exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
     },
     {
@@ -540,7 +561,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power(), e.action([
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
             'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both'])],
-        onEvent: xiaomi.prevent_reset,
+        onEvent: xiaomi.preventReset,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
@@ -570,7 +591,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.temperature, fz.humidity, fz.pressure],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -595,7 +616,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.illuminance().withUnit('lx')],
+        exposes: [e.battery(), e.occupancy(), e.illuminance_lux().withProperty('illuminance')],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
@@ -697,7 +718,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -804,7 +825,7 @@ const devices = [
         },
         exposes: [e.cover_position(), e.battery()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -842,7 +863,7 @@ const devices = [
             ]),
         ],
         meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
@@ -865,7 +886,7 @@ const devices = [
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
             ]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
@@ -900,7 +921,7 @@ const devices = [
         ])],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
@@ -921,7 +942,7 @@ const devices = [
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
         ])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -947,7 +968,7 @@ const devices = [
             .withDescription('Operation mode, select "command" to enable bindings')],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -963,7 +984,7 @@ const devices = [
         fromZigbee: [fz.battery, fz.illuminance],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await reporting.batteryVoltage(endpoint);
@@ -994,7 +1015,7 @@ const devices = [
         exposes: [e.switch(), e.energy(), e.power(), e.device_temperature()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -1013,7 +1034,7 @@ const devices = [
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -1044,7 +1065,7 @@ const devices = [
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -1052,6 +1073,7 @@ const devices = [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
         ],
     },
     {
@@ -1106,7 +1128,7 @@ const devices = [
             {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
             {vendor: 'Moes', model: 'WS-EUB1-ZG'},
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1126,7 +1148,7 @@ const devices = [
         fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1144,7 +1166,7 @@ const devices = [
         fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1172,7 +1194,7 @@ const devices = [
         toZigbee: [],
         whiteLabel: [{vendor: 'Woox', model: 'R7054'}],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
         },
@@ -1273,7 +1295,7 @@ const devices = [
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'}],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -1289,7 +1311,7 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {configureKey: 3, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1405,7 +1427,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -1481,7 +1503,7 @@ const devices = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 7};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1520,7 +1542,7 @@ const devices = [
             return {'left': 1, 'right': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1537,7 +1559,7 @@ const devices = [
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
         meta: {configureKey: 2, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);
@@ -1562,7 +1584,7 @@ const devices = [
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}],
         meta: {configureKey: 2, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 for (const ID of [1, 2, 3, 4]) {
                     const endpoint = device.getEndpoint(ID);
@@ -1583,7 +1605,7 @@ const devices = [
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -1618,7 +1640,7 @@ const devices = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1642,7 +1664,7 @@ const devices = [
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
             await reporting.thermostatTemperature(endpoint);
@@ -1679,7 +1701,7 @@ const devices = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1695,7 +1717,7 @@ const devices = [
         exposes: [e.battery(), exposes.binary('alarm', exposes.access.STATE, true, false)],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -1721,7 +1743,7 @@ const devices = [
             e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
         extend: preset.switch,
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             for (const ID of [1, 2, 3, 4, 5]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -1729,6 +1751,22 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_tvuarksa'}],
+        model: 'SM-AZ713',
+        vendor: 'UseeLink',
+        description: 'Smart water/gas valve',
+        extend: preset.switch,
+    },
+
+    // Mycket
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_evag0pvn'}],
+        model: 'MS-SP-LE27WRGB',
+        description: 'E27 RGBW bulb',
+        vendor: 'Mycket',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 
     // Neo
@@ -1822,7 +1860,7 @@ const devices = [
         extend: preset.light_onoff_brightness,
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         meta: {multiEndpoint: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -1841,7 +1879,7 @@ const devices = [
         description: 'Smart plug EU',
         extend: preset.switch,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -1866,7 +1904,7 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1878,7 +1916,7 @@ const devices = [
         description: '1 gang switch module with neutral wire',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -1891,6 +1929,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI Light Engine'],
@@ -1898,6 +1937,7 @@ const devices = [
         description: 'Osvalla panel round',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -1907,6 +1947,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 opal 1000lm', 'TRADFRI bulb E27 W opal 1000lm'],
@@ -1915,6 +1956,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, opal white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
@@ -1923,6 +1965,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 W 400lm'],
@@ -1931,6 +1974,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
@@ -1939,6 +1983,7 @@ const devices = [
         description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
@@ -1947,6 +1992,7 @@ const devices = [
         description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
@@ -1955,6 +2001,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm', 'TRADFRI bulb E26 WW clear 250lm'],
@@ -1963,6 +2010,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
@@ -1971,6 +2019,7 @@ const devices = [
         description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 W opal 1000lm'],
@@ -1979,6 +2028,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26 1000 lumen, dimmable, opal white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm',
@@ -1989,6 +2039,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colorxy,
         ota: ota.tradfri,
         meta: {supportsHueAndSaturation: false},
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm', 'TRADFRI bulb E17 W op/ch 400lm'],
@@ -1997,6 +2048,7 @@ const devices = [
         description: 'TRADFRI LED bulb E12/E14/E17 400 lumen, dimmable warm white, chandelier opal',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E26 WS opal 1000lm'],
@@ -2005,6 +2057,7 @@ const devices = [
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E26 WW 806lm'],
@@ -2013,6 +2066,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, warm white',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm', 'TRADFRI bulb E26 WS clear 806lm'],
@@ -2021,6 +2075,7 @@ const devices = [
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, white spectrum, clear',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['LEPTITER Recessed spot light'],
@@ -2029,6 +2084,7 @@ const devices = [
         description: 'LEPTITER Recessed spot light, dimmable, white spectrum',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI wireless dimmer'],
@@ -2040,7 +2096,7 @@ const devices = [
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2054,6 +2110,7 @@ const devices = [
         description: 'TRADFRI driver for wireless control (10 watt)',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
@@ -2062,6 +2119,7 @@ const devices = [
         description: 'TRADFRI driver for wireless control (30 watt)',
         extend: preset.light_onoff_brightness,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
@@ -2070,6 +2128,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x30 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 60x60'],
@@ -2078,6 +2137,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (60x60 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x90'],
@@ -2086,6 +2146,7 @@ const devices = [
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['SURTE door WS 38x64'],
@@ -2094,6 +2155,7 @@ const devices = [
         description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
@@ -2106,7 +2168,7 @@ const devices = [
         exposes: preset.switch.exposes.concat([exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -2126,7 +2188,7 @@ const devices = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
@@ -2146,7 +2208,7 @@ const devices = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in
             // group 0 causing the remote to control them.
@@ -2167,7 +2229,7 @@ const devices = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in
             // group 0 causing the remote to control them.
@@ -2187,7 +2249,7 @@ const devices = [
             'brightness_move_up', 'brightness_move_down', 'brighntess_stop', 'toggle', 'brighntess_step_up', 'brightness_step_down'])],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2205,7 +2267,7 @@ const devices = [
             exposes.numeric('requested_brightness_percent', exposes.access.STATE).withValueMin(30).withValueMax(100)],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2220,7 +2282,7 @@ const devices = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
@@ -2237,7 +2299,7 @@ const devices = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2, battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2254,7 +2316,7 @@ const devices = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 2, battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2273,7 +2335,7 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2285,6 +2347,7 @@ const devices = [
         description: 'GUNNARP panel round',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2293,6 +2356,7 @@ const devices = [
         description: 'GUNNARP panel 40*40',
         vendor: 'IKEA',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2301,6 +2365,7 @@ const devices = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
@@ -2310,6 +2375,7 @@ const devices = [
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, colour spectrum',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
         ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
     },
 
     // Philips
@@ -3409,7 +3475,7 @@ const devices = [
             'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
@@ -3433,7 +3499,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
@@ -3463,7 +3529,7 @@ const devices = [
             };
         },
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -3495,7 +3561,7 @@ const devices = [
             };
         },
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -3517,7 +3583,7 @@ const devices = [
         extend: preset.switch,
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3532,7 +3598,7 @@ const devices = [
         extend: preset.switch,
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3547,7 +3613,7 @@ const devices = [
         extend: preset.switch,
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3562,7 +3628,7 @@ const devices = [
         extend: preset.switch,
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3577,7 +3643,7 @@ const devices = [
         extend: preset.switch,
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3729,7 +3795,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -3745,7 +3811,7 @@ const devices = [
         description: 're:dy switch',
         extend: preset.switch,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -3950,7 +4016,7 @@ const devices = [
         })(20)),
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             if (device.applicationVersion < 3) { // Legacy PM2 firmwares
@@ -3994,7 +4060,7 @@ const devices = [
         })(8)),
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             if (device.applicationVersion < 3) { // Legacy PM2 firmwares
@@ -4034,7 +4100,7 @@ const devices = [
             exposes.numeric('sensitivity', exposes.access.ALL).withDescription('This is applicable if tubes type is set to other')],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
 
@@ -4083,7 +4149,7 @@ const devices = [
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             const secondEndpoint = device.getEndpoint(2);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -4114,7 +4180,7 @@ const devices = [
             fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
         toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2']);
@@ -4152,12 +4218,29 @@ const devices = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
         },
+    },
+
+    // GS
+    {
+        zigbeeModel: ['SSHM-I1'],
+        model: 'SSHM-I1',
+        vendor: 'GS',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
 
     // M-ELEC - https://melec.com.au/stitchy/
@@ -4323,7 +4406,7 @@ const devices = [
         extend: preset.switch,
         meta: {configureKey: 1},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -4337,7 +4420,7 @@ const devices = [
         extend: preset.switch,
         meta: {configureKey: 1},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             let endpoint = device.getEndpoint(3);
             // Endpoint 3 is not always present, use endpoint 1 in that case
             // https://github.com/Koenkk/zigbee2mqtt/issues/2178
@@ -4427,7 +4510,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -4458,7 +4541,7 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -4483,7 +4566,7 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -4520,7 +4603,7 @@ const devices = [
         vendor: 'Gewiss',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -4546,7 +4629,7 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.brightness(endpoint);
@@ -4614,7 +4697,7 @@ const devices = [
             fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -4632,7 +4715,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -4678,7 +4761,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering, fz.temperature],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -4719,7 +4802,7 @@ const devices = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat',
@@ -4742,7 +4825,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1, disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -4766,7 +4849,7 @@ const devices = [
             return {'heat': 5, 'water': 6};
         },
         meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
             const binds = [
@@ -5043,7 +5126,8 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 145'],
@@ -5205,7 +5289,7 @@ const devices = [
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 6},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -5230,7 +5314,7 @@ const devices = [
         description: 'Smart plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5243,7 +5327,7 @@ const devices = [
         description: 'Smart plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5256,7 +5340,7 @@ const devices = [
         description: 'Smart plug',
         extend: preset.switch,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5322,7 +5406,7 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -5399,7 +5483,7 @@ const devices = [
         description: 'SMART+ Smart Plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5479,7 +5563,7 @@ const devices = [
         description: 'Lumina RF 15A switch, 120/277V',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5498,7 +5582,7 @@ const devices = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
             await reporting.thermostatTemperature(endpoint);
@@ -5545,7 +5629,7 @@ const devices = [
         description: 'ZigBee plug-in smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5559,7 +5643,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -5575,7 +5659,7 @@ const devices = [
         description: 'In-wall smart switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5588,7 +5672,7 @@ const devices = [
         description: 'ZigBee in-wall smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5604,7 +5688,7 @@ const devices = [
             return {'default': 2};
         },
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5733,7 +5817,7 @@ const devices = [
         description: 'Smart plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5804,7 +5888,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -5833,7 +5917,7 @@ const devices = [
         description: 'Box Dimmer 2.0',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -5846,7 +5930,7 @@ const devices = [
         description: 'Zigbee switch 400W',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -5862,7 +5946,7 @@ const devices = [
         extend: preset.switch,
         whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'}],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -5882,7 +5966,7 @@ const devices = [
             return {'left': 1, 'right': 2};
         },
         meta: {configureKey: 2, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -5936,7 +6020,7 @@ const devices = [
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -5953,7 +6037,7 @@ const devices = [
             return {'top': 16, 'center': 17, 'bottom': 18};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
@@ -5971,7 +6055,7 @@ const devices = [
             return {'top_left': 16, 'top_right': 17, 'bottom_right': 18, 'bottom_left': 19};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
@@ -5996,7 +6080,7 @@ const devices = [
             return {'top': 16, 'bottom': 17};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6012,7 +6096,7 @@ const devices = [
             return {'top': 11, 'bottom': 12};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6024,7 +6108,7 @@ const devices = [
         description: 'Power plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -6149,7 +6233,7 @@ const devices = [
             return {'button_light': 1, 'button_fan_high': 2, 'button_fan_med': 3, 'button_fan_low': 4};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -6169,7 +6253,7 @@ const devices = [
             return {'top': 16, 'bottom': 17};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6191,7 +6275,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -6217,7 +6301,7 @@ const devices = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -6233,7 +6317,7 @@ const devices = [
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -6286,7 +6370,7 @@ const devices = [
             return {'left': 16, 'right': 17};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6302,7 +6386,7 @@ const devices = [
             return {'left': 16, 'center': 17, 'right': 18};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
@@ -6854,7 +6938,7 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -6867,7 +6951,7 @@ const devices = [
         description: 'Zigbee AC in wall switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -6880,7 +6964,7 @@ const devices = [
         description: 'ZigBee AC phase-cut rotary dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -6928,7 +7012,7 @@ const devices = [
         meta: {configureKey: 2, coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -6944,7 +7028,7 @@ const devices = [
         description: 'ZigBee dimmer 400W',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -6957,7 +7041,7 @@ const devices = [
         description: 'Zigbee switch 400W',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -6970,7 +7054,7 @@ const devices = [
         description: 'ZigBee LED dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -7111,7 +7195,7 @@ const devices = [
         exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', exposes.access.SET, [''])],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
@@ -7135,7 +7219,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7151,7 +7235,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
@@ -7168,7 +7252,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -7190,7 +7274,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -7210,7 +7294,7 @@ const devices = [
         description: 'Outlet',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -7224,7 +7308,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -7243,7 +7327,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ignore_iaszone_report, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7259,7 +7343,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7275,7 +7359,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7291,7 +7375,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7307,7 +7391,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7323,7 +7407,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x110A};
             await reporting.bind(endpoint, coordinatorEndpoint,
@@ -7346,7 +7430,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery, fz.ignore_iaszone_attreport],
         toZigbee: [],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7363,7 +7447,7 @@ const devices = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -7388,7 +7472,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7404,7 +7488,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7420,7 +7504,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7436,7 +7520,7 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.temperature],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
@@ -7452,7 +7536,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7470,7 +7554,7 @@ const devices = [
         exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7485,7 +7569,7 @@ const devices = [
         fromZigbee: [],
         toZigbee: [tz.warning],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -7508,7 +7592,7 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -7525,7 +7609,7 @@ const devices = [
         exposes: [e.action(['on', 'off', 'stop', 'up-press', 'down-press'])],
         toZigbee: [],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -7553,7 +7637,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -7568,7 +7652,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -7691,7 +7775,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -7722,12 +7806,12 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        meta: {configureKey: 4},
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
         },
     },
     {
@@ -7741,7 +7825,7 @@ const devices = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration()],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -7801,7 +7885,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 5},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             // 3210-L doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
@@ -7822,7 +7906,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}, configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7838,7 +7922,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -7855,7 +7939,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
@@ -7880,7 +7964,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.battery, fz.ignore_time_read],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -7897,7 +7981,7 @@ const devices = [
                      '/pdtl/ZigBee-module/1162731630/zigbee-on-off-controller-modules.htm)',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -7913,7 +7997,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -7972,7 +8056,7 @@ const devices = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -7990,7 +8074,7 @@ const devices = [
         toZigbee: [tz.light_onoff_restorable_brightness],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8010,7 +8094,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8036,7 +8120,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint);
@@ -8046,14 +8130,14 @@ const devices = [
     {
         zigbeeModel: ['3400-D', '3400'],
         model: '3400-D',
-        vendor: 'CentraLite',
+        vendor: 'Centralite',
         description: '3-Series security keypad',
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
         exposes: [e.battery(), e.temperature(), e.action([
             'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
         toZigbee: [tz.arm_mode],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce'];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
@@ -8095,7 +8179,7 @@ const devices = [
             .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
             .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration()],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacFanCtrl']);
             await reporting.batteryVoltage(endpoint);
@@ -8111,7 +8195,7 @@ const devices = [
         description: 'Smart outlet',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -8126,7 +8210,7 @@ const devices = [
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             try {
@@ -8166,7 +8250,7 @@ const devices = [
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
@@ -8180,7 +8264,7 @@ const devices = [
         description: '1 chanel relay',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -8196,7 +8280,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             const endpoint2 = device.getEndpoint(2);
@@ -8230,7 +8314,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -8248,7 +8332,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.temperature(endpoint);
@@ -8276,7 +8360,7 @@ const devices = [
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -8301,7 +8385,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 5},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8320,7 +8404,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 5},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8351,7 +8435,7 @@ const devices = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -8366,7 +8450,7 @@ const devices = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -8408,7 +8492,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8442,7 +8526,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8476,7 +8560,7 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8493,7 +8577,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8509,7 +8593,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8524,7 +8608,7 @@ const devices = [
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -8539,7 +8623,7 @@ const devices = [
         fromZigbee: [fz.battery],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -8583,7 +8667,7 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         whiteLabel: [{vendor: 'Ferguson', model: 'TH-T_V14'}],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -8602,7 +8686,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
@@ -8624,7 +8708,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8646,7 +8730,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -8674,7 +8758,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -8693,7 +8777,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8709,7 +8793,7 @@ const devices = [
         exposes: [e.battery(), e.action(['cinema', 'at_home', 'sleep', 'go_out', 'repast'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8742,7 +8826,7 @@ const devices = [
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8758,7 +8842,7 @@ const devices = [
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8774,7 +8858,7 @@ const devices = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint, overrides) => {
@@ -8841,7 +8925,7 @@ const devices = [
         toZigbee: [tz.heiman_ir_remote],
         meta: {configureKey: 1},
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
@@ -8866,7 +8950,7 @@ const devices = [
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -8889,7 +8973,7 @@ const devices = [
             return {left: 1, right: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
@@ -8912,7 +8996,7 @@ const devices = [
             return {left: 1, center: 2, right: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -8922,14 +9006,14 @@ const devices = [
             e.device_temperature()],
     },
     {
-        zigbeeModel: ['CurtainMo-EF'],
+        zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
         model: 'HS2CM-N-DC',
         vendor: 'HEIMAN',
         description: 'Gear window shade motor',
         fromZigbee: [fz.cover_position_via_brightness],
         toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.brightness(endpoint);
@@ -9034,7 +9118,7 @@ const devices = [
         description: 'zigbee 3.0 AC dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9049,7 +9133,7 @@ const devices = [
         description: 'LED OP A60 ZB 9W/827 E27',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9081,7 +9165,7 @@ const devices = [
             'brightness_stop', 'recall_*'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
         },
@@ -9173,7 +9257,7 @@ const devices = [
         description: 'ZigBee AC dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9186,7 +9270,7 @@ const devices = [
         description: 'Zigbee 3.0 AC switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -9237,7 +9321,7 @@ const devices = [
         description: 'Zigbee AC dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9250,7 +9334,7 @@ const devices = [
         description: 'Zigbee AC dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9286,7 +9370,7 @@ const devices = [
             'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
         meta: {configureKey: 3, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             let firstEndpoint = 0x0a;
 
             const switchEndpoint10 = device.getEndpoint(10);
@@ -9430,7 +9514,7 @@ const devices = [
         vendor: 'Müller Licht',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -9468,7 +9552,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -9488,7 +9572,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -9506,7 +9590,7 @@ const devices = [
         extend: preset.switch,
         meta: {configureKey: 4},
         ota: ota.salus,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -9574,7 +9658,7 @@ const devices = [
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -9586,7 +9670,7 @@ const devices = [
         description: 'ERIA build-in multi dimmer module 300W',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9600,7 +9684,7 @@ const devices = [
         description: 'ERIA smart plug (dimmer)',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -9621,7 +9705,7 @@ const devices = [
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1246};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
@@ -9650,7 +9734,7 @@ const devices = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
@@ -9757,7 +9841,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -9773,7 +9857,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.ignore_iaszone_report],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -9830,7 +9914,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 9},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -9875,7 +9959,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.illuminance, fz.humidity, fz.ignore_iaszone_report],
         toZigbee: [],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -9896,7 +9980,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9912,7 +9996,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9928,7 +10012,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9945,7 +10029,7 @@ const devices = [
         toZigbee: [tz.lock],
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
         meta: {configureKey: 2, timeout: 20000},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9961,7 +10045,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9978,7 +10062,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -9994,7 +10078,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event],
         toZigbee: [tz.lock],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10010,7 +10094,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10026,7 +10110,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10042,7 +10126,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10072,7 +10156,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {configureKey: 4, pinCodeCount: 30},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10101,7 +10185,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10121,7 +10205,7 @@ const devices = [
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -10140,7 +10224,7 @@ const devices = [
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -10160,7 +10244,7 @@ const devices = [
         fromZigbee: [fz.cover_position_via_brightness, fz.battery],
         toZigbee: [tz.cover_via_brightness],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.brightness(endpoint);
@@ -10177,7 +10261,7 @@ const devices = [
         description: 'ZigBee in-wall smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {disableDefaultResponse: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10246,7 +10330,7 @@ const devices = [
         description: '2-way switch IoT connected mechanism',
         extend: preset.switch,
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -10266,7 +10350,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -10295,7 +10379,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -10324,7 +10408,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
                 'msTemperatureMeasurement'];
@@ -10355,7 +10439,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
                 'msTemperatureMeasurement'];
@@ -10383,7 +10467,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -10434,7 +10518,7 @@ const devices = [
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
@@ -10493,7 +10577,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -10509,7 +10593,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -10543,7 +10627,7 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -10556,7 +10640,7 @@ const devices = [
         description: 'Zigbee AC in wall switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10572,7 +10656,7 @@ const devices = [
         meta: {configureKey: 2},
         exposes: [e.light_brightness(), e.power(), e.energy()],
         whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -10611,7 +10695,7 @@ const devices = [
         description: 'Zigbee AC in wall switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
         },
@@ -10623,7 +10707,7 @@ const devices = [
         description: 'ZigBee dimmer 400W',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -10691,7 +10775,7 @@ const devices = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -10713,7 +10797,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 5},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -10732,7 +10816,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -10763,7 +10847,7 @@ const devices = [
         description: 'Smart light switch',
         extend: preset.switch,
         meta: {disableDefaultResponse: true, configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10794,7 +10878,7 @@ const devices = [
         toZigbee: preset.light_onoff_brightness.toZigbee.concat([tz.fan_mode]),
         exposes: [e.light_brightness(), e.fan()],
         meta: {disableDefaultResponse: true, configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'hvacFanCtrl']);
             await reporting.onOff(endpoint);
@@ -10825,7 +10909,7 @@ const devices = [
         description: 'ZigBee 3.0 Dimm-Aktor mini 1x 230V',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -10852,7 +10936,7 @@ const devices = [
         description: 'Zigbee 3.0 Schalt-Aktor mini 1x230V, 200W/400W',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10874,7 +10958,7 @@ const devices = [
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -10904,7 +10988,7 @@ const devices = [
         vendor: 'Anchor',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10937,7 +11021,7 @@ const devices = [
             'brightness_move_down', 'brightness_stop', 'recall_*'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -10955,7 +11039,7 @@ const devices = [
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         meta: {configureKey: 1, multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -10972,7 +11056,7 @@ const devices = [
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -10989,7 +11073,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11005,7 +11089,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -11021,7 +11105,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -11037,7 +11121,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -11054,7 +11138,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -11110,7 +11194,7 @@ const devices = [
             'colortemp_up', 'colortemp_down', 'colortemp_up_hold', 'colortemp_down_hold'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -11153,7 +11237,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint, {min: 1, max: 0xfffe});
@@ -11172,7 +11256,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11194,7 +11278,7 @@ const devices = [
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -11218,7 +11302,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
@@ -11270,7 +11354,7 @@ const devices = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             // Configure reporing of currentPositionLiftPercentage always fails.
@@ -11288,7 +11372,7 @@ const devices = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11311,7 +11395,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
                 'seMetering'];
@@ -11352,7 +11436,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
                 'seMetering'];
@@ -11394,7 +11478,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'manuSpecificSinope'];
@@ -11429,7 +11513,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -11451,7 +11535,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -11467,7 +11551,7 @@ const devices = [
         description: 'Zigbee smart light switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -11480,7 +11564,7 @@ const devices = [
         description: 'Zigbee smart plug',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -11493,7 +11577,7 @@ const devices = [
         description: 'Zigbee smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -11529,7 +11613,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.action(['brightness']), exposes.numeric('brightness', exposes.access.STATE)],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
@@ -11552,7 +11636,7 @@ const devices = [
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -11584,7 +11668,7 @@ const devices = [
             return {'top': 1, 'bottom': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -11600,7 +11684,7 @@ const devices = [
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11618,7 +11702,7 @@ const devices = [
             return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11637,7 +11721,7 @@ const devices = [
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11657,7 +11741,7 @@ const devices = [
             return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11677,7 +11761,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint);
@@ -11693,7 +11777,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11710,7 +11794,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11727,7 +11811,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11744,7 +11828,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11760,7 +11844,7 @@ const devices = [
         description: 'IOT smart switch 1 gang without neutral wire',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -11777,7 +11861,7 @@ const devices = [
             return {top: 1, bottom: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -11795,7 +11879,7 @@ const devices = [
             return {top: 1, center: 2, bottom: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11811,7 +11895,7 @@ const devices = [
         description: 'IOT smart switch 1 gang router without neutral wire',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -11828,7 +11912,7 @@ const devices = [
             return {top: 1, bottom: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -11846,7 +11930,7 @@ const devices = [
             return {top: 1, center: 2, bottom: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11862,7 +11946,7 @@ const devices = [
         description: 'IOT smart switch 1 gang router without neutral wire',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -11879,7 +11963,7 @@ const devices = [
             return {top: 1, bottom: 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -11897,7 +11981,7 @@ const devices = [
             return {top: 1, center: 2, bottom: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -11914,7 +11998,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -11947,7 +12031,7 @@ const devices = [
             fz.command_stop],
         toZigbee: [tz.on_off, tz.ubisys_device_setup],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -11989,7 +12073,7 @@ const devices = [
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4};
         },
         meta: {configureKey: 3, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -12027,7 +12111,8 @@ const devices = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.ubisys_dimmer_setup],
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
+            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power(),
             exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false).withDescription('The dimmer supports AC forward phase control.'),
@@ -12042,11 +12127,25 @@ const devices = [
             exposes.binary('status_inductive_load', exposes.access.STATE_GET, true, false).withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             exposes.enum('mode_phase_control',exposes.access.ALL, ['automatic', 'forward', 'reverse']).withDescription('Configures the dimming technique.')],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 23 section 7.3.4, 7.3.5
+             * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+                ep2.addBinding('genLevelCtrl', ep1);
+            }
         },
         ota: ota.ubisys,
     },
@@ -12058,7 +12157,7 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.metering],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['seMetering']);
@@ -12085,7 +12184,7 @@ const devices = [
             '5_scene_*', '5_cover_open', '5_cover_close', '5_cover_stop',
             '6_scene_*', '6_cover_open', '6_cover_close', '6_cover_stop'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
             }
@@ -12105,7 +12204,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -12220,7 +12319,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -12245,7 +12344,7 @@ const devices = [
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -12287,7 +12386,7 @@ const devices = [
             return {l1: 1, l2: 2, l3: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             const endpoint2 = device.getEndpoint(2);
@@ -12304,7 +12403,7 @@ const devices = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -12324,7 +12423,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -12344,7 +12443,7 @@ const devices = [
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             const endpoint2 = device.getEndpoint(2);
@@ -12367,7 +12466,7 @@ const devices = [
             return {'top': 1, 'bottom': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -12379,7 +12478,7 @@ const devices = [
         description: 'Smart light switch - 1 gang',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -12404,7 +12503,7 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -12417,7 +12516,7 @@ const devices = [
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -12462,7 +12561,7 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -12487,7 +12586,7 @@ const devices = [
         description: 'Zigbee two way smart switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -12501,7 +12600,7 @@ const devices = [
         extend: preset.switch,
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -12522,7 +12621,7 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -12539,7 +12638,7 @@ const devices = [
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -12568,7 +12667,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -12591,7 +12690,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -12609,7 +12708,7 @@ const devices = [
         extend: preset.switch,
         fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -12633,7 +12732,7 @@ const devices = [
             return {'left': 1, 'right': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -12710,7 +12809,7 @@ const devices = [
         description: 'Zigbee & Z-wave dimmer ',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -12800,7 +12899,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -12830,7 +12929,7 @@ const devices = [
         vendor: 'Moes',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             try {
@@ -12853,7 +12952,7 @@ const devices = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -12873,7 +12972,7 @@ const devices = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -12891,35 +12990,10 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
+            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
+            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'}],
-        model: 'SEA801-Zigbee',
-        vendor: 'Saswell',
-        description: 'Thermostatic radiator valve',
-        fromZigbee: [fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule],
-        toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
-            tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
-            tz.tuya_thermostat_weekly_schedule],
-        onEvent: tuya.onEventSetTime,
-        meta: {
-            configureKey: 1,
-            thermostat: {
-                weeklyScheduleMaxTransitions: 4,
-                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleConversion: 'saswell',
-            },
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5)
-            .withLocalTemperature().withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
-    },
-    {
-        fingerprint: [{modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
-            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'}],
-        model: 'SEA802-Zigbee',
+        model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
         whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}],
@@ -12936,7 +13010,7 @@ const devices = [
                 weeklyScheduleConversion: 'saswell',
             },
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -12957,7 +13031,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -12978,7 +13052,7 @@ const devices = [
         extend: preset.light_onoff_brightness,
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         meta: {configureKey: 2, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(10);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint1);
@@ -12999,7 +13073,7 @@ const devices = [
         description: 'EZinstall3 1 gang 550W dimmer module',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -13013,7 +13087,7 @@ const devices = [
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -13027,7 +13101,7 @@ const devices = [
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(10);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -13048,7 +13122,7 @@ const devices = [
         toZigbee: [tz.cover_position_tilt, tz.cover_state],
         exposes: [e.cover_position()],
         meta: {configureKey: 1, coverInverted: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
@@ -13069,7 +13143,7 @@ const devices = [
             exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13087,7 +13161,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
@@ -13116,7 +13190,7 @@ const devices = [
             fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed],
         meta: {configureKey: 1, coverInverted: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
@@ -13133,7 +13207,7 @@ const devices = [
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
@@ -13151,7 +13225,7 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
             const endpoint2 = device.getEndpoint(2);
@@ -13168,7 +13242,7 @@ const devices = [
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle'])],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
         },
@@ -13185,7 +13259,7 @@ const devices = [
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
             tz.legrand_settingEnableDimmer, tz.legrand_identify],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
             await reporting.onOff(endpoint);
@@ -13201,7 +13275,7 @@ const devices = [
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
         exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13218,7 +13292,7 @@ const devices = [
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
         },
@@ -13233,7 +13307,7 @@ const devices = [
         exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
@@ -13258,7 +13332,7 @@ const devices = [
         exposes: [e.power(), exposes.binary('power_alarm_active', exposes.access.STATE_GET, true, false),
             exposes.binary('power_alarm', exposes.access.ALL, true, false).withDescription('Enable/disable the power alarm')],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -13276,7 +13350,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
@@ -13292,9 +13366,26 @@ const devices = [
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [e.switch(), e.action(['identify', 'on', 'off'])],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
+        },
+    },
+    {
+        zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
+        model: 'L441C/N4411C/NT4411C',
+        vendor: 'BTicino',
+        description: 'Dimmer switch with neutral',
+        extend: preset.light_onoff_brightness,
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_settingEnableDimmer, tz.legrand_identify],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
         },
     },
     {
@@ -13309,7 +13400,7 @@ const devices = [
             exposes.enum( 'device_mode', exposes.access.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13326,7 +13417,7 @@ const devices = [
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
         exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13427,7 +13518,7 @@ const devices = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -13442,7 +13533,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -13458,7 +13549,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -13474,7 +13565,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {configureKey: 4, pinCodeCount: 30},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             console.log(device);
             console.log(endpoint.clusters);
@@ -13492,7 +13583,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 4},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -13510,7 +13601,7 @@ const devices = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -13590,7 +13681,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13645,7 +13736,7 @@ const devices = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -13669,7 +13760,7 @@ const devices = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -13695,7 +13786,7 @@ const devices = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -13720,7 +13811,7 @@ const devices = [
         fromZigbee: [fz.metering, fz.electrical_measurement],
         toZigbee: [tz.EMIZB_132_mode],
         meta: {configureKey: 9},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
@@ -13751,7 +13842,7 @@ const devices = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.warning],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
@@ -13782,7 +13873,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint);
@@ -13797,7 +13888,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(38);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint1);
@@ -13815,7 +13906,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -13862,7 +13953,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down'])],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
         },
@@ -13875,7 +13966,7 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(39);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint);
@@ -13891,7 +13982,7 @@ const devices = [
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -13913,7 +14004,7 @@ const devices = [
         description: 'AOne 250W smart rotary dimmer module',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
         },
@@ -13930,7 +14021,7 @@ const devices = [
         endpoint: (device) => {
             return {'default': 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify', 'haElectricalMeasurement', 'seMetering',
                 'genDeviceTempCfg']);
@@ -13959,7 +14050,7 @@ const devices = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.action(['on', 'off']), e.contact(), e.water_leak()],
         toZigbee: [],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'genOnOff', 'msTemperatureMeasurement', 'msRelativeHumidity'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -13981,7 +14072,7 @@ const devices = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             const endpoint2 = device.getEndpoint(2);
@@ -14064,7 +14155,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 3},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -14097,7 +14188,7 @@ const devices = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl',
                 'hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -14118,7 +14209,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.water_leak()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'haApplianceEventsAlerts', 'msTemperatureMeasurement']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -14138,7 +14229,7 @@ const devices = [
             return {top: 1, center: 2, bottom: 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -14166,7 +14257,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -14188,7 +14279,7 @@ const devices = [
             fz.kmpcil_res005_on_off],
         toZigbee: [tz.kmpcil_res005_on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(8);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'genBinaryInput', 'genBinaryOutput'];
@@ -14227,7 +14318,7 @@ const devices = [
         description: 'Zigbee in-wall smart switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -14240,7 +14331,7 @@ const devices = [
         description: 'Zigbee in-wall smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -14261,7 +14352,7 @@ const devices = [
         extend: preset.switch,
         fromZigbee: [fz.command_on_state, fz.command_off_state],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
@@ -14276,7 +14367,7 @@ const devices = [
         description: 'Zigbee in-wall smart switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -14289,7 +14380,7 @@ const devices = [
         description: 'Zigbee in-wall smart dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -14305,7 +14396,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         meta: {configureKey: 5},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -14346,7 +14437,7 @@ const devices = [
         exposes: [e.battery(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
@@ -14361,7 +14452,7 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -14377,7 +14468,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -14418,7 +14509,7 @@ const devices = [
         description: 'ZigBee AC phase-cut dimmer',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -14444,7 +14535,7 @@ const devices = [
         description: 'Zigbee socket switch',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -14476,7 +14567,7 @@ const devices = [
         description: 'Silvercrest smart plug (EU, CH, FR, BS)',
         extend: preset.switch,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -14491,7 +14582,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -14505,7 +14596,7 @@ const devices = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
@@ -14534,7 +14625,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: preset.switch,
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -14622,7 +14713,7 @@ const devices = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
                 await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -14646,7 +14737,7 @@ const devices = [
             'color_saturation_step_down', 'color_stop', 'color_hue_step_up', 'color_hue_step_down',
             'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -14676,7 +14767,7 @@ const devices = [
         description: 'Mini dimmer 200W',
         extend: preset.light_onoff_brightness,
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -14703,7 +14794,7 @@ const devices = [
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
