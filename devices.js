@@ -2154,18 +2154,15 @@ const devices = [
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
         ],
     },
-	
-	// 3rd-party Tuya
 
-{
-
-zigbeeModel: ['TS0505A'],
-model: 'TS0505A',
-description: 'E27 RGBW bulb',
-vendor: 'TuYa',
-extend: generic.light_onoff_brightness_colortemp_colorxy,
-
-},
+    // Mycket
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_evag0pvn'}],
+        model: 'MS-SP-LE27WRGB',
+        description: 'E27 RGBW bulb',
+        vendor: 'Mycket',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // Neo
     {
