@@ -2530,16 +2530,16 @@ const converters = {
     },
     ubisys_dimmer_setup: {
         key: ['capabilities_forward_phase_control',
-              'capabilities_reverse_phase_control',
-              'capabilities_reactance_discriminator',
-              'capabilities_configurable_curve',
-              'capabilities_overload_detection',
-              'status_forward_phase_control',
-              'status_reverse_phase_control',
-              'status_overload',
-              'status_capacitive_load',
-              'status_inductive_load',
-              'mode_phase_control'],
+            'capabilities_reverse_phase_control',
+            'capabilities_reactance_discriminator',
+            'capabilities_configurable_curve',
+            'capabilities_overload_detection',
+            'status_forward_phase_control',
+            'status_reverse_phase_control',
+            'status_overload',
+            'status_capacitive_load',
+            'status_inductive_load',
+            'mode_phase_control'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'mode_phase_control') {
                 const phaseControl = value.toLowerCase();
