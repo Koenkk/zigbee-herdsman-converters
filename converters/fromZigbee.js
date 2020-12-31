@@ -1378,7 +1378,7 @@ const converters = {
             case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
                 return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
-                const position = options.invert_cover ? value : 100 - value;
+                const position = options.invert_cover ? (value & 0xFF) : 100 - (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
