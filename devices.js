@@ -1852,7 +1852,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module without neutral',
         extend: preset.light_onoff_brightness,
-    },	
+    },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
         model: 'QS-Zigbee-D02-TRIAC-LN',
