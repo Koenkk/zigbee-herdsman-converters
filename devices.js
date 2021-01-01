@@ -11594,6 +11594,27 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['RM3250ZB'],
+        model: 'RM3250ZB',
+        vendor: 'Sinope',
+        description: '50A Smart electrical load controller',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+    },
+    {
         zigbeeModel: ['WL4200'],
         model: 'WL4200',
         vendor: 'Sinope',
