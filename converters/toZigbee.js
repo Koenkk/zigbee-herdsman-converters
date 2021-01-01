@@ -2528,6 +2528,33 @@ const converters = {
             ], manufacturerOptions.ubisys));
         },
     },
+    ubisys_dimmer_setup: {
+        key: ['capabilities_forward_phase_control',
+            'capabilities_reverse_phase_control',
+            'capabilities_reactance_discriminator',
+            'capabilities_configurable_curve',
+            'capabilities_overload_detection',
+            'status_forward_phase_control',
+            'status_reverse_phase_control',
+            'status_overload',
+            'status_capacitive_load',
+            'status_inductive_load',
+            'mode_phase_control'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'mode_phase_control') {
+                const phaseControl = value.toLowerCase();
+                const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
+                utils.validateValue(phaseControl, Object.keys(phaseControlValues));
+                await entity.write('manuSpecificUbisysDimmerSetup', {'mode': phaseControlValues[phaseControl]});
+            }
+            converters.ubisys_dimmer_setup.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['status']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['mode']);
+        },
+    },
     ubisys_device_setup: {
         key: ['configure_device_setup'],
         convertSet: async (entity, key, value, meta) => {

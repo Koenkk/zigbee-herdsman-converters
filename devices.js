@@ -12120,9 +12120,31 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
-        exposes: [e.light_brightness(), e.power()],
+            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        exposes: [e.light_brightness(), e.power(),
+            exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer supports AC forward phase control.'),
+            exposes.binary('capabilities_reverse_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer supports AC reverse phase control.'),
+            exposes.binary('capabilities_reactance_discriminator', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of measuring the reactanceto distinguish inductive and capacitive loads.'),
+            exposes.binary('capabilities_configurable_curve', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of replacing the built-in, default dimming curve.'),
+            exposes.binary('capabilities_overload_detection', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of detecting an output overload and shutting the output off.'),
+            exposes.binary('status_forward_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is currently operating in AC forward phase control mode.'),
+            exposes.binary('status_reverse_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is currently operating in AC reverse phase control mode.'),
+            exposes.binary('status_overload', exposes.access.STATE_GET, true, false)
+                .withDescription('The output is currently turned off, because the dimmer has detected an overload.'),
+            exposes.binary('status_capacitive_load', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer\'s reactance discriminator had detected a capacitive load.'),
+            exposes.binary('status_inductive_load', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
+            exposes.enum('mode_phase_control', exposes.access.ALL, ['automatic', 'forward', 'reverse'])
+                .withDescription('Configures the dimming technique.')],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
