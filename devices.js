@@ -11603,13 +11603,13 @@ const devices = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await configureReporting.onOff(endpoint);
-            await readEletricalMeasurementPowerConverterAttributes(endpoint);
-            await configureReporting.activePower(endpoint);
-            await configureReporting.rmsCurrent(endpoint);
-            await configureReporting.rmsVoltage(endpoint);
-            await readMeteringPowerConverterAttributes(endpoint);
-            await configureReporting.currentSummDelivered(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
