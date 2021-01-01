@@ -2093,6 +2093,7 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         ota: ota.tradfri,
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI transformer 10W', 'TRADFRI Driver 10W'],
@@ -2187,6 +2188,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -2209,6 +2211,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
@@ -2228,6 +2231,7 @@ const devices = [
             await reporting.bind(endpoint, defaultBindGroup, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],
@@ -2245,6 +2249,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI motion sensor'],
@@ -2263,6 +2268,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI signal repeater'],
@@ -2331,6 +2337,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['GUNNARP panel round'],
