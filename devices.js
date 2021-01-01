@@ -11596,8 +11596,8 @@ const devices = [
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
         vendor: 'Sinope',
-        description: '50A Smart Electrical Load Controller',
-        fromZigbee: [fz.on_off, fz.electrical_measurement_power, fz.metering_power],
+        description: '50A Smart electrical load controller',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
