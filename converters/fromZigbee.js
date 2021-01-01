@@ -3704,7 +3704,9 @@ const converters = {
             }
 
             if (msg.data['61440']) {
-                running = msg.data['61440'] !== 0;
+                const value = msg.data['61440'];
+                // 63025664 comes from https://github.com/Koenkk/zigbee2mqtt/issues/5155#issuecomment-753344248
+                running = value !== 0 && value !== 63025664;
             }
 
             let position = precisionRound(msg.data['presentValue'], 2);
