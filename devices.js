@@ -11602,7 +11602,7 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
