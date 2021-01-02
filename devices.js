@@ -184,14 +184,14 @@ const preset = {
         },
         light_onoff_brightness_colorxyhs: {
             ...preset.light_onoff_brightness_colorxyhs,
-            toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.ledvance_commands]),
+            toZigbee: preset.light_onoff_brightness_colorxyhs.toZigbee.concat([tz.ledvance_commands]),
         },
         light_onoff_brightness_colortemp_colorxyhs: {
             ...preset.light_onoff_brightness_colortemp_colorxyhs,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
+            toZigbee: preset.light_onoff_brightness_colortemp_colorxyhs.toZigbee.concat([tz.ledvance_commands]),
         },
         light_onoff_brightness_colortemp_colorhs: {
-            ...preset.light_onoff_brightness_colortemp_colorxyhs,
+            ...preset.light_onoff_brightness_colortemp_colorhs,
             toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
             exposes: [e.light_brightness_colortemp_colorhs(), e.effect()],
         },
@@ -4301,7 +4301,7 @@ const devices = [
         model: '73699',
         vendor: 'OSRAM',
         description: ' Gardenspot LED mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4309,7 +4309,7 @@ const devices = [
         model: '4058075816718',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4317,7 +4317,7 @@ const devices = [
         model: '4058075816732',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4325,7 +4325,7 @@ const devices = [
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4341,7 +4341,7 @@ const devices = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorhs,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4477,7 +4477,7 @@ const devices = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4485,7 +4485,7 @@ const devices = [
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4493,7 +4493,7 @@ const devices = [
         model: '4058075036147',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 8.7W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4501,7 +4501,7 @@ const devices = [
         model: '4058075047853',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         meta: {disableDefaultResponse: true},
         ota: ota.ledvance,
     },
@@ -4510,7 +4510,7 @@ const devices = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4526,7 +4526,7 @@ const devices = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4534,7 +4534,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4694,7 +4694,7 @@ const devices = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4710,7 +4710,7 @@ const devices = [
         model: '4058075208339',
         vendor: 'LEDVANCE',
         description: 'Flex 3P multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -4982,7 +4982,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4990,7 +4990,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4998,7 +4998,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5014,7 +5014,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5022,7 +5022,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5030,7 +5030,7 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         exposes: [e.light_brightness_colortemp_colorxyhs()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5063,7 +5063,7 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         exposes: [e.light_brightness_colortemp_colorxyhs()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5072,7 +5072,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5168,7 +5168,7 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         exposes: [e.light_brightness_colortemp_colorxyhs()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5321,7 +5321,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5394,7 +5394,7 @@ const devices = [
         model: 'OFL 120 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5402,7 +5402,7 @@ const devices = [
         model: 'OFL 140 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5410,7 +5410,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxyhs,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5468,7 +5468,7 @@ const devices = [
         model: '73741',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable color RT 5/6',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -5484,7 +5484,7 @@ const devices = [
         model: '73739',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -5492,7 +5492,7 @@ const devices = [
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -5500,7 +5500,7 @@ const devices = [
         model: '73773',
         vendor: 'Sylvania',
         description: 'SMART+ Flex XL RGBW strip',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -5554,7 +5554,7 @@ const devices = [
         model: 'LTFY004',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED gardenspot mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colorxyhs,
         ota: ota.ledvance,
     },
     {
@@ -5586,7 +5586,7 @@ const devices = [
         model: '75541',
         vendor: 'Sylvania',
         description: 'SMART+ Outdoor Accent RGB lighting kit',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxyhs,
         ota: ota.ledvance,
     },
     {
