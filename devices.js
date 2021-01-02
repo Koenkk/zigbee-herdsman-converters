@@ -14891,7 +14891,14 @@ const devices = [
 
 module.exports = devices.map((device) => {
     if (device.extend) {
+        let deviceMeta = null;
+        if (device.extend.hasOwnProperty('meta') && device.hasOwnProperty('meta')) {
+            deviceMeta = Object.assign({}, device.extend.meta, device.meta);
+        }
         device = Object.assign({}, device.extend, device);
+        if (deviceMeta !== null) {
+            device.meta = deviceMeta;
+        }
         delete device.extend;
     }
 
