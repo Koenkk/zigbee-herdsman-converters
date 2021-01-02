@@ -454,7 +454,8 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
-        exposes: [e.battery(), e.action(['left', 'right', 'both'])],
+        exposes: [e.battery(), e.action([
+            'left', 'right', 'both', 'left_double', 'right_double', 'both_double', 'left_long', 'right_long', 'both_long'])],
         onEvent: xiaomi.preventReset,
     },
     {
