@@ -217,7 +217,7 @@ const devices = [
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         toZigbee: [],
     },
     {
@@ -226,7 +226,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -616,7 +616,8 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.illuminance_lux().withProperty('illuminance')],
+        exposes: [e.battery(), e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
@@ -1328,6 +1329,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1760,6 +1762,15 @@ const devices = [
         extend: preset.switch,
     },
 
+    // Mycket
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_evag0pvn'}],
+        model: 'MS-SP-LE27WRGB',
+        description: 'E27 RGBW bulb',
+        vendor: 'Mycket',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+
     // Neo
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
@@ -1835,6 +1846,13 @@ const devices = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}],
+        model: 'QS-Zigbee-D02-TRIAC-L',
+        vendor: 'Lonsonho',
+        description: '1 gang smart dimmer switch module without neutral',
+        extend: preset.light_onoff_brightness,
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
@@ -2237,7 +2255,7 @@ const devices = [
         fromZigbee: [fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.legacy.E1744_play_pause, fz.legacy.E1744_skip, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action([
-            'brightness_move_up', 'brightness_move_down', 'brighntess_stop', 'toggle', 'brighntess_step_up', 'brightness_step_down'])],
+            'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
         ota: ota.tradfri,
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3838,7 +3856,7 @@ const devices = [
             exposes.text('', exposes.access.STATE).withEndpoint('l6').withProperty('l6'),
             exposes.text('', exposes.access.STATE).withEndpoint('l7').withProperty('l7'),
             exposes.text('', exposes.access.STATE).withEndpoint('l8').withProperty('l8'),
-            e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'triple', 'hold'])],
+            e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'tripple', 'hold'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8, action: 1};
@@ -11576,6 +11594,27 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['RM3250ZB'],
+        model: 'RM3250ZB',
+        vendor: 'Sinope',
+        description: '50A Smart electrical load controller',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+    },
+    {
         zigbeeModel: ['WL4200'],
         model: 'WL4200',
         vendor: 'Sinope',
@@ -12102,15 +12141,52 @@ const devices = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off, fz.brightness, fz.metering],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_device_setup],
-        exposes: [e.light_brightness(), e.power()],
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
+            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        exposes: [e.light_brightness(), e.power(),
+            exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer supports AC forward phase control.'),
+            exposes.binary('capabilities_reverse_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer supports AC reverse phase control.'),
+            exposes.binary('capabilities_reactance_discriminator', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of measuring the reactanceto distinguish inductive and capacitive loads.'),
+            exposes.binary('capabilities_configurable_curve', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of replacing the built-in, default dimming curve.'),
+            exposes.binary('capabilities_overload_detection', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is capable of detecting an output overload and shutting the output off.'),
+            exposes.binary('status_forward_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is currently operating in AC forward phase control mode.'),
+            exposes.binary('status_reverse_phase_control', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer is currently operating in AC reverse phase control mode.'),
+            exposes.binary('status_overload', exposes.access.STATE_GET, true, false)
+                .withDescription('The output is currently turned off, because the dimmer has detected an overload.'),
+            exposes.binary('status_capacitive_load', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer\'s reactance discriminator had detected a capacitive load.'),
+            exposes.binary('status_inductive_load', exposes.access.STATE_GET, true, false)
+                .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
+            exposes.enum('mode_phase_control', exposes.access.ALL, ['automatic', 'forward', 'reverse'])
+                .withDescription('Configures the dimming technique.')],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 23 section 7.3.4, 7.3.5
+             * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+                ep2.addBinding('genLevelCtrl', ep1);
+            }
         },
         ota: ota.ubisys,
     },
@@ -12789,7 +12865,7 @@ const devices = [
         vendor: 'EcoDim',
         description: 'Zigbee 2 button wall switch - white',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'off', 'brighntess_move_up', 'brightness_move_down', 'brightness_stop'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -12799,7 +12875,7 @@ const devices = [
         vendor: 'EcoDim',
         description: 'Zigbee 2 button wall switch - black',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'off', 'brighntess_move_up', 'brightness_move_down', 'brightness_stop'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -12809,8 +12885,8 @@ const devices = [
         vendor: 'EcoDim',
         description: 'Zigbee 4 button wall switch - white',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'brighntess_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'brighntess_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
+        exposes: [e.battery(), e.action(['on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -12820,8 +12896,8 @@ const devices = [
         vendor: 'EcoDim',
         description: 'Zigbee 4 button wall switch - black',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'brighntess_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'brighntess_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
+        exposes: [e.battery(), e.action(['on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -14766,6 +14842,15 @@ const devices = [
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageDivisor: 100});
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+    },
+
+    // Prolight
+    {
+        zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
+        model: '5412748727388',
+        vendor: 'Prolight',
+        description: 'E27 white and colour bulb',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 ];
 

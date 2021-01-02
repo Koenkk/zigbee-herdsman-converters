@@ -1378,7 +1378,7 @@ const converters = {
             case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
                 return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
-                const position = options.invert_cover ? value : 100 - value;
+                const position = options.invert_cover ? (value & 0xFF) : 100 - (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
@@ -3704,7 +3704,9 @@ const converters = {
             }
 
             if (msg.data['61440']) {
-                running = msg.data['61440'] !== 0;
+                const value = msg.data['61440'];
+                // 63025664 comes from https://github.com/Koenkk/zigbee2mqtt/issues/5155#issuecomment-753344248
+                running = value !== 0 && value !== 63025664;
             }
 
             let position = precisionRound(msg.data['presentValue'], 2);
@@ -4768,6 +4770,50 @@ const converters = {
                 if (dict.hasOwnProperty(value)) {
                     return {[postfixWithEndpointName('power_outage_memory', msg, model)]: dict[value]};
                 }
+            }
+        },
+    },
+    ubisys_dimmer_setup: {
+        cluster: 'manuSpecificUbisysDimmerSetup',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('capabilities')) {
+                const capabilities = msg.data.capabilities;
+                const forwardPhaseControl = capabilities & 1;
+                const reversePhaseControl = (capabilities & 2) >>> 1;
+                const reactanceDiscriminator = (capabilities & 0x20) >>> 5;
+                const configurableCurve = (capabilities & 0x40) >>> 6;
+                const overloadDetection = (capabilities & 0x80) >>> 7;
+                return {
+                    capabilities_forward_phase_control: forwardPhaseControl ? true : false,
+                    capabilities_reverse_phase_control: reversePhaseControl ? true : false,
+                    capabilities_reactance_discriminator: reactanceDiscriminator ? true : false,
+                    capabilities_configurable_curve: configurableCurve ? true : false,
+                    capabilities_overload_detection: overloadDetection ? true : false,
+                };
+            }
+            if (msg.data.hasOwnProperty('status')) {
+                const status = msg.data.status;
+                const forwardPhaseControl = status & 1;
+                const reversePhaseControl = (status & 2) >>> 1;
+                const overload = (status & 8) >>> 3;
+                const capacitiveLoad = (status & 0x40) >>> 6;
+                const inductiveLoad = (status & 0x80) >>> 7;
+                return {
+                    status_forward_phase_control: forwardPhaseControl ? true : false,
+                    status_reverse_phase_control: reversePhaseControl ? true : false,
+                    status_overload: overload ? true : false,
+                    status_capacitive_load: capacitiveLoad ? true : false,
+                    status_inductive_load: inductiveLoad ? true : false,
+                };
+            }
+            if (msg.data.hasOwnProperty('mode')) {
+                const mode = msg.data.mode;
+                const phaseControl = mode & 3;
+                const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
+                return {
+                    mode_phase_control: phaseControlValues[phaseControl],
+                };
             }
         },
     },
