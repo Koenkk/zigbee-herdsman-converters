@@ -14843,14 +14843,14 @@ const devices = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
-	
-	// PROLIGHT E27 WHITE AND COLOUR
+
+    // Prolight
     {
         zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
-        model: 'PROLIGHT E27 WHITE AND COLOUR',
-        vendor: 'PROLIGHT',
-        description: 'PROLIGHT E27 WHITE AND COLOUR',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        model: '5412748727388',
+        vendor: 'Prolight',
+        description: 'E27 white and colour bulb',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 ];
 
