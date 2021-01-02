@@ -182,7 +182,7 @@ const preset = {
             ...preset.light_onoff_brightness_colortemp_colorxy,
             toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
         },
-        light_onoff_brightness_colorxy: {
+        light_onoff_brightness_colorxyhs: {
             ...preset.light_onoff_brightness_colorxyhs,
             toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.ledvance_commands]),
         },
