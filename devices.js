@@ -1375,9 +1375,10 @@ const devices = [
             tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.battery_low(), e.valve_detection(), e.position(),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-                .withSystemMode(['heat', 'auto', 'off']).withRunningState(['idle', 'heat']).withAwayMode()
-                .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])],
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+                .withLocalTemperature(exposes.access.STATE).withSystemMode(['heat', 'auto', 'off'], exposes.access.STATE_SET)
+                .withRunningState(['idle', 'heat'], exposes.access.STATE)
+                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
@@ -1395,8 +1396,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
+        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE)
+            .withAwayMode()],
     },
     {
         fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
@@ -1416,8 +1419,10 @@ const devices = [
             },
         },
         exposes: [
-            e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode(),
+            e.battery_low(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+                .withLocalTemperature(exposes.access.STATE).withAwayMode()
+                .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE),
         ],
     },
     {
@@ -1662,9 +1667,10 @@ const devices = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
-            .withLocalTemperatureCalibration()],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
+            .withLocalTemperatureCalibration(exposes.access.STATE_SET)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
@@ -1683,8 +1689,10 @@ const devices = [
         model: 'D3-DPWK-TY',
         vendor: 'TuYa',
         description: 'HVAC controller',
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])],
+        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)],
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
@@ -1731,8 +1739,9 @@ const devices = [
         description: 'Wall-mount thermostat',
         fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report, fz.hy_set_time_request],
         toZigbee: [tz.hy_thermostat],
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE)],
     },
 
     // UseeLink
@@ -9950,8 +9959,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5)
-            .withLocalTemperature().withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
+        exposes: [e.battery_low(), e.child_lock(), exposes.climate()
+            .withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE).withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat'], exposes.access.STATE).withAwayMode()],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
@@ -13026,8 +13037,10 @@ const devices = [
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_min_temperature],
-        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat', 'cool']).withPreset(['hold', 'program'])],
+        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
+            .withPreset(['hold', 'program'])],
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
@@ -13056,8 +13069,9 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'heat', 'auto'])
-            .withRunningState(['idle', 'heat']).withAwayMode()],
+            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET).withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat'], exposes.access.STATE).withAwayMode()],
     },
 
     // Schneider Electric
@@ -13069,7 +13083,7 @@ const devices = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_haDiagnostic, fz.ignore_genOta, fz.ignore_zclversion_read,
             fz.legacy.wiser_thermostat, fz.legacy.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(exposes.access.STATE)
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -14155,7 +14169,8 @@ const devices = [
             {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat'])
+            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET).withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
             .withRunningState(['idle', 'heat'])],
     },
 
