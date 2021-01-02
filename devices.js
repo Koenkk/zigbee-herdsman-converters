@@ -14843,6 +14843,15 @@ const devices = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
+
+    // Prolight
+    {
+        zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
+        model: '5412748727388',
+        vendor: 'Prolight',
+        description: 'E27 white and colour bulb',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
 ];
 
 module.exports = devices.map((device) => {
