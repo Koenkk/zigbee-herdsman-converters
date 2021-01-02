@@ -152,10 +152,6 @@ const preset = {
             ...preset.light_onoff_brightness_colorxy,
             toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
-        light_onoff_brightness_colortemp_colorxy: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
-        },
         light_onoff_brightness_colorxyhs: {
             ...preset.light_onoff_brightness_colorxyhs,
             toZigbee: preset.light_onoff_brightness_colorxyhs.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
