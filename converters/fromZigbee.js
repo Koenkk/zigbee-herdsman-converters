@@ -3288,7 +3288,13 @@ const converters = {
                 const payload = {};
 
                 if (data.hasOwnProperty('100')) {
-                    payload.state = data['100'] === 1 ? 'ON' : 'OFF';
+                    if (['QBKG03LM', 'QBKG12LM', 'LLKZMK11LM'].includes(model.model)) {
+                        const mapping = model.model === 'LLKZMK11LM' ? ['l1', 'l2'] : ['left', 'right'];
+                        payload[`state_${mapping[0]}`] = data['100'] === 1 ? 'ON' : 'OFF';
+                        payload[`state_${mapping[1]}`] = data['101'] === 1 ? 'ON' : 'OFF';
+                    } else {
+                        payload.state = data['100'] === 1 ? 'ON' : 'OFF';
+                    }
                 }
 
                 if (data.hasOwnProperty('152')) {
