@@ -28,6 +28,7 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
+const assert = require('assert');
 const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
 const utils = require('./lib/utils');
@@ -14909,14 +14910,21 @@ const devices = [
 
 module.exports = devices.map((device) => {
     if (device.extend) {
+        if (device.extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
+            assert.fail(`'${device.model}' has configure in extend and device, this is not allowed`);
+        }
+
         let deviceMeta = null;
         if (device.extend.hasOwnProperty('meta') && device.hasOwnProperty('meta')) {
             deviceMeta = Object.assign({}, device.extend.meta, device.meta);
         }
+
         device = Object.assign({}, device.extend, device);
+
         if (deviceMeta !== null) {
             device.meta = deviceMeta;
         }
+
         delete device.extend;
     }
 
