@@ -9078,7 +9078,6 @@ const devices = [
         model: '421782',
         vendor: 'Calex',
         description: 'Smart Wall Switch, wall mounted RGB controller',
-        supports: 'On/Off, Brightness, Hue/Saturation',
         toZigbee: [],
         fromZigbee: [fz.command_off, fz.command_on, fz.command_step, fz.command_move_to_color_temp,
             fz.command_move, fz.command_stop, fz.command_ehanced_move_to_hue_and_saturation,
