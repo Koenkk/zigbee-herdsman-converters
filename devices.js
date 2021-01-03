@@ -75,6 +75,15 @@ const preset = {
             await light.readColorTempMinMax(endpoint);
         },
     },
+    light_onoff_brightness_color: {
+        exposes: [e.light_brightness_color(), e.effect()],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
+            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+        ],
+    },
     light_onoff_brightness_colorxy: {
         exposes: [e.light_brightness_colorxy(), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
@@ -88,6 +97,15 @@ const preset = {
             const endpoint = device.getEndpoint(1);
             await light.readColorCapabilities(endpoint);
         },
+    },
+    light_onoff_brightness_colortemp_color: {
+        exposes: [e.light_brightness_colortemp_color(), e.effect()],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
+            tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+        ],
     },
     light_onoff_brightness_colortemp_colorxy: {
         exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
@@ -149,13 +167,13 @@ const preset = {
             ...preset.light_onoff_brightness_colortemp,
             toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
-        light_onoff_brightness_colorxy: {
-            ...preset.light_onoff_brightness_colorxy,
-            toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        light_onoff_brightness_color: {
+            ...preset.light_onoff_brightness_color,
+            toZigbee: preset.light_onoff_brightness_color.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
-        light_onoff_brightness_colortemp_colorxy: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        light_onoff_brightness_colortemp_color: {
+            ...preset.light_onoff_brightness_colortemp_color,
+            toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
     };
     preset.ledvance = {
@@ -167,18 +185,13 @@ const preset = {
             ...preset.light_onoff_brightness_colortemp,
             toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.ledvance_commands]),
         },
-        light_onoff_brightness_colorxy: {
-            ...preset.light_onoff_brightness_colorxy,
-            toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.ledvance_commands]),
+        light_onoff_brightness_color: {
+            ...preset.light_onoff_brightness_color,
+            toZigbee: preset.light_onoff_brightness_color.toZigbee.concat([tz.ledvance_commands]),
         },
-        light_onoff_brightness_colortemp_colorxy: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-        },
-        light_onoff_brightness_colortemp_colorhs: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-            exposes: [e.light_brightness_colortemp_colorhs(), e.effect()],
+        light_onoff_brightness_colortemp_color: {
+            ...preset.light_onoff_brightness_colortemp_color,
+            toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.ledvance_commands]),
         },
     };
     preset.xiaomi = {
@@ -1018,7 +1031,7 @@ const devices = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
@@ -2503,7 +2516,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Attract',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2512,7 +2525,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Nyro',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2530,7 +2543,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2539,7 +2552,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (White)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2548,7 +2561,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (Black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2557,7 +2570,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Ensis',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2566,7 +2579,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Go',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2620,7 +2633,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2629,7 +2642,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2638,7 +2651,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2647,7 +2660,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2656,7 +2669,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2665,7 +2678,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Impress outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2674,7 +2687,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2683,7 +2696,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2710,7 +2723,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2790,7 +2803,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance pendant light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2835,7 +2848,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2844,7 +2857,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2853,7 +2866,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2862,7 +2875,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2871,7 +2884,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor 2m',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2880,7 +2893,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2889,7 +2902,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2897,7 +2910,7 @@ const devices = [
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2906,7 +2919,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E12 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2915,7 +2928,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E14 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2924,7 +2937,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2933,7 +2946,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2942,7 +2955,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3104,7 +3117,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 4" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3113,7 +3126,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 5/6" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3122,7 +3135,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Sana',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3311,7 +3324,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3320,7 +3333,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 2)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3329,7 +3342,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 4)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3338,7 +3351,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3347,7 +3360,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3356,7 +3369,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp (low voltage)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3365,7 +3378,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress lantern',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3374,7 +3387,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3383,7 +3396,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (Generation 2)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3392,7 +3405,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe floor light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3401,7 +3414,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe table light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3410,7 +3423,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Centris',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3419,7 +3432,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3428,7 +3441,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3437,7 +3450,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3446,7 +3459,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3455,7 +3468,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3464,7 +3477,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3473,7 +3486,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3482,7 +3495,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3491,7 +3504,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3500,7 +3513,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3509,7 +3522,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura Aluminium (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3518,7 +3531,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura White (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3713,7 +3726,7 @@ const devices = [
         vendor: 'Philips',
         description: 'LivingColors Aura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3750,7 +3763,7 @@ const devices = [
         description: 'Hue Discover white and color ambiance flood light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
     },
     {
         zigbeeModel: ['1746330P7'],
@@ -3758,7 +3771,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Appear outdoor wall light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3767,7 +3780,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3776,7 +3789,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor led strip',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3803,7 +3816,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Phoenix light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3812,7 +3825,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Beyond white and color ambiance suspension light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -4315,7 +4328,7 @@ const devices = [
         model: '73699',
         vendor: 'OSRAM',
         description: ' Gardenspot LED mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_color,
         ota: ota.ledvance,
     },
     {
@@ -4323,7 +4336,7 @@ const devices = [
         model: '4058075816718',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4331,7 +4344,7 @@ const devices = [
         model: '4058075816732',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4339,7 +4352,7 @@ const devices = [
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4355,7 +4368,7 @@ const devices = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorhs,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4387,7 +4400,7 @@ const devices = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorhs,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4491,7 +4504,7 @@ const devices = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4499,7 +4512,7 @@ const devices = [
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4507,7 +4520,7 @@ const devices = [
         model: '4058075036147',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 8.7W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4515,7 +4528,7 @@ const devices = [
         model: '4058075047853',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         meta: {disableDefaultResponse: true},
         ota: ota.ledvance,
     },
@@ -4524,7 +4537,7 @@ const devices = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4540,7 +4553,7 @@ const devices = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4548,7 +4561,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4708,7 +4721,7 @@ const devices = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4724,7 +4737,7 @@ const devices = [
         model: '4058075208339',
         vendor: 'LEDVANCE',
         description: 'Flex 3P multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4996,7 +5009,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5004,7 +5017,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5012,7 +5025,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5028,7 +5041,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5036,7 +5049,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5044,8 +5057,8 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5077,8 +5090,8 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5086,7 +5099,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5182,8 +5195,8 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5335,7 +5348,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5408,7 +5421,7 @@ const devices = [
         model: 'OFL 120 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5416,7 +5429,7 @@ const devices = [
         model: 'OFL 140 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5424,7 +5437,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5482,7 +5495,7 @@ const devices = [
         model: '73741',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable color RT 5/6',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5498,7 +5511,7 @@ const devices = [
         model: '73739',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5506,7 +5519,7 @@ const devices = [
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5514,7 +5527,7 @@ const devices = [
         model: '73773',
         vendor: 'Sylvania',
         description: 'SMART+ Flex XL RGBW strip',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5568,7 +5581,7 @@ const devices = [
         model: 'LTFY004',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED gardenspot mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_color,
         ota: ota.ledvance,
     },
     {
@@ -5600,7 +5613,7 @@ const devices = [
         model: '75541',
         vendor: 'Sylvania',
         description: 'SMART+ Outdoor Accent RGB lighting kit',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
