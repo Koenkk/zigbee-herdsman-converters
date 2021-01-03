@@ -106,6 +106,12 @@ const preset = {
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await light.readColorCapabilities(endpoint);
+            await light.readColorTempMinMax(endpoint);
+        },
     },
     light_onoff_brightness_colortemp_colorxy: {
         exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
