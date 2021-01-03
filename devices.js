@@ -14627,7 +14627,7 @@ const devices = [
         fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
-    },   
+    },
     {
         zigbeeModel: ['2f077707a13f4120846e0775df7e2efe'],
         model: 'WS-20-Z',
