@@ -13078,7 +13078,7 @@ const devices = [
         },
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET).withLocalTemperature(exposes.access.STATE)
-            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET)
+            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withLocalTemperatureCalibration(exposes.access.STATE_SET),
             .withRunningState(['idle', 'heat'], exposes.access.STATE).withAwayMode()],
     },
 
