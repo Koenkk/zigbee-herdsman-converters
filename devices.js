@@ -1808,12 +1808,11 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'}],
         model: 'QS-Zigbee-C01',
-        vendor: 'TuYa',
+        vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
         meta: {configureKey: 1, coverInverted: true},
-        whiteLabel: [{vendor: 'Lonsonho', model: 'QS-Zigbee-C01', description: 'Zigbee curtain/blind motor controller'}],
         exposes: [e.cover_position(), exposes.enum('moving', exposes.access.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', exposes.access.ALL, 'ON', 'OFF'),
             exposes.binary('motor_reversal', exposes.access.ALL, 'ON', 'OFF')],
