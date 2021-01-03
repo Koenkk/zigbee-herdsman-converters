@@ -14676,6 +14676,15 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['2f077707a13f4120846e0775df7e2efe'],
+        model: 'WS-20-Z',
+        vendor: 'Hommyn',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
 
     // Lidl
     {
