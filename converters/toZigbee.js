@@ -3535,6 +3535,9 @@ const converters = {
                      *
                      * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
                      */
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+                    val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
+
                     const xy = utils.miredsToXY(val);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
