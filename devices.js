@@ -28,6 +28,7 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
+const assert = require('assert');
 const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
 const utils = require('./lib/utils');
@@ -40,6 +41,7 @@ const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
 const xiaomi = require('./lib/xiaomi');
+const light = require('./lib/light');
 const {repInterval, defaultBindGroup, OneJanuary2000} = require('./lib/constants');
 const reporting = require('./lib/reporting');
 
@@ -66,6 +68,12 @@ const preset = {
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step,
         ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await light.readColorCapabilities(endpoint);
+            await light.readColorTempMinMax(endpoint);
+        },
     },
     light_onoff_brightness_colorxy: {
         exposes: [e.light_brightness_colorxy(), e.effect()],
@@ -75,6 +83,11 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await light.readColorCapabilities(endpoint);
+        },
     },
     light_onoff_brightness_colortemp_colorxy: {
         exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
@@ -84,6 +97,12 @@ const preset = {
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await light.readColorCapabilities(endpoint);
+            await light.readColorTempMinMax(endpoint);
+        },
     },
 };
 {
@@ -10997,12 +11016,6 @@ const devices = [
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['ZG2819S-RGBW'],
@@ -14891,7 +14904,21 @@ const devices = [
 
 module.exports = devices.map((device) => {
     if (device.extend) {
+        if (device.extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
+            assert.fail(`'${device.model}' has configure in extend and device, this is not allowed`);
+        }
+
+        let deviceMeta = null;
+        if (device.extend.hasOwnProperty('meta') && device.hasOwnProperty('meta')) {
+            deviceMeta = Object.assign({}, device.extend.meta, device.meta);
+        }
+
         device = Object.assign({}, device.extend, device);
+
+        if (deviceMeta !== null) {
+            device.meta = deviceMeta;
+        }
+
         delete device.extend;
     }
 

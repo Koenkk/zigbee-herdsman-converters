@@ -5,6 +5,7 @@ const tuya = require('../lib/tuya');
 const utils = require('../lib/utils');
 const herdsman = require('zigbee-herdsman');
 const legacy = require('../lib/legacy');
+const light = require('../lib/light');
 const constants = require('../lib/constants');
 
 const manufacturerOptions = {
@@ -572,6 +573,11 @@ const converters = {
             }
 
             value = Number(value);
+
+            // ensure value withing range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
@@ -3529,6 +3535,9 @@ const converters = {
                      *
                      * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
                      */
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+                    val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
+
                     const xy = utils.miredsToXY(val);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
