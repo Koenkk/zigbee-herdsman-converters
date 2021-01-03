@@ -5,6 +5,7 @@ const tuya = require('../lib/tuya');
 const utils = require('../lib/utils');
 const herdsman = require('zigbee-herdsman');
 const legacy = require('../lib/legacy');
+const light = require('../lib/light');
 const constants = require('../lib/constants');
 
 const manufacturerOptions = {
@@ -566,52 +567,17 @@ const converters = {
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
-            let colorTempMin;
-            let colorTempMax;
-            if (entity.constructor.name === 'Group' && entity.members.length > 0) {
-                for (const m of entity.members) {
-                    const memberColorTempMin = m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin');
-                    const memberColorTempMax = m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax');
-
-                    /*
-                     * For groups we want the value to be in range for all devices
-                     * So we grab the highest min and lowest max so we are OK in mixed groups.
-                     */
-                    if ((memberColorTempMin !== undefined) && (memberColorTempMax !== undefined)) {
-                        if ((colorTempMin === undefined) || (memberColorTempMin > colorTempMin)) {
-                            colorTempMin = memberColorTempMin;
-                        }
-                        if ((colorTempMax === undefined) || (memberColorTempMax < colorTempMax)) {
-                            colorTempMax = memberColorTempMax;
-                        }
-                    } else {
-                        meta.logger.warn(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${m.deviceIeeeAddress}!`);
-                    }
-                }
-            } else {
-                colorTempMin = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin');
-                colorTempMax = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax');
-                if ((colorTempMin === undefined) || (colorTempMax === undefined)) {
-                    meta.logger.warn(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${entity.deviceIeeeAddress}!`);
-                }
-            }
-
             if (key === 'color_temp_percent') {
                 value = Number(value) * 3.46;
                 value = Math.round(value + 154).toString();
             }
 
-            // ensure value withing range
-            if ((colorTempMin !== undefined) && (value < colorTempMin)) {
-                meta.logger.warn(`Requested color_temp ${value} is lower than minimum supported ${colorTempMin}, using minimum!`);
-                value = colorTempMin;
-            }
-            if ((colorTempMax !== undefined) && (value > colorTempMax)) {
-                meta.logger.warn(`Requested color_temp ${value} is higher than maximum supported ${colorTempMax}, using maximum!`);
-                value = colorTempMax;
-            }
-
             value = Number(value);
+
+            // ensure value withing range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
