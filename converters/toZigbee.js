@@ -240,14 +240,26 @@ const converters = {
         },
     },
     ballast_config: {
-        key: ['ballast_config'],
+        key: ['ballast_config',
+            'ballast_physical_minimum_level',
+            'ballast_physical_maximum_level',
+            'ballast_minimum_level',
+            'ballast_maximum_level'],
         // zcl attribute names are camel case, but we want to use snake case in the outside communication
         convertSet: async (entity, key, value, meta) => {
-            value = utils.toCamelCase(value);
-            for (const [attrName, attrValue] of Object.entries(value)) {
-                const attributes = {};
-                attributes[attrName] = attrValue;
-                await entity.write('lightingBallastCfg', attributes);
+            if (key === 'mode_phase_control') {
+                value = utils.toCamelCase(value);
+                for (const [attrName, attrValue] of Object.entries(value)) {
+                    const attributes = {};
+                    attributes[attrName] = attrValue;
+                    await entity.write('lightingBallastCfg', attributes);
+                }
+            }
+            if (key === 'ballast_minimum_level') {
+                await entity.write('lightingBallastCfg', {'minLevel': value});
+            }
+            if (key === 'ballast_maximum_level') {
+                await entity.write('lightingBallastCfg', {'maxLevel': value});
             }
             converters.ballast_config.convertGet(entity, key, meta);
         },
@@ -277,7 +289,9 @@ const converters = {
                     // continue regardless of error
                 }
             }
-            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+            if (key === 'mode_phase_control') {
+                meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+            }
         },
     },
     light_brightness_step: {
