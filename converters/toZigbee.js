@@ -574,7 +574,7 @@ const converters = {
 
             value = Number(value);
 
-            // ensure value withing range
+            // ensure value within range
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
@@ -584,6 +584,27 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
+        },
+    },
+    light_colortemp_startup: {
+        key: ['color_temp_startup'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string' && value.toLowerCase() == 'previous') {
+                // 0xffff = restore previous value
+                value = 65535;
+            }
+
+            value = Number(value);
+
+            // ensure value within range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
+            await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
+            return {state: {color_temp_startup: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['startUpColorTemperature']);
         },
     },
     light_color: {
