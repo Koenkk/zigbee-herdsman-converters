@@ -12251,7 +12251,7 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.ubisys_dimmer_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power(),
             exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
