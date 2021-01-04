@@ -7021,6 +7021,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ROB_200-011-0'],
+        model: 'ROB_200-011-0',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
