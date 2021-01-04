@@ -9369,6 +9369,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ICZB-DC11'],
+        model: 'ICZB-DC11',
+        vendor: 'iCasa',
+        description: 'ZigBee 12-36V DC LED dimmer',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
