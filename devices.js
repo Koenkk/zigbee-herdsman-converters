@@ -12835,7 +12835,7 @@ const devices = [
                 await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (e) { /* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */ }
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */}
         },
     },
     {
