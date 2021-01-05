@@ -70,9 +70,11 @@ const preset = {
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await light.readColorCapabilities(endpoint);
-            await light.readColorTempMinMax(endpoint);
+            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
+            if (endpoint) {
+                await light.readColorCapabilities(endpoint);
+                await light.readColorTempMinMax(endpoint);
+            }
         },
     },
     light_onoff_brightness_color: {
@@ -94,8 +96,11 @@ const preset = {
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await light.readColorCapabilities(endpoint);
+            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
+            if (endpoint) {
+                await light.readColorCapabilities(endpoint);
+            }
+
         },
     },
     light_onoff_brightness_colortemp_color: {
@@ -108,9 +113,11 @@ const preset = {
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await light.readColorCapabilities(endpoint);
-            await light.readColorTempMinMax(endpoint);
+            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
+            if (endpoint) {
+                await light.readColorCapabilities(endpoint);
+                await light.readColorTempMinMax(endpoint);
+            }
         },
     },
     light_onoff_brightness_colortemp_colorxy: {
@@ -123,9 +130,11 @@ const preset = {
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await light.readColorCapabilities(endpoint);
-            await light.readColorTempMinMax(endpoint);
+            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
+            if (endpoint) {
+                await light.readColorCapabilities(endpoint);
+                await light.readColorTempMinMax(endpoint);
+            }
         },
     },
 };
