@@ -247,7 +247,7 @@ const converters = {
             'ballast_maximum_level'],
         // zcl attribute names are camel case, but we want to use snake case in the outside communication
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'mode_phase_control') {
+            if (key === 'ballast_config') {
                 value = utils.toCamelCase(value);
                 for (const [attrName, attrValue] of Object.entries(value)) {
                     const attributes = {};
@@ -289,7 +289,7 @@ const converters = {
                     // continue regardless of error
                 }
             }
-            if (key === 'mode_phase_control') {
+            if (key === 'ballast_config') {
                 meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
             }
         },
