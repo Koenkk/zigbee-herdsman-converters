@@ -12828,12 +12828,14 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
-            await reporting.humidity(endpoint);
-            await reporting.batteryVoltage(endpoint);
+            try {
+                const endpoint = device.getEndpoint(1);
+                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
+                await reporting.humidity(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            } catch (e) { /* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */ }
         },
     },
     {
