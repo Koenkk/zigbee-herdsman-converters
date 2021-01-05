@@ -10863,7 +10863,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006', 'HOMA000F'],
+        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],
         model: 'HLC610-Z',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
