@@ -3619,6 +3619,34 @@ const converters = {
             }
         },
     },
+    scene_remove_all: {
+        key: ['scene_remove_all'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const response = await entity.command(
+                'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
+            );
+
+            const isGroup = entity.constructor.name === 'Group';
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes) {
+                            member.meta.scenes = {};
+                            member.save();
+                        }
+                    }
+                }
+            } else if (response.status === 0) {
+                if (entity.meta.scenes) {
+                    entity.meta.scenes = {};
+                    entity.save();
+                }
+            } else {
+                throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+            }
+        },
+    },
     TS0003_curtain_switch: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
