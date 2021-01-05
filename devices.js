@@ -1425,7 +1425,9 @@ const devices = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
                 .withLocalTemperature(exposes.access.STATE).withSystemMode(['heat', 'auto', 'off'], exposes.access.STATE_SET)
                 .withRunningState(['idle', 'heat'], exposes.access.STATE)
-                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])],
+                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
+            e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
+            e.max_temperature(), e.min_temperature(), e.valve_position(), e.week()],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
