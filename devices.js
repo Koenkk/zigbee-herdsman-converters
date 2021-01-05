@@ -10525,7 +10525,7 @@ const devices = [
         description: 'Peanut Smart Plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: ota.securifi,
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
