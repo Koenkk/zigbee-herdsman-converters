@@ -3547,9 +3547,27 @@ const converters = {
                     } catch (e) {
                         e;
                     }
-                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
-                    state['color'] = xy;
+                    const color = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 4,
+                                'extField': [Math.round(color.x * 65535), Math.round(color.y * 65535)],
+                            },
+                        );
+                        state['color'] = {x: color.x, y: color.y};
+                    } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
+                        const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 13,
+                                'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                            },
+                        );
+                        state['color'] = {hue: color.hue, saturation: color.saturation};
+                    }
                 }
             }
 
