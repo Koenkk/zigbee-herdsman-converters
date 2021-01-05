@@ -68,10 +68,9 @@ const preset = {
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
@@ -94,10 +93,9 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
             }
         },
@@ -110,10 +108,9 @@ const preset = {
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
@@ -127,10 +124,9 @@ const preset = {
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
