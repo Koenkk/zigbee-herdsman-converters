@@ -100,7 +100,6 @@ const preset = {
             if (endpoint) {
                 await light.readColorCapabilities(endpoint);
             }
-
         },
     },
     light_onoff_brightness_colortemp_color: {
