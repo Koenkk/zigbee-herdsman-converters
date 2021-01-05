@@ -13285,9 +13285,9 @@ const devices = [
         exposes: [e.cover_position()],
         meta: {configureKey: 1, coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint1);
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
 
