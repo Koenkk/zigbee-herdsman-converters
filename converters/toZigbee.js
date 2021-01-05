@@ -3584,7 +3584,7 @@ const converters = {
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
 
-            if (isGroup || (removeresp.status === 0 || removeresp.status == 139)) {
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
                 const response = await entity.command(
                     'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
                 );
