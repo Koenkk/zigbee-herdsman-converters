@@ -1284,7 +1284,7 @@ const devices = [
             {type: 'EndDevice', manufacturerID: 4098, endpoints: [{ID: 1, inputClusters: [], outputClusters: []}]},
             {manufacturerName: '_TZ2000_a476raq2'},
         ],
-        zigbeeModel: ['TS0201'],
+        zigbeeModel: ['TS0201', 'SNTZ003'],
         model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
