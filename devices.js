@@ -10046,7 +10046,7 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power()],
     },
     {
         zigbeeModel: ['losfena'],
