@@ -7761,6 +7761,13 @@ const devices = [
 
     // Paulmann
     {
+        zigbeeModel: ['H036-0007'],
+        model: '929.66',
+        vendor: 'Paulmann',
+        description: 'Smart home Zigbee LED module coin 1x2.5W RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['Switch Controller '],
         model: '50043',
         vendor: 'Paulmann',
