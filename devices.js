@@ -7070,8 +7070,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K8_EU05'],
-        fingerprint: [{modelID: 'ROB_200-007-0', manufacturerName: 'ROBB smarrt'}],
+        zigbeeModel: ['ZG2833K8_EU05', 'ROB_200-007-0'],
         model: 'ROB_200-007-0',
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
