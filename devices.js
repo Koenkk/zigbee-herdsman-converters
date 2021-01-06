@@ -9594,8 +9594,9 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-        extend: preset.light_onoff_brightness_colortemp,
-        toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
+        extend: preset.light_onoff_brightness_colortemp_color,
+        toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.tint_scene]),
+        meta: {enhancedHue: false},
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GU100000'],
