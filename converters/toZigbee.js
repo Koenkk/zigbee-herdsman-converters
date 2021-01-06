@@ -147,6 +147,35 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
+    TYZB01_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'object') {
+                return converters.on_off.convertSet(entity, key, value, meta);
+            }
+            utils.validateValue(value.state, ['on', 'off']);
+            const timeInSeconds = Number(value.time_in_seconds);
+            if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
+                throw Error('The JSON object must have \'time_in_seconds\' property which is ' +
+                            'convertible to an integer in the range: <0x0000, 0xFFFE>');
+            }
+            const result = await converters.on_off.convertSet(entity, key, value.state, meta);
+            const on = value.state === 'on';
+            await entity.command(
+                'genOnOff',
+                'onWithTimedOff',
+                {
+                    ctrlbits: 0,
+                    ontime: (on ? 0 : timeInSeconds.valueOf()),
+                    offwaittime: (on ? timeInSeconds.valueOf() : 0),
+                },
+                utils.getOptions(meta.mapped, entity));
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
     cover_via_brightness: {
         key: ['position', 'state'],
         convertSet: async (entity, key, value, meta) => {
