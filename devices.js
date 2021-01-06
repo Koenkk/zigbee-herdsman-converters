@@ -14212,8 +14212,8 @@ const devices = [
         description: 'AOne One Gang Wireless Battery Rotary Dimmer',
         supports: 'action, action_step_size, action_transition_time, action_color, color, color_temp, linkquality, battery',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-        toZigbee: [tz.light_brightness_step],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down'])],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
             return {'default': 1};
@@ -14230,8 +14230,8 @@ const devices = [
         description: 'AOne Two Gang Wireless Battery Rotary Dimmer',
         supports: 'action, action_step_size, action_transition_time, action_color, color, color_temp, linkquality, battery',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step,  fz.command_step_color_temperature],
-        toZigbee: [tz.light_brightness_step],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down'])],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {multiEndpoint: true, configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
             return {'right': 1, 'left': 2};
