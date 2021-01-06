@@ -10818,6 +10818,13 @@ const devices = [
         description: 'Zigbee micro smart dimmer',
         extend: preset.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HK-ZD-DIM-A'],
+        model: 'SRP-ZG9105-CC',
+        vendor: 'Sunricher',
+        description: 'Constant Current Zigbee LED dimmable driver',
+        extend: preset.light_onoff_brightness,
+    },
 
     // Samotech
     {
