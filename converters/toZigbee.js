@@ -3547,9 +3547,27 @@ const converters = {
                     } catch (e) {
                         e;
                     }
-                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
-                    state['color'] = xy;
+                    const color = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 4,
+                                'extField': [Math.round(color.x * 65535), Math.round(color.y * 65535)],
+                            },
+                        );
+                        state['color'] = {x: color.x, y: color.y};
+                    } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
+                        const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 13,
+                                'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                            },
+                        );
+                        state['color'] = {hue: color.hue, saturation: color.saturation};
+                    }
                 }
             }
 
@@ -3566,7 +3584,7 @@ const converters = {
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
 
-            if (isGroup || (removeresp.status === 0 || removeresp.status == 139)) {
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
                 const response = await entity.command(
                     'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
                 );
@@ -3616,6 +3634,34 @@ const converters = {
                 }
             } else {
                 throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+            }
+        },
+    },
+    scene_remove_all: {
+        key: ['scene_remove_all'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const response = await entity.command(
+                'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
+            );
+
+            const isGroup = entity.constructor.name === 'Group';
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes) {
+                            member.meta.scenes = {};
+                            member.save();
+                        }
+                    }
+                }
+            } else if (response.status === 0) {
+                if (entity.meta.scenes) {
+                    entity.meta.scenes = {};
+                    entity.save();
+                }
+            } else {
+                throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
         },
     },

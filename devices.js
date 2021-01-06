@@ -15007,7 +15007,7 @@ module.exports = devices.map((device) => {
     }
 
     if (device.toZigbee.length > 0) {
-        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove);
+        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all);
     }
 
     if (device.exposes) {
