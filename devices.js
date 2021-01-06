@@ -13157,6 +13157,7 @@ const devices = [
             .withLocalTemperature(exposes.access.STATE)
             .withSystemMode(['off', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
             .withPreset(['hold', 'program'])],
+        onEvent: tuya.onEventSetTime,
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
