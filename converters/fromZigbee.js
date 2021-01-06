@@ -1195,6 +1195,65 @@ const converters = {
             return {position};
         },
     },
+    lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('physicalMinLevel')) {
+                result['ballast_physical_minimum_level'] = msg.data.physicalMinLevel;
+            }
+            if (msg.data.hasOwnProperty('physicalMaxLevel')) {
+                result['ballast_physical_maximum_level'] = msg.data.physicalMaxLevel;
+            }
+            if (msg.data.hasOwnProperty('ballastStatus')) {
+                const ballastStatus = msg.data.ballastStatus;
+                result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;
+                result['ballast_status_lamp_failure'] = ballastStatus & 2 ? true : false;
+            }
+            if (msg.data.hasOwnProperty('minLevel')) {
+                result['ballast_minimum_level'] = msg.data.minLevel;
+            }
+            if (msg.data.hasOwnProperty('maxLevel')) {
+                result['ballast_maximum_level'] = msg.data.maxLevel;
+            }
+            if (msg.data.hasOwnProperty('powerOnLevel')) {
+                result['ballast_power_on_level'] = msg.data.powerOnLevel;
+            }
+            if (msg.data.hasOwnProperty('powerOnFadeTime')) {
+                result['ballast_power_on_fade_time'] = msg.data.powerOnFadeTime;
+            }
+            if (msg.data.hasOwnProperty('intrinsicBallastFactor')) {
+                result['ballast_intrinsic_ballast_factor'] = msg.data.intrinsicBallastFactor;
+            }
+            if (msg.data.hasOwnProperty('ballastFactorAdjustment')) {
+                result['ballast_ballast_factor_adjustment'] = msg.data.ballastFactorAdjustment;
+            }
+            if (msg.data.hasOwnProperty('lampQuantity')) {
+                result['ballast_lamp_quantity'] = msg.data.lampQuantity;
+            }
+            if (msg.data.hasOwnProperty('lampType')) {
+                result['ballast_lamp_type'] = msg.data.lampType;
+            }
+            if (msg.data.hasOwnProperty('lampManufacturer')) {
+                result['ballast_lamp_manufacturer'] = msg.data.lampManufacturer;
+            }
+            if (msg.data.hasOwnProperty('lampRatedHours')) {
+                result['ballast_lamp_rated_hours'] = msg.data.lampRatedHours;
+            }
+            if (msg.data.hasOwnProperty('lampBurnHours')) {
+                result['ballast_lamp_burn_hours'] = msg.data.lampBurnHours;
+            }
+            if (msg.data.hasOwnProperty('lampAlarmMode')) {
+                const lampAlarmMode = msg.data.lampAlarmMode;
+                result['ballast_lamp_alarm_lamp_burn_hours'] = lampAlarmMode & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty('lampBurnHoursTripPoint')) {
+                result['ballast_lamp_burn_hours_trip_point'] = msg.data.lampBurnHoursTripPoint;
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Non-generic converters

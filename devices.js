@@ -12259,9 +12259,17 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.ubisys_dimmer_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power(),
+            exposes.numeric('ballast_physical_minimum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output the ballast can achieve.'),
+            exposes.numeric('ballast_physical_maximum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output the ballast can achieve.'),
+            exposes.numeric('ballast_minimum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
             exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
             exposes.binary('capabilities_reverse_phase_control', exposes.access.STATE_GET, true, false)
