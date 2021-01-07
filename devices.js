@@ -66,7 +66,7 @@ const preset = {
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
-            tz.light_colortemp_step,
+            tz.light_colortemp_step, tz.light_colortemp_startup,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -107,6 +107,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -123,6 +124,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
