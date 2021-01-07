@@ -561,8 +561,11 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: preset.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
+            'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
+            'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
+            'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
+        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
