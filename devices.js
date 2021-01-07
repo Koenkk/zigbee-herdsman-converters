@@ -4765,6 +4765,14 @@ const devices = [
         extend: preset.ledvance.light_onoff_brightness,
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['Undercabinet TW Z3'],
+        model: '4058075173989',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ indoor Undercabinet light',
+        extend: preset.ledvance.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
