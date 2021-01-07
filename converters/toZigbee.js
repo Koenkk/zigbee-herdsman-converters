@@ -154,9 +154,9 @@ const converters = {
                 return converters.on_off.convertSet(entity, key, value, meta);
             }
             utils.validateValue(value.state, ['on', 'off']);
-            const timeInSeconds = Number(value.time_in_seconds);
+            const timeInSeconds = Number(value.transition);
             if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-                throw Error('The JSON object must have \'time_in_seconds\' property which is ' +
+                throw Error('The JSON object must have \'transition\' property which is ' +
                             'convertible to an integer in the range: <0x0000, 0xFFFE>');
             }
             const result = await converters.on_off.convertSet(entity, key, value.state, meta);
