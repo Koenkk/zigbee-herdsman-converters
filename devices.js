@@ -9640,9 +9640,9 @@ const devices = [
         model: '404002',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop'])],
+            'brightness_stop', 'recall_*'])],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
