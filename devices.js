@@ -12292,9 +12292,9 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.ubisys_dimmer_setup],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
-        exposes: [e.light_brightness(), e.power(),
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, fz.ubisys_dimmer_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        exposes: [e.light_brightness().withLevelConfig(), e.power(),
             exposes.numeric('ballast_physical_minimum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output the ballast can achieve.'),
             exposes.numeric('ballast_physical_maximum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
