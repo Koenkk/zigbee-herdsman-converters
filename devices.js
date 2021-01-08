@@ -14243,6 +14243,43 @@ const devices = [
             await reporting.instantaneousDemand(endpoint);
         },
     },
+    {
+        zigbeeModel: ['1GBatteryDimmer50AU'],
+        model: 'AU-A1ZBR1GW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne one gang wireless battery rotary dimmer',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
+        },
+    },
+    {
+        zigbeeModel: ['2GBatteryDimmer50AU'],
+        model: 'AU-A1ZBR2GW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne two gang wireless battery rotary dimmer',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+        meta: {multiEndpoint: true, configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        endpoint: (device) => {
+            return {'right': 1, 'left': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+        },
+    },
 
     // Wally
     {
