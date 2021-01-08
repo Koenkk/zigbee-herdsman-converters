@@ -438,24 +438,24 @@ const converters = {
 
             // onOffTransitionTime - range 0x0000 to 0xffff - optional
             if (msg.data.hasOwnProperty('onOffTransitionTime') && (msg.data['onOffTransitionTime'] !== undefined)) {
-                result.level_config.onOffTransitionTime = msg.data['onOffTransitionTime'];
+                result.level_config.on_off_transition_time = Number(msg.data['onOffTransitionTime']);
             }
 
             // onTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
             if (msg.data.hasOwnProperty('onTransitionTime') && (msg.data['onTransitionTime'] !== undefined)) {
-                result.level_config.onTransitionTime = msg.data['onTransitionTime'];
-                if (result.level_config.onTransitionTime == 65535) {
-                    result.level_config.onTransitionTime = 'disabled';
+                result.level_config.on_transition_time = Number(msg.data['onTransitionTime']);
+                if (result.level_config.on_transition_time == 65535) {
+                    result.level_config.on_transition_time = 'disabled';
                 }
             }
 
             // offTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
             if (msg.data.hasOwnProperty('offTransitionTime') && (msg.data['offTransitionTime'] !== undefined)) {
-                result.level_config.offTransitionTime = msg.data['offTransitionTime'];
-                if (result.level_config.offTransitionTime == 65535) {
-                    result.level_config.offTransitionTime = 'disabled';
+                result.level_config.off_transition_time = Number(msg.data['offTransitionTime']);
+                if (result.level_config.off_transition_time == 65535) {
+                    result.level_config.off_transition_time = 'disabled';
                 }
             }
 
@@ -463,12 +463,12 @@ const converters = {
             //                       0x00 = return to minimum supported level
             //                       0xff - return to previous previous
             if (msg.data.hasOwnProperty('startUpCurrentLevel') && (msg.data['startUpCurrentLevel'] !== undefined)) {
-                result.level_config.startUpCurrentLevel = msg.data['startUpCurrentLevel'];
-                if (result.level_config.startUpCurrentLevel == 255) {
-                    result.level_config.startUpCurrentLevel = 'previous';
+                result.level_config.current_level_startup = Number(msg.data['startUpCurrentLevel']);
+                if (result.level_config.current_level_startup == 255) {
+                    result.level_config.current_level_startup = 'previous';
                 }
-                if (result.level_config.startUpCurrentLevel == 0) {
-                    result.level_config.startUpCurrentLevel = 'minimum';
+                if (result.level_config.current_level_startup == 0) {
+                    result.level_config.current_level_startup = 'minimum';
                 }
             }
 
