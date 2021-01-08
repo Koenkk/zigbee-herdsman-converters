@@ -1379,7 +1379,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1398,7 +1397,10 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
+        ],
         model: 'TS0601_roller_blind',
         vendor: 'TuYa',
         description: 'Roller blind motor',
