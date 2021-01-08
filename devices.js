@@ -12633,6 +12633,26 @@ const devices = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
+        zigbeeModel: ['898ca74409a740b28d5841661e72268d'],
+        model: 'ST30',
+        vendor: 'ORVIBO',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint1);
+            await reporting.humidity(endpoint2);
+            await reporting.batteryVoltage(endpoint2);
+            await reporting.batteryPercentageRemaining(endpoint2);
+        },
+        exposes: [e.humidity(), e.temperature(), e.battery()],
+    },
+    {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494'],
         model: 'T30W3Z',
         vendor: 'ORVIBO',
