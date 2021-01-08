@@ -14215,9 +14215,6 @@ const devices = [
         exposes: [e.battery(), e.action([
             'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        endpoint: (device) => {
-            return {'default': 1};
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint,
