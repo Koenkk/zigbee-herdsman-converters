@@ -430,6 +430,53 @@ const converters = {
             }
         },
     },
+    level_config: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {'level_config': {}};
+
+            // onOffTransitionTime - range 0x0000 to 0xffff - optional
+            if (msg.data.hasOwnProperty('onOffTransitionTime') && (msg.data['onOffTransitionTime'] !== undefined)) {
+                result.level_config.onOffTransitionTime = msg.data['onOffTransitionTime'];
+            }
+
+            // onTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (msg.data.hasOwnProperty('onTransitionTime') && (msg.data['onTransitionTime'] !== undefined)) {
+                result.level_config.onTransitionTime = msg.data['onTransitionTime'];
+                if (result.level_config.onTransitionTime == 65535) {
+                    result.level_config.onTransitionTime = 'disabled';
+                }
+            }
+
+            // offTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (msg.data.hasOwnProperty('offTransitionTime') && (msg.data['offTransitionTime'] !== undefined)) {
+                result.level_config.offTransitionTime = msg.data['offTransitionTime'];
+                if (result.level_config.offTransitionTime == 65535) {
+                    result.level_config.offTransitionTime = 'disabled';
+                }
+            }
+
+            // startUpCurrentLevel - range 0x00 to 0xff - optional
+            //                       0x00 = return to minimum supported level
+            //                       0xff - return to previous previous
+            if (msg.data.hasOwnProperty('startUpCurrentLevel') && (msg.data['startUpCurrentLevel'] !== undefined)) {
+                result.level_config.startUpCurrentLevel = msg.data['startUpCurrentLevel'];
+                if (result.level_config.startUpCurrentLevel == 255) {
+                    result.level_config.startUpCurrentLevel = 'previous';
+                }
+                if (result.level_config.startUpCurrentLevel == 0) {
+                    result.level_config.startUpCurrentLevel = 'minimum';
+                }
+            }
+
+            if (Object.keys(result.level_config).length > 0) {
+                return result;
+            }
+        },
+    },
     color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
