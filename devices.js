@@ -66,12 +66,11 @@ const preset = {
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
-            tz.light_colortemp_step,
+            tz.light_colortemp_step, tz.light_colortemp_startup,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
@@ -94,10 +93,9 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
             }
         },
@@ -109,11 +107,11 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
@@ -126,11 +124,11 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup,
         ],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints.find((e) => e.supportsInputCluster('lightingColorCtrl'));
-            if (endpoint) {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 await light.readColorCapabilities(endpoint);
                 await light.readColorTempMinMax(endpoint);
             }
@@ -565,8 +563,11 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: preset.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
+            'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
+            'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
+            'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
+        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
@@ -1378,7 +1379,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1397,7 +1397,10 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
+        ],
         model: 'TS0601_roller_blind',
         vendor: 'TuYa',
         description: 'Roller blind motor',
@@ -1427,6 +1430,7 @@ const devices = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
                 .withLocalTemperature(exposes.access.STATE).withSystemMode(['heat', 'auto', 'off'], exposes.access.STATE_SET)
                 .withRunningState(['idle', 'heat'], exposes.access.STATE)
+                .withLocalTemperatureCalibration(exposes.access.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.week()],
@@ -2183,7 +2187,6 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         ota: ota.tradfri,
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI transformer 10W', 'TRADFRI Driver 10W'],
@@ -2278,7 +2281,6 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -2301,7 +2303,6 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
@@ -2321,7 +2322,6 @@ const devices = [
             await reporting.bind(endpoint, defaultBindGroup, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],
@@ -2339,7 +2339,6 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI motion sensor'],
@@ -2358,7 +2357,6 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI signal repeater'],
@@ -2427,7 +2425,6 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        onEvent: ikea.batteryDeviceOnEvent,
     },
     {
         zigbeeModel: ['GUNNARP panel round'],
@@ -4775,6 +4772,14 @@ const devices = [
         extend: preset.ledvance.light_onoff_brightness,
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['Undercabinet TW Z3'],
+        model: '4058075173989',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ indoor Undercabinet light',
+        extend: preset.ledvance.light_onoff_brightness_colortemp,
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
@@ -7074,20 +7079,16 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K8_EU05'],
+        zigbeeModel: ['ZG2833K8_EU05', 'ROB_200-007-0'],
         model: 'ROB_200-007-0',
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
         exposes: [e.battery(), e.action([
             'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
             'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
-            'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5',
-            'on_6', 'off_6', 'brightness_move_up_6', 'brightness_move_down_6', 'brightness_stop_6',
-            'on_7', 'off_7', 'brightness_move_up_7', 'brightness_move_down_7', 'brightness_stop_7',
-            'on_8', 'off_8', 'brightness_move_up_8', 'brightness_move_down_8', 'brightness_stop_8'])],
+            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
@@ -7100,9 +7101,7 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action([
             'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
-            'on_3', 'off_3', 'stop_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'stop_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
@@ -7764,6 +7763,13 @@ const devices = [
     },
 
     // Paulmann
+    {
+        zigbeeModel: ['H036-0007'],
+        model: '929.66',
+        vendor: 'Paulmann',
+        description: 'Smart home Zigbee LED module coin 1x2.5W RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
     {
         zigbeeModel: ['Switch Controller '],
         model: '50043',
@@ -9591,8 +9597,9 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-        extend: preset.light_onoff_brightness_colortemp,
-        toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
+        extend: preset.light_onoff_brightness_colortemp_color,
+        toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.tint_scene]),
+        meta: {enhancedHue: false},
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GU100000'],
@@ -9635,10 +9642,15 @@ const devices = [
         model: '404002',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop'])],
+            'brightness_stop', 'recall_1'])],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
+        },
     },
     {
         zigbeeModel: ['tint Smart Switch'],
@@ -9652,6 +9664,16 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['tint-Remote-white'],
+        model: '404022',
+        description: 'Tint dim remote control',
+        vendor: 'Müller Licht',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop', 'color_temperature_move'])],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['tint-ColorTemperature'],
@@ -10055,7 +10077,7 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power()],
     },
     {
         zigbeeModel: ['losfena'],
@@ -10141,7 +10163,7 @@ const devices = [
         exposes: [e.lock(), e.battery()],
     },
     {
-        zigbeeModel: ['YRD256 TSDB'],
+        zigbeeModel: ['YRD256 TSDB', 'YRD256L TSDB'],
         model: 'YRD256HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
@@ -10652,7 +10674,7 @@ const devices = [
         description: 'Peanut Smart Plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: ota.securifi,
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -10820,6 +10842,13 @@ const devices = [
         model: 'SR-ZG9040A',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
+        extend: preset.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['HK-ZD-DIM-A'],
+        model: 'SRP-ZG9105-CC',
+        vendor: 'Sunricher',
+        description: 'Constant Current Zigbee LED dimmable driver',
         extend: preset.light_onoff_brightness,
     },
 
@@ -12263,9 +12292,17 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.ubisys_dimmer_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
         exposes: [e.light_brightness(), e.power(),
+            exposes.numeric('ballast_physical_minimum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output the ballast can achieve.'),
+            exposes.numeric('ballast_physical_maximum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output the ballast can achieve.'),
+            exposes.numeric('ballast_minimum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
             exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
             exposes.binary('capabilities_reverse_phase_control', exposes.access.STATE_GET, true, false)
@@ -13153,6 +13190,7 @@ const devices = [
             .withLocalTemperature(exposes.access.STATE)
             .withSystemMode(['off', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
             .withPreset(['hold', 'program'])],
+        onEvent: tuya.onEventSetTime,
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
@@ -15050,7 +15088,7 @@ module.exports = devices.map((device) => {
     }
 
     if (device.toZigbee.length > 0) {
-        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove);
+        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all);
     }
 
     if (device.exposes) {
