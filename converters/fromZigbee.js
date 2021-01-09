@@ -440,6 +440,11 @@ const converters = {
                 result.color_temp = msg.data['colorTemperature'];
             }
 
+            if (msg.data.hasOwnProperty('startUpColorTemperature')) {
+                result.color_temp_startup = msg.data['startUpColorTemperature'];
+                result.color_temp_startup = (result.color_temp_startup === 65535) ? 'previous' : result.color_temp_startup;
+            }
+
             if (msg.data.hasOwnProperty('colorMode')) {
                 result.color_mode = msg.data['colorMode'];
             }
@@ -1193,6 +1198,65 @@ const converters = {
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
             return {position};
+        },
+    },
+    lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('physicalMinLevel')) {
+                result['ballast_physical_minimum_level'] = msg.data.physicalMinLevel;
+            }
+            if (msg.data.hasOwnProperty('physicalMaxLevel')) {
+                result['ballast_physical_maximum_level'] = msg.data.physicalMaxLevel;
+            }
+            if (msg.data.hasOwnProperty('ballastStatus')) {
+                const ballastStatus = msg.data.ballastStatus;
+                result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;
+                result['ballast_status_lamp_failure'] = ballastStatus & 2 ? true : false;
+            }
+            if (msg.data.hasOwnProperty('minLevel')) {
+                result['ballast_minimum_level'] = msg.data.minLevel;
+            }
+            if (msg.data.hasOwnProperty('maxLevel')) {
+                result['ballast_maximum_level'] = msg.data.maxLevel;
+            }
+            if (msg.data.hasOwnProperty('powerOnLevel')) {
+                result['ballast_power_on_level'] = msg.data.powerOnLevel;
+            }
+            if (msg.data.hasOwnProperty('powerOnFadeTime')) {
+                result['ballast_power_on_fade_time'] = msg.data.powerOnFadeTime;
+            }
+            if (msg.data.hasOwnProperty('intrinsicBallastFactor')) {
+                result['ballast_intrinsic_ballast_factor'] = msg.data.intrinsicBallastFactor;
+            }
+            if (msg.data.hasOwnProperty('ballastFactorAdjustment')) {
+                result['ballast_ballast_factor_adjustment'] = msg.data.ballastFactorAdjustment;
+            }
+            if (msg.data.hasOwnProperty('lampQuantity')) {
+                result['ballast_lamp_quantity'] = msg.data.lampQuantity;
+            }
+            if (msg.data.hasOwnProperty('lampType')) {
+                result['ballast_lamp_type'] = msg.data.lampType;
+            }
+            if (msg.data.hasOwnProperty('lampManufacturer')) {
+                result['ballast_lamp_manufacturer'] = msg.data.lampManufacturer;
+            }
+            if (msg.data.hasOwnProperty('lampRatedHours')) {
+                result['ballast_lamp_rated_hours'] = msg.data.lampRatedHours;
+            }
+            if (msg.data.hasOwnProperty('lampBurnHours')) {
+                result['ballast_lamp_burn_hours'] = msg.data.lampBurnHours;
+            }
+            if (msg.data.hasOwnProperty('lampAlarmMode')) {
+                const lampAlarmMode = msg.data.lampAlarmMode;
+                result['ballast_lamp_alarm_lamp_burn_hours'] = lampAlarmMode & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty('lampBurnHoursTripPoint')) {
+                result['ballast_lamp_burn_hours_trip_point'] = msg.data.lampBurnHoursTripPoint;
+            }
+            return result;
         },
     },
     // #endregion
@@ -3288,7 +3352,13 @@ const converters = {
                 const payload = {};
 
                 if (data.hasOwnProperty('100')) {
-                    payload.state = data['100'] === 1 ? 'ON' : 'OFF';
+                    if (['QBKG03LM', 'QBKG12LM', 'LLKZMK11LM'].includes(model.model)) {
+                        const mapping = model.model === 'LLKZMK11LM' ? ['l1', 'l2'] : ['left', 'right'];
+                        payload[`state_${mapping[0]}`] = data['100'] === 1 ? 'ON' : 'OFF';
+                        payload[`state_${mapping[1]}`] = data['101'] === 1 ? 'ON' : 'OFF';
+                    } else {
+                        payload.state = data['100'] === 1 ? 'ON' : 'OFF';
+                    }
                 }
 
                 if (data.hasOwnProperty('152')) {
@@ -3362,8 +3432,11 @@ const converters = {
                     }
                     if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
-                    else if (index === 149) payload.consumption = precisionRound(value, 2); // 0x95
-                    else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
+                    else if (index === 149) {
+                        payload.energy = precisionRound(value, 2); // 0x95
+                        // Consumption is deprecated
+                        payload.consumption = payload.energy;
+                    } else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
                     else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
                     else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
                     else if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index ${index} with value ${value}`);
@@ -3417,7 +3490,7 @@ const converters = {
             if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
 
             // Maybe other QKBG also support release/hold?
-            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM'].includes(model.model) ?
+            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
@@ -3444,7 +3517,7 @@ const converters = {
             let buttonLookup = null;
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG25LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
+            if (['QBKG25LM', 'QKBG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
