@@ -1404,6 +1404,7 @@ const devices = [
         model: 'TS0601_roller_blind',
         vendor: 'TuYa',
         description: 'Roller blind motor',
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [e.cover_position()],
