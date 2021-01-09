@@ -4083,6 +4083,9 @@ const devices = [
         fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.cpu_temperature(), e.action(['hold', 'release'])],
+        endpoint: (device) => {
+            return {default: 8};
+        },
     },
     {
         zigbeeModel: ['DIYRuZ_FreePad', 'FreePadLeTV8'],
