@@ -239,6 +239,113 @@ const converters = {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    level_config: {
+        key: ['level_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {};
+
+            // parse payload to grab the keys
+            if (typeof value === 'string') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    throw new Error('Payload is not valid JSON');
+                }
+            }
+
+            // onOffTransitionTime - range 0x0000 to 0xffff - optional
+            if (value.hasOwnProperty('on_off_transition_time')) {
+                let onOffTransitionTimeValue = Number(value.on_off_transition_time);
+                if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
+                if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onOffTransitionTime: onOffTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+                Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue});
+            }
+
+            // onTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('on_transition_time')) {
+                let onTransitionTimeValue = value.on_transition_time;
+                if (typeof onTransitionTimeValue === 'string' && onTransitionTimeValue.toLowerCase() == 'disabled') {
+                    onTransitionTimeValue = 65535;
+                } else {
+                    onTransitionTimeValue = Number(onTransitionTimeValue);
+                }
+                if (onTransitionTimeValue > 65535) onTransitionTimeValue = 65534;
+                if (onTransitionTimeValue < 0) onTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onTransitionTime: onTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (onTransitionTimeValue == 65535) {
+                    onTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {on_transition_time: onTransitionTimeValue});
+            }
+
+            // offTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('off_transition_time')) {
+                let offTransitionTimeValue = value.off_transition_time;
+                if (typeof offTransitionTimeValue === 'string' && offTransitionTimeValue.toLowerCase() == 'disabled') {
+                    offTransitionTimeValue = 65535;
+                } else {
+                    offTransitionTimeValue = Number(offTransitionTimeValue);
+                }
+                if (offTransitionTimeValue > 65535) offTransitionTimeValue = 65534;
+                if (offTransitionTimeValue < 0) offTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {offTransitionTime: offTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (offTransitionTimeValue == 65535) {
+                    offTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {off_transition_time: offTransitionTimeValue});
+            }
+
+            // startUpCurrentLevel - range 0x00 to 0xff - optional
+            //                       0x00 = return to minimum supported level
+            //                       0xff = return to previous previous
+            if (value.hasOwnProperty('current_level_startup')) {
+                let startUpCurrentLevelValue = value.current_level_startup;
+                if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'previous') {
+                    startUpCurrentLevelValue = 255;
+                } else if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'minimum') {
+                    startUpCurrentLevelValue = 0;
+                } else {
+                    startUpCurrentLevelValue = Number(startUpCurrentLevelValue);
+                }
+                if (startUpCurrentLevelValue > 255) startUpCurrentLevelValue = 254;
+                if (startUpCurrentLevelValue < 0) startUpCurrentLevelValue = 1;
+
+                await entity.write('genLevelCtrl', {startUpCurrentLevel: startUpCurrentLevelValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (startUpCurrentLevelValue == 255) {
+                    startUpCurrentLevelValue = 'previous';
+                }
+                if (startUpCurrentLevelValue == 0) {
+                    startUpCurrentLevelValue = 'minimum';
+                }
+                Object.assign(state, {current_level_startup: startUpCurrentLevelValue});
+            }
+
+            if (Object.keys(state).length > 0) {
+                return {state: {level_config: state}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel']) {
+                try {
+                    await entity.read('genLevelCtrl', [attribute]);
+                } catch (ex) {
+                    // continue regardless of error, all these are optional in ZCL
+                }
+            }
+        },
+    },
     ballast_config: {
         key: ['ballast_config',
             'ballast_physical_minimum_level',

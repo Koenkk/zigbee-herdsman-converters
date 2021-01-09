@@ -54,19 +54,19 @@ const preset = {
     },
     light_onoff_brightness: {
         exposes: [e.light_brightness(), e.effect()],
-        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
         ],
     },
     light_onoff_brightness_colortemp: {
         exposes: [e.light_brightness_colortemp(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
-            tz.light_colortemp_step, tz.light_colortemp_startup,
+            tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -78,19 +78,19 @@ const preset = {
     },
     light_onoff_brightness_color: {
         exposes: [e.light_brightness_color(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
     light_onoff_brightness_colorxy: {
         exposes: [e.light_brightness_colorxy(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
         meta: {configureKey: 2},
@@ -102,12 +102,12 @@ const preset = {
     },
     light_onoff_brightness_colortemp_color: {
         exposes: [e.light_brightness_colortemp_color(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup,
+            tz.light_colortemp_startup, tz.level_config,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -119,12 +119,12 @@ const preset = {
     },
     light_onoff_brightness_colortemp_colorxy: {
         exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup,
+            tz.light_colortemp_startup, tz.level_config,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -12292,9 +12292,9 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.ubisys_dimmer_setup],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
-        exposes: [e.light_brightness(), e.power(),
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, fz.ubisys_dimmer_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        exposes: [e.light_brightness().withLevelConfig(), e.power(),
             exposes.numeric('ballast_physical_minimum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output the ballast can achieve.'),
             exposes.numeric('ballast_physical_maximum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
