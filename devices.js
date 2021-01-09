@@ -8418,7 +8418,7 @@ const devices = [
     },
     {
         zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC', 'PSMP5_00.00.03.15TC',
-            'PSMP5_00.00.03.16TC'],
+            'PSMP5_00.00.03.16TC', 'PSMP5_00.00.03.19TC'],
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
