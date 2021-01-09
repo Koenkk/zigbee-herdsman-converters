@@ -148,19 +148,32 @@ const converters = {
         },
     },
     TYZB01_on_off: {
-        key: ['state'],
+        key: ['state', 'transition'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'object') {
-                return converters.on_off.convertSet(entity, key, value, meta);
+            const result = await converters.on_off.convertSet(entity, key, value, meta);
+            const lowerCaseValue = value.toLowerCase();
+            if (!['on', 'off'].includes(lowerCaseValue)) {
+                return result;
             }
-            utils.validateValue(value.state, ['on', 'off']);
-            const timeInSeconds = Number(value.transition);
+            const messageKeys = Object.keys(meta.message);
+            const transitionValue = function() {
+                if (messageKeys.includes('state')) {
+                    return meta.message.transition;
+                }
+                if (meta.endpoint_name) {
+                    return meta.message[`transition_${meta.endpoint_name}`];
+                }
+                return null;
+            }();
+            if (!transitionValue) {
+                return result;
+            }
+            const timeInSeconds = Number(transitionValue);
             if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-                throw Error('The JSON object must have \'transition\' property which is ' +
-                            'convertible to an integer in the range: <0x0000, 0xFFFE>');
+                throw Error('The transition value must be convertible to an integer in the '+
+                            'range: <0x0000, 0xFFFE>');
             }
-            const result = await converters.on_off.convertSet(entity, key, value.state, meta);
-            const on = value.state === 'on';
+            const on = lowerCaseValue === 'on';
             await entity.command(
                 'genOnOff',
                 'onWithTimedOff',
