@@ -7936,8 +7936,7 @@ const devices = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration()
-            .withPiHeatingDemand()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration()],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
