@@ -5,6 +5,7 @@ const tuya = require('../lib/tuya');
 const utils = require('../lib/utils');
 const herdsman = require('zigbee-herdsman');
 const legacy = require('../lib/legacy');
+const light = require('../lib/light');
 const constants = require('../lib/constants');
 
 const manufacturerOptions = {
@@ -239,14 +240,26 @@ const converters = {
         },
     },
     ballast_config: {
-        key: ['ballast_config'],
+        key: ['ballast_config',
+            'ballast_physical_minimum_level',
+            'ballast_physical_maximum_level',
+            'ballast_minimum_level',
+            'ballast_maximum_level'],
         // zcl attribute names are camel case, but we want to use snake case in the outside communication
         convertSet: async (entity, key, value, meta) => {
-            value = utils.toCamelCase(value);
-            for (const [attrName, attrValue] of Object.entries(value)) {
-                const attributes = {};
-                attributes[attrName] = attrValue;
-                await entity.write('lightingBallastCfg', attributes);
+            if (key === 'ballast_config') {
+                value = utils.toCamelCase(value);
+                for (const [attrName, attrValue] of Object.entries(value)) {
+                    const attributes = {};
+                    attributes[attrName] = attrValue;
+                    await entity.write('lightingBallastCfg', attributes);
+                }
+            }
+            if (key === 'ballast_minimum_level') {
+                await entity.write('lightingBallastCfg', {'minLevel': value});
+            }
+            if (key === 'ballast_maximum_level') {
+                await entity.write('lightingBallastCfg', {'maxLevel': value});
             }
             converters.ballast_config.convertGet(entity, key, meta);
         },
@@ -276,7 +289,9 @@ const converters = {
                     // continue regardless of error
                 }
             }
-            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+            if (key === 'ballast_config') {
+                meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+            }
         },
     },
     light_brightness_step: {
@@ -572,12 +587,38 @@ const converters = {
             }
 
             value = Number(value);
+
+            // ensure value within range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
+        },
+    },
+    light_colortemp_startup: {
+        key: ['color_temp_startup'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string' && value.toLowerCase() == 'previous') {
+                // 0xffff = restore previous value
+                value = 65535;
+            }
+
+            value = Number(value);
+
+            // ensure value within range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
+            await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
+            return {state: {color_temp_startup: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['startUpColorTemperature']);
         },
     },
     light_color: {
@@ -1433,7 +1474,7 @@ const converters = {
                 payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
                 await entity.write('genBasic', payload, manufacturerOptions.xiaomi);
                 return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
-            } else if (meta.mapped.model === 'QBKG25LM') {
+            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
                 const lookupState = {control_relay: 0x01, decoupled: 0x00};
                 await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, manufacturerOptions.xiaomi);
                 return {state: {operation_mode: value.state}};
@@ -1446,7 +1487,7 @@ const converters = {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
-            } else if (meta.mapped.model === 'QBKG25LM') {
+            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', 0x0200, manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -3529,6 +3570,9 @@ const converters = {
                      *
                      * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
                      */
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+                    val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
+
                     const xy = utils.miredsToXY(val);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
@@ -3538,9 +3582,27 @@ const converters = {
                     } catch (e) {
                         e;
                     }
-                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
-                    state['color'] = xy;
+                    const color = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 4,
+                                'extField': [Math.round(color.x * 65535), Math.round(color.y * 65535)],
+                            },
+                        );
+                        state['color'] = {x: color.x, y: color.y};
+                    } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
+                        const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 13,
+                                'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                            },
+                        );
+                        state['color'] = {hue: color.hue, saturation: color.saturation};
+                    }
                 }
             }
 
@@ -3557,7 +3619,7 @@ const converters = {
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
 
-            if (isGroup || (removeresp.status === 0 || removeresp.status == 139)) {
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
                 const response = await entity.command(
                     'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
                 );
@@ -3607,6 +3669,34 @@ const converters = {
                 }
             } else {
                 throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+            }
+        },
+    },
+    scene_remove_all: {
+        key: ['scene_remove_all'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const response = await entity.command(
+                'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
+            );
+
+            const isGroup = entity.constructor.name === 'Group';
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes) {
+                            member.meta.scenes = {};
+                            member.save();
+                        }
+                    }
+                }
+            } else if (response.status === 0) {
+                if (entity.meta.scenes) {
+                    entity.meta.scenes = {};
+                    entity.save();
+                }
+            } else {
+                throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
         },
     },
