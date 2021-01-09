@@ -3498,6 +3498,15 @@ const converters = {
             return payload;
         },
     },
+    xiaomi_device_temperature: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['65281'] && msg.data['65281'].hasOwnProperty('3')) {
+                return {temperature: msg.data['65281']['3']};
+            }
+        },
+    },
     xiaomi_battery: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
