@@ -1424,7 +1424,7 @@ const devices = [
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
-            tz.tuya_thermostat_force_to_mode, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
+            tz.tuya_thermostat_force_to_mode, tz.tuya_thermostat_force, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
             tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.battery_low(), e.valve_detection(), e.position(),
