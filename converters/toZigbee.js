@@ -148,7 +148,7 @@ const converters = {
         },
     },
     TYZB01_on_off: {
-        key: ['state', 'transition'],
+        key: ['state', 'time_in_seconds'],
         convertSet: async (entity, key, value, meta) => {
             const result = await converters.on_off.convertSet(entity, key, value, meta);
             const lowerCaseValue = value.toLowerCase();
@@ -156,21 +156,21 @@ const converters = {
                 return result;
             }
             const messageKeys = Object.keys(meta.message);
-            const transitionValue = function() {
+            const timeInSecondsValue = function() {
                 if (messageKeys.includes('state')) {
-                    return meta.message.transition;
+                    return meta.message.time_in_seconds;
                 }
                 if (meta.endpoint_name) {
-                    return meta.message[`transition_${meta.endpoint_name}`];
+                    return meta.message[`time_in_seconds_${meta.endpoint_name}`];
                 }
                 return null;
             }();
-            if (!transitionValue) {
+            if (!timeInSecondsValue) {
                 return result;
             }
-            const timeInSeconds = Number(transitionValue);
+            const timeInSeconds = Number(timeInSecondsValue);
             if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-                throw Error('The transition value must be convertible to an integer in the '+
+                throw Error('The time_in_seconds value must be convertible to an integer in the '+
                             'range: <0x0000, 0xFFFE>');
             }
             const on = lowerCaseValue === 'on';
