@@ -12639,7 +12639,7 @@ const devices = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
