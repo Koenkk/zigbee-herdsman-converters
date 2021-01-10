@@ -3498,15 +3498,6 @@ const converters = {
             return payload;
         },
     },
-    xiaomi_device_temperature: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281'] && msg.data['65281'].hasOwnProperty('3')) {
-                return {temperature: msg.data['65281']['3']};
-            }
-        },
-    },
     xiaomi_battery: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -3667,8 +3658,19 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
-                return {contact: msg.data['65281']['100'] === 0};
+            if (msg.data.hasOwnProperty('65281')) {
+                const result = {};
+                if (msg.data['65281'].hasOwnProperty('100')) {
+                    result.contact = msg.data['65281']['100'] === 0;
+                }
+
+                if (msg.data['65281'].hasOwnProperty('3')) {
+                    let temperature = msg.data['65281']['3'];
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')
+                    result.temperature = temperature;
+                }
+
+                return result;
             }
         },
     },
