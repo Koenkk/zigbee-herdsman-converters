@@ -2006,6 +2006,13 @@ const devices = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'}],
+        model: 'Lonsonho Tuya Zigbee Smart Valve Controller(Upgrade Version)',
+        vendor: 'Lohonso',
+        description: 'Smart water/gas valve',
+        extend: preset.switch,
+    },
 
     // IKEA
     {
