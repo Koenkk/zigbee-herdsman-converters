@@ -687,7 +687,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.contact()],
+        exposes: [e.battery(), e.contact(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
