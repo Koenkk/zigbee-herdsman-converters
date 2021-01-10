@@ -3666,7 +3666,7 @@ const converters = {
 
                 if (msg.data['65281'].hasOwnProperty('3')) {
                     let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
                     result.temperature = temperature;
                 }
 
