@@ -3428,6 +3428,48 @@ const converters = {
             return {state: {[`${key}_${meta.endpoint_name}`]: value}};
         },
     },
+    TYZB01_on_off: {
+        key: ['state', 'time_in_seconds'],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await converters.on_off.convertSet(entity, key, value, meta);
+            const lowerCaseValue = value.toLowerCase();
+            if (!['on', 'off'].includes(lowerCaseValue)) {
+                return result;
+            }
+            const messageKeys = Object.keys(meta.message);
+            const timeInSecondsValue = function() {
+                if (messageKeys.includes('state')) {
+                    return meta.message.time_in_seconds;
+                }
+                if (meta.endpoint_name) {
+                    return meta.message[`time_in_seconds_${meta.endpoint_name}`];
+                }
+                return null;
+            }();
+            if (!timeInSecondsValue) {
+                return result;
+            }
+            const timeInSeconds = Number(timeInSecondsValue);
+            if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
+                throw Error('The time_in_seconds value must be convertible to an integer in the '+
+                            'range: <0x0000, 0xFFFE>');
+            }
+            const on = lowerCaseValue === 'on';
+            await entity.command(
+                'genOnOff',
+                'onWithTimedOff',
+                {
+                    ctrlbits: 0,
+                    ontime: (on ? 0 : timeInSeconds.valueOf()),
+                    offwaittime: (on ? timeInSeconds.valueOf() : 0),
+                },
+                utils.getOptions(meta.mapped, entity));
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
     diyruz_geiger_config: {
         key: ['sensitivity', 'led_feedback', 'buzzer_feedback', 'sensors_count', 'sensors_type', 'alert_threshold'],
         convertSet: async (entity, key, rawValue, meta) => {

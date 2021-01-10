@@ -1989,6 +1989,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -2001,6 +2002,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
         extend: preset.switch,
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -13741,6 +13743,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
