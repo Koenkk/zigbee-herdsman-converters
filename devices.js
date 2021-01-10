@@ -675,9 +675,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia door & window contact sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.contact()],
+        exposes: [e.battery(), e.contact(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -685,9 +685,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara door & window contact sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_device_temperature, fz.xiaomi_contact, fz.xiaomi_contact_interval],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.contact()],
+        exposes: [e.battery(), e.contact(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
