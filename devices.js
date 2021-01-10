@@ -675,9 +675,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'MiJia door & window contact sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.temperature()],
+        exposes: [e.battery(), e.contact()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
