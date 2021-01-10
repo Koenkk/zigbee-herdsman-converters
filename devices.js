@@ -2008,9 +2008,9 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'}],
-        model: 'Lonsonho Tuya Zigbee Smart Valve Controller(Upgrade Version)',
-        vendor: 'Lohonso',
-        description: 'Smart water/gas valve',
+        model: 'TS011F_valve',
+        vendor: 'Lonsonho',
+        description: 'Smart water/gas valve (upgrade version)',
         extend: preset.switch,
     },
 
