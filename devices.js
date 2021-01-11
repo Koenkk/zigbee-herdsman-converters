@@ -6905,7 +6905,10 @@ const devices = [
         description: 'Smart RGBW GU10 ',
         extend: preset.gledopto.light_onoff_brightness_colorxy,
         endpoint: (device) => {
-            return {default: 12};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/5169
+            if (device.getEndpoint(12)) return {default: 12};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/5681
+            else return {default: 11};
         },
     },
     {
