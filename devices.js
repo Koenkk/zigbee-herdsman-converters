@@ -15089,6 +15089,13 @@ const devices = [
         description: 'ENKI LEXMAN GU-10 LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['LXEK-2'],
+        model: '9CZA-A806ST-Q1A',
+        vendor: 'ADEO',
+        description: 'ENKI Lexman E27 14W to 100W LED RGBW',
+        extend: generic.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // LightSolutions
     {
