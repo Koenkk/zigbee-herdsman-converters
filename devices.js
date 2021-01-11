@@ -10881,6 +10881,32 @@ const devices = [
         description: 'Constant Current Zigbee LED dimmable driver',
         extend: preset.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['SR-ZG9040A-S'],
+        model: 'SR-ZG9040A-S',
+        vendor: 'Sunricher',
+        description: 'ZigBee AC phase-cut dimmer single-line',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Micro Smart OnOff'],
+        model: 'SR-ZG9100A-S',
+        vendor: 'Sunricher',
+        description: 'Zigbee AC in wall switch single-line',
+        extend: preset.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 
     // Samotech
     {
