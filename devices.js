@@ -3933,6 +3933,15 @@ const devices = [
         exposes: [exposes.binary('led', exposes.access.STATE, true, false)],
     },
     {
+        zigbeeModel: ['cc2538.router.v1'],
+        model: 'CC2538.ROUTER',
+        vendor: 'Custom devices (DiY)',
+        description: '[MODKAM stick СС2538 router](https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
+        fromZigbee: [fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ['ptvo.switch'],
         model: 'ptvo.switch',
         vendor: 'Custom devices (DiY)',
