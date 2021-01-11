@@ -6693,6 +6693,19 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['GL-C-009S'],
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        model: 'GL-C-009S',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller dimmer',
+        extend: preset.gledopto.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['GL-MC-001'],
         model: 'GL-MC-001',
         vendor: 'Gledopto',
