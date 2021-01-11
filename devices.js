@@ -15094,7 +15094,7 @@ const devices = [
         model: '9CZA-A806ST-Q1A',
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
-        extend: generic.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 
     // LightSolutions
