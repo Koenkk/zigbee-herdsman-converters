@@ -1378,7 +1378,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_pk0sfzvr'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1400,6 +1399,7 @@ const devices = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
         ],
         model: 'TS0601_roller_blind',
         vendor: 'TuYa',
