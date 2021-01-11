@@ -10395,7 +10395,7 @@ const devices = [
         exposes: [e.cover_position(), e.temperature(), e.battery(), e.pressure()],
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3'],
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3', 'SV02-410-MP-1.0'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',
