@@ -11183,14 +11183,8 @@ const devices = [
         zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
         model: '511.000',
         vendor: 'Iluminize',
-        description: 'ZigBee 3.0 Universal LED-controller, 5 channel 4A, RGBCCT LED',
+        description: 'Zigbee 3.0 universal LED-controller, 5 channel 4A, RGBCCT LED',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['ZG2819S-RGBW'],
