@@ -27,12 +27,12 @@ describe('index.js', () => {
 
     it('Legacy: Find by zigbeeModel with strange characters 2', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
     it('Legacy: Find by zigbeeModel with strange characters 3', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
     it('Legacy: Find by zigbeeModel without strange characters', () => {
@@ -187,6 +187,10 @@ describe('index.js', () => {
                 throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
             }
 
+            if (device.fromZigbee.includes(undefined)) {
+                console.log(device.model);
+            }
+
             expect(device.fromZigbee).not.toContain(undefined);
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
@@ -266,7 +270,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'commandArmIncludeTransaction', 'thermostat'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'thermostat'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {

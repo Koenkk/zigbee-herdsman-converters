@@ -1,224 +1,142 @@
 'use strict';
 
-const utils = require('./utils');
-const common = require('./common');
-const globalStore = require('./store');
+const globalStore = require('../lib/store');
+const tuya = require('../lib/tuya');
+const utils = require('../lib/utils');
+const herdsman = require('zigbee-herdsman');
+const legacy = require('../lib/legacy');
+const light = require('../lib/light');
+const constants = require('../lib/constants');
 
-const store = {};
-
-const options = {
-    xiaomi: {
-        manufacturerCode: 0x115F,
-        disableDefaultResponse: true,
-    },
-    osram: {
-        manufacturerCode: 0x110c,
-    },
-    eurotronic: {
-        manufacturerCode: 4151,
-    },
-    danfoss: {
-        manufacturerCode: 4678,
-    },
-    hue: {
-        manufacturerCode: 4107,
-    },
-    sinope: {
-        manufacturerCode: 0x119C,
-    },
-    ubisys: {
-        manufacturerCode: 0x10f2,
-    },
-    tint: {
-        manufacturerCode: 0x121b,
-    },
-    legrand: {
-        manufacturerCode: 0x1021,
-        disableDefaultResponse: true,
-    },
-};
-
-async function sendTuyaDataPoint(entity, datatype, dp, data) {
-    if (sendTuyaDataPoint.transId === undefined) {
-        sendTuyaDataPoint.transId = 0;
-    } else {
-        sendTuyaDataPoint.transId++;
-        sendTuyaDataPoint.transId %= 256;
-    }
-    await entity.command(
-        'manuSpecificTuya',
-        'setData',
-        {
-            status: 0,
-            transid: sendTuyaDataPoint.transId,
-            dp: dp,
-            datatype: datatype,
-            length_hi: (data.length >> 8) & 0xFF,
-            length_lo: data.length & 0xFF,
-            data: data,
-        },
-        {disableDefaultResponse: true},
-    );
-}
-
-async function sendTuyaDataPointValue(entity, dp, value) {
-    await sendTuyaDataPoint(
-        entity,
-        common.TuyaDataTypes.value,
-        dp,
-        utils.convertDecimalValueTo4ByteHexArray(value));
-}
-
-async function sendTuyaDataPointBool(entity, dp, value) {
-    await sendTuyaDataPoint(
-        entity,
-        common.TuyaDataTypes.bool,
-        dp,
-        [value ? 1 : 0]);
-}
-
-async function sendTuyaDataPointEnum(entity, dp, value) {
-    await sendTuyaDataPoint(
-        entity,
-        common.TuyaDataTypes.enum,
-        dp,
-        [value]);
-}
-
-async function sendTuyaDataPointRaw(entity, dp, value) {
-    await sendTuyaDataPoint(
-        entity,
-        common.TuyaDataTypes.raw,
-        dp,
-        value);
-}
-
-async function sendTuyaDataPointBitmap(entity, dp, value) {
-    await sendTuyaDataPoint(
-        entity,
-        common.TuyaDataTypes.bitmap,
-        dp,
-        value);
-}
-
-function saveSceneState(entity, sceneID, groupID, state) {
-    const attributes = ['state', 'color_temp', 'brightness', 'color'];
-    if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
-    const metaKey = `${sceneID}_${groupID}`;
-    entity.meta.scenes[metaKey] = {state: utils.filterObject(state, attributes)};
-    entity.save();
-}
-
-function getEntityOrFirstGroupMember(entity) {
-    if (entity.constructor.name === 'Group') {
-        return entity.members.length > 0 ? entity.members[0] : null;
-    } else {
-        return entity;
-    }
-}
-
-function getTransition(entity, key, meta) {
-    const {options, message} = meta;
-
-    let manufacturerIDs = [];
-    if (entity.constructor.name === 'Group') {
-        manufacturerIDs = entity.members.map((m) => m.getDevice().manufacturerID);
-    } else if (entity.constructor.name === 'Endpoint') {
-        manufacturerIDs = [entity.getDevice().manufacturerID];
-    }
-
-    if (manufacturerIDs.includes(4476)) {
-        /**
-         * When setting both brightness and color temperature with a transition, the brightness is skipped
-         * for IKEA TRADFRI bulbs.
-         * To workaround this we skip the transition for the brightness as it is applied first.
-         * https://github.com/Koenkk/zigbee2mqtt/issues/1810
-         */
-        if (key === 'brightness' && (message.hasOwnProperty('color') || message.hasOwnProperty('color_temp'))) {
-            return {time: 0, specified: false};
-        }
-    }
-
-    if (message.hasOwnProperty('transition')) {
-        return {time: message.transition * 10, specified: true};
-    } else if (options.hasOwnProperty('transition')) {
-        return {time: options.transition * 10, specified: true};
-    } else {
-        return {time: 0, specified: false};
-    }
-}
-
-// Entity is expected to be either a zigbee-herdsman group or endpoint
-
-// Meta is expect to contain:
-// {
-//   message: the full message, used for e.g. {brightness; transition;}
-//   options: {disableFeedback: skip waiting for feedback, e.g. Hampton Bay 99432 doesn't respond}
-//   endpoint_name: name of the endpoint, used for e.g. livolo where left and right is
-//                  separated by transition time instead of separated endpoint
-// }
-
-const getOptions = (definition, entity) => {
-    const result = {};
-    const allowed = ['disableDefaultResponse', 'manufacturerCode', 'timeout'];
-    if (definition && definition.meta) {
-        for (const key of Object.keys(definition.meta)) {
-            if (allowed.includes(key)) {
-                const value = definition.meta[key];
-                result[key] = typeof value === 'function' ? value(entity) : value;
-            }
-        }
-    }
-
-    return result;
-};
-
-const correctHue = (hue, meta) => {
-    const {options} = meta;
-    if (options.hasOwnProperty('hue_correction')) {
-        return utils.interpolateHue(hue, options.hue_correction);
-    } else {
-        return hue;
-    }
+const manufacturerOptions = {
+    xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
+    osram: {manufacturerCode: herdsman.Zcl.ManufacturerCode.OSRAM},
+    eurotronic: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
+    danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
+    hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
+    sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
+    ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
+    tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
+    legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
 };
 
 const converters = {
-    /**
-     * Generic
-     */
+    // #region Generic converters
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genBasic', 'resetFactDefault', {}, getOptions(meta.mapped, entity));
+            await entity.command('genBasic', 'resetFactDefault', {}, utils.getOptions(meta.mapped, entity));
         },
     },
-    kmpcil_res005_on_off: {
+    arm_mode: {
+        key: ['arm_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
+            if (mode === undefined) {
+                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`);
+            }
+
+            if (value.hasOwnProperty('transaction')) {
+                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+            }
+
+            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
+            globalStore.putValue(entity, 'panelStatus', panelStatus);
+            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
+            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+        },
+    },
+    power_on_behavior: {
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0, 'on': 1, 'toggle': 2, 'previous': 255};
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('genOnOff', {startUpOnOff: lookup[value]}, utils.getOptions(meta.mapped, entity));
+            return {state: {power_on_behavior: value}};
+        },
+    },
+    lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const options = {disableDefaultResponse: true};
-            if (value.toLowerCase() === 'toggle') {
-                if (!meta.state.hasOwnProperty('state')) {
-                    return {};
-                } else {
-                    const payload = {0x0055: {value: (meta.state.state === 'OFF')?0x01:0x00, type: 0x10}};
-                    await entity.write('genBinaryOutput', payload, options);
-                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
-                }
+            await entity.command(
+                'closuresDoorLock',
+                `${value.toLowerCase()}Door`,
+                {'pincodevalue': ''},
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            return {readAfterWriteTime: 200};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', ['lockState']);
+        },
+    },
+    pincode_lock: {
+        key: ['pin_code'],
+        convertSet: async (entity, key, value, meta) => {
+            const user = value.user;
+            const pinCode = value.pin_code;
+            if ( isNaN(user) ) {
+                throw new Error('user must be numbers');
+            }
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                throw new Error('user must be in range for device');
+            }
+            if (pinCode === undefined || pinCode === null) {
+                await entity.command(
+                    'closuresDoorLock',
+                    'clearPinCode',
+                    {
+                        'userid': user,
+                    },
+                    utils.getOptions(meta.mapped),
+                );
             } else {
-                const payload = {0x0055: {value: (value.toUpperCase() === 'OFF')?0x00:0x01, type: 0x10}};
-                await entity.write('genBinaryOutput', payload, options);
-                return {state: value.toUpperCase()};
+                if (isNaN(pinCode)) {
+                    throw new Error('pinCode must be a number or pinCode');
+                }
+                await entity.command(
+                    'closuresDoorLock',
+                    'setPinCode',
+                    {
+                        'userid': user,
+                        'userstatus': 1,
+                        'usertype': 0,
+                        'pincodevalue': pinCode.toString(),
+                    },
+                    utils.getOptions(meta.mapped),
+                );
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genBinaryOutput', ['presentValue']);
+            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
+            if (user === undefined) {
+                const max = meta.mapped.meta.pinCodeCount;
+                // Get all
+                const options = utils.getOptions(meta);
+                for (let i = 0; i < max; i++) {
+                    await entity.command('closuresDoorLock', 'getPinCode', {userid: i}, options);
+                }
+            } else {
+                if (isNaN(user)) {
+                    throw new Error('user must be numbers');
+                }
+                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                    throw new Error('userId must be in range for device');
+                }
+
+                await entity.command('closuresDoorLock', 'getPinCode', {userid: user}, utils.getOptions(meta));
+            }
         },
     },
     on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genOnOff', value.toLowerCase(), {}, getOptions(meta.mapped, entity));
-            if (value.toLowerCase() === 'toggle') {
+            value = value.toLowerCase();
+            utils.validateValue(value, ['toggle', 'off', 'on']);
+            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
+            if (value === 'toggle') {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
                 return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
             } else {
@@ -229,35 +147,23 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
-    cover_open_close_via_brightness: {
-        key: ['state'],
+    cover_via_brightness: {
+        key: ['position', 'state'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
+            if (typeof value !== 'number') {
+                value = value.toLowerCase();
+                const lookup = {'open': 100, 'close': 0};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
             }
 
-            const positionByState = {
-                'open': 100,
-                'close': 0,
-            };
-
-            value = positionByState[value.toLowerCase()];
-            return await converters.cover_position_via_brightness.convertSet(entity, key, value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters.cover_position_via_brightness.convertGet(entity, key, meta);
-        },
-    },
-    cover_position_via_brightness: {
-        key: ['position'],
-        convertSet: async (entity, key, value, meta) => {
             const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
-            const zpos = invert ? 100 - value : value;
+            const position = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
-                {level: Math.round(Number(zpos) * 2.55).toString(), transtime: 0},
-                getOptions(meta.mapped, entity),
+                {level: Math.round(Number(position) * 2.55).toString(), transtime: 0},
+                utils.getOptions(meta.mapped, entity),
             );
 
             return {state: {position: value}, readAfterWriteTime: 0};
@@ -269,22 +175,8 @@ const converters = {
     warning: {
         key: ['warning'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = {
-                'stop': 0,
-                'burglar': 1,
-                'fire': 2,
-                'emergency': 3,
-                'police_panic': 4,
-                'fire_panic': 5,
-                'emergency_panic': 6,
-            };
-
-            const level = {
-                'low': 0,
-                'medium': 1,
-                'high': 2,
-                'very_high': 3,
-            };
+            const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
+            const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
 
             const values = {
                 mode: value.mode || 'emergency',
@@ -294,32 +186,21 @@ const converters = {
             };
 
             const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
-
             await entity.command(
                 'ssIasWd',
                 'startWarning',
                 {startwarninginfo: info, warningduration: values.duration},
-                getOptions(meta.mapped, entity),
+                utils.getOptions(meta.mapped, entity),
             );
         },
     },
     cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const zclCmdLookup = {
-                'open': 'upOpen',
-                'close': 'downClose',
-                'stop': 'stop',
-                'on': 'upOpen',
-                'off': 'downClose',
-            };
-
-            await entity.command(
-                'closuresWindowCovering',
-                zclCmdLookup[value.toLowerCase()],
-                {},
-                getOptions(meta.mapped, entity),
-            );
+            const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
         },
     },
     cover_position_tilt: {
@@ -327,7 +208,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
-            const zpos = invert ? 100 - value : value;
+            const position = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
             // HomeAssistant etc. work the other way round.
@@ -335,30 +216,189 @@ const converters = {
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: zpos} : {percentagetiltvalue: zpos},
-                getOptions(meta.mapped, entity),
+                isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
+                utils.getOptions(meta.mapped, entity),
             );
 
             return {state: {[isPosition ? 'position' : 'tilt']: value}};
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
-            await entity.read(
-                'closuresWindowCovering',
-                [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage'],
-            );
+            await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     },
     occupancy_timeout: {
-        // set delay after motion detector changes from occupied to unoccupied
+        // Sets delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
-            await entity.write('msOccupancySensing', {pirOToUDelay: value});
+            await entity.write('msOccupancySensing', {pirOToUDelay: value}, utils.getOptions(meta.mapped, entity));
             return {state: {occupancy_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+    },
+    level_config: {
+        key: ['level_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {};
+
+            // parse payload to grab the keys
+            if (typeof value === 'string') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    throw new Error('Payload is not valid JSON');
+                }
+            }
+
+            // onOffTransitionTime - range 0x0000 to 0xffff - optional
+            if (value.hasOwnProperty('on_off_transition_time')) {
+                let onOffTransitionTimeValue = Number(value.on_off_transition_time);
+                if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
+                if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onOffTransitionTime: onOffTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+                Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue});
+            }
+
+            // onTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('on_transition_time')) {
+                let onTransitionTimeValue = value.on_transition_time;
+                if (typeof onTransitionTimeValue === 'string' && onTransitionTimeValue.toLowerCase() == 'disabled') {
+                    onTransitionTimeValue = 65535;
+                } else {
+                    onTransitionTimeValue = Number(onTransitionTimeValue);
+                }
+                if (onTransitionTimeValue > 65535) onTransitionTimeValue = 65534;
+                if (onTransitionTimeValue < 0) onTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onTransitionTime: onTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (onTransitionTimeValue == 65535) {
+                    onTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {on_transition_time: onTransitionTimeValue});
+            }
+
+            // offTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('off_transition_time')) {
+                let offTransitionTimeValue = value.off_transition_time;
+                if (typeof offTransitionTimeValue === 'string' && offTransitionTimeValue.toLowerCase() == 'disabled') {
+                    offTransitionTimeValue = 65535;
+                } else {
+                    offTransitionTimeValue = Number(offTransitionTimeValue);
+                }
+                if (offTransitionTimeValue > 65535) offTransitionTimeValue = 65534;
+                if (offTransitionTimeValue < 0) offTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {offTransitionTime: offTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (offTransitionTimeValue == 65535) {
+                    offTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {off_transition_time: offTransitionTimeValue});
+            }
+
+            // startUpCurrentLevel - range 0x00 to 0xff - optional
+            //                       0x00 = return to minimum supported level
+            //                       0xff = return to previous previous
+            if (value.hasOwnProperty('current_level_startup')) {
+                let startUpCurrentLevelValue = value.current_level_startup;
+                if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'previous') {
+                    startUpCurrentLevelValue = 255;
+                } else if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'minimum') {
+                    startUpCurrentLevelValue = 0;
+                } else {
+                    startUpCurrentLevelValue = Number(startUpCurrentLevelValue);
+                }
+                if (startUpCurrentLevelValue > 255) startUpCurrentLevelValue = 254;
+                if (startUpCurrentLevelValue < 0) startUpCurrentLevelValue = 1;
+
+                await entity.write('genLevelCtrl', {startUpCurrentLevel: startUpCurrentLevelValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (startUpCurrentLevelValue == 255) {
+                    startUpCurrentLevelValue = 'previous';
+                }
+                if (startUpCurrentLevelValue == 0) {
+                    startUpCurrentLevelValue = 'minimum';
+                }
+                Object.assign(state, {current_level_startup: startUpCurrentLevelValue});
+            }
+
+            if (Object.keys(state).length > 0) {
+                return {state: {level_config: state}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel']) {
+                try {
+                    await entity.read('genLevelCtrl', [attribute]);
+                } catch (ex) {
+                    // continue regardless of error, all these are optional in ZCL
+                }
+            }
+        },
+    },
+    ballast_config: {
+        key: ['ballast_config',
+            'ballast_physical_minimum_level',
+            'ballast_physical_maximum_level',
+            'ballast_minimum_level',
+            'ballast_maximum_level'],
+        // zcl attribute names are camel case, but we want to use snake case in the outside communication
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'ballast_config') {
+                value = utils.toCamelCase(value);
+                for (const [attrName, attrValue] of Object.entries(value)) {
+                    const attributes = {};
+                    attributes[attrName] = attrValue;
+                    await entity.write('lightingBallastCfg', attributes);
+                }
+            }
+            if (key === 'ballast_minimum_level') {
+                await entity.write('lightingBallastCfg', {'minLevel': value});
+            }
+            if (key === 'ballast_maximum_level') {
+                await entity.write('lightingBallastCfg', {'maxLevel': value});
+            }
+            converters.ballast_config.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            let result = {};
+            for (const attrName of [
+                'physical_min_level',
+                'physical_max_level',
+                'ballast_status',
+                'min_level',
+                'max_level',
+                'power_on_level',
+                'power_on_fade_time',
+                'intrinsic_ballast_factor',
+                'ballast_factor_adjustment',
+                'lamp_quantity',
+                'lamp_type',
+                'lamp_manufacturer',
+                'lamp_rated_hours',
+                'lamp_burn_hours',
+                'lamp_alarm_mode',
+                'lamp_burn_hours_trip_point',
+            ]) {
+                try {
+                    result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
+                } catch (ex) {
+                    // continue regardless of error
+                }
+            }
+            if (key === 'ballast_config') {
+                meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+            }
         },
     },
     light_brightness_step: {
@@ -372,9 +412,9 @@ const converters = {
             }
 
             const mode = value > 0 ? 0 : 1;
-            const transition = getTransition(entity, key, meta).time;
+            const transition = utils.getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-            await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
+            await entity.command('genLevelCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
             if (meta.state.hasOwnProperty('brightness')) {
                 let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
@@ -397,10 +437,10 @@ const converters = {
         key: ['brightness_move', 'brightness_move_onoff'],
         convertSet: async (entity, key, value, meta) => {
             if (value === 'stop' || value === 0) {
-                await entity.command('genLevelCtrl', 'stop', {}, getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
-                await utils.sleepMs(500);
+                await utils.sleep(500);
                 const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
@@ -411,7 +451,7 @@ const converters = {
                 }
                 const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
                 const command = key.endsWith('onoff') ? 'moveWithOnOff' : 'move';
-                await entity.command('genLevelCtrl', command, payload, getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', command, payload, utils.getOptions(meta.mapped, entity));
             }
         },
     },
@@ -424,16 +464,16 @@ const converters = {
             }
 
             const mode = value > 0 ? 1 : 3;
-            const transition = getTransition(entity, key, meta).time;
+            const transition = utils.getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition, minimum: 0, maximum: 600};
-            await entity.command('lightingColorCtrl', 'stepColorTemp', payload, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', 'stepColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
             // We cannot determine the color temperature from the current state so we read it, because
             // - We don't know the max/min valus
             // - Color mode could have been swithed (x/y or hue/saturation)
-            const entityToRead = getEntityOrFirstGroupMember(entity);
+            const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
-                await utils.sleepMs(100 + (transition * 100));
+                await utils.sleep(100 + (transition * 100));
                 await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
             }
         },
@@ -452,13 +492,13 @@ const converters = {
                     payload.movemode = value > 0 ? 1 : 3;
                 }
 
-                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
                 // As we cannot determine the new brightness state, we read it from the device
                 if (value === 'stop' || value === 0) {
-                    const entityToRead = getEntityOrFirstGroupMember(entity);
+                    const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                     if (entityToRead) {
-                        await utils.sleepMs(100);
+                        await utils.sleep(100);
                         await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
                     }
                 }
@@ -475,7 +515,7 @@ const converters = {
                 } else {
                     payload.movemode=arr.filter(up).length ? 1 : 3;
                 }
-                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'moveColorTemp', payload, utils.getOptions(meta.mapped, entity));
             }
         },
     },
@@ -490,15 +530,15 @@ const converters = {
             const command = key === 'hue_step' ? 'stepHue' : 'stepSaturation';
             const attribute = key === 'hue_step' ? 'currentHue' : 'currentSaturation';
             const mode = value > 0 ? 1 : 3;
-            const transition = getTransition(entity, key, meta).time;
+            const transition = utils.getTransition(entity, key, meta).time;
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-            await entity.command('lightingColorCtrl', command, payload, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
             // We cannot determine the hue/saturation from the current state so we read it, because
             // - Color mode could have been swithed (x/y or colortemp)
-            const entityToRead = getEntityOrFirstGroupMember(entity);
+            const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
-                await utils.sleepMs(100 + (transition * 100));
+                await utils.sleep(100 + (transition * 100));
                 await entityToRead.read('lightingColorCtrl', [attribute]);
             }
         },
@@ -523,13 +563,13 @@ const converters = {
                 payload.movemode = value > 0 ? 1 : 3;
             }
 
-            await entity.command('lightingColorCtrl', command, payload, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
             // As we cannot determine the new brightness state, we read it from the device
             if (value === 'stop' || value === 0) {
-                const entityToRead = getEntityOrFirstGroupMember(entity);
+                const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                 if (entityToRead) {
-                    await utils.sleepMs(100);
+                    await utils.sleep(100);
                     await entityToRead.read('lightingColorCtrl', [attribute]);
                 }
             }
@@ -539,7 +579,7 @@ const converters = {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
-            const transition = getTransition(entity, 'brightness', meta);
+            const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1');
             const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
@@ -557,7 +597,7 @@ const converters = {
 
             if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
                 if (transition.specified && (state === 'off' || state === 'on')) {
-                    if (state === 'off' && meta.state.brightness) {
+                    if (state === 'off' && meta.state.brightness && meta.state.state === 'ON') {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
                         // it once we turn it on again.
@@ -571,7 +611,7 @@ const converters = {
                     if (state === 'on' && level === 0) level = turnsOffAtBrightness1 ? 2 : 1;
 
                     const payload = {level, transtime: transition.time};
-                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
+                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
                     const result = {state: {state: state.toUpperCase()}};
                     if (state === 'on') result.state.brightness = level;
                     return result;
@@ -587,7 +627,7 @@ const converters = {
                             'genLevelCtrl',
                             'moveToLevelWithOnOff',
                             {level: globalStore.getValue(entity, 'brightness'), transtime: 0},
-                            getOptions(meta.mapped, entity),
+                            utils.getOptions(meta.mapped, entity),
                         );
                         return {state: {state: 'ON'}, readAfterWriteTime: transition * 100};
                     } else {
@@ -618,7 +658,7 @@ const converters = {
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
                     {level: Number(brightness), transtime: transition.time},
-                    getOptions(meta.mapped, entity),
+                    utils.getOptions(meta.mapped, entity),
                 );
 
                 // If this command is send to a group, and this group contains a device not supporting genLevelCtrl, e.g. a switch
@@ -645,27 +685,6 @@ const converters = {
             }
         },
     },
-    // Some devices reset brightness to 100% when turned on, even if previous brightness was different
-    // This uses the stored state of the device to restore to the previous brightness level when turning on
-    light_onoff_restorable_brightness: {
-        key: ['state', 'brightness', 'brightness_percent'],
-        convertSet: async (entity, key, value, meta) => {
-            const deviceState = meta.state || {};
-            const message = meta.message;
-            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : null;
-            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
-
-            // Add brightness if command is 'on' and we can restore previous value
-            if (state === 'on' && !hasBrightness && deviceState.brightness > 0) {
-                message.brightness = deviceState.brightness;
-            }
-
-            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
-        },
-    },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
@@ -675,24 +694,50 @@ const converters = {
             }
 
             value = Number(value);
-            const payload = {colortemp: value, transtime: getTransition(entity, key, meta).time};
-            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta.mapped, entity));
+
+            // ensure value within range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
+            const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
         },
     },
+    light_colortemp_startup: {
+        key: ['color_temp_startup'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string' && value.toLowerCase() == 'previous') {
+                // 0xffff = restore previous value
+                value = 65535;
+            }
+
+            value = Number(value);
+
+            // ensure value within range
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
+            await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
+            return {state: {color_temp_startup: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['startUpColorTemperature']);
+        },
+    },
     light_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
             // Check if we need to convert from RGB to XY and which cmd to use
-            let cmd;
+            let command;
             const newState = {};
 
             // Set correct meta.mapped for groups
-            // * all device models are the same -> copy meta.mapped[0]
-            // * mixed device models -> meta.mapped = null (old behavior)
+            // * all definition metas are the same -> copy meta.mapped[0]
+            // * mixed device models -> meta.mapped = null
             if (entity.constructor.name === 'Group' && entity.members.length > 0) {
                 for (const memberMeta of Object.values(meta.mapped)) {
                     // check all members are the same device
@@ -719,155 +764,155 @@ const converters = {
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-                    utils.hslToHSV(correctHue(value.h, meta), value.s, value.l)));
+                    utils.hslToHSV(utils.correctHue(value.h, meta), value.s, value.l)));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
 
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsl')) {
                 newState.color = {hsl: value.hsl};
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsv = utils.gammaCorrectHSV(...Object.values(
-                    utils.hslToHSV(correctHue(hsl[0], meta), hsl[1], hsl[2])));
+                    utils.hslToHSV(utils.correctHue(hsl[0], meta), hsl[1], hsl[2])));
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, v: value.b};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, value.b);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, value.b);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsb')) {
                 let hsv = value.hsb.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
-                hsv = utils.gammaCorrectHSV(correctHue(hsv[0], meta), hsv[1], hsv[2]);
+                hsv = utils.gammaCorrectHSV(utils.correctHue(hsv[0], meta), hsv[1], hsv[2]);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
                 newState.color = {h: value.h, s: value.s, v: value.v};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, value.v);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, value.v);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsv')) {
                 let hsv = value.hsv.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
-                hsv = utils.gammaCorrectHSV(correctHue(hsv[0], meta), hsv[1], hsv[2]);
+                hsv = utils.gammaCorrectHSV(utils.correctHue(hsv[0], meta), hsv[1], hsv[2]);
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturationAndBrightness';
+                    command = 'moveToHueAndSaturationAndBrightness';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturationAndBrightness';
+                    command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), value.s, 100);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, 100);
                 value.saturation = hsv.s * (2.54);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturation';
+                    command = 'moveToHueAndSaturation';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturation';
+                    command = 'enhancedMoveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.h, meta), 100, 100);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), 100, 100);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHue';
+                    command = 'moveToHue';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHue';
+                    command = 'enhancedMoveToHue';
                 }
             } else if (value.hasOwnProperty('s')) {
                 newState.color = {s: value.s};
                 const hsv = utils.gammaCorrectHSV(360, value.s, 100);
                 value.saturation = hsv.s * (2.54);
-                cmd = 'moveToSaturation';
+                command = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.hue, meta), value.saturation, 100);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHueAndSaturation';
+                    command = 'moveToHueAndSaturation';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHueAndSaturation';
+                    command = 'enhancedMoveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
-                const hsv = utils.gammaCorrectHSV(correctHue(value.hue, meta), 100, 100);
+                const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
                 if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
-                    cmd = 'moveToHue';
+                    command = 'moveToHue';
                 } else {
                     value.hue = hsv.h % 360 * (65535 / 360);
-                    cmd = 'enhancedMoveToHue';
+                    command = 'enhancedMoveToHue';
                 }
             } else if (value.hasOwnProperty('saturation')) {
                 newState.color = {saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(360, value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
-                cmd = 'moveToSaturation';
+                command = 'moveToSaturation';
             }
 
-            const zclData = {transtime: getTransition(entity, key, meta).time};
+            const zclData = {transtime: utils.getTransition(entity, key, meta).time};
 
-            switch (cmd) {
+            switch (command) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
-                    getOptions(meta.mapped, entity),
+                    {level: Number(value.brightness), transtime: utils.getTransition(entity, key, meta).time},
+                    utils.getOptions(meta.mapped, entity),
                 );
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
-                cmd = 'enhancedMoveToHueAndSaturation';
+                command = 'enhancedMoveToHueAndSaturation';
                 break;
             case 'enhancedMoveToHueAndSaturation':
                 zclData.enhancehue = value.hue;
@@ -882,13 +927,13 @@ const converters = {
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    {level: Number(value.brightness), transtime: getTransition(entity, key, meta).time},
-                    getOptions(meta.mapped, entity),
+                    {level: Number(value.brightness), transtime: utils.getTransition(entity, key, meta).time},
+                    utils.getOptions(meta.mapped, entity),
                 );
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
-                cmd = 'moveToHueAndSaturation';
+                command = 'moveToHueAndSaturation';
                 break;
             case 'moveToHueAndSaturation':
                 zclData.hue = value.hue;
@@ -904,7 +949,7 @@ const converters = {
                 break;
 
             default:
-                cmd = 'moveToColor';
+                command = 'moveToColor';
 
                 // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
@@ -920,7 +965,7 @@ const converters = {
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
-            await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
@@ -983,28 +1028,14 @@ const converters = {
         key: ['effect', 'alert', 'flash'], // alert and flash are deprecated.
         convertSet: async (entity, key, value, meta) => {
             if (key === 'effect') {
-                const lookup = {
-                    blink: 0,
-                    breathe: 1,
-                    okay: 2,
-                    channel_change: 11,
-                    finish_effect: 254,
-                    stop_effect: 255,
-                };
-
-                if (!lookup.hasOwnProperty(value)) {
-                    throw new Error(`Effect '${value}' not supported`);
-                }
-
+                const lookup = {blink: 0, breathe: 1, okay: 2, channel_change: 11, finish_effect: 254, stop_effect: 255};
+                value = value.toLowerCase();
+                utils.validateValue(value, Object.keys(lookup));
                 const payload = {effectid: lookup[value], effectvariant: 0};
-                await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
+                await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
             } else if (key === 'alert' || key === 'flash') { // Deprecated
                 let effectid = 0;
-                const lookup = {
-                    'select': 0x00,
-                    'lselect': 0x01,
-                    'none': 0xFF,
-                };
+                const lookup = {'select': 0x00, 'lselect': 0x01, 'none': 0xFF};
                 if (key === 'flash') {
                     if (value === 2) {
                         value = 'select';
@@ -1015,8 +1046,116 @@ const converters = {
 
                 effectid = lookup[value];
                 const payload = {effectid, effectvariant: 0};
-                await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
+                await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
             }
+        },
+    },
+    thermostat_remote_sensing: {
+        key: ['remote_sensing'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {remoteSensing: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['remoteSensing']);
+        },
+    },
+    thermostat_weekly_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                numoftrans: value.numoftrans,
+                dayofweek: value.dayofweek,
+                mode: value.mode,
+                transitions: value.transitions,
+            };
+            for (const elem of payload['transitions']) {
+                if (typeof elem['heatSetpoint'] == 'number') {
+                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
+                }
+                if (typeof elem['coolSetpoint'] == 'number') {
+                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                }
+            }
+            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            const payload = {
+                daystoreturn: 0xff, // Sun-Sat and vacation
+                modetoreturn: 3, // heat + cool
+            };
+            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+        },
+    },
+    thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+            if (systemMode === undefined) {
+                systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            }
+            await entity.write('hvacThermostat', {systemMode});
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['systemMode']);
+        },
+    },
+    thermostat_control_sequence_of_operation: {
+        key: ['control_sequence_of_operation'],
+        convertSet: async (entity, key, value, meta) => {
+            let val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, undefined, Number);
+            if (val === undefined) {
+                val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
+            }
+            await entity.write('hvacThermostat', {ctrlSeqeOfOper: val});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
+        },
+    },
+    thermostat_temperature_display_mode: {
+        key: ['temperature_display_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
+            await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
+        },
+    },
+    thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+        },
+    },
+    thermostat_temperature_setpoint_hold: {
+        key: ['temperature_setpoint_hold'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHold = value;
+            await entity.write('hvacThermostat', {tempSetpointHold});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHold']);
+        },
+    },
+    thermostat_temperature_setpoint_hold_duration: {
+        key: ['temperature_setpoint_hold_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            const tempSetpointHoldDuration = value;
+            await entity.write('hvacThermostat', {tempSetpointHoldDuration});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['tempSetpointHoldDuration']);
+        },
+    },
+    fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            const fanMode = constants.fanMode[value.toLowerCase()];
+            await entity.write('hvacFanCtrl', {fanMode});
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacFanCtrl', ['fanMode']);
         },
     },
     thermostat_local_temperature: {
@@ -1039,6 +1178,12 @@ const converters = {
         key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ocupancy']);
+        },
+    },
+    thermostat_clear_weekly_schedule: {
+        key: ['clear_weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, utils.getOptions(meta.mapped, entity));
         },
     },
     thermostat_pi_heating_demand: {
@@ -1093,80 +1238,17 @@ const converters = {
             await entity.read('hvacThermostat', ['unoccupiedCoolingSetpoint']);
         },
     },
-    thermostat_remote_sensing: {
-        key: ['remote_sensing'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {remoteSensing: value});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['remoteSensing']);
-        },
-    },
-    thermostat_control_sequence_of_operation: {
-        key: ['control_sequence_of_operation'],
-        convertSet: async (entity, key, value, meta) => {
-            const ctrlSeqeOfOper = utils.getKeyByValue(common.thermostatControlSequenceOfOperations, value, value);
-            await entity.write('hvacThermostat', {ctrlSeqeOfOper});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
-        },
-    },
-    thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
-            await entity.write('hvacThermostat', {systemMode});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['systemMode']);
-        },
-    },
     thermostat_setpoint_raise_lower: {
         key: ['setpoint_raise_lower'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
-            await entity.command('hvacThermostat', 'setpointRaiseLower', payload, getOptions(meta.mapped, entity));
-        },
-    },
-    thermostat_weekly_schedule: {
-        key: ['weekly_schedule'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                numoftrans: value.numoftrans,
-                dayofweek: value.dayofweek,
-                mode: value.mode,
-                transitions: value.transitions,
-            };
-            for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] == 'number') {
-                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
-                }
-                if (typeof elem['coolSetpoint'] == 'number') {
-                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
-                }
-            }
-            await entity.command('hvacThermostat', 'setWeeklySchedule', payload, getOptions(meta.mapped, entity));
-        },
-        convertGet: async (entity, key, meta) => {
-            const payload = {
-                daystoreturn: 0xff, // Sun-Sat and vacation
-                modetoreturn: 3, // heat + cool
-            };
-            await entity.command('hvacThermostat', 'getWeeklySchedule', payload, getOptions(meta.mapped, entity));
-        },
-    },
-    thermostat_clear_weekly_schedule: {
-        key: ['clear_weekly_schedule'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'clearWeeklySchedule', {}, getOptions(meta.mapped, entity));
+            await entity.command('hvacThermostat', 'setpointRaiseLower', payload, utils.getOptions(meta.mapped, entity));
         },
     },
     thermostat_relay_status_log: {
         key: ['relay_status_log'],
         convertGet: async (entity, key, meta) => {
-            await entity.command('hvacThermostat', 'getRelayStatusLog', {}, getOptions(meta.mapped, entity));
+            await entity.command('hvacThermostat', 'getRelayStatusLog', {}, utils.getOptions(meta.mapped, entity));
         },
     },
     thermostat_running_mode: {
@@ -1175,563 +1257,15 @@ const converters = {
             await entity.read('hvacThermostat', ['runningMode']);
         },
     },
-    thermostat_temperature_display_mode: {
-        key: ['temperature_display_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempDisplayMode = utils.getKeyByValue(common.temperatureDisplayMode, value, value);
-            await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
-        },
-    },
-    thermostat_keypad_lockout: {
-        key: ['keypad_lockout'],
-        convertSet: async (entity, key, value, meta) => {
-            const keypadLockout = utils.getKeyByValue(common.keypadLockoutMode, value, value);
-            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
-        },
-    },
-    thermostat_temperature_setpoint_hold: {
-        key: ['temperature_setpoint_hold'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempSetpointHold = value;
-            await entity.write('hvacThermostat', {tempSetpointHold});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['tempSetpointHold']);
-        },
-    },
-    thermostat_temperature_setpoint_hold_duration: {
-        key: ['temperature_setpoint_hold_duration'],
-        convertSet: async (entity, key, value, meta) => {
-            const tempSetpointHoldDuration = value;
-            await entity.write('hvacThermostat', {tempSetpointHoldDuration});
-            return {readAfterWriteTime: 250, state: {system_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['tempSetpointHoldDuration']);
-        },
-    },
-    fan_mode: {
-        key: ['fan_mode', 'fan_state'],
-        convertSet: async (entity, key, value, meta) => {
-            const fanMode = common.fanMode[value.toLowerCase()];
-            await entity.write('hvacFanCtrl', {fanMode});
-            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacFanCtrl', ['fanMode']);
-        },
-    },
-    arm_mode: {
-        key: ['arm_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getKeyByValue(common.armMode, value.mode, undefined);
-            if (mode === undefined) {
-                throw new Error(
-                    `Unsupported mode: '${value.mode}', should be one of: ${Object.values(common.armMode)}`,
-                );
-            }
-
-            if (value.hasOwnProperty('transaction')) {
-                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
-            }
-
-            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
-            globalStore.putValue(entity, 'panelStatus', panelStatus);
-            const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
-            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
-        },
-    },
-    ballast_config: {
-        key: ['ballast_config'],
-        // zcl attribute names are camel case, but we want to use snake case in the outside communication
-        convertSet: async (entity, key, value, meta) => {
-            value = utils.toCamelCase(value);
-            for (const [attrName, attrValue] of Object.entries(value)) {
-                const attributes = {};
-                attributes[attrName] = attrValue;
-                await entity.write('lightingBallastCfg', attributes);
-            }
-            converters.ballast_config.convertGet(entity, key, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            let result = {};
-            for (const attrName of [
-                'physical_min_level',
-                'physical_max_level',
-                'ballast_status',
-                'min_level',
-                'max_level',
-                'power_on_level',
-                'power_on_fade_time',
-                'intrinsic_ballast_factor',
-                'ballast_factor_adjustment',
-                'lamp_quantity',
-                'lamp_type',
-                'lamp_manufacturer',
-                'lamp_rated_hours',
-                'lamp_burn_hours',
-                'lamp_alarm_mode',
-                'lamp_burn_hours_trip_point',
-            ]) {
-                try {
-                    result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
-                } catch (ex) {
-                    // continue regardless of error
-                }
-            }
-            meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
-        },
-    },
-
-    /**
-     * Device specific
-     */
-    LLKZMK11LM_interlock: {
-        key: ['interlock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, options.xiaomi);
-            return {state: {interlock: value}};
-        },
-    },
-    DJT11LM_vibration_sensitivity: {
-        key: ['sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'low': 0x15,
-                'medium': 0x0B,
-                'high': 0x01,
-            };
-
-            if (lookup.hasOwnProperty(value)) {
-                const opts = {...options.xiaomi, timeout: 35000};
-                await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, opts);
-            }
-
-            return {state: {sensitivity: value}};
-        },
-    },
-    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
-        key: ['sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'low': 0x04010000,
-                'medium': 0x04020000,
-                'high': 0x04030000,
-            };
-
-
-            if (lookup.hasOwnProperty(value)) {
-                // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-                const opts = {...options.xiaomi, timeout: 35000};
-                await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, opts);
-            }
-
-            return {state: {sensitivity: value}};
-        },
-    },
-    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
-        key: ['selftest'],
-        convertSet: async (entity, key, value, meta) => {
-            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-            const opts = {...options.xiaomi, timeout: 35000};
-            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, opts);
-        },
-    },
-    xiaomi_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM'].includes(meta.mapped.model)) {
-                await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
-            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
-                const payload = value ?
-                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
-                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
-
-                await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, options.xiaomi);
-                await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, options.xiaomi);
-            } else {
-                throw new Error('Not supported');
-            }
-
-            return {state: {power_outage_memory: value}};
-        },
-    },
-    xiaomi_power: {
+    electrical_measurement_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
-            await endpoint.read('genAnalogInput', ['presentValue']);
+            await entity.read('haElectricalMeasurement', ['activePower']);
         },
     },
-    xiaomi_switch_operation_mode: {
-        key: ['operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
-                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
-                const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
-                const button = value.hasOwnProperty('button') ? value.button : 'single';
-                const payload = {};
-                payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
-                await entity.write('genBasic', payload, options.xiaomi);
-                return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
-            } else if (meta.mapped.model === 'QBKG25LM') {
-                const lookupState = {control_relay: 0x01, decoupled: 0x00};
-                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, options.xiaomi);
-                return {state: {operation_mode: value.state}};
-            } else {
-                throw new Error('Not supported');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
-                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
-                const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
-                await entity.read('genBasic', [lookupAttrId[button]], options.xiaomi);
-            } else if (meta.mapped.model === 'QBKG25LM') {
-                await entity.read('aqaraOpple', 0x0200, options.xiaomi);
-            } else {
-                throw new Error('Not supported');
-            }
-        },
-    },
-    xiaomi_switch_do_not_disturb: {
-        key: ['do_not_disturb'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, options.xiaomi);
-            return {state: {do_not_disturb: value}};
-        },
-    },
-    STS_PRS_251_beep: {
-        key: ['beep'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, getOptions(meta.mapped, entity));
-        },
-    },
-    xiaomi_curtain_options: {
-        key: ['options'],
-        convertSet: async (entity, key, value, meta) => {
-            const opts = {
-                reverse_direction: false,
-                hand_open: true,
-                reset_limits: false,
-                ...value,
-            };
+    // #endregion
 
-            // Legacy names
-            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
-            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
-
-            if (meta.mapped.model === 'ZNCLDJ12LM') {
-                await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, options.xiaomi);
-                await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, options.xiaomi);
-
-                if (opts.reset_limits) {
-                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, options.xiaomi);
-                }
-            } else if (meta.mapped.model === 'ZNCLDJ11LM') {
-                const payload = [
-                    0x07, 0x00, opts.reset_limits ? 0x01: 0x02, 0x00, opts.reverse_direction ? 0x01: 0x00, 0x04,
-                    !opts.hand_open ? 0x01: 0x00, 0x12,
-                ];
-
-                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
-
-                // hand_open requires a separate request with slightly different payload
-                payload[2] = 0x08;
-                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, options.xiaomi);
-            } else {
-                throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
-            }
-
-            // Reset limits is an action, not a state.
-            delete opts.reset_limits;
-            return {state: {options: opts}};
-        },
-        convertGet: async (entity, key, meta) => {
-            if (meta.mapped.model === 'ZNCLDJ11LM') {
-                await entity.read('genBasic', [0x0401], options.xiaomi);
-            } else {
-                throw new Error(`xiaomi_curtain_options get called for not supported model: ${meta.mapped.model}`);
-            }
-        },
-    },
-    xiaomi_curtain_position_state: {
-        key: ['state', 'position'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
-                await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
-
-                // Xiaomi curtain does not send position update on stop, request this.
-                await entity.read('genAnalogOutput', [0x0055]);
-            } else {
-                const lookup = {
-                    'open': 100,
-                    'close': 0,
-                    'on': 100,
-                    'off': 0,
-                };
-
-                value = typeof value === 'string' ? value.toLowerCase() : value;
-                value = lookup.hasOwnProperty(value) ? lookup[value] : value;
-
-                if (key === 'position') {
-                    value = meta.options.invert_cover ? 100 - value : value;
-                }
-
-                const payload = {0x0055: {value, type: 0x39}};
-                await entity.write('genAnalogOutput', payload);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genAnalogOutput', [0x0055]);
-        },
-    },
-    ledvance_commands: {
-        /* deprectated osram_*/
-        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'osram_set_transition' || key === 'set_transition') {
-                if (value) {
-                    const transition = (value > 1) ? (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 10 : 1;
-                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
-                    await entity.write('genLevelCtrl', payload);
-                }
-            } else if (key == 'osram_remember_state' || key == 'remember_state') {
-                if (value === true) {
-                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, options.osram);
-                } else if (value === false) {
-                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, options.osram);
-                }
-            }
-        },
-    },
-    danfoss_mounted_mode: {
-        key: ['mounted_mode_control'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4013: {
-                    value: (value ? 0x00: 0x01),
-                    type: 0x10,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4013], options.danfoss);
-        },
-    },
-    danfoss_thermostat_orientation: {
-        key: ['thermostat_orientation'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4014: {
-                    value: (value ? 0x01: 0x00),
-                    type: 0x10,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4014], options.danfoss);
-        },
-    },
-    danfoss_algorithm_scale_factor: {
-        key: ['algorithm_scale_factor'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4020: {
-                    value: value,
-                    type: 0x20,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4020], options.danfoss);
-        },
-    },
-    danfoss_heat_available: {
-        key: ['heat_available'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4030: {
-                    value: (value ? 0x01: 0x00),
-                    type: 0x10,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4030], options.danfoss);
-        },
-    },
-    danfoss_day_of_week: {
-        key: ['day_of_week'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4010: {
-                    value: (Math.abs(value) < 7 ? Math.abs(value) : 7),
-                    type: 0x30,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4010], options.danfoss);
-        },
-    },
-    danfoss_trigger_time: {
-        key: ['trigger_time'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4011: {
-                    value: (value ? 0x01: 0x00),
-                    type: 0x21,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4011], options.danfoss);
-        },
-    },
-    danfoss_window_open: {
-        key: ['window_open_external'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4003: {
-                    value: (value ? 0x01: 0x00),
-                    type: 0x10,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4003], options.danfoss);
-        },
-    },
-    danfoss_display_orientation: {
-        key: ['display_orientation'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4000: {
-                    value: value,
-                    type: 0x30,
-                },
-            };
-            await entity.write('hvacUserInterfaceCfg', payload, options.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacUserInterfaceCfg', [0x4000], options.danfoss);
-        },
-    },
-    eurotronic_thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKeyByValue(common.thermostatSystemModes, value, value);
-            const hostFlags = {};
-            switch (systemMode) {
-            case 0: // off (window_open for eurotronic)
-                hostFlags['boost'] = false;
-                hostFlags['window_open'] = true;
-                break;
-            case 4: // heat (boost for eurotronic)
-                hostFlags['boost'] = true;
-                hostFlags['window_open'] = false;
-                break;
-            default:
-                hostFlags['boost'] = false;
-                hostFlags['window_open'] = false;
-                break;
-            }
-            await converters.eurotronic_host_flags.convertSet(entity, 'eurotronic_host_flags', hostFlags, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            await converters.eurotronic_host_flags.convertGet(entity, 'eurotronic_host_flags', meta);
-        },
-    },
-    eurotronic_host_flags: {
-        key: ['eurotronic_host_flags', 'eurotronic_system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'object') {
-                // read current eurotronic_host_flags (we will update some of them)
-                await entity.read('hvacThermostat', [0x4008], options.eurotronic);
-                const currentHostFlags = meta.state.eurotronic_host_flags ? meta.state.eurotronic_host_flags : {};
-
-                // get full hostFlag object
-                const hostFlags = {...currentHostFlags, ...value};
-
-                // calculate bit value
-                let bitValue = 1; // bit 0 always 1
-                if (hostFlags.mirror_display) {
-                    bitValue |= 1 << 1;
-                }
-                if (hostFlags.boost) {
-                    bitValue |= 1 << 2;
-                }
-                if (value.hasOwnProperty('window_open') && value.window_open != currentHostFlags.window_open) {
-                    if (hostFlags.window_open) {
-                        bitValue |= 1 << 5;
-                    } else {
-                        bitValue |= 1 << 4;
-                    }
-                }
-                if (hostFlags.child_protection) {
-                    bitValue |= 1 << 7;
-                }
-
-                meta.logger.debug(`eurotronic: host_flags object converted to ${bitValue}`);
-                value = bitValue;
-            }
-            const payload = {0x4008: {value, type: 0x22}};
-            await entity.write('hvacThermostat', payload, options.eurotronic);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4008], options.eurotronic);
-        },
-    },
-    eurotronic_error_status: {
-        key: ['eurotronic_error_status'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4002], options.eurotronic);
-        },
-    },
-    eurotronic_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {
-                0x4003: {
-                    value: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
-                    type: 0x29,
-                },
-            };
-            await entity.write('hvacThermostat', payload, options.eurotronic);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4003], options.eurotronic);
-        },
-    },
-    eurotronic_valve_position: {
-        key: ['eurotronic_valve_position'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4001: {value, type: 0x20}};
-            await entity.write('hvacThermostat', payload, options.eurotronic);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4001], options.eurotronic);
-        },
-    },
-    eurotronic_trv_mode: {
-        key: ['eurotronic_trv_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4000: {value, type: 0x30}};
-            await entity.write('hvacThermostat', payload, options.eurotronic);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4000], options.eurotronic);
-        },
-    },
+    // #region Non-generic converters
     livolo_socket_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1786,80 +1320,6 @@ const converters = {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
-    generic_lock: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                'closuresDoorLock',
-                `${value.toLowerCase()}Door`,
-                {'pincodevalue': ''},
-                getOptions(meta.mapped, entity),
-            );
-
-            return {readAfterWriteTime: 200};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', ['lockState']);
-        },
-    },
-    pincode_lock: {
-        key: ['pin_code'],
-        convertSet: async (entity, key, value, meta) => {
-            const user = value.user;
-            const pinCode = value.pin_code;
-            if ( isNaN(user) ) {
-                throw new Error('user must be numbers');
-            }
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                throw new Error('user must be in range for device');
-            }
-            if (pinCode === undefined || pinCode === null) {
-                await entity.command(
-                    'closuresDoorLock',
-                    'clearPinCode',
-                    {
-                        'userid': user,
-                    },
-                    getOptions(meta.mapped),
-                );
-            } else {
-                if (isNaN(pinCode)) {
-                    throw new Error('pinCode must be a number or pinCode');
-                }
-                await entity.command(
-                    'closuresDoorLock',
-                    'setPinCode',
-                    {
-                        'userid': user,
-                        'userstatus': 1,
-                        'usertype': 0,
-                        'pincodevalue': pinCode.toString(),
-                    },
-                    getOptions(meta.mapped),
-                );
-            }
-            return {readAfterWriteTime: 200};
-        },
-        convertGet: async (entity, key, meta) => {
-            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
-            if (user === undefined) {
-                const max = meta.mapped.meta.pinCodeCount;
-                // Get all
-                const options = getOptions(meta);
-                for (let i = 0; i < max; i++) {
-                    await utils.getDoorLockPinCode(entity, i, options);
-                }
-            } else {
-                if (isNaN(user)) {
-                    throw new Error('user must be numbers');
-                }
-                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                    throw new Error('userId must be in range for device');
-                }
-                await utils.getDoorLockPinCode(entity, user, getOptions(meta));
-            }
-        },
-    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
@@ -1872,7 +1332,7 @@ const converters = {
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
                     await converters.on_off.convertSet(entity, key, 'ON', meta);
-                    await utils.sleepMs(1000);
+                    await utils.sleep(1000);
                 }
             }
 
@@ -1917,7 +1377,6 @@ const converters = {
             // Gledopto devices turn ON when they are OFF and color is set.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3509
             const state = {state: 'ON'};
-
             const result = await converters.light_color.convertSet(entity, key, value, meta);
             result.state = {...result.state, ...state};
             return result;
@@ -1926,7 +1385,6 @@ const converters = {
             return await converters.light_color.convertGet(entity, key, meta);
         },
     },
-
     gledopto_light_color_colortemp: {
         key: ['color', 'color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
@@ -1976,8 +1434,8 @@ const converters = {
                 }
 
                 if (supports.colorXY) {
-                    await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, options.hue);
-                    await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, options.hue);
+                    await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, manufacturerOptions.hue);
+                    await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, manufacturerOptions.hue);
                 }
             } else if (value === 'on') {
                 await entity.write('genOnOff', {0x4003: {value: 0x01, type: 0x30}});
@@ -2001,8 +1459,8 @@ const converters = {
                         await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});
                         // Set color to default
                         if (supports.colorXY) {
-                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, options.hue);
-                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, options.hue);
+                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
+                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
                         }
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
                         const xy = utils.hexToXY(meta.message.hue_power_on_color);
@@ -2013,8 +1471,8 @@ const converters = {
                             await entity.write('lightingColorCtrl', {0x4010: {value: 366, type: 0x21}});
                         }
 
-                        await entity.write('lightingColorCtrl', {0x0003: {value: value.x, type: 0x21}}, options.hue);
-                        await entity.write('lightingColorCtrl', {0x0004: {value: value.y, type: 0x21}}, options.hue);
+                        await entity.write('lightingColorCtrl', {0x0003: {value: value.x, type: 0x21}}, manufacturerOptions.hue);
+                        await entity.write('lightingColorCtrl', {0x0004: {value: value.y, type: 0x21}}, manufacturerOptions.hue);
                     } else {
                         // Set defaults for colortemp and color
                         if (supports.colorTemperature) {
@@ -2022,8 +1480,8 @@ const converters = {
                         }
 
                         if (supports.colorXY) {
-                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, options.hue);
-                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, options.hue);
+                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
+                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
                         }
                     }
                 }
@@ -2034,7 +1492,7 @@ const converters = {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
             if (!meta.message.hasOwnProperty('hue_power_on_behavior')) {
-                meta.logger.error(`Provide a value for 'hue_power_on_behavior'`);
+                throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
     },
@@ -2045,48 +1503,785 @@ const converters = {
             // hue_sml:
             // 0: low, 1: medium, 2: high (default)
             // make sure you write to second endpoint!
-            const lookup = {
-                'low': 0,
-                'medium': 1,
-                'high': 2,
-            };
+            const lookup = {'low': 0, 'medium': 1, 'high': 2};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
 
-
-            const payload = {
-                48: {
-                    value: typeof value === 'string' ? lookup[value] : value,
-                    type: 32,
-                },
-            };
-            await entity.write('msOccupancySensing', payload, options.hue);
+            const payload = {48: {value: lookup[value], type: 32}};
+            await entity.write('msOccupancySensing', payload, manufacturerOptions.hue);
             return {state: {motion_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('msOccupancySensing', [48], options.hue);
+            await entity.read('msOccupancySensing', [48], manufacturerOptions.hue);
         },
     },
     ZigUP_lock: {
         key: ['led'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {
-                'off': 'lockDoor',
-                'on': 'unlockDoor',
-                'toggle': 'toggleDoor',
-            };
-
+            const lookup = {'off': 'lockDoor', 'on': 'unlockDoor', 'toggle': 'toggleDoor'};
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
+    xiaomi_switch_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['ZNCZ04LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
+                    [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
 
-    // Sinope
+                await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, manufacturerOptions.xiaomi);
+                await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+
+            return {state: {power_outage_memory: value}};
+        },
+    },
+    xiaomi_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
+    xiaomi_auto_off: {
+        key: ['auto_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['ZNCZ04LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0202: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+            return {state: {auto_off: value}};
+        },
+    },
+    xiaomi_led_disabled_night: {
+        key: ['led_disabled_night'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['ZNCZ04LM'].includes(meta.mapped.model)) {
+                await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+            return {state: {led_disabled_night: value}};
+        },
+    },
+    xiaomi_switch_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
+                const button = value.hasOwnProperty('button') ? value.button : 'single';
+                const payload = {};
+                payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
+                await entity.write('genBasic', payload, manufacturerOptions.xiaomi);
+                return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
+            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
+                const lookupState = {control_relay: 0x01, decoupled: 0x00};
+                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {operation_mode: value.state}};
+            } else {
+                throw new Error('Not supported');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+                const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
+                const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
+                await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
+            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', 0x0200, manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+        },
+    },
+    xiaomi_switch_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            return {state: {do_not_disturb: value}};
+        },
+    },
+    STS_PRS_251_beep: {
+        key: ['beep'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, utils.getOptions(meta.mapped, entity));
+        },
+    },
+    xiaomi_curtain_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value, meta) => {
+            const opts = {
+                reverse_direction: false,
+                hand_open: true,
+                reset_limits: false,
+                ...value,
+            };
+
+            // Legacy names
+            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
+            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
+
+            if (meta.mapped.model === 'ZNCLDJ12LM') {
+                await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.xiaomi);
+                await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, manufacturerOptions.xiaomi);
+
+                if (opts.reset_limits) {
+                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
+                }
+            } else if (meta.mapped.model === 'ZNCLDJ11LM') {
+                const payload = [
+                    0x07, 0x00, opts.reset_limits ? 0x01: 0x02, 0x00, opts.reverse_direction ? 0x01: 0x00, 0x04,
+                    !opts.hand_open ? 0x01: 0x00, 0x12,
+                ];
+
+                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, manufacturerOptions.xiaomi);
+
+                // hand_open requires a separate request with slightly different payload
+                payload[2] = 0x08;
+                await entity.write('genBasic', {0x0401: {value: payload, type: 0x42}}, manufacturerOptions.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options set called for not supported model: ${meta.mapped.model}`);
+            }
+
+            // Reset limits is an action, not a state.
+            delete opts.reset_limits;
+            return {state: {options: opts}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (meta.mapped.model === 'ZNCLDJ11LM') {
+                await entity.read('genBasic', [0x0401], manufacturerOptions.xiaomi);
+            } else {
+                throw new Error(`xiaomi_curtain_options get called for not supported model: ${meta.mapped.model}`);
+            }
+        },
+    },
+    xiaomi_curtain_position_state: {
+        key: ['state', 'position'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
+                await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
+
+                // Xiaomi curtain does not send position update on stop, request this.
+                await entity.read('genAnalogOutput', [0x0055]);
+            } else {
+                const lookup = {'open': 100, 'close': 0, 'on': 100, 'off': 0};
+
+                value = typeof value === 'string' ? value.toLowerCase() : value;
+                value = lookup.hasOwnProperty(value) ? lookup[value] : value;
+
+                if (key === 'position') {
+                    value = meta.options.invert_cover ? 100 - value : value;
+                }
+
+                const payload = {0x0055: {value, type: 0x39}};
+                await entity.write('genAnalogOutput', payload);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genAnalogOutput', [0x0055]);
+        },
+    },
+    ledvance_commands: {
+        /* deprectated osram_*/
+        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'osram_set_transition' || key === 'set_transition') {
+                if (value) {
+                    const transition = (value > 1) ? (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 10 : 1;
+                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
+                    await entity.write('genLevelCtrl', payload);
+                }
+            } else if (key == 'osram_remember_state' || key == 'remember_state') {
+                if (value === true) {
+                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, manufacturerOptions.osram);
+                } else if (value === false) {
+                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, manufacturerOptions.osram);
+                }
+            }
+        },
+    },
+    tuya_switch_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
+            return {state: {power_outage_memory: value}};
+        },
+    },
+    kmpcil_res005_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = {disableDefaultResponse: true};
+            utils.validateValue(value, ['toggle', 'off', 'on']);
+            if (value.toLowerCase() === 'toggle') {
+                if (!meta.state.hasOwnProperty('state')) {
+                    throw new Error('Cannot toggle, state not known yet');
+                } else {
+                    const payload = {0x0055: {value: (meta.state.state === 'OFF')?0x01:0x00, type: 0x10}};
+                    await entity.write('genBinaryOutput', payload, options);
+                    return {state: {state: meta.state.state === 'OFF' ? 'ON' : 'OFF'}};
+                }
+            } else {
+                const payload = {0x0055: {value: (value.toUpperCase() === 'OFF')?0x00:0x01, type: 0x10}};
+                await entity.write('genBinaryOutput', payload, options);
+                return {state: {state: value.toUpperCase()}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBinaryOutput', ['presentValue']);
+        },
+    },
+    light_onoff_restorable_brightness: {
+        /**
+         * Some devices reset brightness to 100% when turned on, even if previous brightness was different
+         * This uses the stored state of the device to restore to the previous brightness level when turning on
+         */
+        key: ['state', 'brightness', 'brightness_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            const deviceState = meta.state || {};
+            const message = meta.message;
+            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : null;
+            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
+
+            // Add brightness if command is 'on' and we can restore previous value
+            if (state === 'on' && !hasBrightness && deviceState.brightness > 0) {
+                message.brightness = deviceState.brightness;
+            }
+
+            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    },
+    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'low': 0x04010000, 'medium': 0x04020000, 'high': 0x04030000};
+            utils.validateValue(value, Object.keys(lookup));
+
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('ssIasZone', {0xFFF1: {value: lookup[value], type: 0x23}}, options);
+            return {state: {sensitivity: value}};
+        },
+    },
+    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
+        key: ['selftest'],
+        convertSet: async (entity, key, value, meta) => {
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
+        },
+    },
+    LLKZMK11LM_interlock: {
+        key: ['interlock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
+            return {state: {interlock: value}};
+        },
+    },
+    DJT11LM_vibration_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'low': 0x15, 'medium': 0x0B, 'high': 0x01};
+            utils.validateValue(value, Object.keys(lookup));
+
+            const options = {...manufacturerOptions.xiaomi, timeout: 35000};
+            await entity.write('genBasic', {0xFF0D: {value: lookup[value], type: 0x20}}, options);
+            return {state: {sensitivity: value}};
+        },
+    },
+    danfoss_mounted_mode: {
+        key: ['mounted_mode_control'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4013: {value: (value ? 0x00: 0x01), type: 0x10}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4013], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_thermostat_orientation: {
+        key: ['thermostat_orientation'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4014: {value: (value ? 0x01: 0x00), type: 0x10}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4014], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_algorithm_scale_factor: {
+        key: ['algorithm_scale_factor'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4020: {value: value, type: 0x20}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4020], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_heat_available: {
+        key: ['heat_available'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4030: {value: (value ? 0x01: 0x00), type: 0x10}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4030], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_day_of_week: {
+        key: ['day_of_week'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4010: {value: (Math.abs(value) < 7 ? Math.abs(value) : 7), type: 0x30}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4010], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_trigger_time: {
+        key: ['trigger_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4011: {value: (value ? 0x01: 0x00), type: 0x21}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4011], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_window_open: {
+        key: ['window_open_external'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4003: {value: (value ? 0x01: 0x00), type: 0x10}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4003], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_display_orientation: {
+        key: ['display_orientation'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4000: {value: value, type: 0x30}};
+            await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', [0x4000], manufacturerOptions.danfoss);
+        },
+    },
+    moes_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesChildLock, value === 'LOCK');
+        },
+    },
+    moes_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+        },
+    },
+    moes_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTemp, value);
+        },
+    },
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value < 0) value = 4096 + value;
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesTempCalibration, value);
+        },
+    },
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const hold = value === 'hold' ? 0 : 1;
+            const schedule = value === 'program' ? 0 : 1;
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesHold, hold);
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesScheduleEnable, schedule);
+        },
+    },
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
+        },
+    },
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+                const lookup = {'in': 0, 'al': 1, 'ou': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+            }
+            if ((typeof value === 'number') && (value >=0) && (value <=2)) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSensor, value);
+            } else {
+                throw new Error(`Unsupported value: ${value}`);
+            }
+        },
+    },
+    tuya_led_control: {
+        key: ['color', 'brightness', 'color_temp'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'color_temp') {
+                value = Number(value);
+                const mappedValue = Math.round(-0.734 * value + 367);
+                const payload = {colortemp: mappedValue, transtime: 0};
+                // disable tuya rgb mode
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+                return {state: {color_temp: mappedValue}};
+            }
+            // transtime is ignored
+            const payload = {
+                transtime: 0,
+                hue: Math.round((meta.state.color.h * 254) / 360),
+                saturation: Math.round(meta.state.color.s * 2.54),
+                brightness: meta.state.brightness || 255,
+            };
+            if (value.h) {
+                payload.hue = Math.round((value.h * 254) / 360);
+            }
+            if (value.s) {
+                payload.saturation = Math.round(value.s * 2.54);
+            }
+            if (value.b) {
+                payload.brightness = value.b;
+            }
+            if (value.brightness) {
+                payload.brightness = value.brightness;
+            }
+            if (typeof value === 'number') {
+                payload.brightness = value;
+            }
+            if (meta.state.tuyaMode === 0 && payload.brightness) {
+                await entity.command('genLevelCtrl',
+                    'moveToLevel',
+                    {transtime: 0, level: payload.brightness},
+                    {disableResponse: true, disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                return {state: {brightness: payload.brightness}};
+            }
+
+            // if key is color -> make sure to switch to rgb mode
+            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
+            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
+            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
+            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'color') {
+                await entity.read('lightingColorCtrl', [
+                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
+                ]);
+            }
+        },
+    },
+    tuya_led_controller: {
+        key: ['state', 'color'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'state') {
+                if (value.toLowerCase() === 'off') {
+                    await entity.command(
+                        'genOnOff', 'offWithEffect', {effectid: 0x01, effectvariant: 0x01}, utils.getOptions(meta.mapped, entity),
+                    );
+                } else {
+                    const payload = {level: 255, transtime: 0};
+                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
+                }
+                return {state: {state: value.toUpperCase()}};
+            } else if (key === 'color') {
+                const hue = {};
+                const saturation = {};
+
+                hue.hue = Math.round((value.h * 254) / 360);
+                saturation.saturation = Math.round(value.s * 2.54);
+
+                hue.transtime = saturation.transtime = 0;
+                hue.direction = 0;
+
+                await entity.command('lightingColorCtrl', 'moveToHue', hue, {}, utils.getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'moveToSaturation', saturation, {}, utils.getOptions(meta.mapped, entity));
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'state') {
+                await entity.read('genOnOff', ['onOff']);
+            } else if (key === 'color') {
+                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation']);
+            }
+        },
+    },
+    tuya_dimmer_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+        },
+    },
+    tuya_dimmer_level: {
+        key: ['brightness_min', 'brightness', 'brightness_percent', 'level'],
+        convertSet: async (entity, key, value, meta) => {
+            // upscale to 1000
+            let newValue;
+            let dp = tuya.dataPoints.dimmerLevel;
+            if (meta.device.manufacturerName === '_TZE200_9i9dt8is' || meta.device.manufacturerName === '_TZE200_dfxkcots') {
+                dp = tuya.dataPoints.eardaDimmerLevel;
+            }
+            if (key === 'brightness_min') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                    dp = tuya.dataPoints.dimmerLevel;
+                } else {
+                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                }
+            } else if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value) * 10);
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else {
+                if (value >= 0 && value <= 255) {
+                    newValue = Math.round(Number(value) * 1000 / 255);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+            }
+            await tuya.sendDataPointValue(entity, dp, newValue);
+        },
+    },
+    tuya_switch_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
+            const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
+            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
+            await tuya.sendDataPointBool(entity, keyid, value === 'ON');
+            return {state: {state: value.toUpperCase()}};
+        },
+    },
+    RM01_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_onoff_brightness.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_onoff_brightness.convertGet(endpoint, key, meta);
+            } else {
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
+    RM01_light_brightness_step: {
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
+    RM01_light_brightness_move: {
+        key: ['brightness_move', 'brightness_move_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    },
+    aqara_opple_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for binding
+            // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
+            return {state: {operation_mode: value.toLowerCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+        },
+    },
+    EMIZB_132_mode: {
+        key: ['interface_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(2);
+            const lookup = {
+                'norwegian_han': {value: 0x0200, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'norwegian_han_extra_load': {value: 0x0201, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'aidon_meter': {value: 0x0202, acVoltageDivisor: 10, acCurrentDivisor: 10},
+                'kaifa_and_kamstrup': {value: 0x0203, acVoltageDivisor: 10, acCurrentDivisor: 1000},
+            };
+
+            if (!lookup[value]) {
+                throw new Error(`Interface mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
+            }
+
+            await endpoint.write(
+                'seMetering', {0x0302: {value: lookup[value].value, type: 49}}, {manufacturerCode: 0x1015},
+            );
+
+            // As the device reports the incorrect divisor, we need to set it here
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-604347303
+            // Values for norwegian_han and aidon_meter have not been been checked
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: lookup[value].acVoltageDivisor,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: lookup[value].acCurrentDivisor,
+            });
+
+            return {state: {interface_mode: value}};
+        },
+    },
+    eurotronic_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            const hostFlags = {};
+            switch (systemMode) {
+            case 0: // off (window_open for eurotronic)
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = true;
+                break;
+            case 4: // heat (boost for eurotronic)
+                hostFlags['boost'] = true;
+                hostFlags['window_open'] = false;
+                break;
+            default:
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = false;
+                break;
+            }
+            await converters.eurotronic_host_flags.convertSet(entity, 'eurotronic_host_flags', hostFlags, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await converters.eurotronic_host_flags.convertGet(entity, 'eurotronic_host_flags', meta);
+        },
+    },
+    eurotronic_host_flags: {
+        key: ['eurotronic_host_flags', 'eurotronic_system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'object') {
+                // read current eurotronic_host_flags (we will update some of them)
+                await entity.read('hvacThermostat', [0x4008], manufacturerOptions.eurotronic);
+                const currentHostFlags = meta.state.eurotronic_host_flags ? meta.state.eurotronic_host_flags : {};
+
+                // get full hostFlag object
+                const hostFlags = {...currentHostFlags, ...value};
+
+                // calculate bit value
+                let bitValue = 1; // bit 0 always 1
+                if (hostFlags.mirror_display) {
+                    bitValue |= 1 << 1;
+                }
+                if (hostFlags.boost) {
+                    bitValue |= 1 << 2;
+                }
+                if (value.hasOwnProperty('window_open') && value.window_open != currentHostFlags.window_open) {
+                    if (hostFlags.window_open) {
+                        bitValue |= 1 << 5;
+                    } else {
+                        bitValue |= 1 << 4;
+                    }
+                }
+                if (hostFlags.child_protection) {
+                    bitValue |= 1 << 7;
+                }
+
+                meta.logger.debug(`eurotronic: host_flags object converted to ${bitValue}`);
+                value = bitValue;
+            }
+            const payload = {0x4008: {value, type: 0x22}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4008], manufacturerOptions.eurotronic);
+        },
+    },
+    eurotronic_error_status: {
+        key: ['eurotronic_error_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4002], manufacturerOptions.eurotronic);
+        },
+    },
+    eurotronic_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            const payload = {0x4003: {value: val, type: 0x29}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4003], manufacturerOptions.eurotronic);
+        },
+    },
+    eurotronic_valve_position: {
+        key: ['eurotronic_valve_position'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4001: {value, type: 0x20}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4001], manufacturerOptions.eurotronic);
+        },
+    },
+    eurotronic_trv_mode: {
+        key: ['eurotronic_trv_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4000: {value, type: 0x30}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
+        },
+    },
     sinope_thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeOccupancy = {
-                0: 'unoccupied',
-                1: 'occupied',
-            };
-            const SinopeOccupancy = utils.getKeyByValue(sinopeOccupancy, value, value);
+            const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
+            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
             await entity.write('hvacThermostat', {SinopeOccupancy});
         },
     },
@@ -2097,7 +2292,7 @@ const converters = {
                 0: 'on demand',
                 1: 'sensing',
             };
-            const SinopeBacklight = utils.getKeyByValue(sinopeBacklightParam, value, value);
+            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight});
         },
     },
@@ -2247,7 +2442,7 @@ const converters = {
             }
 
             if (key === 'trigger') {
-                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: value, offwaittime: 0});
+                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
             } else if (key === 'interval') {
                 await entity.configureReporting('genOnOff', [{
                     attribute: 'onOff',
@@ -2334,8 +2529,6 @@ const converters = {
             }
         },
     },
-
-    // ubisys configuration / calibration converters
     ubisys_configure_j1: {
         key: ['configure_j1'],
         convertSet: async (entity, key, value, meta) => {
@@ -2365,7 +2558,7 @@ const converters = {
                     }
                     const attributes = {};
                     attributes[attr] = attrValue;
-                    await entity.write('closuresWindowCovering', attributes, options.ubisys);
+                    await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
                 }
             };
             const stepsPerSecond = value.steps_per_second || 50;
@@ -2396,7 +2589,7 @@ const converters = {
                     ubisysTotalSteps: 0xffff,
                     ubisysLiftToTiltTransitionSteps2: 0xffff,
                     ubisysTotalSteps2: 0xffff,
-                }, options.ubisys);
+                }, manufacturerOptions.ubisys);
                 // enable calibration mode
                 await sleepSeconds(2);
                 await entity.write('closuresWindowCovering', {windowCoveringMode: 0x02});
@@ -2480,7 +2673,34 @@ const converters = {
                 'ubisysAdditionalSteps',
                 'ubisysInactivePowerThreshold',
                 'ubisysStartupSteps',
-            ], options.ubisys));
+            ], manufacturerOptions.ubisys));
+        },
+    },
+    ubisys_dimmer_setup: {
+        key: ['capabilities_forward_phase_control',
+            'capabilities_reverse_phase_control',
+            'capabilities_reactance_discriminator',
+            'capabilities_configurable_curve',
+            'capabilities_overload_detection',
+            'status_forward_phase_control',
+            'status_reverse_phase_control',
+            'status_overload',
+            'status_capacitive_load',
+            'status_inductive_load',
+            'mode_phase_control'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'mode_phase_control') {
+                const phaseControl = value.toLowerCase();
+                const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
+                utils.validateValue(phaseControl, Object.keys(phaseControlValues));
+                await entity.write('manuSpecificUbisysDimmerSetup', {'mode': phaseControlValues[phaseControl]});
+            }
+            converters.ubisys_dimmer_setup.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['status']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['mode']);
         },
     },
     ubisys_device_setup: {
@@ -2696,15 +2916,12 @@ const converters = {
             log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions']));
         },
     },
-
     tint_scene: {
         key: ['tint_scene'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genBasic', {0x4005: {value, type: 0x20}}, options.tint);
+            await entity.write('genBasic', {0x4005: {value, type: 0x20}}, manufacturerOptions.tint);
         },
     },
-
-    // legrand custom cluster : settings
     legrand_identify: {
         key: ['identify'],
         convertSet: async (entity, key, value, meta) => {
@@ -2735,17 +2952,16 @@ const converters = {
             } else {
                 await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
             }
-            // await entity.command('genIdentify', 'triggerEffect', payload, getOptions(meta.mapped, entity));
         },
     },
-    // connected power outlet is on attribute 2 and not 1
     legrand_settingAlwaysEnableLed: {
+        // connected power outlet is on attribute 2 and not 1
         key: ['permanent_led'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {1: {value: enableLedIfOn, type: 16}};
-            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
         },
     },
     legrand_settingEnableLedIfOn: {
@@ -2756,7 +2972,7 @@ const converters = {
             // on the shutter switch, the LED is on when te shutter is moving
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {2: {value: enableLedIfOn, type: 16}};
-            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
         },
     },
     legrand_settingEnableDimmer: {
@@ -2765,19 +2981,36 @@ const converters = {
             // enable the dimmer, requires a recent firmware on the device
             const enableDimmer = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {0: {value: enableDimmer ? 0x0101 : 0x0100, type: 9}};
-            await entity.write('manuSpecificLegrandDevices', payload, options.legrand);
+            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
         },
     },
-    legrand_readActivePower: {
-        key: ['power'],
+    legrand_deviceMode: {
+        key: ['device_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // enable the dimmer, requires a recent firmware on the device
+            const lookup = {
+                // dimmer
+                'dimmer_on': 0x0101,
+                'dimmer_off': 0x0100,
+                // contactor
+                'switch': 0x0003,
+                'auto': 0x0004,
+            };
+
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = {0: {value: lookup[value], type: 9}};
+            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
+            return {state: {'device_mode': value}};
+        },
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['activePower']);
+            await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     },
     legrand_powerAlarm: {
         key: ['power_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const enableAlarm = (value === 'DISABLE' ? false : true);
+            const enableAlarm = (value === 'DISABLE' || value === false ? false : true);
             const payloadBolean = {0xf001: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
             const payloadValue = {0xf002: {value: value, type: 0x29}};
             await entity.write('haElectricalMeasurement', payloadValue);
@@ -2789,322 +3022,22 @@ const converters = {
             await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
         },
     },
-    tuya_led_control: {
-        key: ['color', 'brightness', 'color_temp'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp') {
-                value = Number(value);
-                const mappedValue = Math.round(-0.734 * value + 367);
-                const payload = {colortemp: mappedValue, transtime: 0};
-                // disable tuya rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, getOptions(meta.mapped, entity));
-                return {state: {color_temp: mappedValue}};
-            }
-            // transtime is ignored
-            const payload = {
-                transtime: 0,
-                hue: Math.round((meta.state.color.h * 254) / 360),
-                saturation: Math.round(meta.state.color.s * 2.54),
-                brightness: meta.state.brightness || 255,
-            };
-            if (value.h) {
-                payload.hue = Math.round((value.h * 254) / 360);
-            }
-            if (value.s) {
-                payload.saturation = Math.round(value.s * 2.54);
-            }
-            if (value.b) {
-                payload.brightness = value.b;
-            }
-            if (value.brightness) {
-                payload.brightness = value.brightness;
-            }
-            if (typeof value === 'number') {
-                payload.brightness = value;
-            }
-            if (meta.state.tuyaMode === 0 && payload.brightness) {
-                await entity.command('genLevelCtrl',
-                    'moveToLevel',
-                    {transtime: 0, level: payload.brightness},
-                    {disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                return {state: {brightness: payload.brightness}};
-            }
-
-            // if key is color -> make sure to switch to rgb mode
-            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
-            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
-            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
-        },
-        convertGet: async (entity, key, meta) => {
-            if (key === 'color') {
-                await entity.read('lightingColorCtrl', [
-                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
-                ]);
-            }
-        },
-    },
-    tuya_led_controller: {
-        key: ['state', 'color'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'state') {
-                if (value.toLowerCase() === 'off') {
-                    await entity.command(
-                        'genOnOff', 'offWithEffect', {effectid: 0x01, effectvariant: 0x01}, getOptions(meta.mapped, entity),
-                    );
-                } else {
-                    const payload = {level: 255, transtime: 0};
-                    await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, getOptions(meta.mapped, entity));
-                }
-                return {state: {state: value.toUpperCase()}};
-            } else if (key === 'color') {
-                const hue = {};
-                const saturation = {};
-
-                hue.hue = Math.round((value.h * 254) / 360);
-                saturation.saturation = Math.round(value.s * 2.54);
-
-                hue.transtime = saturation.transtime = 0;
-                hue.direction = 0;
-
-                await entity.command('lightingColorCtrl', 'moveToHue', hue, {}, getOptions(meta.mapped, entity));
-                await entity.command('lightingColorCtrl', 'moveToSaturation', saturation, {}, getOptions(meta.mapped, entity));
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (key === 'state') {
-                await entity.read('genOnOff', ['onOff']);
-            } else if (key === 'color') {
-                await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation']);
-            }
-        },
-    },
-    tuya_dimmer_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, value === 'ON');
-        },
-    },
-    tuya_dimmer_level: {
-        key: ['brightness_min', 'brightness', 'brightness_percent', 'level'],
-        convertSet: async (entity, key, value, meta) => {
-            // upscale to 1000
-            let newValue;
-            let dp = common.TuyaDataPoints.dimmerLevel;
-            if (meta.device.manufacturerName == '_TZE200_9i9dt8is') {
-                dp = common.TuyaDataPoints.eardaDimmerLevel;
-            }
-            if (key === 'brightness_min') {
-                if (value >= 0 && value <= 100) {
-                    newValue = Math.round(Number(value) * 10);
-                    dp = common.TuyaDataPoints.dimmerLevel;
-                } else {
-                    throw new Error('Dimmer brightness_min is out of range 0..100');
-                }
-            } else if (key === 'level') {
-                if (value >= 0 && value <= 1000) {
-                    newValue = Math.round(Number(value));
-                } else {
-                    throw new Error('Dimmer level is out of range 0..1000');
-                }
-            } else if (key === 'brightness_percent') {
-                if (value >= 0 && value <= 100) {
-                    newValue = Math.round(Number(value) * 10);
-                } else {
-                    throw new Error('Dimmer brightness_percent is out of range 0..100');
-                }
-            } else {
-                if (value >= 0 && value <= 255) {
-                    newValue = Math.round(Number(value) * 1000 / 255);
-                } else {
-                    throw new Error('Dimmer brightness is out of range 0..255');
-                }
-            }
-            await sendTuyaDataPointValue(entity, dp, newValue);
-        },
-    },
-    tuya_switch_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
-            const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
-            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await sendTuyaDataPointBool(entity, keyid, value === 'ON');
-            return {state: {state: value.toUpperCase()}};
-        },
-    },
-    RM01_light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_onoff_brightness.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_onoff_brightness.convertGet(endpoint, key, meta);
-            } else {
-                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
-            }
-        },
-    },
-    RM01_light_brightness_step: {
-        key: ['brightness_step', 'brightness_step_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    },
-    RM01_light_brightness_move: {
-        key: ['brightness_move', 'brightness_move_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    },
-    aqara_opple_operation_mode: {
-        key: ['operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            // modes:
-            // 0 - 'command' mode. keys send commands. useful for binding
-            // 1 - 'event' mode. keys send events. useful for handling
-            const lookup = {command: 0, event: 1};
-            const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': lookup[value.toLowerCase()]}, {manufacturerCode: 0x115f});
-            return {state: {operation_mode: value.toLowerCase()}};
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
-        },
-    },
-    EMIZB_132_mode: {
-        key: ['interface_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-            const lookup = {
-                'norwegian_han': {value: 0x0200, acVoltageDivisor: 10, acCurrentDivisor: 10},
-                'norwegian_han_extra_load': {value: 0x0201, acVoltageDivisor: 10, acCurrentDivisor: 10},
-                'aidon_meter': {value: 0x0202, acVoltageDivisor: 10, acCurrentDivisor: 10},
-                'kaifa_and_kamstrup': {value: 0x0203, acVoltageDivisor: 10, acCurrentDivisor: 1000},
-            };
-
-            if (!lookup[value]) {
-                throw new Error(`Interface mode '${value}' is not valid, chose: ${Object.keys(lookup)}`);
-            }
-
-            await endpoint.write(
-                'seMetering', {0x0302: {value: lookup[value].value, type: 49}}, {manufacturerCode: 0x1015},
-            );
-
-            // As the device reports the incorrect divisor, we need to set it here
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-604347303
-            // Values for norwegian_han and aidon_meter have not been been checked
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1,
-                acVoltageDivisor: lookup[value].acVoltageDivisor,
-                acCurrentMultiplier: 1,
-                acCurrentDivisor: lookup[value].acCurrentDivisor,
-            });
-
-            return {state: {interface_mode: value}};
-        },
-    },
-
-    /**
-     * Ignore converters
-     */
-    ignore_transition: {
-        key: ['transition'],
-        attr: [],
-        convertSet: async (entity, key, value, meta) => {
-        },
-    },
-    ignore_rate: {
-        key: ['rate'],
-        attr: [],
-        convertSet: async (entity, key, value, meta) => {
-        },
-    },
-
-    // Moes Thermostat
-    moes_thermostat_child_lock: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.moesChildLock, value === 'LOCK');
-        },
-    },
-    moes_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesHeatingSetpoint, value);
-        },
-    },
-    moes_thermostat_min_temperature: {
-        key: ['min_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesMinTemp, value);
-        },
-    },
-    moes_thermostat_calibration: {
-        key: ['local_temperature_calibration'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value < 0) value = 4096 + value;
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.moesTempCalibration, value);
-        },
-    },
-    moes_thermostat_mode: {
-        key: ['preset'],
-        convertSet: async (entity, key, value, meta) => {
-            const hold = value === 'hold' ? 0 : 1;
-            const schedule = value === 'program' ? 0 : 1;
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesHold, hold);
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesScheduleEnable, schedule);
-        },
-    },
-    moes_thermostat_standby: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, value === 'heat');
-        },
-    },
-    // send an mqtt message to topic '/sensor' to change the temperature sensor setting - options [0=IN|1=AL|2=OU]
-    moes_thermostat_sensor: {
-        key: ['sensor'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.moesSensor, value);
-        },
-    },
     etop_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'off':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, false);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, false);
                 break;
             case 'heat':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
-                await utils.sleepMs(500);
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 0 /* manual */);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true);
+                await utils.sleep(500);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 0 /* manual */);
                 break;
             case 'auto':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
-                await utils.sleepMs(500);
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 2 /* auto */);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true);
+                await utils.sleep(500);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 2 /* auto */);
                 break;
             }
         },
@@ -3114,12 +3047,12 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'ON':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.state, true);
-                await utils.sleepMs(500);
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 1 /* away */);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true);
+                await utils.sleep(500);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 1 /* away */);
                 break;
             case 'OFF':
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, 0 /* manual */);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 0 /* manual */);
                 break;
             }
         },
@@ -3179,7 +3112,7 @@ const converters = {
                     // [
                     //     bitmap of days: |  7|  6|  5|  4|  3|  2|  1|
                     //                     |Sat|Fri|Thu|Wed|Tue|Mon|Sun|,
-                    //     schedule mode - see common.TuyaThermostatScheduleMode, currently
+                    //     schedule mode - see tuya.thermostatScheduleMode, currently
                     //                     no known devices support modes other than "7 day"
                     //     4 transitions:
                     //       minutes from midnight high byte
@@ -3193,12 +3126,12 @@ const converters = {
                     payload.push(...transitionToData(transition));
                 });
                 if (conversion == 'saswell') {
-                    await sendTuyaDataPointRaw(
+                    await tuya.sendDataPointRaw(
                         entity,
-                        common.TuyaDataPoints.saswellScheduleSet,
+                        tuya.dataPoints.saswellScheduleSet,
                         payload);
                 } else {
-                    await sendTuyaDataPointRaw(
+                    await tuya.sendDataPointRaw(
                         entity,
                         firstDayDpId - 1 + dayofweek,
                         payload);
@@ -3209,59 +3142,59 @@ const converters = {
     tuya_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.childLock, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.childLock, value === 'LOCK');
         },
     },
     tuya_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointRaw(
+            await tuya.sendDataPointRaw(
                 entity,
-                common.TuyaDataPoints.windowDetection,
+                tuya.dataPoints.windowDetection,
                 [value === 'ON' ? 1 : 0]);
         },
     },
     siterwell_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(
+            await tuya.sendDataPointBool(
                 entity,
-                common.TuyaDataPoints.siterwellWindowDetection,
+                tuya.dataPoints.siterwellWindowDetection,
                 value === 'ON');
         },
     },
     tuya_thermostat_valve_detection: {
         key: ['valve_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.valveDetection, value === 'ON');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.valveDetection, value === 'ON');
         },
     },
     tuya_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.heatingSetpoint, temp);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.heatingSetpoint, temp);
         },
     },
     tuya_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null);
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(modeId));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(modeId));
             } else {
-                console.log(`TRV system mode ${value} is not recognized.`);
+                throw new Error(`TRV system mode ${value} is not recognized.`);
             }
         },
     },
     tuya_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            const presetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null);
+            const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
             if (presetId !== null) {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(presetId));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(presetId));
             } else {
-                console.log(`TRV preset ${value} is not recognized.`);
+                throw new Error(`TRV preset ${value} is not recognized.`);
             }
         },
     },
@@ -3269,82 +3202,98 @@ const converters = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
-            const awayPresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null);
-            const schedulePresetId = utils.getKeyByValue(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null);
+            const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
+            const schedulePresetId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null, Number,
+            );
             if (awayPresetId !== null) {
                 if (value == 'ON') {
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(awayPresetId));
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(awayPresetId));
                 } else if (schedulePresetId != null) {
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.mode, parseInt(schedulePresetId));
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, parseInt(schedulePresetId));
                 }
                 // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
-                console.log(`TRV preset ${value} is not recognized.`);
+                throw new Error(`TRV preset ${value} is not recognized.`);
             }
         },
     },
     tuya_thermostat_fan_mode: {
         key: ['fan_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKeyByValue(common.TuyaFanModes, value, null);
+            const modeId = utils.getKey(tuya.fanModes, value, null, Number);
             if (modeId !== null) {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.fanMode, parseInt(modeId));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.fanMode, parseInt(modeId));
             } else {
-                console.log(`TRV fan mode ${value} is not recognized.`);
+                throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
         },
     },
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.autoLock, value === 'AUTO');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.autoLock, value === 'AUTO');
         },
     },
     tuya_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            const temp = Math.round(value * 10);
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.tempCalibration, temp);
+            let temp = Math.round(value * 10);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.tempCalibration, temp);
         },
     },
     tuya_thermostat_min_temp: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.minTemperature, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.minTemp, value);
         },
     },
     tuya_thermostat_max_temp: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.maxTemperature, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.maxTemp, value);
         },
     },
     tuya_thermostat_boost_time: {
         key: ['boost_time'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.boostTime, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.boostTime, value);
         },
     },
     tuya_thermostat_comfort_temp: {
         key: ['comfort_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.comfortTemperature, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.comfortTemp, value);
         },
     },
     tuya_thermostat_eco_temp: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.ecoTemperature, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.ecoTemp, value);
         },
     },
     tuya_thermostat_force: {
         key: ['force'],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKeyByValue(common.TuyaThermostatForceMode, value, null);
+            const modeId = utils.getKey(tuya.thermostatForceMode, value, null, Number);
             if (modeId !== null) {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.forceMode, parseInt(modeId));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.forceMode, parseInt(modeId));
             } else {
-                console.log(`TRV force mode ${value} is not recognized.`);
+                throw new Error(`TRV force mode ${value} is not recognized.`);
+            }
+        },
+    },
+    tuya_thermostat_force_to_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            if (modeId !== null) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.forceMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV system mode ${value} is not recognized.`);
             }
         },
     },
@@ -3353,10 +3302,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'away_preset_days':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.awayDays, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.awayDays, value);
                 break;
             case 'away_preset_temperature':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.awayTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.awayTemp, value);
                 break;
             }
         },
@@ -3365,10 +3314,7 @@ const converters = {
         key: ['window_detect'],
         convertSet: async (entity, key, value, meta) => {
             const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
-            await sendTuyaDataPointRaw(
-                entity,
-                common.TuyaDataPoints.windowDetection,
-                [detect, value.temperature, value.minutes]);
+            await tuya.sendDataPointRaw(entity, tuya.dataPoints.windowDetection, [detect, value.temperature, value.minutes]);
         },
     },
     tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
@@ -3378,8 +3324,8 @@ const converters = {
             if ((prob === 'workdays') || (prob === 'holidays')) {
                 const dpId =
                     (prob === 'workdays') ?
-                        common.TuyaDataPoints.scheduleWorkday :
-                        common.TuyaDataPoints.scheduleHoliday;
+                        tuya.dataPoints.scheduleWorkday :
+                        tuya.dataPoints.scheduleHoliday;
                 const payload = [];
                 for (let i = 0; i < 6; i++) {
                     if ((value[prob][i].hour >= 0) && (value[prob][i].hour < 24)) {
@@ -3392,7 +3338,7 @@ const converters = {
                         payload[i*3+2] = value[prob][i].temperature;
                     }
                 }
-                sendTuyaDataPointRaw(entity, dpId, payload);
+                tuya.sendDataPointRaw(entity, dpId, payload);
             }
         },
     },
@@ -3401,7 +3347,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'5+2': 0, '6+1': 1, '7': 2};
             const week = lookup[value];
-            await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.weekFormat, week);
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.weekFormat, week);
             return {state: {week: value}};
         },
     },
@@ -3416,26 +3362,25 @@ const converters = {
                     const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
                         !meta.options.invert_cover : meta.options.invert_cover);
                     value = invert ? 100 - value : value;
-                    await sendTuyaDataPointValue(entity, common.TuyaDataPoints.coverPosition, value);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
-                    meta.logger.debug('TuYa_cover_control: Curtain motor position is out of range');
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
                 const isRoller = meta.mapped.model === 'TS0601_roller_blind';
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, isRoller ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 0 : 2);
                     break;
                 case 'open':
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, isRoller ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 2 : 0);
                     break;
                 case 'stop':
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.state, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
                     break;
                 default:
-                    meta.logger.debug('TuYa_cover_control: Invalid command received');
-                    break;
+                    throw new Error('TuYa_cover_control: Invalid command received');
                 }
             }
         },
@@ -3446,10 +3391,10 @@ const converters = {
             if (value.reverse_direction != undefined) {
                 if (value.reverse_direction) {
                     meta.logger.info('Motor direction reverse');
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.motorDirection, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 1);
                 } else {
                     meta.logger.info('Motor direction forward');
-                    await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.motorDirection, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 0);
                 }
             }
         },
@@ -3483,6 +3428,48 @@ const converters = {
             return {state: {[`${key}_${meta.endpoint_name}`]: value}};
         },
     },
+    TYZB01_on_off: {
+        key: ['state', 'time_in_seconds'],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await converters.on_off.convertSet(entity, key, value, meta);
+            const lowerCaseValue = value.toLowerCase();
+            if (!['on', 'off'].includes(lowerCaseValue)) {
+                return result;
+            }
+            const messageKeys = Object.keys(meta.message);
+            const timeInSecondsValue = function() {
+                if (messageKeys.includes('state')) {
+                    return meta.message.time_in_seconds;
+                }
+                if (meta.endpoint_name) {
+                    return meta.message[`time_in_seconds_${meta.endpoint_name}`];
+                }
+                return null;
+            }();
+            if (!timeInSecondsValue) {
+                return result;
+            }
+            const timeInSeconds = Number(timeInSecondsValue);
+            if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
+                throw Error('The time_in_seconds value must be convertible to an integer in the '+
+                            'range: <0x0000, 0xFFFE>');
+            }
+            const on = lowerCaseValue === 'on';
+            await entity.command(
+                'genOnOff',
+                'onWithTimedOff',
+                {
+                    ctrlbits: 0,
+                    ontime: (on ? 0 : timeInSeconds.valueOf()),
+                    offwaittime: (on ? timeInSeconds.valueOf() : 0),
+                },
+                utils.getOptions(meta.mapped, entity));
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
     diyruz_geiger_config: {
         key: ['sensitivity', 'led_feedback', 'buzzer_feedback', 'sensors_count', 'sensors_type', 'alert_threshold'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -3512,6 +3499,9 @@ const converters = {
             };
 
             await entity.write('msIlluminanceLevelSensing', payloads[key]);
+            return {
+                state: {[key]: rawValue},
+            };
         },
         convertGet: async (entity, key, meta) => {
             const payloads = {
@@ -3528,10 +3518,7 @@ const converters = {
     diyruz_airsense_config: {
         key: ['led_feedback', 'enable_abc', 'threshold1', 'threshold2', 'temperature_offset', 'pressure_offset', 'humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {
-                'OFF': 0x00,
-                'ON': 0x01,
-            };
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
                 led_feedback: ['msCO2', {0x0203: {value, type: 0x10}}],
@@ -3569,40 +3556,40 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'alarm':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoAlarm, value);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.neoAlarm, value);
                 break;
             case 'melody':
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.neoMelody, parseInt(value, 10));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.neoMelody, parseInt(value, 10));
                 break;
             case 'volume':
-                await sendTuyaDataPointEnum(
+                await tuya.sendDataPointEnum(
                     entity,
-                    common.TuyaDataPoints.neoVolume,
+                    tuya.dataPoints.neoVolume,
                     {'low': 2, 'medium': 1, 'high': 0}[value]);
                 break;
             case 'duration':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoDuration, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoDuration, value);
                 break;
             case 'temperature_max':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMaxTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMaxTemp, value);
                 break;
             case 'temperature_min':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMinTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMinTemp, value);
                 break;
             case 'humidity_max':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMaxHumidity, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMaxHumidity, value);
                 break;
             case 'humidity_min':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.neoMinHumidity, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMinHumidity, value);
                 break;
             case 'temperature_alarm':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoTempAlarm, value);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.neoTempAlarm, value);
                 break;
             case 'humidity_alarm':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.neoHumidityAlarm, value);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.neoHumidityAlarm, value);
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
@@ -3612,25 +3599,25 @@ const converters = {
             switch (key) {
             case 'send_key':
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
-                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
                 break;
             case 'create':
                 await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']},
-                    getOptions(meta.mapped, entity));
+                    utils.getOptions(meta.mapped, entity));
                 break;
             case 'learn':
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
-                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
                 break;
             case 'delete':
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
-                    {id: value['id'], keyCode: value['key_code']}, getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
                 break;
             case 'get_list':
-                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, getOptions(meta.mapped, entity));
+                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, utils.getOptions(meta.mapped, entity));
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
@@ -3640,18 +3627,18 @@ const converters = {
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
             const sceneid = value;
-            const response = await entity.command('genScenes', 'store', {groupid, sceneid}, getOptions(meta.mapped));
+            const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped));
 
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                        utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
                     }
                 }
             } else if (response.status === 0) {
-                saveSceneState(entity, sceneid, groupid, meta.state);
+                utils.saveSceneState(entity, sceneid, groupid, meta.state);
             } else {
-                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+                throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
 
             return {state: {}};
@@ -3662,7 +3649,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
             const sceneid = value;
-            await entity.command('genScenes', 'recall', {groupid, sceneid}, getOptions(meta.mapped));
+            await entity.command('genScenes', 'recall', {groupid, sceneid}, utils.getOptions(meta.mapped));
 
             const isGroup = entity.constructor.name === 'Group';
             const metaKey = `${sceneid}_${groupid}`;
@@ -3732,6 +3719,9 @@ const converters = {
                      *
                      * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
                      */
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+                    val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
+
                     const xy = utils.miredsToXY(val);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
                     state['color_temp'] = val;
@@ -3741,26 +3731,61 @@ const converters = {
                     } catch (e) {
                         e;
                     }
-                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
-                    state['color'] = xy;
+                    const color = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 4,
+                                'extField': [Math.round(color.x * 65535), Math.round(color.y * 65535)],
+                            },
+                        );
+                        state['color'] = {x: color.x, y: color.y};
+                    } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
+                        const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 13,
+                                'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                            },
+                        );
+                        state['color'] = {hue: color.hue, saturation: color.saturation};
+                    }
                 }
             }
 
-            const response = await entity.command(
-                'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, getOptions(meta.mapped),
+            /*
+             * Remove scene first
+             *
+             * Multiple add scene calls will result in the current and previous
+             * payloads to be merged. Resulting in unexpected behavior when
+             * trying to replace a scene.
+             *
+             * We accept a SUCESS or NOT_FOUND as a result of the remove call.
+             */
+            const removeresp = await entity.command(
+                'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
 
-            if (isGroup) {
-                if (meta.membersState) {
-                    for (const member of entity.members) {
-                        saveSceneState(member, sceneid, groupid, state);
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
+                const response = await entity.command(
+                    'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
+                );
+
+                if (isGroup) {
+                    if (meta.membersState) {
+                        for (const member of entity.members) {
+                            utils.saveSceneState(member, sceneid, groupid, state);
+                        }
                     }
+                } else if (response.status === 0) {
+                    utils.saveSceneState(entity, sceneid, groupid, state);
+                } else {
+                    throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
                 }
-            } else if (response.status === 0) {
-                saveSceneState(entity, sceneid, groupid, state);
             } else {
-                throw new Error(`Scene add not succesfull ('${common.zclStatus[response.status]}')`);
+                throw new Error(`Scene add unable to remove existing scene ('${herdsman.Zcl.Status[removeresp.status]}')`);
             }
 
             return {state: {}};
@@ -3771,7 +3796,9 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
             const sceneid = value;
-            await entity.command('genScenes', 'remove', {groupid, sceneid}, getOptions(meta.mapped));
+            const response = await entity.command(
+                'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
+            );
 
             const isGroup = entity.constructor.name === 'Group';
             const metaKey = `${sceneid}_${groupid}`;
@@ -3784,11 +3811,41 @@ const converters = {
                         }
                     }
                 }
-            } else {
+            } else if (response.status === 0) {
                 if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
                     delete entity.meta.scenes[metaKey];
                     entity.save();
                 }
+            } else {
+                throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+            }
+        },
+    },
+    scene_remove_all: {
+        key: ['scene_remove_all'],
+        convertSet: async (entity, key, value, meta) => {
+            const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
+            const response = await entity.command(
+                'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
+            );
+
+            const isGroup = entity.constructor.name === 'Group';
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        if (member.meta.scenes) {
+                            member.meta.scenes = {};
+                            member.save();
+                        }
+                    }
+                }
+            } else if (response.status === 0) {
+                if (entity.meta.scenes) {
+                    entity.meta.scenes = {};
+                    entity.save();
+                }
+            } else {
+                throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
         },
     },
@@ -3796,9 +3853,11 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'close': 1, 'stop': 2, 'open': 1};
-            const endpointID = lookup[value.toLowerCase()];
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const endpointID = lookup[value];
             const endpoint = entity.getDevice().getEndpoint(endpointID);
-            await endpoint.command('genOnOff', 'on', {}, getOptions(meta.mapped, entity));
+            await endpoint.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
@@ -3808,39 +3867,28 @@ const converters = {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellHeatingSetpoint, temp);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellHeatingSetpoint, temp);
         },
     },
     saswell_thermostat_mode: {
-        key: ['preset'],
+        key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if ( value == 'off' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-            } else if ( value == 'Schedule' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, true);
-            }
+            const schedule = (value === 'auto');
+            const enable = !(value === 'off');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellState, enable);
+            // Older versions of Saswell TRVs need the delay to work reliably
+            await utils.sleep(3000);
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellScheduleEnable, schedule);
         },
     },
     saswell_thermostat_away: {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             if ( value == 'ON' ) {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, true);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellAwayMode, true);
             } else {
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAwayMode, false);
-                // HA does not send preset_mode when exiting 'away'
-                // We have no way to check whether 'Schedule' is on, so we need to set it here
-                await utils.sleepMs(2000);
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellScheduleEnable, false);
-                meta.logger.error('Saswell: Sending prog 0');
-                // return {state: {preset_mode: 'none'}};
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellAwayMode, false);
             }
-        },
-    },
-    saswell_thermostat_standby: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellState, value === 'heat');
         },
     },
     saswell_thermostat_child_lock: {
@@ -3848,25 +3896,25 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // It seems that currently child lock can be sent and device responds,
             // but it's not entering lock state
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellChildLock, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellChildLock, value === 'LOCK');
         },
     },
     saswell_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellWindowDetection, value === 'ON');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellWindowDetection, value === 'ON');
         },
     },
     saswell_thermostat_frost_detection: {
         key: ['frost_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellFrostDetection, value === 'ON');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellFrostDetection, value === 'ON');
         },
     },
     saswell_thermostat_anti_scaling: {
         key: ['anti_scaling'],
         convertSet: async (entity, key, value, meta) => {
-            await sendTuyaDataPointBool(entity, common.TuyaDataPoints.saswellAntiScaling, value === 'ON');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.saswellAntiScaling, value === 'ON');
         },
     },
     saswell_thermostat_calibration: {
@@ -3875,7 +3923,7 @@ const converters = {
             if (value > 6) value = 6;
             if (value < -6) value = -6;
             if (value < 0) value = 0xFFFFFFFF + value + 1;
-            await sendTuyaDataPointValue(entity, common.TuyaDataPoints.saswellTempCalibration, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
         },
     },
     silvercrest_smart_led_string: {
@@ -3886,11 +3934,11 @@ const converters = {
             };
 
             if (key === 'effect') {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.effect);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.effect);
 
                 let data = [];
-                const effect = common.silvercrestEffects[value.effect];
-                data = data.concat(utils.convertStringToHexArray(effect));
+                const effect = tuya.silvercrestEffects[value.effect];
+                data = data.concat(tuya.convertStringToHexArray(effect));
                 let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
 
                 // Max speed what the gateways sends is 64.
@@ -3907,7 +3955,7 @@ const converters = {
                     speedString = '00';
                 }
 
-                data = data.concat(utils.convertStringToHexArray(speedString));
+                data = data.concat(tuya.convertStringToHexArray(speedString));
                 let colors = value.colors;
                 if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
                     colors = meta.state.effect.colors;
@@ -3940,25 +3988,25 @@ const converters = {
                             b = '0'+b;
                         }
 
-                        data = data.concat(utils.convertStringToHexArray(r));
-                        data = data.concat(utils.convertStringToHexArray(g));
-                        data = data.concat(utils.convertStringToHexArray(b));
+                        data = data.concat(tuya.convertStringToHexArray(r));
+                        data = data.concat(tuya.convertStringToHexArray(g));
+                        data = data.concat(tuya.convertStringToHexArray(b));
                     }
                 }
 
-                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetEffect, data);
+                await tuya.sendDataPoint(entity, tuya.dataTypes.string, tuya.dataPoints.silvercrestSetEffect, data);
             } else if (key === 'brightness') {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.white);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
                 // It expects 2 leading zero's.
                 let data = [0x00, 0x00];
 
                 // Scale it to what the device expects (0-1000 instead of 0-255)
                 const scaled = Math.round(scale(value, 0, 255, 0, 1000));
-                data = data.concat(utils.convertDecimalValueTo2ByteHexArray(scaled));
+                data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(scaled));
 
-                await sendTuyaDataPoint(entity, common.TuyaDataTypes.value, common.TuyaDataPoints.silvercrestSetBrightness, data);
+                await tuya.sendDataPoint(entity, tuya.dataTypes.value, tuya.dataPoints.silvercrestSetBrightness, data);
             } else if (key === 'color') {
-                await sendTuyaDataPointEnum(entity, common.TuyaDataPoints.silvercrestChangeMode, common.silvercrestModes.color);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color);
 
                 const make4sizedString = (v) => {
                     if (v.length >= 4) return v;
@@ -4018,11 +4066,11 @@ const converters = {
                 }
 
                 let data = [];
-                data = data.concat(utils.convertStringToHexArray(hsb.h));
-                data = data.concat(utils.convertStringToHexArray(hsb.s));
-                data = data.concat(utils.convertStringToHexArray(hsb.b));
+                data = data.concat(tuya.convertStringToHexArray(hsb.h));
+                data = data.concat(tuya.convertStringToHexArray(hsb.s));
+                data = data.concat(tuya.convertStringToHexArray(hsb.b));
 
-                await sendTuyaDataPoint(entity, common.TuyaDataTypes.string, common.TuyaDataPoints.silvercrestSetColor, data);
+                await tuya.sendDataPoint(entity, tuya.dataTypes.string, tuya.dataPoints.silvercrestSetColor, data);
             }
         },
     },
@@ -4039,22 +4087,22 @@ const converters = {
                 for (let i = 2; i < args.length; i++) {
                     data.push(parseInt(args[i]));
                 }
-                await sendTuyaDataPointRaw(entity, dp, data);
+                await tuya.sendDataPointRaw(entity, dp, data);
                 break;
             case 'bool':
-                await sendTuyaDataPointBool(entity, dp, args[2] === '1');
+                await tuya.sendDataPointBool(entity, dp, args[2] === '1');
                 break;
             case 'value':
-                await sendTuyaDataPointValue(entity, dp, parseInt(args[2]));
+                await tuya.sendDataPointValue(entity, dp, parseInt(args[2]));
                 break;
             case 'enum':
-                await sendTuyaDataPointEnum(entity, dp, parseInt(args[2]));
+                await tuya.sendDataPointEnum(entity, dp, parseInt(args[2]));
                 break;
             case 'bitmap':
                 for (let i = 2; i < args.length; i++) {
                     data.push(parseInt(args[i]));
                 }
-                await sendTuyaDataPointBitmap(entity, dp, data);
+                await tuya.sendDataPointBitmap(entity, dp, data);
                 break;
             }
         },
@@ -4086,7 +4134,7 @@ const converters = {
                 'ssIasWd',
                 'startWarning',
                 {startwarninginfo: info, warningduration: 0},
-                getOptions(meta.mapped, entity),
+                utils.getOptions(meta.mapped, entity),
             );
         },
     },
@@ -4094,9 +4142,11 @@ const converters = {
         key: ['calibration'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 0, 'OFF': 1};
-            const calibration = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const calibration = lookup[value];
             await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
-            return {state: {calibration: value.toUpperCase()}};
+            return {state: {calibration: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaCalibration']);
@@ -4106,9 +4156,11 @@ const converters = {
         key: ['motor_reversal'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 1, 'OFF': 0};
-            const reversal = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const reversal = lookup[value];
             await entity.write('closuresWindowCovering', {tuyaMotorReversal: reversal});
-            return {state: {motor_reversal: value.toUpperCase()}};
+            return {state: {motor_reversal: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
@@ -4118,9 +4170,11 @@ const converters = {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
-            const backlight = lookup[value.toUpperCase()];
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const backlight = lookup[value];
             await entity.write('genOnOff', {tuyaBacklightMode: backlight});
-            return {state: {backlight_mode: value.toUpperCase()}};
+            return {state: {backlight_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
@@ -4139,87 +4193,99 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'max_temperature_protection':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyMaxTempProtection, value === 'ON');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyMaxTempProtection, value === 'ON');
                 break;
             case 'min_temperature_protection':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyMinTempProtection, value === 'ON');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyMinTempProtection, value === 'ON');
                 break;
             case 'state':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyState, value === 'ON');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyState, value === 'ON');
                 break;
             case 'child_lock':
-                await sendTuyaDataPointBool(entity, common.TuyaDataPoints.hyChildLock, value === 'LOCKED');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCKED');
                 break;
             case 'away_preset_days':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyAwayDays, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyAwayDays, value);
                 break;
             case 'away_preset_temperature':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyAwayTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyAwayTemp, value);
                 break;
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
                 if (value < 0) value = 0xFFFFFFFF + value + 1;
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyTempCalibration, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyTempCalibration, value);
                 break;
             case 'hysteresis':
                 value = Math.round(value * 10);
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyHysteresis, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyHysteresis, value);
                 break;
             case 'hysteresis_for_protection':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionHysteresis, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyProtectionHysteresis, value);
                 break;
             case 'max_temperature_for_protection':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionMaxTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyProtectionMaxTemp, value);
                 break;
             case 'min_temperature_for_protection':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyProtectionMinTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyProtectionMinTemp, value);
                 break;
             case 'max_temperature':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyMaxTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyMaxTemp, value);
                 break;
             case 'min_temperature':
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyMinTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyMinTemp, value);
                 break;
             case 'current_heating_setpoint':
                 value = Math.round(value * 10);
-                await sendTuyaDataPointValue(entity, common.TuyaDataPoints.hyHeatingSetpoint, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hyHeatingSetpoint, value);
                 break;
             case 'sensor_type':
-                await sendTuyaDataPointEnum(
+                await tuya.sendDataPointEnum(
                     entity,
-                    common.TuyaDataPoints.hySensor,
+                    tuya.dataPoints.hySensor,
                     {'internal': 0, 'external': 1, 'both': 2}[value]);
                 break;
             case 'power_on_behavior':
-                await sendTuyaDataPointEnum(
+                await tuya.sendDataPointEnum(
                     entity,
-                    common.TuyaDataPoints.hyPowerOnBehavior,
+                    tuya.dataPoints.hyPowerOnBehavior,
                     {'restore': 0, 'off': 1, 'on': 2}[value]);
                 break;
             case 'week':
-                await sendTuyaDataPointEnum(
+                await tuya.sendDataPointEnum(
                     entity,
-                    common.TuyaDataPoints.hyWeekFormat,
-                    utils.getKeyByValue(common.TuyaThermostatWeekFormat, value, value));
+                    tuya.dataPoints.hyWeekFormat,
+                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number));
                 break;
             case 'system_mode':
-                await sendTuyaDataPointEnum(
+                await tuya.sendDataPointEnum(
                     entity,
-                    common.TuyaDataPoints.hyMode,
+                    tuya.dataPoints.hyMode,
                     {'manual': 0, 'auto': 1, 'away': 2}[value]);
                 break;
             default: // Unknown key
-                console.log(`Unhandled key ${key}`);
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },
+    // #endregion
+
+    // #region Ignore converters
+    ignore_transition: {
+        key: ['transition'],
+        attr: [],
+        convertSet: async (entity, key, value, meta) => {
+        },
+    },
+    ignore_rate: {
+        key: ['rate'],
+        attr: [],
+        convertSet: async (entity, key, value, meta) => {
+        },
+    },
+    // #endregion
 
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
-        for (const key of Object.keys(store)) {
-            delete store[key];
-        }
-
         globalStore.clear();
     },
 };

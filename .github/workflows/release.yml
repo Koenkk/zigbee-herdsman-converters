@@ -34,6 +34,7 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         tags: true
+        branch: master
     - name: Publish to npm
       run: npm publish
       env:
@@ -44,7 +45,7 @@ jobs:
         version=$(node -p "require('./package.json').version")
         echo "::set-output name=version::$version"
     - name: Wait till package is in NPM # otherwise Z2M job fails
-      run: sleep 60
+      run: sleep 120
     - name: Trigger Zigbee2MQTT update
       run: |
         curl -XPOST -H "Authorization: token ${{ secrets.TRIGGER_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}'
