@@ -4958,9 +4958,10 @@ const converters = {
             let val;
             switch (dp) {
             case 107: // 0x6b temperature
-                return {temperature: (value / 10).toFixed(1)};
+                return {temperature: calibrateAndPrecisionRoundOptions(
+                    (value / 10).toFixed(1), options, 'temperature')};
             case 108: // 0x6c humidity
-                return {humidity: value};
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             case 110: // 0x6e battery
                 return {battery: value};
             case 102: // 0x66 reporting time
