@@ -588,14 +588,15 @@ const devices = [
         model: 'QBKG23LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode],
         meta: {},
         endpoint: (device) => {
             return {'system': 1};
         },
         onEvent: xiaomi.preventReset,
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.action([
+            'hold', 'single', 'double', 'triple', 'release'])],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
