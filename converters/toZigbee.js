@@ -4269,6 +4269,50 @@ const converters = {
             }
         },
     },
+    ZB003X: {
+        key: [
+            'reporting_time', 'temperature_calibration', 'humidity_calibration',
+            'illuminance_calibration', 'pir_enable', 'led_enable',
+            'reporting_enable', 'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'reporting_time':
+                await tuya.sendDataPointValue(entity, 102, value, 'sendData');
+                break;
+            case 'temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 104, value, 'sendData');
+                break;
+            case 'humidity_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 105, value, 'sendData');
+                break;
+            case 'illuminance_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 106, value, 'sendData');
+                break;
+            case 'pir_enable':
+                await tuya.sendDataPointBool(entity, 109, value, 'sendData');
+                break;
+            case 'led_enable':
+                await tuya.sendDataPointBool(entity, 111, value, 'sendData');
+                break;
+            case 'reporting_enable':
+                await tuya.sendDataPointBool(entity, 112, value, 'sendData');
+                break;
+            case 'sensitivity':
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
+                break;
+            case 'keep_time':
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value], type: 0x20}});
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters
