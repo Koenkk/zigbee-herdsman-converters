@@ -2086,7 +2086,9 @@ const devices = [
         ],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']),
+            //only set occupied_heating_setpoint works for the controller
         ],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint) => {
