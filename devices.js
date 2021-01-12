@@ -15208,39 +15208,20 @@ const devices = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
-        description: '4 in 1 Multi Sensor',
-        fromZigbee: [
-            fz.battery,
-            fz.ignore_basic_report,
-            fz.illuminance,
-            fz.ZB003X,
-            fz.ZB003X_attr,
-            fz.ZB003X_occupancy,
-        ],
+        description: '4 in 1 multi sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [tz.ZB003X],
-        exposes: [
-            e.occupancy(), e.battery(),
-            e.illuminance().withUnit('lx'),
-            e.temperature(), e.humidity(),
+        exposes: [e.occupancy(), e.battery(), e.illuminance().withUnit('lx'), e.temperature(), e.humidity(),
+            exposes.numeric('reporting_time', exposes.access.STATE_SET).withDescription('Reporting interval in minutes'),
+            exposes.numeric('temperature_calibration', exposes.access.STATE_SET).withDescription('Temperature calibration'),
+            exposes.numeric('humidity_calibration', exposes.access.STATE_SET).withDescription('Humidity calibration'),
+            exposes.numeric('illuminance_calibration', exposes.access.STATE_SET).withDescription('Illuminance calibration'),
+            exposes.binary('pir_enable', exposes.access.STATE_SET, true, false).withDescription('Enable PIR sensor'),
+            exposes.binary('led_enable', exposes.access.STATE_SET, true, false).withDescription('Enabled LED'),
+            exposes.binary('reporting_enable', exposes.access.STATE_SET, true, false).withDescription('Enabled reporting'),
+            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             // eslint-disable-next-line
-            exposes.numeric('reporting_time', exposes.access.STATE_SET).withDescription("Reporting interval in minutes"),
-            // eslint-disable-next-line
-            exposes.numeric('temperature_calibration', exposes.access.STATE_SET).withDescription("Temperature calibration"),
-            // eslint-disable-next-line
-            exposes.numeric('humidity_calibration', exposes.access.STATE_SET).withDescription("Humidity calibration"),
-            // eslint-disable-next-line
-            exposes.numeric('illuminance_calibration', exposes.access.STATE_SET).withDescription("Illuminance calibration"),
-            // eslint-disable-next-line
-            exposes.binary('pir_enable', exposes.access.STATE_SET, true, false).withDescription("Enable PIR sensor"),
-            // eslint-disable-next-line
-            exposes.binary('led_enable', exposes.access.STATE_SET, true, false).withDescription("Enabled LED"),
-            // eslint-disable-next-line
-            exposes.binary('reporting_enable', exposes.access.STATE_SET, true, false).withDescription("Enabled reporting"),
-            // eslint-disable-next-line
-            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']).withDescription("PIR sensor sensitivity"),
-            // eslint-disable-next-line
-            exposes.enum('keep_time', exposes.access.STATE_SET, ['0', '30', '60', '120', '240']).withDescription("PIR keep time in seconds"),
-        ],
+            exposes.enum('keep_time', exposes.access.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
 ];
 
