@@ -1103,6 +1103,30 @@ const devices = [
         exposes: [],
     },
     {
+        zigbeeModel: ['TS0101'],
+        model: 'TS0101',
+        vendor: 'Tuya',
+        description: 'zigbee Socket',
+        extend: preset.switch,
+        meta: { disableDefaultResponse: true },
+    },
+    {
+        zigbeeModel: ['TS0108'],
+        model: 'TS0108',
+        vendor: 'Tuya',
+        description: 'Socket with 2 USB',
+        extend: preset.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return { 'l1': 1, 'l2': 7 };
+        },
+        meta: { multiEndpoint: true, disableDefaultResponse: true },
+        configure: async (device, coordinatorEndpoint) => {
+            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
@@ -1410,6 +1434,18 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
+        fingerprint: [
+            { modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx' },
+            { modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow' },
+        ],
+        model: 'TS0601_window_pusher',
+        vendor: 'TuYa',
+        description: 'Window pusher',
+        fromZigbee: [fz.tuya_cover],
+        toZigbee: [tz.tuya_cover_control],
+        exposes: [e.cover_position()],
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}],
         model: 'TS0601_thermostat',
@@ -1708,6 +1744,27 @@ const devices = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['TS0006'],
+        model: 'TS0006',
+        vendor: 'TuYa',
+        description: '6 gang switch module with neutral wire',
+        extend: preset.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+        e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),],
+        endpoint: (device) => {
+            return { 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6 };
+        },
+        meta: { configureKey: 1, multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
