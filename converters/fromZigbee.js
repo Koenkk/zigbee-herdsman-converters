@@ -1477,20 +1477,20 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
             case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
+            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
                 return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
-                const position = invert ? (value & 0xFF) : 100 - (value & 0xFF);
+                const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
@@ -1500,10 +1500,10 @@ const converters = {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
             }
-            case tuya.dataPoints.config: // 0x01 0x05: Returned by configuration set; ignore
+            case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
-                meta.logger.warn(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
         },
     },

@@ -3359,24 +3359,23 @@ const converters = {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
+            const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
+
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
-                        !meta.options.invert_cover : meta.options.invert_cover);
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const isRoller = meta.mapped.model === 'TS0601_roller_blind';
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, invert ? 2 : 0);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, invert ? 0 : 2);
                     break;
                 case 'stop':
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
