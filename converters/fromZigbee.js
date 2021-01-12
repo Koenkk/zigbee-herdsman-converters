@@ -4949,6 +4949,81 @@ const converters = {
             }
         },
     },
+    ZB003X: {
+        cluster: 'manuSpecificTuya',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data[5];
+            const value = tuya.getDataValue(tuya.dataTypes.value, msg.data.slice(8));
+            switch (dp) {
+            case 107: // 0x6b temperature
+                return {temperature: (value / 10).toFixed(1)};
+            case 108: // 0x6c humidity
+                return {humidity: value};
+            case 110: // 0x6e battery
+                return {battery: value};
+            case 102: // 0x66 reporting time
+                return {reporting_time: value};
+            case 104: // 0x68 temperature calibration
+                const temperature = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (temperature > 4294967295) temperature = temperature - 4294967295;
+                return {temperature_calibration: (temperature / 10).toFixed(1)};
+            case 105: // 0x69 humidity calibration
+                const humidity = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (humidity > 4294967295) humidity = humidity - 4294967295;
+                return {humidity_calibration: humidity};
+            case 106: // 0x6a lux calibration
+                const lux = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (lux > 4294967295) lux = lux - 4294967295;
+                return {illuminance_calibration: lux};
+            case 109: // 0x6d PIR enable
+                const pir = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
+                return {pir_enable: pir};
+            case 111: // 0x6f led enable
+                const led = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
+                return {led_enable: led};
+            case 112: // 0x70 reporting enable
+                const rep = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
+                return {reporting_enable: rep};
+            default: // Unknown code
+                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    ZB003X_attr: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const sens_lookup = {'0': 'low', '1': 'medium', '2': 'high'};
+            const keep_time_lookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
+            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const value = data.currentZoneSensitivityLevel;
+                return {
+                    sensitivity: sens_lookup[value],
+                };
+            }
+            if (data && data.hasOwnProperty('61441')) {
+                const value = data['61441'];
+                return {
+                    keep_time: keep_time_lookup[value],
+                };
+            }
+        },
+    },
+    ZB003X_occupancy: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1<<2) > 0
+            };
+        }
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
