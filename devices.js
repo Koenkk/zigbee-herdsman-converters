@@ -15223,23 +15223,23 @@ const devices = [
             e.illuminance().withUnit('lx'),
             e.temperature(), e.humidity(),
             // eslint-disable-next-line
-            exposes.numeric('reporting_time', exposes.access.STATE_SET).withDescripition("Reporting interval in minutes"),
+            exposes.numeric('reporting_time', exposes.access.STATE_SET).withDescription("Reporting interval in minutes"),
             // eslint-disable-next-line
-            exposes.numeric('temperature_calibration', exposes.access.STATE_SET).withDescripition("Temperature calibration"),
+            exposes.numeric('temperature_calibration', exposes.access.STATE_SET).withDescription("Temperature calibration"),
             // eslint-disable-next-line
-            exposes.numeric('humidity_calibration', exposes.access.STATE_SET).withDescripition("Humidity calibration"),
+            exposes.numeric('humidity_calibration', exposes.access.STATE_SET).withDescription("Humidity calibration"),
             // eslint-disable-next-line
-            exposes.numeric('illuminance_calibration', exposes.access.STATE_SET).withDescripition("Illuminance calibration"),
+            exposes.numeric('illuminance_calibration', exposes.access.STATE_SET).withDescription("Illuminance calibration"),
             // eslint-disable-next-line
-            exposes.binary('pir_enable', exposes.access.STATE_SET, true, false).withDescripition("Enable PIR sensor"),
+            exposes.binary('pir_enable', exposes.access.STATE_SET, true, false).withDescription("Enable PIR sensor"),
             // eslint-disable-next-line
-            exposes.binary('led_enable', exposes.access.STATE_SET, true, false).withDescripition("Enabled LED"),
+            exposes.binary('led_enable', exposes.access.STATE_SET, true, false).withDescription("Enabled LED"),
             // eslint-disable-next-line
-            exposes.binary('reporting_enable', exposes.access.STATE_SET, true, false).withDescripition("Enabled reporting"),
+            exposes.binary('reporting_enable', exposes.access.STATE_SET, true, false).withDescription("Enabled reporting"),
             // eslint-disable-next-line
-            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']).withDescripition("PIR sensor sensitivity"),
+            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']).withDescription("PIR sensor sensitivity"),
             // eslint-disable-next-line
-            exposes.enum('keep_time', exposes.access.STATE_SET, ['0', '30', '60', '120', '240']).withDescripition("PIR keep time in seconds"),
+            exposes.enum('keep_time', exposes.access.STATE_SET, ['0', '30', '60', '120', '240']).withDescription("PIR keep time in seconds"),
         ],
     },
 ];
