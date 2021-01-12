@@ -4955,6 +4955,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[5];
             const value = tuya.getDataValue(tuya.dataTypes.value, msg.data.slice(8));
+            let val;
             switch (dp) {
             case 107: // 0x6b temperature
                 return {temperature: (value / 10).toFixed(1)};
@@ -4965,29 +4966,26 @@ const converters = {
             case 102: // 0x66 reporting time
                 return {reporting_time: value};
             case 104: // 0x68 temperature calibration
-                const temperature = value;
+                val = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
-                if (temperature > 4294967295) temperature = temperature - 4294967295;
-                return {temperature_calibration: (temperature / 10).toFixed(1)};
+                if (val > 4294967295) val = val - 4294967295;
+                return {temperature_calibration: (val / 10).toFixed(1)};
             case 105: // 0x69 humidity calibration
-                const humidity = value;
+                val = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
-                if (humidity > 4294967295) humidity = humidity - 4294967295;
-                return {humidity_calibration: humidity};
+                if (val > 4294967295) val = val - 4294967295;
+                return {humidity_calibration: val};
             case 106: // 0x6a lux calibration
-                const lux = value;
+                val = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
-                if (lux > 4294967295) lux = lux - 4294967295;
-                return {illuminance_calibration: lux};
+                if (val > 4294967295) val = val - 4294967295;
+                return {illuminance_calibration: val};
             case 109: // 0x6d PIR enable
-                const pir = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
-                return {pir_enable: pir};
+                return {pir_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
             case 111: // 0x6f led enable
-                const led = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
-                return {led_enable: led};
+                return {led_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
             case 112: // 0x70 reporting enable
-                const rep = tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9));
-                return {reporting_enable: rep};
+                return {reporting_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
             default: // Unknown code
                 meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
@@ -4998,18 +4996,18 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
-            const sens_lookup = {'0': 'low', '1': 'medium', '2': 'high'};
-            const keep_time_lookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
+            const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
+            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
             if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
                 const value = data.currentZoneSensitivityLevel;
                 return {
-                    sensitivity: sens_lookup[value],
+                    sensitivity: senslookup[value],
                 };
             }
             if (data && data.hasOwnProperty('61441')) {
                 const value = data['61441'];
                 return {
-                    keep_time: keep_time_lookup[value],
+                    keep_time: keeptimelookup[value],
                 };
             }
         },
@@ -5020,9 +5018,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
-                occupancy: (zoneStatus & 1<<2) > 0
+                occupancy: (zoneStatus & 1<<2) > 0,
             };
-        }
+        },
     },
     // #endregion
 

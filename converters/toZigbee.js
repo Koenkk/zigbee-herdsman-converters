@@ -4273,7 +4273,7 @@ const converters = {
         key: [
             'reporting_time', 'temperature_calibration', 'humidity_calibration',
             'illuminance_calibration', 'pir_enable', 'led_enable',
-            'reporting_enable', 'sensitivity', 'keep_time', 
+            'reporting_enable', 'sensitivity', 'keep_time',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -4303,12 +4303,10 @@ const converters = {
                 await tuya.sendDataPointBool(entity, 112, value, 'sendData');
                 break;
             case 'sensitivity':
-                const sens = {'low': 0, 'medium': 1, 'high': 2}[value];
-                await entity.write('ssIasZone', {currentZoneSensitivityLevel: sens});
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
                 break;
             case 'keep_time':
-                const keep = {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value];
-                await entity.write('ssIasZone', {61441: {value: keep, type: 0x20}});
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value], type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
