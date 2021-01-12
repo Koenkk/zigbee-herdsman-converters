@@ -1108,7 +1108,7 @@ const devices = [
         vendor: 'Tuya',
         description: 'zigbee Socket',
         extend: preset.switch,
-        meta: { disableDefaultResponse: true },
+        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['TS0108'],
@@ -1118,12 +1118,12 @@ const devices = [
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
-            return { 'l1': 1, 'l2': 7 };
+            return {'l1': 1, 'l2': 7};
         },
-        meta: { multiEndpoint: true, disableDefaultResponse: true },
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
-            await bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -1435,8 +1435,8 @@ const devices = [
     },
     {
         fingerprint: [
-            { modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow' },
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
         ],
         model: 'TS0601_window_pusher',
         vendor: 'TuYa',
@@ -1753,11 +1753,11 @@ const devices = [
         description: '6 gang switch module with neutral wire',
         extend: preset.switch,
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-        e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),],
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
         endpoint: (device) => {
-            return { 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6 };
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
         },
-        meta: { configureKey: 1, multiEndpoint: true },
+        meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
