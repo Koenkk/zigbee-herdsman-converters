@@ -675,7 +675,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {

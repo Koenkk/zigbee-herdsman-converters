@@ -3583,12 +3583,21 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
-                // DEPRECATED: remove illuminance_lux here.
-                const illuminance = msg.data['65281']['11'];
-                return {
-                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
-                };
+                const result = {};
+                if (msg.data['65281'].hasOwnProperty('11')) {
+                    const illuminance = msg.data['65281']['11'];
+                    // DEPRECATED: remove illuminance_lux here.
+                    result.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
+                    result.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
+                }
+
+                if (msg.data['65281'].hasOwnProperty('3')) {
+                    let temperature = msg.data['65281']['3'];
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                    result.temperature = temperature;
+                }
+
+                return result;
             }
         },
     },
