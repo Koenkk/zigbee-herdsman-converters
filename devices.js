@@ -71,8 +71,10 @@ const preset = {
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                await light.readColorCapabilities(endpoint);
-                await light.readColorTempMinMax(endpoint);
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
             }
         },
     },
@@ -96,7 +98,9 @@ const preset = {
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                await light.readColorCapabilities(endpoint);
+                try {
+                    await light.readColorCapabilities(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
             }
         },
     },
@@ -112,8 +116,10 @@ const preset = {
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                await light.readColorCapabilities(endpoint);
-                await light.readColorTempMinMax(endpoint);
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
             }
         },
     },
@@ -129,8 +135,10 @@ const preset = {
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                await light.readColorCapabilities(endpoint);
-                await light.readColorTempMinMax(endpoint);
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
             }
         },
     },
