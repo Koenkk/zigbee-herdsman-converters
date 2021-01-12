@@ -5001,15 +5001,11 @@ const converters = {
             const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
             if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
                 const value = data.currentZoneSensitivityLevel;
-                return {
-                    sensitivity: senslookup[value],
-                };
+                return {sensitivity: senslookup[value]};
             }
             if (data && data.hasOwnProperty('61441')) {
                 const value = data['61441'];
-                return {
-                    keep_time: keeptimelookup[value],
-                };
+                return {keep_time: keeptimelookup[value]};
             }
         },
     },
@@ -5018,9 +5014,7 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            return {
-                occupancy: (zoneStatus & 1<<2) > 0,
-            };
+            return {occupancy: (zoneStatus & 1<<2) > 0};
         },
     },
     // #endregion
