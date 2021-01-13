@@ -5850,7 +5850,6 @@ const devices = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-U21U31'],
