@@ -4318,11 +4318,10 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2'];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
-            const msBindPayload = [
-                {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}
-            ];
             for (const cluster of clusters) {
-                await endpoint.configureReporting(cluster, msBindPayload);
+                await endpoint.configureReporting(cluster, [
+                    {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                ]);
             }
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.pressure(),
