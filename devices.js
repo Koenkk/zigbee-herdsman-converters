@@ -4316,16 +4316,20 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2']);
-            const msBindPayload = [
-                {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', msBindPayload);
-            await endpoint.configureReporting('msTemperatureMeasurement', msBindPayload);
-            await endpoint.configureReporting('msRelativeHumidity', msBindPayload);
-            const pressureBindPayload = [
-                {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msPressureMeasurement', pressureBindPayload);
+            const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            for (const cluster of clusters) {
+                await endpoint.configureReporting(cluster, [
+                    {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                ]);
+            }
+            try {
+                await endpoint.configureReporting('msPressureMeasurement', [
+                    {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                ]);
+            } catch (e) {
+                // this firware doesn't support scaledValue
+            }
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.pressure(),
             exposes.binary('led_feedback', exposes.access.ALL, 'ON', 'OFF').withDescription('Enable LEDs feedback'),
