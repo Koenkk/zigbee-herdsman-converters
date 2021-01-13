@@ -6732,6 +6732,13 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['GL-C-009S'],
+        model: 'GL-C-009S',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller dimmer',
+        extend: preset.gledopto.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['GL-MC-001'],
         model: 'GL-MC-001',
         vendor: 'Gledopto',
