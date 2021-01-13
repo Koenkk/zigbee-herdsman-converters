@@ -14352,7 +14352,7 @@ const devices = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.device_temperature(), e.energy()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         endpoint: (device) => {
             return {'default': 2};
         },
