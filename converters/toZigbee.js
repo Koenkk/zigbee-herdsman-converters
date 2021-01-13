@@ -1624,6 +1624,13 @@ const converters = {
             }
         },
     },
+    RTCGQ12LM_detection_period: {
+        key: ['detection_period'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0102: {value, type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {detection_period: value}};
+        },
+    },
     xiaomi_switch_do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {

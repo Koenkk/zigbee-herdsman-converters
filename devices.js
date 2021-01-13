@@ -680,6 +680,17 @@ const devices = [
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
+        zigbeeModel: ['lumi.motion.agl02'],
+        model: 'RTCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara human body movement and illuminance sensor',
+        meta: {},
+        fromZigbee: [],
+        toZigbee: [tz.RTCGQ12LM_detection_period],
+        exposes: [exposes.numeric('detection_period', exposes.access.STATE_SET).withValueMin(2).withValueMax(199).withUnit('s')
+            .withDescription('Time in seconds till occupancy goes to false')],
+    },
+    {
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
