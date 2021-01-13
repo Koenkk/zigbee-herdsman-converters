@@ -14366,11 +14366,11 @@ const devices = [
 
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 100});
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint, {change: 500});
+            await reporting.activePower(endpoint, {change: 5});
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
+            await reporting.instantaneousDemand(endpoint, {change: 500});
         },
     },
     {
