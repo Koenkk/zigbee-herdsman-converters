@@ -14356,7 +14356,7 @@ const devices = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.device_temperature(), e.energy()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -14370,11 +14370,11 @@ const devices = [
 
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 100});
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint, {change: 500});
+            await reporting.activePower(endpoint, {change: 5});
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
+            await reporting.instantaneousDemand(endpoint, {change: 500});
         },
     },
     {
