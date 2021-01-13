@@ -4323,13 +4323,12 @@ const devices = [
                     {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
                 ]);
             }
-            
             try {
                 await endpoint.configureReporting('msPressureMeasurement', [
                     {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
                 ]);
             } catch (e) {
-                //this firware doesn't support scaledValue
+                // this firware doesn't support scaledValue
             }
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.pressure(),
