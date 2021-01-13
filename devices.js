@@ -1103,6 +1103,15 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'}],
+        model: 'TS0202',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
         model: 'TS0207_repeater',
         vendor: 'TuYa',
@@ -13079,15 +13088,6 @@ const devices = [
     },
 
     // CR Smart Home
-    {
-        zigbeeModel: ['TS0202'],
-        model: 'TS0202',
-        vendor: 'CR Smart Home',
-        description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-    },
     {
         zigbeeModel: ['TS0203'],
         model: 'TS0203',
