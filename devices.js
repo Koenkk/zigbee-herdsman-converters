@@ -1105,8 +1105,8 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TYZB01_ijihzffk'}],
         model: 'TS0101',
-        vendor: 'Tuya',
-        description: 'zigbee Socket',
+        vendor: 'TuYa',
+        description: 'Zigbee Socket',
         whiteLabel: [{vendor: 'Larkkey', model: 'PS080'}],
         extend: preset.switch,
         meta: {disableDefaultResponse: true},
@@ -1114,7 +1114,7 @@ const devices = [
     {
         fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
         model: 'TS0108',
-        vendor: 'Tuya',
+        vendor: 'TuYa',
         description: 'Socket with 2 USB',
         whiteLabel: [{vendor: 'Larkkey', model: 'PS580'}],
         extend: preset.switch,
