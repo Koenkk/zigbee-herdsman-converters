@@ -28,6 +28,7 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
+const assert = require('assert');
 const fz = {...require('./converters/fromZigbee'), legacy: require('./lib/legacy').fromZigbee};
 const tz = require('./converters/toZigbee');
 const utils = require('./lib/utils');
@@ -40,6 +41,7 @@ const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
 const xiaomi = require('./lib/xiaomi');
+const light = require('./lib/light');
 const {repInterval, defaultBindGroup, OneJanuary2000} = require('./lib/constants');
 const reporting = require('./lib/reporting');
 
@@ -52,38 +54,93 @@ const preset = {
     },
     light_onoff_brightness: {
         exposes: [e.light_brightness(), e.effect()],
-        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
         ],
     },
     light_onoff_brightness_colortemp: {
         exposes: [e.light_brightness_colortemp(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
-            tz.light_colortemp_step,
+            tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
+    },
+    light_onoff_brightness_color: {
+        exposes: [e.light_brightness_color(), e.effect()],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     },
     light_onoff_brightness_colorxy: {
         exposes: [e.light_brightness_colorxy(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
     },
-    light_onoff_brightness_colortemp_colorxy: {
-        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.ignore_basic_report],
+    light_onoff_brightness_colortemp_color: {
+        exposes: [e.light_brightness_colortemp_color(), e.effect()],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup, tz.level_config,
         ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
+    },
+    light_onoff_brightness_colortemp_colorxy: {
+        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
+            tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup, tz.level_config,
+        ],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
     },
 };
 {
@@ -130,13 +187,13 @@ const preset = {
             ...preset.light_onoff_brightness_colortemp,
             toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
-        light_onoff_brightness_colorxy: {
-            ...preset.light_onoff_brightness_colorxy,
-            toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        light_onoff_brightness_color: {
+            ...preset.light_onoff_brightness_color,
+            toZigbee: preset.light_onoff_brightness_color.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
-        light_onoff_brightness_colortemp_colorxy: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        light_onoff_brightness_colortemp_color: {
+            ...preset.light_onoff_brightness_colortemp_color,
+            toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         },
     };
     preset.ledvance = {
@@ -148,18 +205,13 @@ const preset = {
             ...preset.light_onoff_brightness_colortemp,
             toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.ledvance_commands]),
         },
-        light_onoff_brightness_colorxy: {
-            ...preset.light_onoff_brightness_colorxy,
-            toZigbee: preset.light_onoff_brightness_colorxy.toZigbee.concat([tz.ledvance_commands]),
+        light_onoff_brightness_color: {
+            ...preset.light_onoff_brightness_color,
+            toZigbee: preset.light_onoff_brightness_color.toZigbee.concat([tz.ledvance_commands]),
         },
-        light_onoff_brightness_colortemp_colorxy: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-        },
-        light_onoff_brightness_colortemp_colorhs: {
-            ...preset.light_onoff_brightness_colortemp_colorxy,
-            toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.ledvance_commands]),
-            exposes: [e.light_brightness_colortemp_colorhs(), e.effect()],
+        light_onoff_brightness_colortemp_color: {
+            ...preset.light_onoff_brightness_colortemp_color,
+            toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.ledvance_commands]),
         },
     };
     preset.xiaomi = {
@@ -217,7 +269,7 @@ const devices = [
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         toZigbee: [],
     },
     {
@@ -226,7 +278,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'tripple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -454,7 +506,8 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
-        exposes: [e.battery(), e.action(['left', 'right', 'both'])],
+        exposes: [e.battery(), e.action([
+            'left', 'right', 'both', 'left_double', 'right_double', 'both_double', 'left_long', 'right_long', 'both_long'])],
         onEvent: xiaomi.preventReset,
     },
     {
@@ -518,7 +571,12 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: preset.switch,
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
+            'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
+            'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
+            'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
+        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
@@ -538,14 +596,15 @@ const devices = [
         model: 'QBKG23LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode],
         meta: {},
         endpoint: (device) => {
             return {'system': 1};
         },
         onEvent: xiaomi.preventReset,
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage()],
+        exposes: [e.switch(), e.power(), e.energy(), e.temperature(), e.voltage(), e.action([
+            'hold', 'single', 'double', 'triple', 'release'])],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
@@ -616,7 +675,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
@@ -637,7 +696,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.contact()],
+        exposes: [e.battery(), e.contact(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
@@ -998,7 +1057,7 @@ const devices = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
@@ -1237,7 +1296,7 @@ const devices = [
             {type: 'EndDevice', manufacturerID: 4098, endpoints: [{ID: 1, inputClusters: [], outputClusters: []}]},
             {manufacturerName: '_TZ2000_a476raq2'},
         ],
-        zigbeeModel: ['TS0201'],
+        zigbeeModel: ['TS0201', 'SNTZ003'],
         model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
@@ -1328,8 +1387,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_pk0sfzvr'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
         ],
         model: 'TS0601_curtain',
         vendor: 'TuYa',
@@ -1348,10 +1405,15 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
+        ],
         model: 'TS0601_roller_blind',
         vendor: 'TuYa',
         description: 'Roller blind motor',
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [e.cover_position()],
@@ -1371,13 +1433,17 @@ const devices = [
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
-            tz.tuya_thermostat_force_to_mode, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
+            tz.tuya_thermostat_force_to_mode, tz.tuya_thermostat_force, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
             tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery(), e.battery_low(), e.valve_detection(), e.position(),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-                .withSystemMode(['heat', 'auto', 'off']).withRunningState(['idle', 'heat']).withAwayMode()
-                .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])],
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+                .withLocalTemperature(exposes.access.STATE).withSystemMode(['heat', 'auto', 'off'], exposes.access.STATE_SET)
+                .withRunningState(['idle', 'heat'], exposes.access.STATE)
+                .withLocalTemperatureCalibration(exposes.access.STATE_SET)
+                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
+            e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
+            e.max_temperature(), e.min_temperature(), e.week()],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
@@ -1395,8 +1461,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
+        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE)
+            .withAwayMode()],
     },
     {
         fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
@@ -1416,8 +1484,10 @@ const devices = [
             },
         },
         exposes: [
-            e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode(),
+            e.battery_low(), e.child_lock(), exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+                .withLocalTemperature(exposes.access.STATE).withAwayMode()
+                .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE),
         ],
     },
     {
@@ -1662,9 +1732,10 @@ const devices = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
-            .withLocalTemperatureCalibration()],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
+            .withLocalTemperatureCalibration(exposes.access.STATE_SET).withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
@@ -1683,8 +1754,10 @@ const devices = [
         model: 'D3-DPWK-TY',
         vendor: 'TuYa',
         description: 'HVAC controller',
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])],
+        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)],
         fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
@@ -1731,8 +1804,9 @@ const devices = [
         description: 'Wall-mount thermostat',
         fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report, fz.hy_set_time_request],
         toZigbee: [tz.hy_thermostat],
-        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+        exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat'], exposes.access.STATE)],
     },
 
     // UseeLink
@@ -1795,6 +1869,18 @@ const devices = [
     },
 
     // Lonsonho
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'}],
+        model: 'QS-Zigbee-C01',
+        vendor: 'Lonsonho',
+        description: 'Curtain/blind motor controller',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        meta: {configureKey: 1, coverInverted: true},
+        exposes: [e.cover_position(), exposes.enum('moving', exposes.access.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.binary('calibration', exposes.access.ALL, 'ON', 'OFF'),
+            exposes.binary('motor_reversal', exposes.access.ALL, 'ON', 'OFF')],
+    },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
         model: '11830304',
@@ -1912,6 +1998,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -1924,10 +2011,18 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
         extend: preset.switch,
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'}],
+        model: 'TS011F_valve',
+        vendor: 'Lonsonho',
+        description: 'Smart water/gas valve (upgrade version)',
+        extend: preset.switch,
     },
 
     // IKEA
@@ -2455,7 +2550,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Attract',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2464,7 +2559,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Nyro',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2482,7 +2577,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2491,7 +2586,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (White)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2500,7 +2595,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (Black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2509,7 +2604,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Ensis',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2518,7 +2613,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Go',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2572,7 +2667,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2581,7 +2676,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2590,7 +2685,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2599,7 +2694,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2608,7 +2703,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2617,7 +2712,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Impress outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2626,7 +2721,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2635,7 +2730,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2662,7 +2757,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2742,7 +2837,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance pendant light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2787,7 +2882,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2796,7 +2891,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2805,7 +2900,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2814,7 +2909,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2823,7 +2918,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor 2m',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2832,7 +2927,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2841,7 +2936,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2849,7 +2944,7 @@ const devices = [
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2858,7 +2953,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E12 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2867,7 +2962,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E14 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2876,7 +2971,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2885,7 +2980,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -2894,7 +2989,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3056,7 +3151,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 4" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3065,7 +3160,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 5/6" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3074,7 +3169,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Sana',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3186,6 +3281,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3216231P6'],
+        model: '3216231P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
@@ -3263,7 +3367,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3272,7 +3376,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 2)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3281,7 +3385,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 4)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3290,7 +3394,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3299,7 +3403,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3308,7 +3412,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp (low voltage)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3317,7 +3421,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress lantern',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3326,7 +3430,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3335,7 +3439,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Iris (Generation 2)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3344,7 +3448,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe floor light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3353,7 +3457,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Signe table light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3362,7 +3466,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Centris',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3371,7 +3475,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3380,7 +3484,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3389,7 +3493,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3398,7 +3502,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3407,7 +3511,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3416,7 +3520,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3425,7 +3529,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3434,7 +3538,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3443,7 +3547,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3452,7 +3556,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3461,7 +3565,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura Aluminium (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3470,7 +3574,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Centura White (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3665,7 +3769,7 @@ const devices = [
         vendor: 'Philips',
         description: 'LivingColors Aura',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colorxy,
+        extend: preset.hue.light_onoff_brightness_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3702,7 +3806,7 @@ const devices = [
         description: 'Hue Discover white and color ambiance flood light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
     },
     {
         zigbeeModel: ['1746330P7'],
@@ -3710,7 +3814,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Appear outdoor wall light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3719,7 +3823,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3728,7 +3832,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor led strip',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3750,12 +3854,21 @@ const devices = [
         extend: preset.hue.light_onoff_brightness,
     },
     {
+        zigbeeModel: ['LWV003'],
+        model: '929002459201',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 E27 LED',
+        ota: ota.zigbeeOTA,
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness,
+    },
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
         description: 'Phoenix light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3764,7 +3877,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Beyond white and color ambiance suspension light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.hue.light_onoff_brightness_colortemp_color,
         ota: ota.zigbeeOTA,
     },
     {
@@ -3838,6 +3951,15 @@ const devices = [
         exposes: [exposes.binary('led', exposes.access.STATE, true, false)],
     },
     {
+        zigbeeModel: ['cc2538.router.v1'],
+        model: 'CC2538.ROUTER',
+        vendor: 'Custom devices (DiY)',
+        description: '[MODKAM stick СС2538 router](https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
+        fromZigbee: [fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ['ptvo.switch'],
         model: 'ptvo.switch',
         vendor: 'Custom devices (DiY)',
@@ -3856,7 +3978,7 @@ const devices = [
             exposes.text('', exposes.access.STATE).withEndpoint('l6').withProperty('l6'),
             exposes.text('', exposes.access.STATE).withEndpoint('l7').withProperty('l7'),
             exposes.text('', exposes.access.STATE).withEndpoint('l8').withProperty('l8'),
-            e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'triple', 'hold'])],
+            e.temperature(), e.voltage(), e.pressure(), e.humidity(), e.action(['single', 'double', 'tripple', 'hold'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8, action: 1};
@@ -4006,6 +4128,9 @@ const devices = [
         fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.cpu_temperature(), e.action(['hold', 'release'])],
+        endpoint: (device) => {
+            return {default: 8};
+        },
     },
     {
         zigbeeModel: ['DIYRuZ_FreePad', 'FreePadLeTV8'],
@@ -4225,7 +4350,8 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -4267,7 +4393,7 @@ const devices = [
         model: '73699',
         vendor: 'OSRAM',
         description: ' Gardenspot LED mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_color,
         ota: ota.ledvance,
     },
     {
@@ -4275,7 +4401,7 @@ const devices = [
         model: '4058075816718',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4283,7 +4409,7 @@ const devices = [
         model: '4058075816732',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor lantern RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4291,7 +4417,7 @@ const devices = [
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4307,7 +4433,7 @@ const devices = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorhs,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4339,7 +4465,7 @@ const devices = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorhs,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4443,7 +4569,7 @@ const devices = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4451,7 +4577,7 @@ const devices = [
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4459,7 +4585,7 @@ const devices = [
         model: '4058075036147',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 8.7W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4467,7 +4593,7 @@ const devices = [
         model: '4058075047853',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         meta: {disableDefaultResponse: true},
         ota: ota.ledvance,
     },
@@ -4476,7 +4602,7 @@ const devices = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4492,7 +4618,7 @@ const devices = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4500,7 +4626,7 @@ const devices = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4660,7 +4786,7 @@ const devices = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4676,7 +4802,7 @@ const devices = [
         model: '4058075208339',
         vendor: 'LEDVANCE',
         description: 'Flex 3P multicolor',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -4693,6 +4819,14 @@ const devices = [
         vendor: 'LEDVANCE',
         description: 'SMART+ candle E14 tunable white',
         extend: preset.ledvance.light_onoff_brightness,
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['Undercabinet TW Z3'],
+        model: '4058075173989',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ indoor Undercabinet light',
+        extend: preset.ledvance.light_onoff_brightness_colortemp,
         ota: ota.ledvance,
     },
 
@@ -4809,7 +4943,8 @@ const devices = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing, tz.thermostat_system_mode, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -4832,7 +4967,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         meta: {configureKey: 1, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -4878,9 +5013,9 @@ const devices = [
         },
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water')],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
     },
     {
         zigbeeModel: ['WPT1'],
@@ -4948,7 +5083,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4956,7 +5091,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4964,7 +5099,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4980,7 +5115,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4988,7 +5123,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -4996,8 +5131,8 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5029,8 +5164,8 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5038,7 +5173,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5134,8 +5269,8 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
-        exposes: [e.light_brightness_colortemp_colorxyhs()],
+        extend: preset.light_onoff_brightness_colortemp_color,
+        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5287,7 +5422,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5360,7 +5495,7 @@ const devices = [
         model: 'OFL 120 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5368,7 +5503,7 @@ const devices = [
         model: 'OFL 140 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5376,7 +5511,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.light_onoff_brightness_colortemp_color,
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5434,7 +5569,7 @@ const devices = [
         model: '73741',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable color RT 5/6',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5450,7 +5585,7 @@ const devices = [
         model: '73739',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW BR30',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5458,7 +5593,7 @@ const devices = [
         model: '73693',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED RGBW A19',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5466,7 +5601,7 @@ const devices = [
         model: '73773',
         vendor: 'Sylvania',
         description: 'SMART+ Flex XL RGBW strip',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5520,7 +5655,7 @@ const devices = [
         model: 'LTFY004',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED gardenspot mini RGB',
-        extend: preset.ledvance.light_onoff_brightness_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_color,
         ota: ota.ledvance,
     },
     {
@@ -5552,7 +5687,7 @@ const devices = [
         model: '75541',
         vendor: 'Sylvania',
         description: 'SMART+ Outdoor Accent RGB lighting kit',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy,
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
         ota: ota.ledvance,
     },
     {
@@ -5606,7 +5741,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
                 .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration()],
+                .withLocalTemperatureCalibration().withPiHeatingDemand()],
     },
 
     // GE
@@ -5714,10 +5849,18 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['E11-U21U31'],
+        model: 'E11-U21U31',
+        vendor: 'Sengled',
+        description: 'Element touch (A19)',
+        extend: preset.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['E11-G13'],
         model: 'E11-G13',
         vendor: 'Sengled',
-        description: 'Element Classic (A19)',
+        description: 'Element classic (A19)',
         extend: preset.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -5725,7 +5868,7 @@ const devices = [
         zigbeeModel: ['E11-G23', 'E11-G33'],
         model: 'E11-G23/E11-G33',
         vendor: 'Sengled',
-        description: 'Element Classic (A60)',
+        description: 'Element classic (A60)',
         extend: preset.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -5741,7 +5884,7 @@ const devices = [
         zigbeeModel: ['Z01-CIA19NAE26'],
         model: 'Z01-CIA19NAE26',
         vendor: 'Sengled',
-        description: 'Element Touch (A19)',
+        description: 'Element touch (A19)',
         extend: preset.light_onoff_brightness,
         ota: ota.zigbeeOTA,
     },
@@ -5749,7 +5892,7 @@ const devices = [
         zigbeeModel: ['Z01-A19NAE26'],
         model: 'Z01-A19NAE26',
         vendor: 'Sengled',
-        description: 'Element Plus (A19)',
+        description: 'Element plus (A19)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.zigbeeOTA,
     },
@@ -5765,7 +5908,7 @@ const devices = [
         zigbeeModel: ['E11-N1EA'],
         model: 'E11-N1EA',
         vendor: 'Sengled',
-        description: 'Element Plus Color (A19)',
+        description: 'Element plus color (A19)',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
         ota: ota.zigbeeOTA,
     },
@@ -6585,13 +6728,6 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness,
     },
     {
-        zigbeeModel: ['GL-C-009S'],
-        model: 'GL-C-009S',
-        vendor: 'Gledopto',
-        description: 'Zigbee LED controller dimmer',
-        extend: preset.gledopto.light_onoff_brightness,
-    },
-    {
         zigbeeModel: ['GL-MC-001'],
         model: 'GL-MC-001',
         vendor: 'Gledopto',
@@ -6795,7 +6931,10 @@ const devices = [
         description: 'Smart RGBW GU10 ',
         extend: preset.gledopto.light_onoff_brightness_colorxy,
         endpoint: (device) => {
-            return {default: 12};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/5169
+            if (device.getEndpoint(12)) return {default: 12};
+            // https://github.com/Koenkk/zigbee2mqtt/issues/5681
+            else return {default: 11};
         },
     },
     {
@@ -6961,6 +7100,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ROB_200-011-0'],
+        model: 'ROB_200-011-0',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
@@ -6987,20 +7139,16 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K8_EU05'],
+        zigbeeModel: ['ZG2833K8_EU05', 'ROB_200-007-0'],
         model: 'ROB_200-007-0',
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
         exposes: [e.battery(), e.action([
             'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
             'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
-            'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5',
-            'on_6', 'off_6', 'brightness_move_up_6', 'brightness_move_down_6', 'brightness_stop_6',
-            'on_7', 'off_7', 'brightness_move_up_7', 'brightness_move_down_7', 'brightness_stop_7',
-            'on_8', 'off_8', 'brightness_move_up_8', 'brightness_move_down_8', 'brightness_stop_8'])],
+            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
@@ -7013,9 +7161,7 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action([
             'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
-            'on_3', 'off_3', 'stop_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'stop_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
@@ -7678,6 +7824,13 @@ const devices = [
 
     // Paulmann
     {
+        zigbeeModel: ['H036-0007'],
+        model: '929.66',
+        vendor: 'Paulmann',
+        description: 'Smart home Zigbee LED module coin 1x2.5W RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+    {
         zigbeeModel: ['Switch Controller '],
         model: '50043',
         vendor: 'Paulmann',
@@ -8193,7 +8346,7 @@ const devices = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
-            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration()],
+            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration().withPiHeatingDemand()],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -8323,7 +8476,7 @@ const devices = [
     },
     {
         zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC', 'PSMP5_00.00.03.15TC',
-            'PSMP5_00.00.03.16TC'],
+            'PSMP5_00.00.03.16TC', 'PSMP5_00.00.03.19TC'],
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
@@ -9063,6 +9216,22 @@ const devices = [
         description: 'LED A60 Zigbee RGB lamp',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['Smart Wall Switch '], // Yes, it has a space at the end :(
+        model: '421782',
+        vendor: 'Calex',
+        description: 'Smart Wall Switch, wall mounted RGB controller',
+        toZigbee: [],
+        fromZigbee: [fz.command_off, fz.command_on, fz.command_step, fz.command_move_to_color_temp,
+            fz.command_move, fz.command_stop, fz.command_ehanced_move_to_hue_and_saturation,
+        ],
+        exposes: [e.action([
+            'on', 'off', 'color_temperature_move', 'brightness_step_up', 'brightness_step_down',
+            'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            'enhanced_move_to_hue_and_saturation',
+        ])],
+        meta: {configureKey: 1, disableActionGroup: true},
+    },
 
     // EcoSmart
     {
@@ -9280,6 +9449,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ICZB-DC11'],
+        model: 'ICZB-DC11',
+        vendor: 'iCasa',
+        description: 'ZigBee 12-36V DC LED dimmer',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
@@ -9474,8 +9656,9 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-        extend: preset.light_onoff_brightness_colortemp,
-        toZigbee: preset.light_onoff_brightness_colortemp.toZigbee.concat([tz.tint_scene]),
+        extend: preset.light_onoff_brightness_colortemp_color,
+        toZigbee: preset.light_onoff_brightness_colortemp_color.toZigbee.concat([tz.tint_scene]),
+        meta: {enhancedHue: false},
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GU100000'],
@@ -9518,10 +9701,15 @@ const devices = [
         model: '404002',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop'])],
+            'brightness_stop', 'recall_1'])],
         toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
+        },
     },
     {
         zigbeeModel: ['tint Smart Switch'],
@@ -9535,6 +9723,16 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['tint-Remote-white'],
+        model: '404022',
+        description: 'Tint dim remote control',
+        vendor: 'Müller Licht',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop', 'color_temperature_move'])],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['tint-ColorTemperature'],
@@ -9719,7 +9917,7 @@ const devices = [
             tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor, tz.danfoss_heat_available, tz.danfoss_day_of_week,
             tz.danfoss_trigger_time, tz.danfoss_window_open, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature()],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -9748,7 +9946,8 @@ const devices = [
             tz.thermostat_remote_sensing, tz.thermostat_local_temperature,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withPiHeatingDemand()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -9937,7 +10136,7 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power()],
     },
     {
         zigbeeModel: ['losfena'],
@@ -9957,8 +10156,10 @@ const devices = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.battery_low(), e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5)
-            .withLocalTemperature().withSystemMode(['off', 'heat', 'auto']).withRunningState(['idle', 'heat']).withAwayMode()],
+        exposes: [e.battery_low(), e.child_lock(), exposes.climate()
+            .withSetpoint('current_heating_setpoint', 5, 35, 0.5, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE).withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat'], exposes.access.STATE).withAwayMode()],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
@@ -10021,7 +10222,7 @@ const devices = [
         exposes: [e.lock(), e.battery()],
     },
     {
-        zigbeeModel: ['YRD256 TSDB'],
+        zigbeeModel: ['YRD256 TSDB', 'YRD256L TSDB'],
         model: 'YRD256HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
@@ -10232,7 +10433,7 @@ const devices = [
         exposes: [e.cover_position(), e.temperature(), e.battery(), e.pressure()],
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3'],
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3', 'SV02-410-MP-1.0'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',
@@ -10532,7 +10733,7 @@ const devices = [
         description: 'Peanut Smart Plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: ota.securifi,
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -10702,6 +10903,39 @@ const devices = [
         description: 'Zigbee micro smart dimmer',
         extend: preset.light_onoff_brightness,
     },
+    {
+        zigbeeModel: ['HK-ZD-DIM-A'],
+        model: 'SRP-ZG9105-CC',
+        vendor: 'Sunricher',
+        description: 'Constant Current Zigbee LED dimmable driver',
+        extend: preset.light_onoff_brightness,
+    },
+    {
+        zigbeeModel: ['SR-ZG9040A-S'],
+        model: 'SR-ZG9040A-S',
+        vendor: 'Sunricher',
+        description: 'ZigBee AC phase-cut dimmer single-line',
+        extend: preset.light_onoff_brightness,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Micro Smart OnOff'],
+        model: 'SR-ZG9100A-S',
+        vendor: 'Sunricher',
+        description: 'Zigbee AC in wall switch single-line',
+        extend: preset.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 
     // Samotech
     {
@@ -10746,7 +10980,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006', 'HOMA000F'],
+        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],
         model: 'HLC610-Z',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
@@ -10973,12 +11207,13 @@ const devices = [
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+    },
+    {
+        zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
+        model: '511.000',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 universal LED-controller, 5 channel 4A, RGBCCT LED',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
     {
         zigbeeModel: ['ZG2819S-RGBW'],
@@ -11450,7 +11685,7 @@ const devices = [
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -11492,7 +11727,7 @@ const devices = [
             tz.sinope_temperature_sensor, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -11549,7 +11784,7 @@ const devices = [
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -11671,7 +11906,7 @@ const devices = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
-            .withLocalTemperatureCalibration()],
+            .withLocalTemperatureCalibration().withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
@@ -12149,9 +12384,17 @@ const devices = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.ubisys_dimmer_setup],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
-        exposes: [e.light_brightness(), e.power(),
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, fz.ubisys_dimmer_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        exposes: [e.light_brightness().withLevelConfig(), e.power(),
+            exposes.numeric('ballast_physical_minimum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output the ballast can achieve.'),
+            exposes.numeric('ballast_physical_maximum_level', exposes.access.STATE_GET).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output the ballast can achieve.'),
+            exposes.numeric('ballast_minimum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', exposes.access.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
             exposes.binary('capabilities_forward_phase_control', exposes.access.STATE_GET, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
             exposes.binary('capabilities_reverse_phase_control', exposes.access.STATE_GET, true, false)
@@ -12484,6 +12727,26 @@ const devices = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
+        zigbeeModel: ['898ca74409a740b28d5841661e72268d'],
+        model: 'ST30',
+        vendor: 'ORVIBO',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint1);
+            await reporting.humidity(endpoint2);
+            await reporting.batteryVoltage(endpoint2);
+            await reporting.batteryPercentageRemaining(endpoint2);
+        },
+        exposes: [e.humidity(), e.temperature(), e.battery()],
+    },
+    {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494'],
         model: 'T30W3Z',
         vendor: 'ORVIBO',
@@ -12716,12 +12979,14 @@ const devices = [
         toZigbee: [],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
-            await reporting.humidity(endpoint);
-            await reporting.batteryVoltage(endpoint);
+            try {
+                const endpoint = device.getEndpoint(1);
+                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
+                await reporting.humidity(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */}
         },
     },
     {
@@ -12783,6 +13048,23 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['ZB-SW03'],
+        model: 'ZB-SW03',
+        vendor: 'eWeLink',
+        description: 'Smart light switch - 3 gang',
+        extend: preset.switch,
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
 
@@ -13033,8 +13315,11 @@ const devices = [
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_min_temperature],
-        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat', 'cool']).withPreset(['hold', 'program'])],
+        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, exposes.access.STATE_SET)
+            .withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat'], exposes.access.STATE_SET).withRunningState(['idle', 'heat', 'cool'], exposes.access.STATE)
+            .withPreset(['hold', 'program'])],
+        onEvent: tuya.onEventSetTime,
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
@@ -13063,8 +13348,9 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'heat', 'auto'])
-            .withRunningState(['idle', 'heat']).withAwayMode()],
+            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET).withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'heat', 'auto'], exposes.access.STATE_SET).withLocalTemperatureCalibration(exposes.access.STATE_SET)
+            .withRunningState(['idle', 'heat'], exposes.access.STATE).withAwayMode()],
     },
 
     // Schneider Electric
@@ -13076,8 +13362,8 @@ const devices = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_haDiagnostic, fz.ignore_genOta, fz.ignore_zclversion_read,
             fz.legacy.wiser_thermostat, fz.legacy.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -13171,9 +13457,9 @@ const devices = [
         exposes: [e.cover_position()],
         meta: {configureKey: 1, coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint1);
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
 
@@ -13565,6 +13851,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
+        toZigbee: [tz.TYZB01_on_off],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -14086,6 +14373,45 @@ const devices = [
             await reporting.instantaneousDemand(endpoint);
         },
     },
+    {
+        zigbeeModel: ['1GBatteryDimmer50AU'],
+        model: 'AU-A1ZBR1GW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne one gang wireless battery rotary dimmer',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint1);
+        },
+    },
+    {
+        zigbeeModel: ['2GBatteryDimmer50AU'],
+        model: 'AU-A1ZBR2GW',
+        vendor: 'Aurora Lighting',
+        description: 'AOne two gang wireless battery rotary dimmer',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+        meta: {multiEndpoint: true, configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        endpoint: (device) => {
+            return {'right': 1, 'left': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+        },
+    },
 
     // Wally
     {
@@ -14162,7 +14488,8 @@ const devices = [
             {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat'])
+            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, exposes.access.STATE_SET).withLocalTemperature(exposes.access.STATE)
+            .withSystemMode(['off', 'auto', 'heat'], exposes.access.STATE_SET)
             .withRunningState(['idle', 'heat'])],
     },
 
@@ -14600,6 +14927,15 @@ const devices = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['2f077707a13f4120846e0775df7e2efe'],
+        model: 'WS-20-Z',
+        vendor: 'Hommyn',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
 
     // Lidl
     {
@@ -14806,6 +15142,13 @@ const devices = [
         description: 'ENKI LEXMAN GU-10 LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
+    {
+        zigbeeModel: ['LXEK-2'],
+        model: '9CZA-A806ST-Q1A',
+        vendor: 'ADEO',
+        description: 'ENKI Lexman E27 14W to 100W LED RGBW',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
 
     // LightSolutions
     {
@@ -14850,16 +15193,60 @@ const devices = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
+
+    // Prolight
+    {
+        zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
+        model: '5412748727388',
+        vendor: 'Prolight',
+        description: 'E27 white and colour bulb',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+    },
+
+    // Fantem
+    {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}],
+        model: 'ZB003-X',
+        vendor: 'Fantem',
+        description: '4 in 1 multi sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        toZigbee: [tz.ZB003X],
+        exposes: [e.occupancy(), e.battery(), e.illuminance().withUnit('lx'), e.temperature(), e.humidity(),
+            exposes.numeric('reporting_time', exposes.access.STATE_SET).withDescription('Reporting interval in minutes'),
+            exposes.numeric('temperature_calibration', exposes.access.STATE_SET).withDescription('Temperature calibration'),
+            exposes.numeric('humidity_calibration', exposes.access.STATE_SET).withDescription('Humidity calibration'),
+            exposes.numeric('illuminance_calibration', exposes.access.STATE_SET).withDescription('Illuminance calibration'),
+            exposes.binary('pir_enable', exposes.access.STATE_SET, true, false).withDescription('Enable PIR sensor'),
+            exposes.binary('led_enable', exposes.access.STATE_SET, true, false).withDescription('Enabled LED'),
+            exposes.binary('reporting_enable', exposes.access.STATE_SET, true, false).withDescription('Enabled reporting'),
+            exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+            // eslint-disable-next-line
+            exposes.enum('keep_time', exposes.access.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
+    },
 ];
 
 module.exports = devices.map((device) => {
     if (device.extend) {
+        if (device.extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
+            assert.fail(`'${device.model}' has configure in extend and device, this is not allowed`);
+        }
+
+        let deviceMeta = null;
+        if (device.extend.hasOwnProperty('meta') && device.hasOwnProperty('meta')) {
+            deviceMeta = Object.assign({}, device.extend.meta, device.meta);
+        }
+
         device = Object.assign({}, device.extend, device);
+
+        if (deviceMeta !== null) {
+            device.meta = deviceMeta;
+        }
+
         delete device.extend;
     }
 
     if (device.toZigbee.length > 0) {
-        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove);
+        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all);
     }
 
     if (device.exposes) {
