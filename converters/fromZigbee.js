@@ -1489,7 +1489,7 @@ const converters = {
             case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
                 return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
-                const invert = tuya.isCoverInverted(model.meta.manufacturerName) ? !options.invert_cover : options.invert_cover;
+                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
@@ -1503,7 +1503,7 @@ const converters = {
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
-                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}: ${JSON.stringify(msg.data)}`);
             }
         },
     },
