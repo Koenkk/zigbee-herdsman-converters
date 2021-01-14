@@ -1503,7 +1503,8 @@ const converters = {
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
-                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}: ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                ${JSON.stringify(msg.data)}`);
             }
         },
     },

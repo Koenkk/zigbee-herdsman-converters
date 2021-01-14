@@ -3361,7 +3361,8 @@ const converters = {
 
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
 
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
