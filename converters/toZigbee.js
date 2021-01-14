@@ -3359,26 +3359,29 @@ const converters = {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
-            const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
-
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
+                    const invert = tuya.isCoverInverted(meta.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
+
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
+                const stateEnums = tuya.getCoverStateEnums(meta.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums: ${stateEnums.toString()}`);
+
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, invert ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[0]);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, invert ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[1]);
                     break;
                 case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[2]);
                     break;
                 default:
                     throw new Error('TuYa_cover_control: Invalid command received');
