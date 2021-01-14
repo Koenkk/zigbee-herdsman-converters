@@ -2026,6 +2026,26 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}],
+        model: 'QS-Zigbee-D02-TRIAC-2C-L',
+        vendor: 'Lonsonho',
+        description: '2 gang smart dimmer switch module with neutral',
+        extend: preset.light_onoff_brightness,
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        meta: {multiEndpoint: true, configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
+    {
         zigbeeModel: ['Plug_01'],
         model: '4000116784070',
         vendor: 'Lonsonho',
