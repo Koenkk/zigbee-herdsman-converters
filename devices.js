@@ -14797,7 +14797,7 @@ const devices = [
         vendor: 'Niko',
         description: 'Smart plug with earthing pin',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -14806,7 +14806,11 @@ const devices = [
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.activePower(endpoint);
         },
-        exposes: [e.switch(), e.power()],
+        exposes: [
+            e.switch(), e.power(),
+            exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous', 'on'])
+                .withDescription('Controls the behaviour when the device is powered on'),
+        ],
     },
 
     // QMotion products - http://www.qmotionshades.com/
