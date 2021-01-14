@@ -15379,6 +15379,29 @@ module.exports = devices.map((device) => {
 
     if (device.exposes) {
         device.exposes = device.exposes.concat([e.linkquality()]);
+
+        if (device.toZigbee.length > 0) {
+            const toZigbeeKeyAccessProps = device.toZigbee.map((tzItem) => {
+                const canSet = !!tzItem.convertSet;
+                const canGet = !!tzItem.convertGet;
+
+                return tzItem.key.map((keyItem) => ({
+                    [keyItem]: {canSet, canGet},
+                }));
+            }).flat();
+            const toZigbeeKeyAccess = Object.assign(...toZigbeeKeyAccessProps);
+
+            for (const expose of device.exposes) {
+                if (!expose.access) {
+                    continue;
+                }
+
+                const access = toZigbeeKeyAccess[expose.property];
+
+                expose.access = access && access.canGet ? expose.access | exposes.access.GET : expose.access & ~exposes.access.GET;
+                expose.access = access && access.canSet ? expose.access | exposes.access.SET : expose.access & ~exposes.access.SET;
+            }
+        }
     }
 
     return device;

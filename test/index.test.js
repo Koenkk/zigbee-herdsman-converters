@@ -348,4 +348,19 @@ describe('index.js', () => {
         const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
         expect(expected).toStrictEqual(deepClone(actual));
     });
+
+    it('Exposes access matches toZigbee', () => {
+        devices.forEach((device) => {
+            if (device.exposes) {
+                device.exposes.forEach((expose) => {
+                    if (expose.access) {
+                        const toZigbee = device.toZigbee.find(item => item.key.includes(expose.property));
+
+                        expect(expose.access & exposes.access.SET).toBe(toZigbee && toZigbee.convertSet ? exposes.access.SET : 0);
+                        expect(expose.access & exposes.access.GET).toBe(toZigbee && toZigbee.convertGet ? exposes.access.GET : 0);
+                    }
+                });
+            }
+        });
+    });
 });
