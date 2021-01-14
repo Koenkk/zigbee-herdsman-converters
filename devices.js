@@ -14791,6 +14791,23 @@ const devices = [
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
+    {
+        zigbeeModel: ['Smart plug Zigbee PE'],
+        model: '552-80699',
+        vendor: 'Niko',
+        description: 'Smart plug with earthing pin',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            // only activePower seems to be support, although compliance document states otherwise
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.switch(), e.power()],
+    },
 
     // QMotion products - http://www.qmotionshades.com/
     {
