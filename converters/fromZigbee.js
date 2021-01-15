@@ -4180,9 +4180,9 @@ const converters = {
             if (value === 0) result = {action: 'shake'};
             else if (value === 2) result = {action: 'wakeup'};
             else if (value === 3) result = {action: 'fall'};
-            else if (value >= 512) result = {action: 'tap', side: value-512, action_side: value-512};
-            else if (value >= 256) result = {action: 'slide', side: value-256, action_side: value-256};
-            else if (value >= 128) result = {action: 'flip180', side: value-128, action_side: value-128};
+            else if (value >= 512) result = {action: 'tap', side: value-512};
+            else if (value >= 256) result = {action: 'slide', side: value-256};
+            else if (value >= 128) result = {action: 'flip180', side: value-128};
             else if (value >= 64) {
                 result = {
                     action: 'flip90', action_from_side: Math.floor((value-64) / 8), action_to_side: value % 8, action_side: value % 8,
@@ -4191,7 +4191,6 @@ const converters = {
             }
 
             if (result && !isLegacyEnabled(options)) {
-                delete result.side;
                 delete result.to_side;
                 delete result.from_side;
             }
