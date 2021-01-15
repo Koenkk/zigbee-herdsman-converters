@@ -9522,14 +9522,13 @@ const devices = [
         description: 'Q-LED Lamp RGBW E27 socket',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
-
     {
         zigbeeModel: ['Neuhaus RGB+CCT light'],
         model: '100.491.61',
         vendor: 'Paul Neuhaus',
         description: 'Q-MIA LED RGBW wall lamp, 9185-13',
         extend: preset.light_onoff_brightness_colortemp_colorxy,
-      },
+    },
 
     // iCasa
     {
