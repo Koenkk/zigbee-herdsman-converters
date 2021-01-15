@@ -3371,7 +3371,8 @@ const converters = {
                 }
             } else if (key === 'state') {
                 const stateEnums = tuya.getCoverStateEnums(meta.manufacturerName);
-                meta.logger.debug(`TuYa_cover_control: Using state enums: ${JSON.stringify(stateEnums)}`);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
 
                 value = value.toLowerCase();
                 switch (value) {
