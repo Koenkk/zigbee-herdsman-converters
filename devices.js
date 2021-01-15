@@ -4544,6 +4544,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['CLA60 RGBW II Z3'],
+        model: 'AC16381',
+        vendor: 'OSRAM',
+        description: 'SMART+ LED CLASSIC E27 RGBW V2',
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color,
+        ota: ota.ledvance,
+    },
+    {
         // AA70155 is model number of both bulbs.
         zigbeeModel: ['LIGHTIFY A19 Tunable White', 'Classic A60 TW'],
         model: 'AA70155',
