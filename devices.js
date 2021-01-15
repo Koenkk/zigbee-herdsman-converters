@@ -9523,6 +9523,14 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_colorxy,
     },
 
+    {
+        zigbeeModel: ['Neuhaus RGB+CCT light'],
+        model: '100.491.61',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-MIA LED RGBW wall lamp, 9185-13',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+      },
+
     // iCasa
     {
         zigbeeModel: ['ICZB-IW11D'],
