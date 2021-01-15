@@ -1121,6 +1121,32 @@ const devices = [
         exposes: [],
     },
     {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TYZB01_ijihzffk'}],
+        model: 'TS0101',
+        vendor: 'TuYa',
+        description: 'Zigbee Socket',
+        whiteLabel: [{vendor: 'Larkkey', model: 'PS080'}],
+        extend: preset.switch,
+        meta: {disableDefaultResponse: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
+        model: 'TS0108',
+        vendor: 'TuYa',
+        description: 'Socket with 2 USB',
+        whiteLabel: [{vendor: 'Larkkey', model: 'PS580'}],
+        extend: preset.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 7};
+        },
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
@@ -1428,6 +1454,18 @@ const devices = [
         exposes: [e.cover_position()],
     },
     {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
+        ],
+        model: 'TS0601_window_pusher',
+        vendor: 'TuYa',
+        description: 'Window pusher',
+        fromZigbee: [fz.tuya_cover],
+        toZigbee: [tz.tuya_cover_control],
+        exposes: [e.cover_position()],
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}],
         model: 'TS0601_thermostat',
@@ -1729,6 +1767,27 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0006', manufacturerName: '_TYZB01_ltundz9m'}],
+        model: 'TS0006',
+        vendor: 'TuYa',
+        description: '6 gang switch module with neutral wire',
+        extend: preset.switch,
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
+        },
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['HY0080'],
         model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
@@ -1991,7 +2050,10 @@ const devices = [
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
-        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}],
+        fingerprint: [
+            {modelID: 'ZB-CL01', manufacturerName: 'eWeLight'},
+            {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'},
+        ],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
