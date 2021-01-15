@@ -3371,18 +3371,18 @@ const converters = {
                 }
             } else if (key === 'state') {
                 const stateEnums = tuya.getCoverStateEnums(meta.manufacturerName);
-                meta.logger.debug(`TuYa_cover_control: Using state enums: ${stateEnums.toString()}`);
+                meta.logger.debug(`TuYa_cover_control: Using state enums: ${JSON.stringify(stateEnums)}`);
 
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[0]);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[1]);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
                     break;
                 case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums[2]);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
                     break;
                 default:
                     throw new Error('TuYa_cover_control: Invalid command received');

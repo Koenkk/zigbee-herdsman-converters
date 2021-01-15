@@ -1172,16 +1172,6 @@ const devices = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
-        model: 'TS0601_curtain_switch',
-        vendor: 'TuYa',
-        description: 'Curtain switch',
-        fromZigbee: [fz.tuya_cover],
-        toZigbee: [tz.tuya_cover_control],
-        whiteLabel: [{vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'}],
-        exposes: [e.cover_position()],
-    },
-    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
@@ -1412,8 +1402,12 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja'],
+        zigbeeModel: [
+            'owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja', // Curtain motors
+            'mcdj3aq', 'mcdj3aq\u0000', // Tubular motors
+        ],
         fingerprint: [
+            // Curtain motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
@@ -1425,10 +1419,17 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
+            // Roller blinds:
+            {modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
+            // Window pushers:
+            {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
+            // Tubular motors:
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'},
         ],
         model: 'TS0601_cover',
         vendor: 'TuYa',
-        description: 'Curtain motor / Roller blind motor',
+        description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
@@ -1437,21 +1438,11 @@ const devices = [
             {vendor: 'Zemismart', model: 'M515EGB'},
             {vendor: 'TuYa', model: 'DT82LEMA-1.2N'},
             {vendor: 'Moes', model: 'AM43-0.45/40-ES-EB'},
+            {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
+            {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [e.cover_position()],
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
-        ],
-        model: 'TS0601_window_pusher',
-        vendor: 'TuYa',
-        description: 'Window pusher',
-        fromZigbee: [fz.tuya_cover],
-        toZigbee: [tz.tuya_cover_control],
         exposes: [e.cover_position()],
     },
     {
@@ -1563,17 +1554,6 @@ const devices = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-    },
-    {
-        zigbeeModel: ['mcdj3aq', 'mcdj3aq\u0000'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'}],
-        model: 'mcdj3aq',
-        vendor: 'TuYa',
-        description: 'Tubular motor',
-        whiteLabel: [{vendor: 'Zemismart', model: 'ZM25TQ'}],
-        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['RH3001'],
