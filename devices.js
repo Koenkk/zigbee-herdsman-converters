@@ -2244,6 +2244,15 @@ const devices = [
         onEvent: ikea.bulbOnEvent,
     },
     {
+        zigbeeModel: ['FLOALT panel WS 30x90'],
+        model: 'L1528',
+        vendor: 'IKEA',
+        description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
+        extend: preset.light_onoff_brightness_colortemp,
+        ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
+    },
+    {
         zigbeeModel: ['FLOALT panel WS 60x60'],
         model: 'L1529',
         vendor: 'IKEA',
@@ -2253,13 +2262,12 @@ const devices = [
         onEvent: ikea.bulbOnEvent,
     },
     {
-        zigbeeModel: ['FLOALT panel WS 30x90'],
-        model: 'L1528',
+        zigbeeModel: ['JORMLIEN door WS 40x80'],
+        model: 'L1530',
         vendor: 'IKEA',
-        description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
+        description: 'JORMLIEN door light panel, dimmable, white spectrum (40x80 cm)',
         extend: preset.light_onoff_brightness_colortemp,
         ota: ota.tradfri,
-        onEvent: ikea.bulbOnEvent,
     },
     {
         zigbeeModel: ['SURTE door WS 38x64'],
