@@ -3370,7 +3370,7 @@ const converters = {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const stateEnums = tuya.getCoverStateEnums(meta.manufacturerName);
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
                 meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
                 ${JSON.stringify(stateEnums)}`);
 
