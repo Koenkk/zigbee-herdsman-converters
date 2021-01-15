@@ -7947,7 +7947,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp,
     },
     {
-        zigbeeModel: ['500.46'],
+        zigbeeModel: ['500.46', 'H036-0006'],
         model: '929.63',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
