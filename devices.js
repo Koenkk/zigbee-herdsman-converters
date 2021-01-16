@@ -9710,6 +9710,14 @@ const devices = [
 
     // Müller Licht
     {
+        zigbeeModel: ['tint-ExtendedColor'],
+        model: '404036',
+        vendor: 'Müller Licht',
+        description: 'Tint LED-globeform white+color',
+        extend: preset.light_onoff_brightness_colortemp_colorxy,
+        toZigbee: preset.light_onoff_brightness_colortemp_colorxy.toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-A4700001'],
         model: '404023',
         vendor: 'Müller Licht',
