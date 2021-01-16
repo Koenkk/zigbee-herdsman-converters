@@ -9718,6 +9718,19 @@ const devices = [
         toZigbee: preset.light_onoff_brightness.toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['Smart Socket'],
+        model: '404017',
+        vendor: 'Müller Licht',
+        description: 'Smart power strip',
+        extend: preset.switch,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         // Identify through fingerprint as modelID is the same as Airam 4713407
         fingerprint: [{modelID: 'ZBT-DimmableLight', manufacturerName: 'MLI'}],
         model: '404001',
