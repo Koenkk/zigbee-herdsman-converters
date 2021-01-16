@@ -7167,7 +7167,7 @@ const devices = [
     {
         zigbeeModel: ['tdtqgwv'],
         model: 'ZSTY-SM-11ZG-US-W',
-        vendor: ' Somgoms',
+        vendor: 'Somgoms',
         description: '1 gang switch',
         extend: preset.switch,
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read, fz.ignore_basic_report],
