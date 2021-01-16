@@ -11064,7 +11064,7 @@ const devices = [
 
     // Shenzhen Homa
     {
-        zigbeeModel: ['HOMA1008'],
+        zigbeeModel: ['HOMA1008', '00A'],
         model: 'HLD812-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
