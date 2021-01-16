@@ -3600,6 +3600,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5063331P7'],
+        model: '5063331P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth White & Color Ambiance spot Fugato',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_colorxy,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5045131P7'],
         model: '5045131P7',
         vendor: 'Philips',
