@@ -2315,6 +2315,15 @@ const devices = [
         onEvent: ikea.bulbOnEvent,
     },
     {
+        zigbeeModel: ['JORMLIEN door WS 40x80'],
+        model: 'L1530',
+        vendor: 'IKEA',
+        description: 'JORMLIEN door light panel, dimmable, white spectrum (40x80 cm)',
+        extend: preset.light_onoff_brightness_colortemp,
+        ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
+    },
+    {
         zigbeeModel: ['FLOALT panel WS 30x90'],
         model: 'L1528',
         vendor: 'IKEA',
