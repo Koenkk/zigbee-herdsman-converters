@@ -15342,23 +15342,21 @@ const devices = [
 ];
 
 module.exports = devices.map((device) => {
-    if (device.extend) {
-        if (device.extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
+    const {extend, ...deviceWithoutExtend} = device;
+
+    if (extend) {
+        if (extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
             assert.fail(`'${device.model}' has configure in extend and device, this is not allowed`);
         }
 
-        let deviceMeta = null;
-        if (device.extend.hasOwnProperty('meta') && device.hasOwnProperty('meta')) {
-            deviceMeta = Object.assign({}, device.extend.meta, device.meta);
-        }
-
-        device = Object.assign({}, device.extend, device);
-
-        if (deviceMeta !== null) {
-            device.meta = deviceMeta;
-        }
-
-        delete device.extend;
+        device = {
+            ...extend,
+            ...deviceWithoutExtend,
+            meta: extend.meta || deviceWithoutExtend.meta ? {
+                ...extend.meta,
+                ...deviceWithoutExtend.meta,
+            } : undefined,
+        };
     }
 
     if (device.toZigbee.length > 0) {
