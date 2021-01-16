@@ -7811,7 +7811,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
-        exposes: [],
+        exposes: [e.warning()],
     },
     {
         zigbeeModel: ['zbt-dimlight-gls0006'],
@@ -8100,7 +8100,7 @@ const devices = [
         description: 'Optical smoke detector (hardware version v2)',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
         zigbeeModel: ['902010/24'],
@@ -8109,7 +8109,7 @@ const devices = [
         description: 'Optical smoke detector (hardware version v1)',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
         zigbeeModel: ['902010/29'],
@@ -8118,7 +8118,7 @@ const devices = [
         description: 'Zigbee outdoor siren',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
 
     // Iris
@@ -8873,7 +8873,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery()],
+        exposes: [e.battery(), e.warning()],
     },
     {
         zigbeeModel: ['SOHM-I1'],
@@ -14281,7 +14281,7 @@ const devices = [
         endpoint: (device) => {
             return {default: 35};
         },
-        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
         zigbeeModel: ['MOSZB-130'],
