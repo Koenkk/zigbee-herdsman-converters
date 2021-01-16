@@ -8598,7 +8598,7 @@ const devices = [
 
     // HEIMAN
     {
-        zigbeeModel: ['CO_V15', 'CO_YDLV10'],
+        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
         vendor: 'HEIMAN',
