@@ -7844,7 +7844,7 @@ const devices = [
         vendor: 'Trust',
         description: 'Remote control',
         fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy.ZYCT202_stop, fz.legacy.ZYCT202_up_down],
-        exposes: [e.action(['on', 'off', 'stop', 'up-press', 'down-press'])],
+        exposes: [e.action(['on', 'off', 'stop', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
