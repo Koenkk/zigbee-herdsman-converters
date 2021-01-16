@@ -1573,7 +1573,8 @@ const converters = {
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM',
+                'QBKG23LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
                 const button = value.hasOwnProperty('button') ? value.button : 'single';
@@ -1590,7 +1591,8 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM',
+                'QBKG23LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
@@ -3359,25 +3361,29 @@ const converters = {
 
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
-                        !meta.options.invert_cover : meta.options.invert_cover);
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const isRoller = meta.mapped.model === 'TS0601_roller_blind';
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
                     break;
                 case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
                     break;
                 default:
                     throw new Error('TuYa_cover_control: Invalid command received');
@@ -4261,6 +4267,50 @@ const converters = {
                     entity,
                     tuya.dataPoints.hyMode,
                     {'manual': 0, 'auto': 1, 'away': 2}[value]);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    },
+    ZB003X: {
+        key: [
+            'reporting_time', 'temperature_calibration', 'humidity_calibration',
+            'illuminance_calibration', 'pir_enable', 'led_enable',
+            'reporting_enable', 'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'reporting_time':
+                await tuya.sendDataPointValue(entity, 102, value, 'sendData');
+                break;
+            case 'temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 104, value, 'sendData');
+                break;
+            case 'humidity_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 105, value, 'sendData');
+                break;
+            case 'illuminance_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 106, value, 'sendData');
+                break;
+            case 'pir_enable':
+                await tuya.sendDataPointBool(entity, 109, value, 'sendData');
+                break;
+            case 'led_enable':
+                await tuya.sendDataPointBool(entity, 111, value, 'sendData');
+                break;
+            case 'reporting_enable':
+                await tuya.sendDataPointBool(entity, 112, value, 'sendData');
+                break;
+            case 'sensitivity':
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
+                break;
+            case 'keep_time':
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value], type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
