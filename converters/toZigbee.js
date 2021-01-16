@@ -3361,25 +3361,29 @@ const converters = {
 
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
-                        !meta.options.invert_cover : meta.options.invert_cover);
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const isRoller = meta.mapped.model === 'TS0601_roller_blind';
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
                     break;
                 case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
                     break;
                 default:
                     throw new Error('TuYa_cover_control: Invalid command received');
