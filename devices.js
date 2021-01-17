@@ -3605,7 +3605,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Fugato',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color,
+        extend: preset.hue.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
