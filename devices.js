@@ -4139,7 +4139,7 @@ const devices = [
         zigbeeModel: ['openlumi.gw_router.jn5169'],
         model: 'GWRJN5169',
         vendor: 'OpenLumi',
-        description: '[Lumi Router JN5169](https://github.com/igo-r/Lumi-Router-JN5169)',
+        description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
         fromZigbee: [],
         toZigbee: []
     },
