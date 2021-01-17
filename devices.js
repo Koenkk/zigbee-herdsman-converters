@@ -12755,7 +12755,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6'],
+        zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6', '75a4bfe8ef9c4350830a25d13e3ab068'],
         model: 'SM10ZW',
         vendor: 'ORVIBO',
         description: 'Door or window contact switch',
