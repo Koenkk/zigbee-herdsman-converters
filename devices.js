@@ -13152,7 +13152,7 @@ const devices = [
         fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
     },
     {
-        zigbeeModel: ['ZB-SW02'],
+        zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA'],
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch - 2 gang',
