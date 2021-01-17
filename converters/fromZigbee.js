@@ -638,6 +638,17 @@ const converters = {
             }
         },
     },
+    power_on_behavior: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on', 2: 'toggle', 255: 'previous'};
+            if (msg.data.hasOwnProperty('startUpOnOff')) {
+                const property = postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data['startUpOnOff']]};
+            }
+        },
+    },
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
