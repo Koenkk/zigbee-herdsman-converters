@@ -2317,8 +2317,9 @@ const devices = [
         vendor: 'IKEA',
         extend: preset.switch(),
         toZigbee: preset.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.power_on_behavior]),
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous', 'on'])
+        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', exposes.access.ALL, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -14893,7 +14894,7 @@ const devices = [
         model: '552-80699',
         vendor: 'Niko',
         description: 'Smart plug with earthing pin',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -14907,7 +14908,7 @@ const devices = [
         },
         exposes: [
             e.switch(), e.power(), e.energy(),
-            exposes.enum('power_on_behavior', exposes.access.STATE_SET, ['off', 'previous', 'on'])
+            exposes.enum('power_on_behavior', exposes.access.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
