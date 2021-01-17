@@ -2490,6 +2490,11 @@ const devices = [
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            // By default this device controls group 0, some devices are by default in
+            // group 0 causing the remote to control them.
+            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
