@@ -1301,6 +1301,14 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp(),
     },
     {
+        fingerprint: [{modelID: 'TS0504A', manufacturerName: '_TZ3000_nzbm4ad4'}],
+        zigbeeModel: ['TS0504A'],
+        model: 'TS0504A',
+        vendor: 'TuYa',
+        description: 'RGBW LED controller',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
         model: 'TS0505A_led',
         vendor: 'TuYa',
