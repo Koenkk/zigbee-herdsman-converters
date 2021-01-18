@@ -4142,7 +4142,7 @@ const devices = [
         description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
         fromZigbee: [],
         toZigbee: [],
-        exposes: []
+        exposes: [],
     },
 
     // databyte.ch
