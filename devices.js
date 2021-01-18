@@ -7944,9 +7944,9 @@ const devices = [
     },
     {
         zigbeeModel: ['RGBW light', '500.49'],
-        model: '500.63',
+        model: '50049/500.63',
         vendor: 'Paulmann',
-        description: 'Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
+        description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
