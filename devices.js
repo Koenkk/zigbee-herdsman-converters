@@ -7044,6 +7044,13 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
     {
+        zigbeeModel: ['GL-FL-004P'],
+        model: 'GL-FL-004P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 10W floodlight RGB CCT pro',
+        extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
+    },
+    {
         zigbeeModel: ['GL-FL-004TZS'],
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
