@@ -15261,7 +15261,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LXEK-1'],
-        model: '9CZA-A806ST',
+        model: '9CZA-A806ST-Q1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
@@ -15275,7 +15275,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LXEK-2'],
-        model: '9CZA-A806ST-Q1A',
+        model: '9CZA-G1521-Q1A',
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
