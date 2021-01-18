@@ -9573,6 +9573,16 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['ICZB-KPD12'],
+        model: 'ICZB-KPD12',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Keypad Pulse 2',
+        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['ICZB-KPD14S'],
         model: 'ICZB-KPD14S',
         vendor: 'iCasa',
