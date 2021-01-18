@@ -352,14 +352,31 @@ describe('index.js', () => {
     it('Exposes access matches toZigbee', () => {
         devices.forEach((device) => {
             if (device.exposes) {
-                device.exposes.forEach((expose) => {
-                    if (expose.access) {
-                        const toZigbee = device.toZigbee.find(item => item.key.includes(expose.property));
-
-                        expect(expose.access & exposes.access.SET).toBe(toZigbee && toZigbee.convertSet ? exposes.access.SET : 0);
-                        expect(expose.access & exposes.access.GET).toBe(toZigbee && toZigbee.convertGet ? exposes.access.GET : 0);
+                const toCheck = [];
+                for (const expose of device.exposes) {
+                    if (expose.hasOwnProperty('access')) {
+                        toCheck.push(expose)
+                    } else if (expose.features) {
+                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
                     }
-                });
+                }
+
+                for (const expose of toCheck) {
+                    let property = expose.property;
+                    if (expose.endpoint) {
+                        property = expose.property.replace('_' + expose.endpoint, '');
+                    }
+
+                    const toZigbee = device.toZigbee.find(item => item.key.includes(property));
+
+                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
+                    }
+
+                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                    }
+                }
             }
         });
     });
