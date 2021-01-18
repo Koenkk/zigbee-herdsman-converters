@@ -2029,7 +2029,7 @@ const devices = [
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
-        description: '2 gang smart dimmer switch module with neutral',
+        description: '2 gang smart dimmer switch module without neutral',
         extend: preset.light_onoff_brightness,
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         meta: {multiEndpoint: true, configureKey: 1},
