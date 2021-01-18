@@ -14660,6 +14660,13 @@ const devices = [
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
+    {
+        zigbeeModel: ['ZBT-RGBWLight-GLS0844'],
+        model: 'HAL300',
+        vendor: 'Schwaiger',
+        description: 'Tint LED bulb E27 806 lumen, dimmable, color, white 1800-6500K',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
 
     // Zipato
     {
