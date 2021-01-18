@@ -1304,6 +1304,13 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp(),
     },
     {
+        fingerprint: [{modelID: 'TS0504A', manufacturerName: '_TZ3000_nzbm4ad4'}],
+        model: 'TS0504A',
+        vendor: 'TuYa',
+        description: 'RGBW LED controller',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
         model: 'TS0505A_led',
         vendor: 'TuYa',
@@ -2321,6 +2328,7 @@ const devices = [
         vendor: 'IKEA',
         extend: preset.switch(),
         toZigbee: preset.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.power_on_behavior]),
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
@@ -4400,13 +4408,7 @@ const devices = [
                     {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
                 ]);
             }
-            try {
-                await endpoint.configureReporting('msPressureMeasurement', [
-                    {attribute: 'scaledValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                ]);
-            } catch (e) {
-                // this firware doesn't support scaledValue
-            }
+            await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.pressure(),
             exposes.binary('led_feedback', ea.ALL, 'ON', 'OFF').withDescription('Enable LEDs feedback'),
@@ -7054,6 +7056,13 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
     {
+        zigbeeModel: ['GL-FL-004P'],
+        model: 'GL-FL-004P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 10W floodlight RGB CCT pro',
+        extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
+    },
+    {
         zigbeeModel: ['GL-FL-004TZS'],
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
@@ -7949,9 +7958,9 @@ const devices = [
     },
     {
         zigbeeModel: ['RGBW light', '500.49'],
-        model: '50049',
+        model: '50049/500.63',
         vendor: 'Paulmann',
-        description: 'SmartHome Yourled RGB Controller',
+        description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
@@ -7967,6 +7976,13 @@ const devices = [
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
         extend: preset.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['H036-0005'],
+        model: '929.60',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee LED-Modul Coin 1x6W White',
+        extend: preset.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['371000001'],
@@ -9576,6 +9592,16 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['ICZB-KPD12'],
+        model: 'ICZB-KPD12',
+        vendor: 'iCasa',
+        description: 'Zigbee 3.0 Keypad Pulse 2',
+        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['ICZB-KPD14S'],
@@ -13157,7 +13183,7 @@ const devices = [
         fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
     },
     {
-        zigbeeModel: ['ZB-SW02'],
+        zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA'],
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch - 2 gang',
@@ -14656,6 +14682,13 @@ const devices = [
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
+    {
+        zigbeeModel: ['ZBT-RGBWLight-GLS0844'],
+        model: 'HAL300',
+        vendor: 'Schwaiger',
+        description: 'Tint LED bulb E27 806 lumen, dimmable, color, white 1800-6500K',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
 
     // Zipato
     {
@@ -14901,7 +14934,7 @@ const devices = [
         model: '552-80699',
         vendor: 'Niko',
         description: 'Smart plug with earthing pin',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -14915,7 +14948,7 @@ const devices = [
         },
         exposes: [
             e.switch(), e.power(), e.energy(),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'previous', 'on'])
+            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
@@ -15268,7 +15301,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LXEK-1'],
-        model: '9CZA-A806ST',
+        model: '9CZA-A806ST-Q1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
@@ -15282,7 +15315,7 @@ const devices = [
     },
     {
         zigbeeModel: ['LXEK-2'],
-        model: '9CZA-A806ST-Q1A',
+        model: '9CZA-G1521-Q1A',
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),

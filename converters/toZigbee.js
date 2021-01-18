@@ -55,6 +55,9 @@ const converters = {
             await entity.write('genOnOff', {startUpOnOff: lookup[value]}, utils.getOptions(meta.mapped, entity));
             return {state: {power_on_behavior: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['startUpOnOff']);
+        },
     },
     lock: {
         key: ['state'],
