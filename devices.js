@@ -689,7 +689,12 @@ const devices = [
         exposes: [e.occupancy(), e.battery(), e.illuminance(),
             exposes.numeric('detection_period', exposes.access.STATE_SET).withValueMin(2).withValueMax(199).withUnit('s')
                 .withDescription('Time in seconds till occupancy goes to false')],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg', 'msIlluminanceMeasurement']);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
