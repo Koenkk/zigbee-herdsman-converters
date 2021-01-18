@@ -1302,7 +1302,6 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0504A', manufacturerName: '_TZ3000_nzbm4ad4'}],
-        zigbeeModel: ['TS0504A'],
         model: 'TS0504A',
         vendor: 'TuYa',
         description: 'RGBW LED controller',
