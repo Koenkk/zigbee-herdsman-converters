@@ -61,8 +61,8 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
         ],
     }),
-    light_onoff_brightness_colortemp: () => ({
-        exposes: [e.light_brightness_colortemp(), e.effect()],
+    light_onoff_brightness_colortemp: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -79,8 +79,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_color: () => ({
-        exposes: [e.light_brightness_color(), e.effect()],
+    light_onoff_brightness_color: (colorTempRange) => ({
+        exposes: [e.light_brightness_color(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -88,8 +88,8 @@ const preset = {
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     }),
-    light_onoff_brightness_colorxy: () => ({
-        exposes: [e.light_brightness_colorxy(), e.effect()],
+    light_onoff_brightness_colorxy: (colorTempRange) => ({
+        exposes: [e.light_brightness_colorxy(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -105,8 +105,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_colortemp_color: () => ({
-        exposes: [e.light_brightness_colortemp_color(), e.effect()],
+    light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp_color(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
@@ -124,8 +124,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_colortemp_colorxy: () => ({
-        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
+    light_onoff_brightness_colortemp_colorxy: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp_colorxy(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
@@ -184,16 +184,16 @@ const preset = {
             ...preset.light_onoff_brightness(),
             toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
+        light_onoff_brightness_colortemp: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_color: () => ({
-            ...preset.light_onoff_brightness_color(),
+        light_onoff_brightness_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_colortemp_color: () => ({
-            ...preset.light_onoff_brightness_colortemp_color(),
+        light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
     };
@@ -202,16 +202,16 @@ const preset = {
             ...preset.light_onoff_brightness(),
             toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
+        light_onoff_brightness_colortemp: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_color: () => ({
-            ...preset.light_onoff_brightness_color(),
+        light_onoff_brightness_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_colortemp_color: () => ({
-            ...preset.light_onoff_brightness_colortemp_color(),
+        light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.ledvance_commands]),
         }),
     };
