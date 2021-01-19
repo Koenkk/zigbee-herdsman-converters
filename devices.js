@@ -4158,6 +4158,17 @@ const devices = [
         exposes: [e.action(['toggle'])],
     },
 
+    // OpenLumi
+    {
+        zigbeeModel: ['openlumi.gw_router.jn5169'],
+        model: 'GWRJN5169',
+        vendor: 'OpenLumi',
+        description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+
     // databyte.ch
     {
         zigbeeModel: ['DTB190502A1'],
