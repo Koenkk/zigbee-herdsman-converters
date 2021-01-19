@@ -868,7 +868,7 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
@@ -884,7 +884,7 @@ const devices = [
                 await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
             }
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
@@ -1189,7 +1189,7 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.tuya_backlight_mode, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
         whiteLabel: [{vendor: 'LoraTap', model: 'SC400'}],
-        exposes: [e.cover_position().setAccess('state', ea.STATE_SET), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
@@ -1317,7 +1317,7 @@ const devices = [
         description: 'RGB+CCT LED',
         toZigbee: [tz.on_off, tz.tuya_led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
-        exposes: [e.light_brightness_colortemp_colorhs()],
+        exposes: [e.light_brightness_colortemp_colorhs().removeFeature('color_temp_startup')],
     },
     {
         zigbeeModel: ['TS0505A'],
@@ -1453,7 +1453,7 @@ const devices = [
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
         zigbeeModel: ['kud7u2l'],
@@ -1702,7 +1702,7 @@ const devices = [
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         extend: preset.light_onoff_brightness(),
-        exposes: [e.light_brightness()],
+        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1781,9 +1781,9 @@ const devices = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
+            .withSystemMode(['off', 'auto', 'heat'], ea.ALL)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-            .withLocalTemperatureCalibration(ea.STATE_SET).withPiHeatingDemand()],
+            .withLocalTemperatureCalibration(ea.ALL).withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
@@ -1948,6 +1948,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '1 gang switch',
         extend: preset.switch(),
+        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
     },
@@ -1957,7 +1958,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '2 gang switch',
         extend: preset.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -1972,7 +1973,7 @@ const devices = [
         vendor: 'Lonsonho',
         description: '3 gang switch',
         extend: preset.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -2330,7 +2331,7 @@ const devices = [
         toZigbee: preset.switch().toZigbee.concat([tz.power_on_behavior]),
         fromZigbee: preset.switch().fromZigbee.concat([fz.power_on_behavior]),
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'previous', 'on'])
+        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4434,7 +4435,7 @@ const devices = [
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
-            .withPiHeatingDemand()],
+            .withPiHeatingDemand(ea.STATE_GET)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -5033,7 +5034,7 @@ const devices = [
         fromZigbee: [fz.legacy.thermostat_att_report, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing, tz.thermostat_system_mode, tz.thermostat_running_state],
-        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
             .withPiHeatingDemand()],
         meta: {configureKey: 1},
@@ -5814,7 +5815,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_running_state,
             tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -7167,6 +7168,7 @@ const devices = [
         vendor: 'Somgoms',
         description: '1 gang switch',
         extend: preset.switch(),
+        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
     },
@@ -7177,7 +7179,7 @@ const devices = [
         description: 'Curtain switch',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
         zigbeeModel: ['hpb9yts'],
@@ -7186,7 +7188,7 @@ const devices = [
         description: 'Dimmer switch',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        exposes: [e.light_brightness()],
+        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         extend: preset.light_onoff_brightness(),
     },
 
@@ -8455,7 +8457,7 @@ const devices = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode],
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
             .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration().withPiHeatingDemand()],
@@ -8500,7 +8502,7 @@ const devices = [
                 // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
             }
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
 
     // Lupus
@@ -8511,7 +8513,7 @@ const devices = [
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
         zigbeeModel: ['SCM-3-OTA_00.00.03.16TC'],
@@ -8520,7 +8522,7 @@ const devices = [
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],
@@ -8584,7 +8586,7 @@ const devices = [
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
         zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC', 'PSMP5_00.00.03.15TC',
@@ -9299,7 +9301,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.brightness(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
 
     // Oujiabao
@@ -10093,7 +10095,7 @@ const devices = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration, tz.eurotronic_thermostat_system_mode, tz.eurotronic_host_flags,
             tz.eurotronic_error_status, tz.thermostat_setpoint_raise_lower, tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_remote_sensing, tz.thermostat_local_temperature,
+            tz.thermostat_remote_sensing, tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
@@ -10580,7 +10582,7 @@ const devices = [
             await reporting.pressure(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.cover_position(), e.temperature(), e.battery(), e.pressure()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
     {
         zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3', 'SV02-410-MP-1.0'],
@@ -10599,7 +10601,7 @@ const devices = [
             await reporting.pressure(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.cover_position(), e.temperature(), e.battery(), e.pressure()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
 
     // AXIS
@@ -10617,7 +10619,7 @@ const devices = [
             await reporting.brightness(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
     },
 
     // ELKO
@@ -12051,7 +12053,7 @@ const devices = [
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_running_state,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
@@ -13502,7 +13504,7 @@ const devices = [
             fz.legacy.wiser_thermostat, fz.legacy.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+            .withSystemMode(['off', 'auto', 'heat'], ea.STATE).withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -14631,7 +14633,7 @@ const devices = [
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'])],
+            .withRunningState(['idle', 'heat'], ea.STATE)],
     },
 
     // Green Power
@@ -14709,7 +14711,7 @@ const devices = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode, tz.thermostat_keypad_lockout],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'], ea.STATE)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -15204,7 +15206,7 @@ const devices = [
         description: 'Melinera smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colorhs()],
+        exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET)],
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],

@@ -356,15 +356,15 @@ describe('index.js', () => {
                 for (const expose of device.exposes) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
-                    } else if (expose.features) {
+                    } else if (expose.features && expose.type !== 'composite') {
                         toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
                     }
                 }
 
                 for (const expose of toCheck) {
                     let property = expose.property;
-                    if (expose.endpoint) {
-                        property = expose.property.replace('_' + expose.endpoint, '');
+                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                     }
 
                     const toZigbee = device.toZigbee.find(item => item.key.includes(property));
