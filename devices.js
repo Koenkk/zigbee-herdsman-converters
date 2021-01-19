@@ -9782,7 +9782,7 @@ const devices = [
         model: '404036',
         vendor: 'Müller Licht',
         description: 'Tint LED-globeform white+color',
-        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+        extend: preset.light_onoff_brightness_colortemp_colorxy([153, 556]),
         toZigbee: preset.light_onoff_brightness_colortemp_colorxy().toZigbee.concat([tz.tint_scene]),
     },
     {
