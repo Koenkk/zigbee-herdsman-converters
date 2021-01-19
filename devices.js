@@ -5195,7 +5195,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5203,7 +5203,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5211,7 +5211,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5227,7 +5227,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5235,7 +5235,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5243,7 +5243,7 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5268,7 +5268,7 @@ const devices = [
         model: 'RB 278 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5276,7 +5276,7 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5285,7 +5285,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5317,7 +5317,7 @@ const devices = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5325,7 +5325,7 @@ const devices = [
         model: 'BY 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white B22',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5357,7 +5357,7 @@ const devices = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5365,7 +5365,7 @@ const devices = [
         model: 'RS 228 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5373,7 +5373,7 @@ const devices = [
         model: 'RS 229 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5381,7 +5381,7 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5406,7 +5406,7 @@ const devices = [
         model: 'RB 248 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5414,7 +5414,7 @@ const devices = [
         model: 'RB 148 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5534,7 +5534,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5623,7 +5623,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
