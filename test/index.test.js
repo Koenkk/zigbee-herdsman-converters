@@ -348,4 +348,36 @@ describe('index.js', () => {
         const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
         expect(expected).toStrictEqual(deepClone(actual));
     });
+
+    it('Exposes access matches toZigbee', () => {
+        devices.forEach((device) => {
+            if (device.exposes) {
+                const toCheck = [];
+                for (const expose of device.exposes) {
+                    if (expose.hasOwnProperty('access')) {
+                        toCheck.push(expose)
+                    } else if (expose.features && expose.type !== 'composite') {
+                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                    }
+                }
+
+                for (const expose of toCheck) {
+                    let property = expose.property;
+                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
+                    }
+
+                    const toZigbee = device.toZigbee.find(item => item.key.includes(property));
+
+                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
+                    }
+
+                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                    }
+                }
+            }
+        });
+    });
 });
