@@ -486,9 +486,9 @@ const devices = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
             fz.legacy.QBKG03LM_QBKG12LM_click, fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy.QBKG12LM_click,
             fz.xiaomi_power],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.power().withAccess(ea.STATE_GET), e.action([
-            'single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
-            'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both'])],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.power().withAccess(ea.STATE_GET),
+            e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
+                'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both'])],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
         endpoint: (device) => {
@@ -604,8 +604,8 @@ const devices = [
             return {'system': 1};
         },
         onEvent: xiaomi.preventReset,
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
-            e.action(['hold', 'single', 'double', 'triple', 'release'])],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.action(['hold', 'single', 'double', 'triple', 'release'])],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
@@ -745,7 +745,8 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE)],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE)],
     },
     {
         zigbeeModel: ['lumi.plug.mmeu01'],
@@ -756,9 +757,9 @@ const devices = [
             fz.ignore_time_read],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night],
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
-            e.current(), e.consumer_connected(), e.consumer_overload(), e.led_disabled_night(), e.power_outage_memory(),
-            exposes.binary('auto_off', ea.STATE_SET, true, false)
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.consumer_overload(), e.led_disabled_night(),
+            e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
         ],
     },
@@ -769,7 +770,8 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE)],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE)],
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
@@ -803,7 +805,8 @@ const devices = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE), e.power_outage_memory()],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.power_outage_memory()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -903,7 +906,8 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE),
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time')],
     },
@@ -1205,7 +1209,8 @@ const devices = [
         model: 'TS0601_switch',
         vendor: 'TuYa',
         description: '1, 2, 3 or 4 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
@@ -1231,7 +1236,8 @@ const devices = [
         model: 'TS0601_switch_2_gang',
         vendor: 'TuYa',
         description: '2 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
@@ -1249,7 +1255,8 @@ const devices = [
         model: 'TS0601_switch_3_gang',
         vendor: 'TuYa',
         description: '3 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
@@ -1958,7 +1965,8 @@ const devices = [
         vendor: 'Lonsonho',
         description: '2 gang switch',
         extend: preset.switch(),
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -1973,7 +1981,8 @@ const devices = [
         vendor: 'Lonsonho',
         description: '3 gang switch',
         extend: preset.switch(),
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
@@ -13614,8 +13623,8 @@ const devices = [
         extend: preset.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'), e.power().withAccess(ea.STATE_GET),
-            exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
+        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -13873,8 +13882,8 @@ const devices = [
         extend: preset.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'), e.power().withAccess(ea.STATE_GET),
-            exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
+        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
