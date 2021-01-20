@@ -46,7 +46,7 @@ const converters = {
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
-    set_status = {
+    set_status: {
         key: ['set_status'],
         convertSet: async (entity, key, value, meta) => {
             const panelStatus = utils.getKeyByValue(constants.panelStatus, value.panel_status, undefined);
