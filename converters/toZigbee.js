@@ -691,7 +691,8 @@ const converters = {
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
-            const preset = {'warm': 454, 'neutral': 370, 'cool': 250};
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
 
             if (key === 'color_temp_percent') {
                 value = Number(value) * 3.46;
@@ -709,7 +710,6 @@ const converters = {
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
@@ -724,7 +724,8 @@ const converters = {
         key: ['color_temp_startup'],
         convertSet: async (entity, key, value, meta) => {
             // 0xffff = restore previous value
-            const preset = {'warm': 454, 'neutral': 370, 'cool': 250, 'previous': 65535};
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
 
             if (typeof value === 'string') {
                 if (preset.includes(value.toLowerCase())) {
@@ -737,7 +738,6 @@ const converters = {
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
             await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
