@@ -723,7 +723,6 @@ const converters = {
     light_colortemp_startup: {
         key: ['color_temp_startup'],
         convertSet: async (entity, key, value, meta) => {
-            // 0xffff = restore previous value
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
 
@@ -738,7 +737,10 @@ const converters = {
             value = Number(value);
 
             // ensure value within range
-            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            // we do allow one exception for 0xffff, which is to restore the previous value
+            if (value != 65535) {
+                value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            }
 
             await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp_startup: value}};
