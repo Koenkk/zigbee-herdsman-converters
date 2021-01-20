@@ -15185,6 +15185,26 @@ const devices = [
         },
     },
     {
+        fingerprint: [
+            {modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'},
+        ],
+        model: 'HG06668',
+        vendor: 'Lidl',
+        description: 'Silvercrest Smart Wireless Door Bell',
+        fromZigbee: [
+            fz.battery,
+            fz.tuya_doorbell_button,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [],
+        meta: {
+            configureKey: 1,
+        },
+        exposes: [
+            e.battery(), e.action('pressed'), e.battery_low(), e.tamper(),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
         model: 'HG06335',
         vendor: 'Lidl',
