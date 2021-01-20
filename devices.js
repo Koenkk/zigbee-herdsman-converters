@@ -6788,6 +6788,13 @@ const devices = [
         extend: preset.gledopto.light_onoff_brightness_colorxy(),
     },
     {
+        zigbeeModel: ['GL-C-007P'],
+        model: 'GL-C-007P',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller RGBW',
+        extend: preset.gledopto.light_onoff_brightness_colorxy(),
+    },
+    {
         fingerprint: [
             // Although the device announces modelID GL-C-007, this is clearly a GL-C-008
             // https://github.com/Koenkk/zigbee2mqtt/issues/3525
