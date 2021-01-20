@@ -1246,10 +1246,10 @@ const converters = {
     set_status: {
         key: ['set_status'],
         convertSet: async (entity, key, value, meta) => {
-            const panelStatus = utils.getKeyByValue(common.panStat, value.panelstatus, undefined);
-            const secondsRemain = value.secondsremain = 0;
-            const audibleNotif = value.audiblenotif = 0;
-            const alarmStatus = value.alarmstatus = 0;
+            const panel_status = utils.getKeyByValue(common.panStat, value.panelstatus, undefined);
+            const seconds_remain = value.secondsremain = 0;
+            const audible_notif = value.audiblenotif = 0;
+            const alarm_status = value.alarmstatus = 0;
 
             if (panelStatus === undefined) {
                 throw new Error(
@@ -1257,8 +1257,8 @@ const converters = {
                 );
             }
 
-            globalStore.putValue(entity, 'panelStatus', panelStatus);
-            const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: alarmStatus};
+            globalStore.putValue(entity, 'panelStatus', panel_status);
+            const payload = {panelstatus: panel_status, secondsremain: seconds_remain, audiblenotif: audible_notif, alarmstatus: alarm_status};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
