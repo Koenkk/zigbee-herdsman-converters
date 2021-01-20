@@ -1295,6 +1295,13 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0503A', manufacturerName: '_TZ3000_obacbukl'}],
+        model: 'TS0503A',
+        vendor: 'TuYa',
+        description: 'Led strip controller',
+        extend: preset.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TS0503A'],
         model: 'TYZS1L',
         vendor: 'TuYa',
