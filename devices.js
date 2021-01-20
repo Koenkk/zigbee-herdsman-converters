@@ -8009,19 +8009,6 @@ const devices = [
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
             'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
     },
-    {
-        zigbeeModel: ['NLG-remote', 'Neuhaus remote'],
-        model: '100.462.31',
-        vendor: 'Paul Neuhaus',
-        description: 'Q-REMOTE',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp, fz.command_stop,
-            fz.command_move_to_color, fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
-            fz.tint_scene, fz.command_recall],
-        exposes: [e.action(['on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
-            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
-            'recall_*', 'scene_*'])],
-        toZigbee: [],
-    },
 
     // Bitron
     {
@@ -9453,6 +9440,19 @@ const devices = [
     },
 
     // Paul Neuhaus
+    {
+        zigbeeModel: ['NLG-remote', 'Neuhaus remote'],
+        model: '100.462.31',
+        vendor: 'Paul Neuhaus',
+        description: 'Q-REMOTE',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp, fz.command_stop,
+            fz.command_move_to_color, fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
+            fz.tint_scene, fz.command_recall],
+        exposes: [e.action(['on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
+            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
+            'recall_*', 'scene_*'])],
+        toZigbee: [],
+    },
     {
         zigbeeModel: ['NLG-CCT light'],
         model: 'NLG-CCT light',
