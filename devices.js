@@ -61,8 +61,8 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
         ],
     }),
-    light_onoff_brightness_colortemp: () => ({
-        exposes: [e.light_brightness_colortemp(), e.effect()],
+    light_onoff_brightness_colortemp: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -79,8 +79,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_color: () => ({
-        exposes: [e.light_brightness_color(), e.effect()],
+    light_onoff_brightness_color: (colorTempRange) => ({
+        exposes: [e.light_brightness_color(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -88,8 +88,8 @@ const preset = {
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
     }),
-    light_onoff_brightness_colorxy: () => ({
-        exposes: [e.light_brightness_colorxy(), e.effect()],
+    light_onoff_brightness_colorxy: (colorTempRange) => ({
+        exposes: [e.light_brightness_colorxy(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -105,8 +105,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_colortemp_color: () => ({
-        exposes: [e.light_brightness_colortemp_color(), e.effect()],
+    light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp_color(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
@@ -124,8 +124,8 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_colortemp_colorxy: () => ({
-        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
+    light_onoff_brightness_colortemp_colorxy: (colorTempRange) => ({
+        exposes: [e.light_brightness_colortemp_colorxy(colorTempRange), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
@@ -184,16 +184,16 @@ const preset = {
             ...preset.light_onoff_brightness(),
             toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
+        light_onoff_brightness_colortemp: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_color: () => ({
-            ...preset.light_onoff_brightness_color(),
+        light_onoff_brightness_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
-        light_onoff_brightness_colortemp_color: () => ({
-            ...preset.light_onoff_brightness_colortemp_color(),
+        light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
     };
@@ -202,16 +202,16 @@ const preset = {
             ...preset.light_onoff_brightness(),
             toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
+        light_onoff_brightness_colortemp: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_color: () => ({
-            ...preset.light_onoff_brightness_color(),
+        light_onoff_brightness_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.ledvance_commands]),
         }),
-        light_onoff_brightness_colortemp_color: () => ({
-            ...preset.light_onoff_brightness_colortemp_color(),
+        light_onoff_brightness_colortemp_color: (colorTempRange) => ({
+            ...preset.light_onoff_brightness_colortemp_color(colorTempRange),
             toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.ledvance_commands]),
         }),
     };
@@ -2112,7 +2112,7 @@ const devices = [
         model: 'LED1545G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2123,14 +2123,14 @@ const devices = [
         vendor: 'IKEA',
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2148,7 +2148,7 @@ const devices = [
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 400 lumen, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2166,7 +2166,7 @@ const devices = [
         model: 'LED1536G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12/E14 400 lumen, dimmable, white spectrum, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2175,7 +2175,7 @@ const devices = [
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2202,7 +2202,7 @@ const devices = [
         model: 'LED1733G7',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 600 lumen, dimmable, white spectrum, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2240,7 +2240,7 @@ const devices = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2258,7 +2258,7 @@ const devices = [
         model: 'LED1736G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, white spectrum, clear',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2267,7 +2267,7 @@ const devices = [
         model: 'T1820',
         vendor: 'IKEA',
         description: 'LEPTITER Recessed spot light, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2311,7 +2311,7 @@ const devices = [
         model: 'L1527',
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x30 cm)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2320,7 +2320,7 @@ const devices = [
         model: 'L1529',
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (60x60 cm)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2329,7 +2329,7 @@ const devices = [
         model: 'L1530',
         vendor: 'IKEA',
         description: 'JORMLIEN door light panel, dimmable, white spectrum (40x80 cm)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2338,7 +2338,7 @@ const devices = [
         model: 'L1528',
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2347,7 +2347,7 @@ const devices = [
         model: 'L1531',
         vendor: 'IKEA',
         description: 'SURTE door light panel, dimmable, white spectrum (38x64 cm)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
@@ -2548,7 +2548,7 @@ const devices = [
         vendor: 'IKEA',
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
     },
     {
         zigbeeModel: ['GUNNARP panel 40*40'],
@@ -2557,7 +2557,7 @@ const devices = [
         vendor: 'IKEA',
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
     },
     {
         zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm'],
@@ -2566,7 +2566,7 @@ const devices = [
         description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([250, 454]),
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 CWS 345lm'],
@@ -3032,7 +3032,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color([153, 500]),
         ota: ota.zigbeeOTA,
     },
     {
@@ -4589,7 +4589,7 @@ const devices = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color([153, 526]),
         ota: ota.ledvance,
     },
     {
@@ -5215,7 +5215,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5223,7 +5223,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5231,7 +5231,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5247,7 +5247,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5255,7 +5255,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5263,7 +5263,7 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5288,7 +5288,7 @@ const devices = [
         model: 'RB 278 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5296,7 +5296,7 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5305,7 +5305,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5337,7 +5337,7 @@ const devices = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5345,7 +5345,7 @@ const devices = [
         model: 'BY 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white B22',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5377,7 +5377,7 @@ const devices = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5385,7 +5385,7 @@ const devices = [
         model: 'RS 228 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5393,7 +5393,7 @@ const devices = [
         model: 'RS 229 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5401,7 +5401,7 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5426,7 +5426,7 @@ const devices = [
         model: 'RB 248 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5434,7 +5434,7 @@ const devices = [
         model: 'RB 148 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5554,7 +5554,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5643,7 +5643,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color([153, 555]),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -9809,7 +9809,7 @@ const devices = [
         model: '404036',
         vendor: 'Müller Licht',
         description: 'Tint LED-globeform white+color',
-        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+        extend: preset.light_onoff_brightness_colortemp_colorxy([153, 556]),
         toZigbee: preset.light_onoff_brightness_colortemp_colorxy().toZigbee.concat([tz.tint_scene]),
     },
     {
