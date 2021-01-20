@@ -58,8 +58,7 @@ const converters = {
                 throw new Error(
                     `Unsupported status: '${value.panel_status}', should be one of: ${Object.values(constants.panelStatus)}`,
                 );
-            }
-            
+            }            
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: alarmStatus};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
