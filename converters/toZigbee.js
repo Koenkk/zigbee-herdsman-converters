@@ -691,15 +691,25 @@ const converters = {
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
+
             if (key === 'color_temp_percent') {
                 value = Number(value) * 3.46;
                 value = Math.round(value + 154).toString();
             }
 
+            if (typeof value === 'string') {
+                if (preset.includes(value.toLowerCase())) {
+                    value = preset[value.toLowerCase()];
+                } else {
+                    throw new Error(`Unknown preset '${value}'`);
+                }
+            }
+
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
@@ -713,16 +723,24 @@ const converters = {
     light_colortemp_startup: {
         key: ['color_temp_startup'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'string' && value.toLowerCase() == 'previous') {
-                // 0xffff = restore previous value
-                value = 65535;
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
+
+            if (typeof value === 'string') {
+                if (preset.includes(value.toLowerCase())) {
+                    value = preset[value.toLowerCase()];
+                } else {
+                    throw new Error(`Unknown preset '${value}'`);
+                }
             }
 
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
-            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            // we do allow one exception for 0xffff, which is to restore the previous value
+            if (value != 65535) {
+                value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            }
 
             await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp_startup: value}};

@@ -489,7 +489,6 @@ const converters = {
 
             if (msg.data.hasOwnProperty('startUpColorTemperature')) {
                 result.color_temp_startup = msg.data['startUpColorTemperature'];
-                result.color_temp_startup = (result.color_temp_startup === 65535) ? 'previous' : result.color_temp_startup;
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
