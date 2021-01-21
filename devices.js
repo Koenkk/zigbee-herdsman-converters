@@ -983,7 +983,8 @@ const devices = [
         exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
-        ])],
+        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+            .withDescription('Operation mode, select "command" to enable bindings')],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -999,13 +1000,14 @@ const devices = [
         description: 'Aqara Opple switch 2 bands',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_step_color_temp, fz.battery,
             fz.aqara_opple_multistate, fz.aqara_opple_report],
-        toZigbee: [tz.aqara_opple_operation_mode],
         exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
-        ])],
+        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+            .withDescription('Operation mode, select "command" to enable bindings')],
+        toZigbee: [tz.aqara_opple_operation_mode],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
