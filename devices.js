@@ -684,7 +684,7 @@ const devices = [
         model: 'RTCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 human body movement and illuminance sensor',
-        fromZigbee: [fz.occupancy, fz.battery],
+        fromZigbee: [fz.occupancy, fz.battery, fz.xiaomi_opple_illuminance],
         toZigbee: [tz.occupancy_timeout],
         exposes: [e.occupancy(), e.battery(),
             exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
