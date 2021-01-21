@@ -7941,14 +7941,14 @@ const devices = [
     {
         zigbeeModel: ['ZLL-DimmableLigh'],
         model: 'ZLED-2709',
-        vendor: 'Trust',
+        vendor: 'Trust International B.V.',
         description: 'Smart Dimmable LED Bulb',
         extend: preset.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
-        vendor: 'Trust',
+        vendor: 'Trust International B.V.',
         description: 'Smart tunable LED bulb',
         extend: preset.light_onoff_brightness_colortemp(),
     },
