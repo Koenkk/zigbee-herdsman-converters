@@ -1301,7 +1301,7 @@ const devices = [
         model: 'TS0503A',
         vendor: 'TuYa',
         description: 'Led strip controller',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
         zigbeeModel: ['TS0503A'],
