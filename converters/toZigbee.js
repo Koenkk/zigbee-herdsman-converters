@@ -49,7 +49,7 @@ const converters = {
     set_status: {
         key: ['set_status'],
         convertSet: async (entity, key, value, meta) => {
-            const panelStatus = utils.getKeyByValue(constants.panelStatus, value.panel_status, undefined, Number);
+            const panelStatus = utils.getKey(constants.panelStatus, value.panel_status, undefined, Number);
             const secondsRemain = value.seconds_remaining = 0;
             const audibleNotif = value.audible_notif = 0;
             const alarmStatus = value.alarm_status = 0;
