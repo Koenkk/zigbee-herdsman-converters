@@ -699,8 +699,8 @@ const converters = {
                 value = Math.round(value + 154).toString();
             }
 
-            if (typeof value === 'string') {
-                if (preset.includes(value.toLowerCase())) {
+            if (typeof value === 'string' && isNaN(value)) {
+                if (value.toLowerCase() in preset) {
                     value = preset[value.toLowerCase()];
                 } else {
                     throw new Error(`Unknown preset '${value}'`);
@@ -726,8 +726,8 @@ const converters = {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
 
-            if (typeof value === 'string') {
-                if (preset.includes(value.toLowerCase())) {
+            if (typeof value === 'string' && isNaN(value)) {
+                if (value.toLowerCase() in preset) {
                     value = preset[value.toLowerCase()];
                 } else {
                     throw new Error(`Unknown preset '${value}'`);
