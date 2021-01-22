@@ -683,7 +683,7 @@ const devices = [
         zigbeeModel: ['lumi.motion.agl02'],
         model: 'RTCGQ12LM',
         vendor: 'Xiaomi',
-        description: 'Aqara T1 human body movement and illuminance sensor',
+        description: 'Aqara T1 human body movement and illuminance sensor (illuminance not supported for now)',
         fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [tz.occupancy_timeout],
         exposes: [e.occupancy(), e.battery(),
