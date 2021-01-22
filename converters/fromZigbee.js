@@ -489,7 +489,6 @@ const converters = {
 
             if (msg.data.hasOwnProperty('startUpColorTemperature')) {
                 result.color_temp_startup = msg.data['startUpColorTemperature'];
-                result.color_temp_startup = (result.color_temp_startup === 65535) ? 'previous' : result.color_temp_startup;
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
@@ -635,6 +634,17 @@ const converters = {
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    power_on_behavior: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on', 2: 'toggle', 255: 'previous'};
+            if (msg.data.hasOwnProperty('startUpOnOff')) {
+                const property = postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data['startUpOnOff']]};
             }
         },
     },
