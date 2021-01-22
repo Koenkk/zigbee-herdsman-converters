@@ -15185,29 +15185,19 @@ const devices = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'},
-        ],
+        fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HG06668',
         vendor: 'Lidl',
         description: 'Silvercrest Smart Wireless Door Bell',
-        fromZigbee: [
-            fz.battery,
-            fz.tuya_doorbell_button,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        meta: {
-            configureKey: 1,
-        },
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [
-            e.battery(), e.action(['pressed']), e.battery_low(), e.tamper(),
-        ],
+        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
