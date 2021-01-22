@@ -684,7 +684,7 @@ const devices = [
         model: 'RTCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 human body movement and illuminance sensor',
-        fromZigbee: [fz.occupancy, fz.battery, fz.xiaomi_opple_illuminance],
+        fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [tz.occupancy_timeout],
         exposes: [e.occupancy(), e.battery(),
             exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
@@ -692,7 +692,7 @@ const devices = [
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing', 'aqaraOpple']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
             await reporting.occupancy(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
