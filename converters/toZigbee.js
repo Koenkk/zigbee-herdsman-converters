@@ -3424,6 +3424,11 @@ const converters = {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 0);
                 }
             }
+
+            if (value.motor_speed != undefined) {
+                meta.logger.info(`Setting motor speed to ${value.motor_speed}`);
+                await tuya.sendDataPointValue(entity, 105, value.motor_speed); // TODO: Add motor speed datapoint to tuya.dataPoints if it works
+            }
         },
     },
     diyruz_freepad_on_off_config: {
