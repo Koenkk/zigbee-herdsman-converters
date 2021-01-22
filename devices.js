@@ -15200,6 +15200,11 @@ const devices = [
         meta: {
             configureKey: 1,
         },
+		configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
         exposes: [
             e.battery(), e.action('pressed'), e.battery_low(), e.tamper(),
         ],
