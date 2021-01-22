@@ -8631,6 +8631,22 @@ const devices = [
         extend: preset.switch(),
     },
     {
+        zigbeeModel: ['SD8SC_00.00.03.12TC'],
+        model: 'SD-8SCZBS',
+        vendor: 'Climax',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         zigbeeModel: ['SCM-3_00.00.03.15'],
         model: 'SCM-5ZBS',
         vendor: 'Climax',
