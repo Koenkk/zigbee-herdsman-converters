@@ -4554,6 +4554,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['B40 TW Value'],
+        model: 'AC25704',
+        vendor: 'LEDVANCE',
+        description: 'Classic E14 tunable white',
+        extend: preset.ledvance.light_onoff_brightness_colortemp(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['A60 TW Z3'],
         model: 'AC10787',
         vendor: 'OSRAM',
