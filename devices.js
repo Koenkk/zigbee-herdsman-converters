@@ -680,6 +680,24 @@ const devices = [
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
+        zigbeeModel: ['lumi.motion.agl02'],
+        model: 'RTCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 human body movement and illuminance sensor (illuminance not supported for now)',
+        fromZigbee: [fz.occupancy, fz.battery],
+        toZigbee: [tz.occupancy_timeout],
+        exposes: [e.occupancy(), e.battery(),
+            exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
+                .withDescription('Time in seconds till occupancy goes to false')],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
+            await reporting.occupancy(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
