@@ -3596,7 +3596,7 @@ const converters = {
             if (msg.data['65281']) {
                 const result = {};
                 if (msg.data['65281'].hasOwnProperty('11')) {
-                    const illuminance = msg.data['65281']['11'];
+                    const illuminance = 10000 * Math.log10(msg.data['65281']['11'] + 1);
                     // DEPRECATED: remove illuminance_lux here.
                     result.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
                     result.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
@@ -3621,7 +3621,7 @@ const converters = {
             msg.data.occupancy = 1;
             const payload = converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
             // DEPRECATED: remove illuminance_lux here.
-            const illuminance = msg.data['measuredValue'];
+            const illuminance = 10000 * Math.log10(msg.data['measuredValue'] + 1);
             payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
             return payload;
