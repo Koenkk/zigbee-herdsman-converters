@@ -1552,6 +1552,19 @@ const converters = {
             return result;
         },
     },
+    tuya_doorbell_button: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {1: 'pressed'};
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                action: lookup[zoneStatus & 1],
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     terncy_knob: {
         cluster: 'manuSpecificClusterAduroSmart',
         type: ['attributeReport', 'readResponse'],
