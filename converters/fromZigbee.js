@@ -3931,15 +3931,6 @@ const converters = {
             }
         },
     },
-    xiaomi_opple_illuminance: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('illuminance')) {
-                return {illuminance: msg.data.illuminance - 65536};
-            }
-        },
-    },
     qlwz_letv8key_switch: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
