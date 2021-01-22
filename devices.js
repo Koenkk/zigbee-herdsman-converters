@@ -15201,7 +15201,7 @@ const devices = [
             configureKey: 1,
         },
         exposes: [
-            e.battery(), e.action('pressed'), e.battery_low(), e.tamper(),
+            e.battery(), e.action(['pressed']), e.battery_low(), e.tamper(),
         ],
     },
     {
