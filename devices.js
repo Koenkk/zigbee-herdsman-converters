@@ -1521,7 +1521,7 @@ const devices = [
                 .withLocalTemperatureCalibration(ea.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
-            e.max_temperature(), e.min_temperature(), e.week()],
+            e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
     },
     {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
