@@ -3732,6 +3732,20 @@ const converters = {
             const scenename = '';
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
+            // Set correct meta.mapped for groups
+            // * all definition metas are the same -> copy meta.mapped[0]
+            // * mixed device models -> meta.mapped = null
+            if (isGroup && entity.members.length > 0) {
+                for (const memberMeta of Object.values(meta.mapped)) {
+                    // check all members are the same device
+                    if (meta.mapped[0] != memberMeta) {
+                        meta.mapped = [null];
+                        break;
+                    }
+                }
+                meta.mapped = meta.mapped[0];
+            }
+
             const state = {};
             const extensionfieldsets = [];
             for (let [attribute, val] of Object.entries(value)) {
@@ -3778,14 +3792,28 @@ const converters = {
                         );
                         state['color'] = {x: color.x, y: color.y};
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
-                        const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
-                        extensionfieldsets.push(
-                            {
-                                'clstId': 768,
-                                'len': 13,
-                                'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
-                            },
-                        );
+                        if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                            // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
+                            // When the bulb or all bulbs in a group do not support enhanchedHue,
+                            // a fallback to XY is done by converting HSV -> RGB -> XY
+                            const colorXY = utils.rgbToXY(...Object.values(utils.hsvToRGB(color.hue, color.saturation, 100)));
+                            extensionfieldsets.push(
+                                {
+                                    'clstId': 768,
+                                    'len': 4,
+                                    'extField': [Math.round(colorXY.x * 65535), Math.round(colorXY.y * 65535)],
+                                },
+                            );
+                        } else {
+                            const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                            extensionfieldsets.push(
+                                {
+                                    'clstId': 768,
+                                    'len': 13,
+                                    'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                                },
+                            );
+                        }
                         state['color'] = {hue: color.hue, saturation: color.saturation};
                     }
                 }
