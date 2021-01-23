@@ -3426,8 +3426,12 @@ const converters = {
             }
 
             if (value.motor_speed != undefined) {
+                if(value.motor_speed < 0 || value.motor_speed > 255) {
+                    throw new Error('TuYa_cover_control: Motor speed is out of range');
+                }
+
                 meta.logger.info(`Setting motor speed to ${value.motor_speed}`);
-                await tuya.sendDataPointValue(entity, 105, value.motor_speed); // TODO: Add motor speed datapoint to tuya.dataPoints if it works
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.coverSpeed, value.motor_speed);
             }
         },
     },
