@@ -731,10 +731,14 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            const contactProperty = postfixWithEndpointName('contact', msg, model);
+            const tamperProperty = postfixWithEndpointName('tamper', msg, model);
+            const batteryLowProperty = postfixWithEndpointName('battery_low', msg, model);
+
             return {
-                contact: !((zoneStatus & 1) > 0),
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                [contactProperty]: !((zoneStatus & 1) > 0),
+                [tamperProperty]: (zoneStatus & 1<<2) > 0,
+                [batteryLowProperty]: (zoneStatus & 1<<3) > 0,
             };
         },
     },
