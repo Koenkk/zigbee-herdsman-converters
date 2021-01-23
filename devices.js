@@ -1231,7 +1231,6 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}, // 4 gang
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -1252,6 +1251,27 @@ const devices = [
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(4)) await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}],
+        model: 'TS0601_switch_4_gang',
+        vendor: 'TuYa',
+        description: '4 gang switch',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {configureKey: 1, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.write('genBasic', {0xFFDE: {value: 0x13, type: 0x20}}, {disableDefaultResponse: true});
         },
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
