@@ -3426,7 +3426,7 @@ const converters = {
             }
 
             if (value.motor_speed != undefined) {
-                if(value.motor_speed < 0 || value.motor_speed > 255) {
+                if (value.motor_speed < 0 || value.motor_speed > 255) {
                     throw new Error('TuYa_cover_control: Motor speed is out of range');
                 }
 
