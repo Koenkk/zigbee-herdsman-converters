@@ -2449,6 +2449,41 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['KNYCKLAN Open/Close remote'],
+        model: 'E1841',
+        vendor: 'IKEA',
+        description: 'KNYCKLAN open/close remote water valve',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off'])],
+        toZigbee: [],
+        ota: ota.tradfri,
+        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            // By default this device controls group 0, some devices are by default in
+            // group 0 causing the remote to control them.
+            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
+            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['KNYCKLAN receiver'],
+        model: 'E1842',
+        description: 'KNYCKLAN receiver electronic water valve shut-off',
+        vendor: 'IKEA',
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        ota: ota.tradfri,
+    },
+    {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
         model: 'E1812',
         vendor: 'IKEA',
