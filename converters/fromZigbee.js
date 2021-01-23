@@ -430,6 +430,53 @@ const converters = {
             }
         },
     },
+    level_config: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {'level_config': {}};
+
+            // onOffTransitionTime - range 0x0000 to 0xffff - optional
+            if (msg.data.hasOwnProperty('onOffTransitionTime') && (msg.data['onOffTransitionTime'] !== undefined)) {
+                result.level_config.on_off_transition_time = Number(msg.data['onOffTransitionTime']);
+            }
+
+            // onTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (msg.data.hasOwnProperty('onTransitionTime') && (msg.data['onTransitionTime'] !== undefined)) {
+                result.level_config.on_transition_time = Number(msg.data['onTransitionTime']);
+                if (result.level_config.on_transition_time == 65535) {
+                    result.level_config.on_transition_time = 'disabled';
+                }
+            }
+
+            // offTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (msg.data.hasOwnProperty('offTransitionTime') && (msg.data['offTransitionTime'] !== undefined)) {
+                result.level_config.off_transition_time = Number(msg.data['offTransitionTime']);
+                if (result.level_config.off_transition_time == 65535) {
+                    result.level_config.off_transition_time = 'disabled';
+                }
+            }
+
+            // startUpCurrentLevel - range 0x00 to 0xff - optional
+            //                       0x00 = return to minimum supported level
+            //                       0xff - return to previous previous
+            if (msg.data.hasOwnProperty('startUpCurrentLevel') && (msg.data['startUpCurrentLevel'] !== undefined)) {
+                result.level_config.current_level_startup = Number(msg.data['startUpCurrentLevel']);
+                if (result.level_config.current_level_startup == 255) {
+                    result.level_config.current_level_startup = 'previous';
+                }
+                if (result.level_config.current_level_startup == 0) {
+                    result.level_config.current_level_startup = 'minimum';
+                }
+            }
+
+            if (Object.keys(result.level_config).length > 0) {
+                return result;
+            }
+        },
+    },
     color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -442,7 +489,6 @@ const converters = {
 
             if (msg.data.hasOwnProperty('startUpColorTemperature')) {
                 result.color_temp_startup = msg.data['startUpColorTemperature'];
-                result.color_temp_startup = (result.color_temp_startup === 65535) ? 'previous' : result.color_temp_startup;
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
@@ -588,6 +634,17 @@ const converters = {
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
                 const property = postfixWithEndpointName('state', msg, model);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    power_on_behavior: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on', 2: 'toggle', 255: 'previous'};
+            if (msg.data.hasOwnProperty('startUpOnOff')) {
+                const property = postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data['startUpOnOff']]};
             }
         },
     },
@@ -1430,19 +1487,20 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
             case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter oder pulling on curtain)
+            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
                 return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
-                const position = options.invert_cover ? (value & 0xFF) : 100 - (value & 0xFF);
+                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
+                const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
                     return {running: false, position: position};
@@ -1452,10 +1510,11 @@ const converters = {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
             }
-            case tuya.dataPoints.config: // 0x01 0x05: Returned by configuration set; ignore
+            case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
-                meta.logger.warn(`owvfni3: Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                ${JSON.stringify(msg.data)}`);
             }
         },
     },
@@ -1491,6 +1550,19 @@ const converters = {
                 result['MOT'] = data[1];
             }
             return result;
+        },
+    },
+    tuya_doorbell_button: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {1: 'pressed'};
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                action: lookup[zoneStatus & 1],
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
         },
     },
     terncy_knob: {
@@ -3517,7 +3589,7 @@ const converters = {
             let buttonLookup = null;
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG25LM', 'QKBG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
+            if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
@@ -3535,12 +3607,21 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
-                // DEPRECATED: remove illuminance_lux here.
-                const illuminance = msg.data['65281']['11'];
-                return {
-                    illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                    illuminance_lux: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux'),
-                };
+                const result = {};
+                if (msg.data['65281'].hasOwnProperty('11')) {
+                    const illuminance = msg.data['65281']['11'];
+                    // DEPRECATED: remove illuminance_lux here.
+                    result.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
+                    result.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
+                }
+
+                if (msg.data['65281'].hasOwnProperty('3')) {
+                    let temperature = msg.data['65281']['3'];
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                    result.temperature = temperature;
+                }
+
+                return result;
             }
         },
     },
@@ -3610,8 +3691,19 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281') && msg.data['65281'].hasOwnProperty('100')) {
-                return {contact: msg.data['65281']['100'] === 0};
+            if (msg.data.hasOwnProperty('65281')) {
+                const result = {};
+                if (msg.data['65281'].hasOwnProperty('100')) {
+                    result.contact = msg.data['65281']['100'] === 0;
+                }
+
+                if (msg.data['65281'].hasOwnProperty('3')) {
+                    let temperature = msg.data['65281']['3'];
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                    result.temperature = temperature;
+                }
+
+                return result;
             }
         },
     },
@@ -4112,9 +4204,9 @@ const converters = {
             if (value === 0) result = {action: 'shake'};
             else if (value === 2) result = {action: 'wakeup'};
             else if (value === 3) result = {action: 'fall'};
-            else if (value >= 512) result = {action: 'tap', side: value-512, action_side: value-512};
-            else if (value >= 256) result = {action: 'slide', side: value-256, action_side: value-256};
-            else if (value >= 128) result = {action: 'flip180', side: value-128, action_side: value-128};
+            else if (value >= 512) result = {action: 'tap', side: value-512};
+            else if (value >= 256) result = {action: 'slide', side: value-256};
+            else if (value >= 128) result = {action: 'flip180', side: value-128};
             else if (value >= 64) {
                 result = {
                     action: 'flip90', action_from_side: Math.floor((value-64) / 8), action_to_side: value % 8, action_side: value % 8,
@@ -4123,7 +4215,6 @@ const converters = {
             }
 
             if (result && !isLegacyEnabled(options)) {
-                delete result.side;
                 delete result.to_side;
                 delete result.from_side;
             }
@@ -4888,6 +4979,74 @@ const converters = {
                     mode_phase_control: phaseControlValues[phaseControl],
                 };
             }
+        },
+    },
+    ZB003X: {
+        cluster: 'manuSpecificTuya',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data[5];
+            const value = tuya.getDataValue(tuya.dataTypes.value, msg.data.slice(8));
+            let val;
+            switch (dp) {
+            case 107: // 0x6b temperature
+                return {temperature: calibrateAndPrecisionRoundOptions(
+                    (value / 10).toFixed(1), options, 'temperature')};
+            case 108: // 0x6c humidity
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+            case 110: // 0x6e battery
+                return {battery: value};
+            case 102: // 0x66 reporting time
+                return {reporting_time: value};
+            case 104: // 0x68 temperature calibration
+                val = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (val > 4294967295) val = val - 4294967295;
+                return {temperature_calibration: (val / 10).toFixed(1)};
+            case 105: // 0x69 humidity calibration
+                val = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (val > 4294967295) val = val - 4294967295;
+                return {humidity_calibration: val};
+            case 106: // 0x6a lux calibration
+                val = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (val > 4294967295) val = val - 4294967295;
+                return {illuminance_calibration: val};
+            case 109: // 0x6d PIR enable
+                return {pir_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
+            case 111: // 0x6f led enable
+                return {led_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
+            case 112: // 0x70 reporting enable
+                return {reporting_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
+            default: // Unknown code
+                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    ZB003X_attr: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
+            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
+            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const value = data.currentZoneSensitivityLevel;
+                return {sensitivity: senslookup[value]};
+            }
+            if (data && data.hasOwnProperty('61441')) {
+                const value = data['61441'];
+                return {keep_time: keeptimelookup[value]};
+            }
+        },
+    },
+    ZB003X_occupancy: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {occupancy: (zoneStatus & 1<<2) > 0};
         },
     },
     // #endregion
