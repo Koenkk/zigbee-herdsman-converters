@@ -2445,7 +2445,7 @@ const devices = [
         zigbeeModel: ['KNYCKLAN Open/Close remote'],
         model: 'E1841',
         vendor: 'IKEA',
-        description: 'A remote by which you can remotely turn on and of the water valve.',
+        description: 'KNYCKLAN open/close remote water valve',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery],
         exposes: [e.battery(), e.action(['on', 'off'])],
         toZigbee: [],
@@ -2464,12 +2464,10 @@ const devices = [
     },
     {
         zigbeeModel: ['KNYCKLAN receiver'],
-        model: 'E 1842',
-        description: 'An electronic water valve shut-off',
+        model: 'E1842',
+        description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
-        exposes: [e.switch()],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        extend: preset.switch(),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
