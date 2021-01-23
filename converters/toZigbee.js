@@ -55,6 +55,9 @@ const converters = {
             await entity.write('genOnOff', {startUpOnOff: lookup[value]}, utils.getOptions(meta.mapped, entity));
             return {state: {power_on_behavior: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['startUpOnOff']);
+        },
     },
     lock: {
         key: ['state'],
@@ -237,6 +240,113 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+    },
+    level_config: {
+        key: ['level_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {};
+
+            // parse payload to grab the keys
+            if (typeof value === 'string') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    throw new Error('Payload is not valid JSON');
+                }
+            }
+
+            // onOffTransitionTime - range 0x0000 to 0xffff - optional
+            if (value.hasOwnProperty('on_off_transition_time')) {
+                let onOffTransitionTimeValue = Number(value.on_off_transition_time);
+                if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
+                if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onOffTransitionTime: onOffTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+                Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue});
+            }
+
+            // onTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('on_transition_time')) {
+                let onTransitionTimeValue = value.on_transition_time;
+                if (typeof onTransitionTimeValue === 'string' && onTransitionTimeValue.toLowerCase() == 'disabled') {
+                    onTransitionTimeValue = 65535;
+                } else {
+                    onTransitionTimeValue = Number(onTransitionTimeValue);
+                }
+                if (onTransitionTimeValue > 65535) onTransitionTimeValue = 65534;
+                if (onTransitionTimeValue < 0) onTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {onTransitionTime: onTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (onTransitionTimeValue == 65535) {
+                    onTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {on_transition_time: onTransitionTimeValue});
+            }
+
+            // offTransitionTime - range 0x0000 to 0xffff - optional
+            //                    0xffff = use onOffTransitionTime
+            if (value.hasOwnProperty('off_transition_time')) {
+                let offTransitionTimeValue = value.off_transition_time;
+                if (typeof offTransitionTimeValue === 'string' && offTransitionTimeValue.toLowerCase() == 'disabled') {
+                    offTransitionTimeValue = 65535;
+                } else {
+                    offTransitionTimeValue = Number(offTransitionTimeValue);
+                }
+                if (offTransitionTimeValue > 65535) offTransitionTimeValue = 65534;
+                if (offTransitionTimeValue < 0) offTransitionTimeValue = 0;
+
+                await entity.write('genLevelCtrl', {offTransitionTime: offTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (offTransitionTimeValue == 65535) {
+                    offTransitionTimeValue = 'disabled';
+                }
+                Object.assign(state, {off_transition_time: offTransitionTimeValue});
+            }
+
+            // startUpCurrentLevel - range 0x00 to 0xff - optional
+            //                       0x00 = return to minimum supported level
+            //                       0xff = return to previous previous
+            if (value.hasOwnProperty('current_level_startup')) {
+                let startUpCurrentLevelValue = value.current_level_startup;
+                if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'previous') {
+                    startUpCurrentLevelValue = 255;
+                } else if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'minimum') {
+                    startUpCurrentLevelValue = 0;
+                } else {
+                    startUpCurrentLevelValue = Number(startUpCurrentLevelValue);
+                }
+                if (startUpCurrentLevelValue > 255) startUpCurrentLevelValue = 254;
+                if (startUpCurrentLevelValue < 0) startUpCurrentLevelValue = 1;
+
+                await entity.write('genLevelCtrl', {startUpCurrentLevel: startUpCurrentLevelValue}, utils.getOptions(meta.mapped, entity));
+
+                // reverse translate number -> preset
+                if (startUpCurrentLevelValue == 255) {
+                    startUpCurrentLevelValue = 'previous';
+                }
+                if (startUpCurrentLevelValue == 0) {
+                    startUpCurrentLevelValue = 'minimum';
+                }
+                Object.assign(state, {current_level_startup: startUpCurrentLevelValue});
+            }
+
+            if (Object.keys(state).length > 0) {
+                return {state: {level_config: state}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel']) {
+                try {
+                    await entity.read('genLevelCtrl', [attribute]);
+                } catch (ex) {
+                    // continue regardless of error, all these are optional in ZCL
+                }
+            }
         },
     },
     ballast_config: {
@@ -581,15 +691,25 @@ const converters = {
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         convertSet: async (entity, key, value, meta) => {
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
+
             if (key === 'color_temp_percent') {
                 value = Number(value) * 3.46;
                 value = Math.round(value + 154).toString();
             }
 
+            if (typeof value === 'string' && isNaN(value)) {
+                if (value.toLowerCase() in preset) {
+                    value = preset[value.toLowerCase()];
+                } else {
+                    throw new Error(`Unknown preset '${value}'`);
+                }
+            }
+
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
@@ -603,16 +723,24 @@ const converters = {
     light_colortemp_startup: {
         key: ['color_temp_startup'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'string' && value.toLowerCase() == 'previous') {
-                // 0xffff = restore previous value
-                value = 65535;
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
+
+            if (typeof value === 'string' && isNaN(value)) {
+                if (value.toLowerCase() in preset) {
+                    value = preset[value.toLowerCase()];
+                } else {
+                    throw new Error(`Unknown preset '${value}'`);
+                }
             }
 
             value = Number(value);
 
             // ensure value within range
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
-            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            // we do allow one exception for 0xffff, which is to restore the previous value
+            if (value != 65535) {
+                value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            }
 
             await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
             return {state: {color_temp_startup: value}};
@@ -1466,7 +1594,8 @@ const converters = {
     xiaomi_switch_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM',
+                'QBKG23LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const lookupState = {control_relay: 0x12, control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE};
                 const button = value.hasOwnProperty('button') ? value.button : 'single';
@@ -1483,7 +1612,8 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM', 'QBKG24LM'].includes(meta.mapped.model)) {
+            if (['QBKG11LM', 'QBKG04LM', 'QBKG03LM', 'QBKG12LM', 'QBKG21LM', 'QBKG22LM',
+                'QBKG23LM', 'QBKG24LM'].includes(meta.mapped.model)) {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
@@ -3252,25 +3382,29 @@ const converters = {
 
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ?
-                        !meta.options.invert_cover : meta.options.invert_cover);
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
                     value = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
                 } else {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const isRoller = meta.mapped.model === 'TS0601_roller_blind';
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+
                 value = value.toLowerCase();
                 switch (value) {
                 case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 0 : 2);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
                     break;
                 case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, isRoller ? 2 : 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
                     break;
                 case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, 1);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
                     break;
                 default:
                     throw new Error('TuYa_cover_control: Invalid command received');
@@ -3319,6 +3453,48 @@ const converters = {
             await entity.write('genOnOffSwitchCfg', payloads[key]);
 
             return {state: {[`${key}_${meta.endpoint_name}`]: value}};
+        },
+    },
+    TYZB01_on_off: {
+        key: ['state', 'time_in_seconds'],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await converters.on_off.convertSet(entity, key, value, meta);
+            const lowerCaseValue = value.toLowerCase();
+            if (!['on', 'off'].includes(lowerCaseValue)) {
+                return result;
+            }
+            const messageKeys = Object.keys(meta.message);
+            const timeInSecondsValue = function() {
+                if (messageKeys.includes('state')) {
+                    return meta.message.time_in_seconds;
+                }
+                if (meta.endpoint_name) {
+                    return meta.message[`time_in_seconds_${meta.endpoint_name}`];
+                }
+                return null;
+            }();
+            if (!timeInSecondsValue) {
+                return result;
+            }
+            const timeInSeconds = Number(timeInSecondsValue);
+            if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
+                throw Error('The time_in_seconds value must be convertible to an integer in the '+
+                            'range: <0x0000, 0xFFFE>');
+            }
+            const on = lowerCaseValue === 'on';
+            await entity.command(
+                'genOnOff',
+                'onWithTimedOff',
+                {
+                    ctrlbits: 0,
+                    ontime: (on ? 0 : timeInSeconds.valueOf()),
+                    offwaittime: (on ? timeInSeconds.valueOf() : 0),
+                },
+                utils.getOptions(meta.mapped, entity));
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
         },
     },
     diyruz_geiger_config: {
@@ -4112,6 +4288,50 @@ const converters = {
                     entity,
                     tuya.dataPoints.hyMode,
                     {'manual': 0, 'auto': 1, 'away': 2}[value]);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    },
+    ZB003X: {
+        key: [
+            'reporting_time', 'temperature_calibration', 'humidity_calibration',
+            'illuminance_calibration', 'pir_enable', 'led_enable',
+            'reporting_enable', 'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'reporting_time':
+                await tuya.sendDataPointValue(entity, 102, value, 'sendData');
+                break;
+            case 'temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 104, value, 'sendData');
+                break;
+            case 'humidity_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 105, value, 'sendData');
+                break;
+            case 'illuminance_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, 106, value, 'sendData');
+                break;
+            case 'pir_enable':
+                await tuya.sendDataPointBool(entity, 109, value, 'sendData');
+                break;
+            case 'led_enable':
+                await tuya.sendDataPointBool(entity, 111, value, 'sendData');
+                break;
+            case 'reporting_enable':
+                await tuya.sendDataPointBool(entity, 112, value, 'sendData');
+                break;
+            case 'sensitivity':
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
+                break;
+            case 'keep_time':
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value], type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
