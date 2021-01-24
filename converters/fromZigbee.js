@@ -1514,6 +1514,8 @@ const converters = {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
             }
+            case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
+                return {motor_speed: value};
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code

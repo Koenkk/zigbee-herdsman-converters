@@ -1473,6 +1473,7 @@ const devices = [
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zah67ekd'},
             // Window pushers:
             {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
             // Tubular motors:
@@ -1491,10 +1492,17 @@ const devices = [
             {vendor: 'Moes', model: 'AM43-0.45/40-ES-EB'},
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
             {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
+            {vendor: 'Zemismart', model: 'AM43', description: 'Roller blind motor'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.composite('options', 'options')
+                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(255)
+                    .withDescription('Motor speed'))],
     },
     {
         zigbeeModel: ['kud7u2l'],
