@@ -2701,9 +2701,9 @@ const converters = {
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
-                return {local_temperature: (value / 10).toFixed(1)};
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellHeatingSetpoint:
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellValvePos:
                 // single value 1-100%
                 break;
