@@ -1413,6 +1413,8 @@ const converters = {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
                 if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
                     result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                } else if (result.state && result.state.color.hasOwnProperty('hue') && result.state.color.hasOwnProperty('saturation')) {
+                    result.state.color_temp = utils.hueSaturationToMireds(result.state.color.hue, result.state.color.saturation);
                 }
 
                 return result;
