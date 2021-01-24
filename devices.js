@@ -11294,7 +11294,7 @@ const devices = [
         extend: preset.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['HOMA1031'],
+        zigbeeModel: ['HOMA1031', '00F'],
         model: 'HLC821-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'ZigBee AC phase-cut dimmer',
