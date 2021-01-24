@@ -757,18 +757,7 @@ const converters = {
             const newState = {};
 
             // Set correct meta.mapped for groups
-            // * all definition metas are the same -> copy meta.mapped[0]
-            // * mixed device models -> meta.mapped = null
-            if (entity.constructor.name === 'Group' && entity.members.length > 0) {
-                for (const memberMeta of Object.values(meta.mapped)) {
-                    // check all members are the same device
-                    if (meta.mapped[0] != memberMeta) {
-                        meta.mapped = [null];
-                        break;
-                    }
-                }
-                meta.mapped = meta.mapped[0];
-            }
+            meta = utils.updateGroupMetaMapped(entity, meta);
 
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
@@ -3733,18 +3722,7 @@ const converters = {
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
             // Set correct meta.mapped for groups
-            // * all definition metas are the same -> copy meta.mapped[0]
-            // * mixed device models -> meta.mapped = null
-            if (isGroup && entity.members.length > 0) {
-                for (const memberMeta of Object.values(meta.mapped)) {
-                    // check all members are the same device
-                    if (meta.mapped[0] != memberMeta) {
-                        meta.mapped = [null];
-                        break;
-                    }
-                }
-                meta.mapped = meta.mapped[0];
-            }
+            meta = utils.updateGroupMetaMapped(entity, meta);
 
             const state = {};
             const extensionfieldsets = [];
@@ -3796,7 +3774,7 @@ const converters = {
                             // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
                             // When the bulb or all bulbs in a group do not support enhanchedHue,
                             // a fallback to XY is done by converting HSV -> RGB -> XY
-                            const colorXY = utils.rgbToXY(...Object.values(utils.hsvToRGB(color.hue, color.saturation, 100)));
+                            const colorXY = utils.rgbToXY(...Object.values(utils.hsvToRgb(color.hue, color.saturation, 100)));
                             extensionfieldsets.push(
                                 {
                                     'clstId': 768,
