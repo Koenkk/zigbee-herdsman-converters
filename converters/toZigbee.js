@@ -1026,14 +1026,32 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+
+                // x/y or hue/saturation -> color_temp
+                if (meta.state && result.state && meta.state.hasOwnProperty('color_temp')) {
+                    if (result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                        result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                    } else if (result.state.color.hasOwnProperty('hue') && result.state.color.hasOwnProperty('saturation')) {
+                        result.state.color_temp = utils.hueSaturationToMireds(result.state.color.hue, result.state.color.saturation);
+                    }
                 }
 
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = utils.miredsToXY(result.state.color_temp);
+
+                // color_temp -> x/y or hue/saturation
+                if (meta.state && result.state && meta.state.hasOwnProperty('color') && result.state.hasOwnProperty('color_temp')) {
+                    if (meta.state.color.hasOwnProperty('x') && meta.state.color.hasOwnProperty('y')) {
+                        const xy = utils.miredsToXY(result.state.color_temp);
+                        result.state.color = {...result.state.color, ...xy};
+                    }
+                    if (meta.state.color.hasOwnProperty('hue') && meta.state.color.hasOwnProperty('saturation')) {
+                        const hsv = utils.miredsToHSV(result.state.color_temp);
+                        result.state.color = {...result.state.color, hue: hsv.h, saturation: hsv.s};
+                    }
+                }
+
                 return result;
             }
         },
@@ -1413,8 +1431,6 @@ const converters = {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
                 if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
                     result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                } else if (result.state && result.state.color.hasOwnProperty('hue') && result.state.color.hasOwnProperty('saturation')) {
-                    result.state.color_temp = utils.hueSaturationToMireds(result.state.color.hue, result.state.color.saturation);
                 }
 
                 return result;
