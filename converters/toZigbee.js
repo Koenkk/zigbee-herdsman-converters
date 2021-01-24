@@ -758,6 +758,7 @@ const converters = {
 
             // Set correct meta.mapped for groups
             meta = utils.updateGroupMetaMapped(entity, meta);
+            const metaMapped = utils.getOptions(meta.mapped, entity);
 
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
@@ -779,7 +780,7 @@ const converters = {
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
 
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -794,7 +795,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -807,7 +808,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -821,7 +822,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -834,7 +835,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -848,7 +849,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -859,7 +860,7 @@ const converters = {
                 newState.color = {h: value.h, s: value.s};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, 100);
                 value.saturation = hsv.s * (2.54);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturation';
                 } else {
@@ -869,7 +870,7 @@ const converters = {
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), 100, 100);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHue';
                 } else {
@@ -885,7 +886,7 @@ const converters = {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturation';
                 } else {
@@ -895,7 +896,7 @@ const converters = {
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (metaMapped && metaMapped.enhancedHue === false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHue';
                 } else {
@@ -3770,7 +3771,8 @@ const converters = {
                         );
                         state['color'] = {x: color.x, y: color.y};
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
-                        if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                        const metaMapped = utils.getOptions(meta.mapped, entity);
+                        if (metaMapped && metaMapped.enhancedHue === false) {
                             // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
                             // When the bulb or all bulbs in a group do not support enhanchedHue,
                             // a fallback to XY is done by converting HSV -> RGB -> XY
