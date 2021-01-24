@@ -2898,6 +2898,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4090531P9'],
+        model: '4090531P9',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCG002'],
         model: '929001953101',
         vendor: 'Philips',
