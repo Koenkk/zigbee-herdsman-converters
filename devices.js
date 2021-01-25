@@ -5475,6 +5475,14 @@ const devices = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RS 226'],
+        model: 'RS 226',
+        vendor: 'Innr',
+        description: 'GU10 Spot',
+        extend: preset.light_onoff_brightness(),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RS 128 T'],
         model: 'RS 128 T',
         vendor: 'Innr',
