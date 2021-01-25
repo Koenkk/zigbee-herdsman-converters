@@ -5040,6 +5040,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['PAR16 RGBW Value'],
+        model: 'AC08560',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ spot GU10 multicolor RGBW',
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['B40 TW Z3'],
         model: '4058075208414',
         vendor: 'LEDVANCE',
