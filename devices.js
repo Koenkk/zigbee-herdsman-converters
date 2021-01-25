@@ -15454,6 +15454,13 @@ const devices = [
         description: 'Livarno Lux ceiling light',
         extend: preset.light_onoff_brightness_colortemp(),
     },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_9cpuaca6'}],
+        model: '14148906L',
+        vendor: 'Lidl',
+        description: 'Livarno Lux mood light RGB+CCT',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
 
     // Atsmart
     {
