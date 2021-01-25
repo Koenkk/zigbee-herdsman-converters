@@ -4142,6 +4142,22 @@ const devices = [
 
     // Custom devices (DiY)
     {
+        zigbeeModel: ['ti.router'],
+        model: 'ti.router',
+        vendor: 'Custom devices (DiY)',
+        description: 'Texas Instruments router',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(8);
+            const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            await endpoint.configureReporting('genBasic', payload);
+        },
+    },
+    {
         zigbeeModel: ['lumi.router'],
         model: 'CC2530.ROUTER',
         vendor: 'Custom devices (DiY)',
