@@ -40,31 +40,15 @@ const converters = {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
             }
 
-            const panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
+            let panelStatus = mode;
+            if (meta.mapped.model === '3400-D') {
+                panelStatus = mode !== 0 && mode !== 4 ? 0x80: 0x00;
+            }
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
-    },
-    set_status: {
-        key: ['set_status'],
-        convertSet: async (entity, key, value, meta) => {
-            const panelStatus = utils.getKey(constants.panelStatus, value.panel_status, undefined, Number);
-            const secondsRemain = value.seconds_remaining = 0;
-            const audibleNotif = value.audible_notif = 0;
-            const alarmStatus = value.alarm_status = 0;
-
-            if (panelStatus === undefined) {
-                throw new Error(
-                    `Unsupported status: '${value.panel_status}', should be one of: ${Object.values(constants.panelStatus)}`,
-                );
-            }
-
-            globalStore.putValue(entity, 'panelStatus', panelStatus);
-            const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: alarmStatus};
-            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
-        },
-    },
+    },    
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
