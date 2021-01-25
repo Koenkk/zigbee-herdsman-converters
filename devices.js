@@ -5028,7 +5028,7 @@ const devices = [
         model: 'AC08560',
         vendor: 'LEDVANCE',
         description: 'SMART+ spot GU10 multicolor RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_colorxy(),
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
