@@ -5481,7 +5481,7 @@ const devices = [
         description: 'GU10 Spot',
         extend: preset.light_onoff_brightness(),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
-    },    
+    },
     {
         zigbeeModel: ['RS 128 T'],
         model: 'RS 128 T',
