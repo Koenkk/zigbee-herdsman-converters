@@ -12455,17 +12455,18 @@ const devices = [
         model: 'PM-B540-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart plug 16A',
-        fromZigbee: [fz.on_off, fz.metering],
+        fromZigbee: [fz.device_temperature, fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+            await reporting.deviceTemperature(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.energy()],
+        exposes: [e.device_temperature(), e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['PM-B430-ZB'],
