@@ -59,6 +59,20 @@ const converters = {
             await entity.read('genOnOff', ['startUpOnOff']);
         },
     },
+    moes_power_on_behavior: {
+        key: ['moes_power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0, 'on': 1, 'previous': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            const pState = lookup[value];
+            await entity.write('genOnOff', {moesStartUpOnOff: pState});
+            return {state: {moes_power_on_behavior: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
+    },
     lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {

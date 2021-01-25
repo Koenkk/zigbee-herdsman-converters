@@ -13599,9 +13599,12 @@ const devices = [
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
+		toZigbee: preset.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: preset.switch(),
         meta: {configureKey: 1, multiEndpoint: true},
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+        exposes.enum('moes_power_on_behavior', ea.ALL, ['on', 'off', 'previous']).withDescription('Controls the behaviour when the device is powered on')],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
