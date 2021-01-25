@@ -48,7 +48,7 @@ const converters = {
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
-    },    
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
