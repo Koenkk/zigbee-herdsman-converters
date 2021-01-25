@@ -11739,7 +11739,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['M350ST-W1R-01'],
+        zigbeeModel: ['M350ST-W1R-01', 'A470S-A7R-04'],
         model: 'M350STW1',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10',
