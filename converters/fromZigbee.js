@@ -1507,9 +1507,9 @@ const converters = {
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'OPEN'};
                 } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'CLOSE'};
                 } else {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
