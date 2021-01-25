@@ -4688,7 +4688,7 @@ const devices = [
     },
     {
         zigbeeModel: ['PAR16 DIM Z3'],
-        model: 'AC08560',
+        model: 'AC08560-DIM',
         vendor: 'OSRAM',
         description: 'SMART+ LED PAR16 GU10',
         extend: preset.ledvance.light_onoff_brightness(),
