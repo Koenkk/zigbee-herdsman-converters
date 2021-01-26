@@ -1939,6 +1939,20 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
         },
     },
+    moes_power_on_behavior: {
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0, 'on': 1, 'previous': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            const pState = lookup[value];
+            await entity.write('genOnOff', {moesStartUpOnOff: pState});
+            return {state: {power_on_behavior: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
+    },
     moes_thermostat_sensor: {
         key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
