@@ -14615,7 +14615,6 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low()],
-        meta: {configureKey: 1},
     },
     {
         zigbeeModel: ['MOSZB-140'],
