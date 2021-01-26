@@ -10734,6 +10734,22 @@ const devices = [
         },
         exposes: [e.lock(), e.battery()],
     },
+    {
+        zigbeeModel: ['YRL226L TS'],
+        model: 'YRL226L TS',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        toZigbee: [tz.lock],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery()],
+    },
 
     // JAVIS
     {
