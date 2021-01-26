@@ -14633,7 +14633,6 @@ const devices = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low()],
-        meta: {configureKey: 1},
     },
     {
         zigbeeModel: ['HMSZB-110'],
