@@ -14626,6 +14626,16 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['MOSZB-141'],
+        model: 'MOSZB-141',
+        vendor: 'Develco',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low()],
+        meta: {configureKey: 1},
+    },
+    {
         zigbeeModel: ['HMSZB-110'],
         model: 'HMSZB-110',
         vendor: 'Develco',
