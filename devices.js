@@ -1139,6 +1139,8 @@ const devices = [
         model: 'TS0501B',
         description: 'Zigbee smart mini led strip controller single color',
         vendor: 'Tuya',
+        fromZigbee: [],
+        toZigbee: [],
         extend: preset.light_onoff_brightness,
     },
     {
