@@ -3300,7 +3300,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const state = value ? 'ON' : 'OFF';
             if (multiEndpoint) {
-                const lookup = {1: 'l1', 2: 'l2', 3: 'l3'};
+                const lookup = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4'};
                 const endpoint = lookup[dp];
                 if (endpoint in model.endpoint(msg.device)) {
                     return {[`state_${endpoint}`]: state};
