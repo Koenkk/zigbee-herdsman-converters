@@ -1135,6 +1135,13 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'}],
+        model: 'TS0501B',
+        description: 'Zigbee smart mini led strip controller single color',
+        vendor: 'Tuya',
+        extend: preset.light_onoff_brightness,
+    },    
+    {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'}],
         model: 'TS0202',
         vendor: 'TuYa',
