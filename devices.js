@@ -4090,6 +4090,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5042131P9'],
+        model: '5042131P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Milliskin (square)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['HML006'],
         model: '7531609',
         vendor: 'Philips',
