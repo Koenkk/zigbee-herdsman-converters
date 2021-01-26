@@ -1268,11 +1268,7 @@ const devices = [
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch_2],
         toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            //const endpoint = device.getEndpoint(1);
-            //await endpoint.write('genBasic', {0xFFDE: {value: 0x13, type: 0x20}}, {disableDefaultResponse: true});
-        },
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
