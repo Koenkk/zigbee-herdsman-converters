@@ -14608,6 +14608,16 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['WISZB-121'],
+        model: 'WISZB-121',
+        vendor: 'Develco',
+        description: 'Window sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low()],
+        meta: {configureKey: 1},
+    },
+    {
         zigbeeModel: ['MOSZB-140'],
         model: 'MOSZB-140',
         vendor: 'Develco',
