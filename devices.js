@@ -13238,6 +13238,15 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69'],
+        model: 'SW30',
+        vendor: 'ORVIBO',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],
         model: 'SE21',
         vendor: 'ORVIBO',
