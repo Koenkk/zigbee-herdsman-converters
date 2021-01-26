@@ -13604,7 +13604,7 @@ const devices = [
         extend: preset.switch(),
         meta: {configureKey: 1, multiEndpoint: true},
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('moes_power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
                 .withDescription('Controls the behaviour when the device is powered on')],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
