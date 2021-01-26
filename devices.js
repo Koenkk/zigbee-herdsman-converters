@@ -10355,6 +10355,7 @@ const devices = [
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
             .withPiHeatingDemand()],
         meta: {configureKey: 3},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
