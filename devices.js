@@ -6852,7 +6852,7 @@ const devices = [
     },
 
     // Gledopto
-	
+
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
@@ -7071,7 +7071,7 @@ const devices = [
             else return {default: 11};
         },
     },
-	{
+    {
         zigbeeModel: ['GL-S-004Z'],
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
@@ -7100,7 +7100,7 @@ const devices = [
         description: 'Zigbee 4W MR16 Bulb RGB+CCT (pro)',
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
-	{
+    {
         zigbeeModel: ['GL-S-007Z'],
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
@@ -7122,14 +7122,14 @@ const devices = [
         description: 'Zigbee 4W GU10 Bulb RGB+CCT (pro)',
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
-	{
+    {
         zigbeeModel: ['GL-S-008Z'],
         model: 'GL-S-008Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W PAR16 Bulb RGB+CCT',
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
-	{
+    {
         zigbeeModel: ['GL-B-001Z'],
         model: 'GL-B-001Z',
         vendor: 'Gledopto',
@@ -7151,7 +7151,7 @@ const devices = [
         description: 'Zigbee 4W E12/E14 Bulb RGB+CCT (pro)',
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
     },
-	{
+    {
         zigbeeModel: ['GL-B-007Z'],
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
@@ -7172,7 +7172,7 @@ const devices = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT (pro)',
         extend: preset.gledopto.light_onoff_brightness_colortemp_colorxy(),
-    },	
+    },
     {
         zigbeeModel: ['GL-B-008Z'],
         model: 'GL-B-008Z',
