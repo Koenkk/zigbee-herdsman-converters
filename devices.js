@@ -10334,6 +10334,7 @@ const devices = [
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand()],
         meta: {configureKey: 3},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1246};
