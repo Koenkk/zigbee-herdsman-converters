@@ -283,13 +283,22 @@ describe('index.js', () => {
 
     it('Verify addDeviceDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
-        const mockDevice = {
-            zigbeeModel: [mockZigbeeModel],
-            model: 'mock-model'
-        };
+        let mockDevice = {};
         const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
         expect(undefinedDevice).toBeNull();
         const beforeAdditionDeviceCount = index.devices.length;
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        mockDevice.model = 'mock-model';
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        mockDevice = {
+            model: 'mock-model',
+            vendor: 'dummy',
+            zigbeeModel: [mockZigbeeModel],
+            description: 'dummy',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
         index.addDeviceDefinition(mockDevice);
         expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
         const device = index.findByZigbeeModel(mockZigbeeModel);

@@ -4,6 +4,7 @@ const devices = require('./devices');
 const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
+const assert = require('assert');
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
@@ -36,7 +37,26 @@ function getFromLookup(zigbeeModel) {
     return lookup.get(zigbeeModel);
 }
 
+const converterRequiredFields = {
+    model: 'String',
+    vendor: 'String',
+    description: 'String',
+    fromZigbee: 'Array',
+    toZigbee: 'Array',
+    exposes: 'Array',
+};
+
+function validateDefinition(definition) {
+    for (const [field, expectedType] of Object.entries(converterRequiredFields)) {
+        assert.notStrictEqual(null, definition[field], `Converter field ${field} is null`);
+        assert.notStrictEqual(undefined, definition[field], `Converter field ${field} is undefined`);
+        const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
+        assert.strictEqual(definition[field].constructor.name, expectedType, msg);
+    }
+}
+
 function addDefinition(definition) {
+    validateDefinition(definition);
     definitions.push(definition);
 
     if (definition.hasOwnProperty('fingerprint')) {
