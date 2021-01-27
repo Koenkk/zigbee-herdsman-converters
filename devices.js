@@ -1928,6 +1928,24 @@ const devices = [
             .withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)],
     },
+    {
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'}],
+        model: 'TS0222',
+        vendor: 'TuYa',
+        description: 'Tuya light intensity sensor',
+        fromZigbee: [fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0210', manufacturerName: '_TYZB01_3zv6oleo'}],
+        model: 'TS0210',
+        vendor: 'TuYa',
+        description: 'Tuya vibration sensor',
+        fromZigbee: [fz.battery, fz.ias_vibration_alarm_1],
+        toZigbee: [tz.TS0210_sensitivity],
+        exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
+    },
 
     // UseeLink
     {

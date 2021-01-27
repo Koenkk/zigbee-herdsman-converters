@@ -4370,6 +4370,14 @@ const converters = {
             }
         },
     },
+    TS0210_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            const sens = {'high': 0, 'medium': 2, 'low': 6}[value];
+            await entity.write('ssIasZone', {currentZoneSensitivityLevel: sens});
+        },
+    },
+
     // #endregion
 
     // #region Ignore converters
