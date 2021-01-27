@@ -48,12 +48,12 @@ const reporting = require('./lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 const preset = {
-    switch: () => ({
+    switch: (options={}) => ({
         exposes: [e.switch()],
         fromZigbee: [fz.on_off, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
     }),
-    light_onoff_brightness: () => ({
+    light_onoff_brightness: (options={}) => ({
         exposes: [e.light_brightness(), e.effect()],
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
@@ -61,26 +61,36 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
         ],
     }),
-    light_onoff_brightness_colortemp: (options={}) => ({
-        exposes: [e.light_brightness_colortemp(options.colorTempRange), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
-        toZigbee: [
+    light_onoff_brightness_colortemp: (options={}) => {
+        const exposes = [e.light_brightness_colortemp(options.colorTempRange), e.effect()];
+        const toZigbee = [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
-        ],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                try {
-                    await light.readColorCapabilities(endpoint);
-                    await light.readColorTempMinMax(endpoint);
-                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-            }
-        },
-    }),
+        ];
+
+        if (options.disableColorTempStartup) {
+            exposes[0].removeFeature('color_temp_startup');
+            toZigbee.splice(toZigbee.indexOf(tz.light_colortemp_startup), 1);
+        }
+
+        return {
+            exposes,
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            toZigbee,
+            meta: {configureKey: 2},
+            configure: async (device, coordinatorEndpoint, logger) => {
+                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                    try {
+                        await light.readColorCapabilities(endpoint);
+                        await light.readColorTempMinMax(endpoint);
+                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+                }
+            },
+        };
+    },
     light_onoff_brightness_color: (options={}) => ({
-        exposes: [e.light_brightness_color(options.colorTempRange), e.effect()],
+        exposes: [e.light_brightness_color(), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -89,7 +99,7 @@ const preset = {
         ],
     }),
     light_onoff_brightness_colorxy: (options={}) => ({
-        exposes: [e.light_brightness_colorxy(options.colorTempRange), e.effect()],
+        exposes: [e.light_brightness_colorxy(), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
@@ -105,120 +115,141 @@ const preset = {
             }
         },
     }),
-    light_onoff_brightness_colortemp_color: (options={}) => ({
-        exposes: [e.light_brightness_colortemp_color(options.colorTempRange), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
-        toZigbee: [
+    light_onoff_brightness_colortemp_color: (options={}) => {
+        const exposes = [e.light_brightness_colortemp_color(options.colorTempRange), e.effect()];
+        const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
             tz.light_colortemp_startup, tz.level_config,
-        ],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                try {
-                    await light.readColorCapabilities(endpoint);
-                    await light.readColorTempMinMax(endpoint);
-                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-            }
-        },
-    }),
-    light_onoff_brightness_colortemp_colorxy: (options={}) => ({
-        exposes: [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
-        toZigbee: [
+        ];
+
+        if (options.disableColorTempStartup) {
+            exposes[0].removeFeature('color_temp_startup');
+            toZigbee.splice(toZigbee.indexOf(tz.light_colortemp_startup), 1);
+        }
+
+        return {
+            exposes,
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            toZigbee,
+            meta: {configureKey: 2},
+            configure: async (device, coordinatorEndpoint, logger) => {
+                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                    try {
+                        await light.readColorCapabilities(endpoint);
+                        await light.readColorTempMinMax(endpoint);
+                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+                }
+            },
+        };
+    },
+    light_onoff_brightness_colortemp_colorxy: (options={}) => {
+        const exposes = [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect()];
+        const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
             tz.light_colortemp_startup, tz.level_config,
-        ],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                try {
-                    await light.readColorCapabilities(endpoint);
-                    await light.readColorTempMinMax(endpoint);
-                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-            }
-        },
-    }),
+        ];
+
+        if (options.disableColorTempStartup) {
+            exposes[0].removeFeature('color_temp_startup');
+            toZigbee.splice(toZigbee.indexOf(tz.light_colortemp_startup), 1);
+        }
+
+        return {
+            exposes,
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            toZigbee,
+            meta: {configureKey: 2},
+            configure: async (device, coordinatorEndpoint, logger) => {
+                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                    try {
+                        await light.readColorCapabilities(endpoint);
+                        await light.readColorTempMinMax(endpoint);
+                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+                }
+            },
+        };
+    },
 };
 {
     preset.gledopto = {
-        light_onoff_brightness: () => ({
-            ...preset.light_onoff_brightness(),
+        light_onoff_brightness: (options={}) => ({
+            ...preset.light_onoff_brightness(options),
             toZigbee: utils.replaceInArray(
-                preset.light_onoff_brightness().toZigbee,
+                preset.light_onoff_brightness(options).toZigbee,
                 [tz.light_onoff_brightness],
                 [tz.gledopto_light_onoff_brightness],
             ),
         }),
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
+        light_onoff_brightness_colortemp: (options={}) => ({
+            ...preset.light_onoff_brightness_colortemp(options),
             toZigbee: utils.replaceInArray(
-                preset.light_onoff_brightness_colortemp().toZigbee,
+                preset.light_onoff_brightness_colortemp(options).toZigbee,
                 [tz.light_onoff_brightness, tz.light_colortemp],
                 [tz.gledopto_light_onoff_brightness, tz.gledopto_light_colortemp],
             ),
         }),
-        light_onoff_brightness_colorxy: () => ({
-            ...preset.light_onoff_brightness_colorxy(),
+        light_onoff_brightness_colorxy: (options={}) => ({
+            ...preset.light_onoff_brightness_colorxy(options),
             toZigbee: utils.replaceInArray(
-                preset.light_onoff_brightness_colorxy().toZigbee,
+                preset.light_onoff_brightness_colorxy(options).toZigbee,
                 [tz.light_onoff_brightness, tz.light_color],
                 [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color],
             ),
         }),
-        light_onoff_brightness_colortemp_colorxy: () => ({
-            ...preset.light_onoff_brightness_colortemp_colorxy(),
+        light_onoff_brightness_colortemp_colorxy: (options={}) => ({
+            ...preset.light_onoff_brightness_colortemp_colorxy(options),
             toZigbee: utils.replaceInArray(
-                preset.light_onoff_brightness_colortemp_colorxy().toZigbee,
+                preset.light_onoff_brightness_colortemp_colorxy(options).toZigbee,
                 [tz.light_onoff_brightness, tz.light_color_colortemp],
                 [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp],
             ),
         }),
     };
     preset.hue = {
-        light_onoff_brightness: () => ({
-            ...preset.light_onoff_brightness(),
-            toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        light_onoff_brightness: (options={}) => ({
+            ...preset.light_onoff_brightness(options),
+            toZigbee: preset.light_onoff_brightness(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
         light_onoff_brightness_colortemp: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+            ...preset.light_onoff_brightness_colortemp(options),
+            toZigbee: preset.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
         light_onoff_brightness_color: (options={}) => ({
-            ...preset.light_onoff_brightness_color(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+            ...preset.light_onoff_brightness_color(options),
+            toZigbee: preset.light_onoff_brightness_color(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
         light_onoff_brightness_colortemp_color: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp_color(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+            ...preset.light_onoff_brightness_colortemp_color(options),
+            toZigbee: preset.light_onoff_brightness_colortemp_color(options)
+                .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
     };
     preset.ledvance = {
-        light_onoff_brightness: () => ({
-            ...preset.light_onoff_brightness(),
-            toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.ledvance_commands]),
+        light_onoff_brightness: (options={}) => ({
+            ...preset.light_onoff_brightness(options),
+            toZigbee: preset.light_onoff_brightness(options).toZigbee.concat([tz.ledvance_commands]),
         }),
         light_onoff_brightness_colortemp: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.ledvance_commands]),
+            ...preset.light_onoff_brightness_colortemp(options),
+            toZigbee: preset.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.ledvance_commands]),
         }),
         light_onoff_brightness_color: (options={}) => ({
-            ...preset.light_onoff_brightness_color(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_color().toZigbee.concat([tz.ledvance_commands]),
+            ...preset.light_onoff_brightness_color(options),
+            toZigbee: preset.light_onoff_brightness_color(options).toZigbee.concat([tz.ledvance_commands]),
         }),
         light_onoff_brightness_colortemp_color: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp_color(options.colorTempRange),
-            toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.ledvance_commands]),
+            ...preset.light_onoff_brightness_colortemp_color(options),
+            toZigbee: preset.light_onoff_brightness_colortemp_color(options).toZigbee.concat([tz.ledvance_commands]),
         }),
     };
     preset.xiaomi = {
-        light_onoff_brightness_colortemp: () => ({
-            ...preset.light_onoff_brightness_colortemp(),
-            fromZigbee: preset.light_onoff_brightness_colortemp().fromZigbee.concat([
+        light_onoff_brightness_colortemp: (options={}) => ({
+            ...preset.light_onoff_brightness_colortemp(options),
+            fromZigbee: preset.light_onoff_brightness_colortemp(options).fromZigbee.concat([
                 fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
                 fz.ignore_pressure_report, fz.ignore_temperature_report,
             ]),
