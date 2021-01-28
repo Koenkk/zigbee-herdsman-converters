@@ -759,8 +759,6 @@ const converters = {
             let command;
             const newState = {};
 
-            // Set correct meta.mapped for groups
-            utils.updateGroupMetaMapped(entity, meta);
 
             if (value.hasOwnProperty('r') && value.hasOwnProperty('g') && value.hasOwnProperty('b')) {
                 const xy = utils.rgbToXY(value.r, value.g, value.b);
@@ -782,7 +780,7 @@ const converters = {
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
 
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -797,7 +795,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -810,7 +808,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -824,7 +822,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -837,7 +835,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -851,7 +849,7 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 } else {
@@ -862,7 +860,7 @@ const converters = {
                 newState.color = {h: value.h, s: value.s};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, 100);
                 value.saturation = hsv.s * (2.54);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturation';
                 } else {
@@ -872,7 +870,7 @@ const converters = {
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), 100, 100);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHue';
                 } else {
@@ -888,7 +886,7 @@ const converters = {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHueAndSaturation';
                 } else {
@@ -3738,9 +3736,6 @@ const converters = {
             const scenename = '';
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
-            // Set correct meta.mapped for groups
-            utils.updateGroupMetaMapped(entity, meta);
-
             const state = {};
             const extensionfieldsets = [];
             for (let [attribute, val] of Object.entries(value)) {
@@ -3787,7 +3782,7 @@ const converters = {
                         );
                         state['color'] = {x: color.x, y: color.y};
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
-                        if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                        if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                             // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
                             // When the bulb or all bulbs in a group do not support enhanchedHue,
                             // a fallback to XY is done by converting HSV -> RGB -> XY
