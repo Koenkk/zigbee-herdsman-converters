@@ -1036,6 +1036,17 @@ const converters = {
             return payload;
         },
     },
+    command_move_color_temperature: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveColorTemp'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
+            const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
