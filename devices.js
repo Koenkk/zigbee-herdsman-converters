@@ -1173,7 +1173,8 @@ const devices = [
         extend: preset.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'}],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
