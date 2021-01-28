@@ -15728,6 +15728,13 @@ const devices = [
         description: 'Livarno Lux mood light RGB+CCT',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
     },
+    {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
+        model: '14149505L',
+        vendor: 'Lidl',
+        description: 'Livarno Lux light bar RGB+CCT',
+        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+    },
 
     // Atsmart
     {
