@@ -11680,6 +11680,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['5120.1100'],
+        model: '5120.1100',
+        vendor: 'Iluminize',
+        description: 'ZigBee 3.0 Dimm-Aktor mini 1x 230V',
+        extend: preset.light_onoff_brightness(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['511.010'],
         model: '511.010',
         vendor: 'Iluminize',
