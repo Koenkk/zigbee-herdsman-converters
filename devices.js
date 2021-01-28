@@ -5492,6 +5492,14 @@ const devices = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['BF 265'],
+        model: 'BF 265',
+        vendor: 'Innr',
+        description: 'B22 bulb filament clear',
+        extend: preset.light_onoff_brightness(),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 278 T'],
         model: 'RB 278 T',
         vendor: 'Innr',
