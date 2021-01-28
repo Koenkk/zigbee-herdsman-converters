@@ -15754,13 +15754,6 @@ const devices = [
 
     // ADEO
     {
-        zigbeeModel: ['LXEK-1'],
-        model: '9CZA-A806ST-Q1A',
-        vendor: 'Adeo',
-        description: 'LED E27 color',
-        extend: preset.light_onoff_brightness_colortemp_colorxy(),
-    },
-    {
         zigbeeModel: ['LXEK-5'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
