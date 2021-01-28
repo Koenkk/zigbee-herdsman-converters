@@ -12582,6 +12582,15 @@ const devices = [
         },
     },
 
+    // AwoX
+    {
+        zigbeeModel: ['TLSR82xx'],
+        model: '33951',
+        vendor: 'AwoX',
+        description: 'LED E27 white',
+        extend: preset.light_onoff_brightness(),
+    },
+
     // Dawon DNS
     {
         zigbeeModel: ['PM-C140-ZB'],
@@ -15744,6 +15753,13 @@ const devices = [
     },
 
     // ADEO
+    {
+        zigbeeModel: ['LXEK-1'],
+        model: '9CZA-A806ST-Q1A',
+        vendor: 'Adeo',
+        description: 'LED E27 color',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
     {
         zigbeeModel: ['LXEK-5'],
         model: 'HR-C99C-Z-C045',
