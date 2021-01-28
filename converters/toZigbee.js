@@ -163,7 +163,8 @@ const converters = {
                 value = lookup[value];
             }
 
-            const invert = meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover;
+            const invert = utils.getMetaValue(entity, meta.mapped, 'coverInverted') ?
+                !meta.options.invert_cover : meta.options.invert_cover;
             const position = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
@@ -213,7 +214,8 @@ const converters = {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
-            const invert = !(meta.mapped.meta && meta.mapped.meta.coverInverted ? !meta.options.invert_cover : meta.options.invert_cover);
+            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted') ?
+                !meta.options.invert_cover : meta.options.invert_cover);
             const position = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
@@ -896,7 +898,7 @@ const converters = {
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.enhancedHue === false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHue';
                 } else {
@@ -966,7 +968,7 @@ const converters = {
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
                 // If we slighlty modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.applyRedFix &&
+                if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix') &&
                     value.x == 0.701 && value.y === 0.299) {
                     value.x = 0.7006;
                     value.y = 0.2993;
@@ -991,7 +993,7 @@ const converters = {
                 if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
             } else {
                 attributes.push('currentX', 'currentY');
-                if (meta.mapped && meta.mapped.meta && meta.mapped.meta.supportsHueAndSaturation !== false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual') !== false) {
                     attributes.push('currentHue', 'currentSaturation');
                 }
             }
@@ -2107,7 +2109,7 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
-            const multiEndpoint = meta.mapped.meta && meta.mapped.meta.multiEndpoint;
+            const multiEndpoint = (utils.getMetaValue(entity, meta.mapped, 'multiEndpoint') == true);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
