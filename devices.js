@@ -10145,7 +10145,7 @@ const devices = [
         model: '404000/404005/404012',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
         toZigbee: preset.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
         // GU10 bulb does not support enhancedHue,
         // we can identify these based on the presense of haDiagnostic input cluster
