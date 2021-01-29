@@ -11348,6 +11348,18 @@ const devices = [
 
     // Sunricher
     {
+        zigbeeModel: ['ZGRC-KEY-007'],
+        model: 'SR-ZG9001K2-DIM2',
+        vendor: 'Sunricher',
+        description: 'Zigbee 2 button wall switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ['ZGRC-TEUR-005'],
         model: 'SR-ZG9001T4-DIM-EU',
         vendor: 'Sunricher',
