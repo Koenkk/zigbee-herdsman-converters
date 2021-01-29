@@ -15730,9 +15730,9 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
-        model: '14149505L',
+        model: '14149505L/14149506L',
         vendor: 'Lidl',
-        description: 'Livarno Lux light bar RGB+CCT',
+        description: 'Livarno Lux light bar RGB+CCT (black/white)',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
     },
 
