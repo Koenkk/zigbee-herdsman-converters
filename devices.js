@@ -5448,7 +5448,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 filament bulb dimmable',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 185 C'],
@@ -5481,7 +5481,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 265'],
@@ -5489,7 +5489,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb filament clear',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BF 265'],
@@ -5497,7 +5497,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 bulb filament clear',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -5530,7 +5530,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 162'],
@@ -5538,7 +5538,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 175 W'],
@@ -5546,7 +5546,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb warm dimming',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 178 T'],
@@ -5570,7 +5570,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 125'],
@@ -5578,7 +5578,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 spot',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 225'],
@@ -5586,7 +5586,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 Spot',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 226'],
@@ -5594,7 +5594,7 @@ const devices = [
         vendor: 'Innr',
         description: 'GU10 Spot',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RS 128 T'],
@@ -5635,7 +5635,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 245'],
@@ -5643,7 +5643,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 candle',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 248 T'],
@@ -5667,7 +5667,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 263'],
@@ -5675,7 +5675,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RF 264'],
@@ -5683,7 +5683,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 filament bulb dimmable',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['BY 165', 'BY 265'],
@@ -5691,7 +5691,7 @@ const devices = [
         vendor: 'Innr',
         description: 'B22 bulb dimmable',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['PL 110'],
@@ -5699,7 +5699,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Puck Light',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['PL 115'],
@@ -5707,7 +5707,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Puck Light',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['ST 110'],
@@ -5715,7 +5715,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Strip Light',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['UC 110'],
@@ -5723,7 +5723,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Under cabinet light',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['DL 110 N'],
@@ -5731,7 +5731,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot narrow',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['DL 110 W'],
@@ -5739,7 +5739,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot wide',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 N'],
@@ -5747,7 +5747,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex narrow',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 M'],
@@ -5755,7 +5755,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex medium',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SL 110 W'],
@@ -5763,7 +5763,7 @@ const devices = [
         vendor: 'Innr',
         description: 'Spot Flex wide',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['AE 260'],
@@ -5771,7 +5771,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E26/24 bulb',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['AE 280 C'],
@@ -5876,7 +5876,7 @@ const devices = [
         vendor: 'Innr',
         description: 'E26/E24 white bulb',
         extend: preset.light_onoff_brightness(),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {turnsOffAtBrightness1: true},
     },
 
     // Digi
