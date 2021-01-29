@@ -12104,6 +12104,15 @@ const devices = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
+        zigbeeModel: ['3AFE010104020028'],
+        model: 'TW-S1',
+        description: 'Photoelectric smoke detector',
+        vendor: 'Konke',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        exposes: [e.smoke(), e.battery_low()],
+    },
+    {
         zigbeeModel: ['3AFE130104020015', '3AFE270104020015', '3AFE280104020015'],
         model: '2AJZ4KPDR',
         vendor: 'Konke',
