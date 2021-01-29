@@ -3474,6 +3474,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3216431P6'],
+        model: '3216431P6',
+        vendor: 'Philips',
+        description: 'Hue Aurelle',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTP007'],
         model: '4505748C5',
         vendor: 'Philips',
