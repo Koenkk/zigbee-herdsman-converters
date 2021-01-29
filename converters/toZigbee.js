@@ -898,7 +898,7 @@ const converters = {
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
+                if (!utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual')) {
                     value.hue = Math.round(hsv.h / 360 * 254);
                     command = 'moveToHue';
                 } else {
@@ -968,8 +968,7 @@ const converters = {
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
                 // If we slighlty modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
-                if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix') &&
-                    value.x == 0.701 && value.y === 0.299) {
+                if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix') && value.x == 0.701 && value.y === 0.299) {
                     value.x = 0.7006;
                     value.y = 0.2993;
                 }
@@ -993,7 +992,7 @@ const converters = {
                 if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
             } else {
                 attributes.push('currentX', 'currentY');
-                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual') !== false) {
+                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual')) {
                     attributes.push('currentHue', 'currentSaturation');
                 }
             }
