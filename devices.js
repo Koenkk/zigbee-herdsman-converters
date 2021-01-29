@@ -12000,7 +12000,7 @@ const devices = [
         vendor: 'Konke',
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.smoke(), e.battery_low()],
     },
     {
         zigbeeModel: ['3AFE130104020015', '3AFE270104020015', '3AFE280104020015'],
