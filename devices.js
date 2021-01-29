@@ -1164,6 +1164,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB+CCT',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'}],
@@ -1171,6 +1172,8 @@ const devices = [
         vendor: 'TuYa',
         description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB',
         extend: preset.light_onoff_brightness_colorxy(),
+        // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'}],
