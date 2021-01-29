@@ -2975,6 +2975,109 @@ const converters = {
             }
         },
     },
+    siterwell_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case tuya.dataPoints.windowDetection:
+                return {
+                    window_detection: value[0] ? 'ON' : 'OFF',
+                    window_detection_params: {
+                        temperature: value[1],
+                        minutes: value[2],
+                    },
+                };
+            case tuya.dataPoints.scheduleWorkday: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+                // Top bits in hours have special meaning
+                // 8: ??
+                // 7: Current schedule indicator
+                return {workdays: [
+                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
+                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
+                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
+                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
+                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
+                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
+                ]};
+            case tuya.dataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
+                // Top bits in hours have special meaning
+                // 8: ??
+                // 7: Current schedule indicator
+                return {holidays: [
+                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
+                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
+                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
+                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
+                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
+                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
+                ]};
+            case tuya.dataPoints.childLock:
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case tuya.dataPoints.siterwellWindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.valveDetection:
+                return {valve_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.autoLock: // 0x7401 auto lock mode
+                return {auto_lock: value ? 'AUTO' : 'MANUAL'};
+            case tuya.dataPoints.heatingSetpoint:
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.localTemp:
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.tempCalibration:
+                return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.battery: // 0x1502 MCU reporting battery status
+                return {battery: value};
+            case tuya.dataPoints.batteryLow:
+                return {battery_low: value};
+            case tuya.dataPoints.minTemp:
+                return {min_temperature: value};
+            case tuya.dataPoints.maxTemp:
+                return {max_temperature: value};
+            case tuya.dataPoints.boostTime: // 0x6902 boost time
+                return {boost_time: value};
+            case tuya.dataPoints.comfortTemp:
+                return {comfort_temperature: value};
+            case tuya.dataPoints.ecoTemp:
+                return {eco_temperature: value};
+            case tuya.dataPoints.valvePos:
+                return {position: value};
+            case tuya.dataPoints.awayTemp:
+                return {away_preset_temperature: value};
+            case tuya.dataPoints.awayDays:
+                return {away_preset_days: value};
+            case tuya.dataPoints.mode: {
+                const ret = {};
+                const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                if (presetOk) {
+                    ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
+                    ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
+                    ret.system_mode = tuya.thermostatSystemModes3[value];
+                    ret.force = tuya.thermostatForceMode[value];
+                } else {
+                    console.log(`TRV preset ${value} is not recognized.`);
+                    return;
+                }
+                return ret;
+            }
+            // fan mode 0 - low , 1 - medium , 2 - high , 3 - auto ( tested on 6dfgetq TUYA zigbee module )
+            case tuya.dataPoints.fanMode:
+                return {fan_mode: tuya.fanModes[value]};
+            case tuya.dataPoints.forceMode: // force mode 0 - normal, 1 - open, 2 - close
+                return {system_mode: tuya.thermostatSystemModes3[value], force: tuya.thermostatForceMode[value]};
+            case tuya.dataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week: tuya.thermostatWeekFormat[value]};
+            default: // The purpose of the dps 17 & 19 is still unknown
+                console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
