@@ -9236,6 +9236,22 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'RC-EF-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HM1RC-2-E',
+        vendor: 'HEIMAN',
+        description: 'Smart remote controller',
+        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'RC-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
