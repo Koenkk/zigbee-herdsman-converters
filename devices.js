@@ -8207,12 +8207,7 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy.ZYCT202_stop, fz.legacy.ZYCT202_up_down],
         exposes: [e.action(['on', 'off', 'stop', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
-        meta: {configureKey: 2},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        // Device does not support battery: https://github.com/Koenkk/zigbee2mqtt/issues/5928
     },
     {
         zigbeeModel: ['ZLL-DimmableLigh'],
