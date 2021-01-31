@@ -3924,8 +3924,9 @@ const devices = [
             fz.ignore_basic_report, fz.hue_motion_sensitivity],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.binary('led_indication', ea.STATE_SET, true, false).withDescription('Blink green led on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {
                 'default': 2, // default
@@ -3956,8 +3957,9 @@ const devices = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout, fz.hue_motion_sensitivity],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.binary('led_indication', ea.STATE_SET, true, false).withDescription('Blink green led on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {
                 'default': 2, // default

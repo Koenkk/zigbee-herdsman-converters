@@ -1527,6 +1527,14 @@ const converters = {
             await entity.read('msOccupancySensing', [48], manufacturerOptions.hue);
         },
     },
+    hue_motion_led_indication: {
+        key: ['led_indication'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x0033: {value, type: 0x10}};
+            await entity.write('genBasic', payload, manufacturerOptions.hue);
+            return {state: {led_indication: value}};
+        },
+    },
     ZigUP_lock: {
         key: ['led'],
         convertSet: async (entity, key, value, meta) => {
