@@ -8410,6 +8410,20 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['902010/28'],
+        model: '902010/128',
+        vendor: 'Bitron',
+        description: 'Home wireless socket',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        meta: {configureKey: 4},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['902010/32'],
         model: 'AV2010/32',
         vendor: 'Bitron',
