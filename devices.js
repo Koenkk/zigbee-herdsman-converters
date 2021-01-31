@@ -8414,9 +8414,7 @@ const devices = [
         model: '902010/128',
         vendor: 'Bitron',
         description: 'Home wireless socket',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        extend: preset.switch(),
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
