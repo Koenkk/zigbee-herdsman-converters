@@ -15630,11 +15630,12 @@ const devices = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_plyvnuf5'}, // CH
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wamqdr3f'}, // FR
             {modelID: 'TS011F', manufacturerName: '_TZ3000_00mk2xzy'}, // BS
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_upjrsxh1'}, // DK
             {manufacturerName: '_TZ3000_00mk2xzy'}, // BS
         ],
         model: 'HG06337',
         vendor: 'Lidl',
-        description: 'Silvercrest smart plug (EU, CH, FR, BS)',
+        description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
         extend: preset.switch(),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
