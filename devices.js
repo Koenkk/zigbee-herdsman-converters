@@ -6423,19 +6423,35 @@ const devices = [
         model: 'Z809A',
         vendor: 'Netvox',
         description: 'Power socket with power consumption monitoring',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.powerFactor(endpoint);
+
+            // Some support haElectricalMeasurement, some don't:
+            // - https://github.com/Koenkk/zigbee2mqtt/issues/1722
+            // - https://github.com/Koenkk/zigbee2mqtt/issues/5002
+
+            if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+                await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+                await reporting.rmsVoltage(endpoint);
+                await reporting.rmsCurrent(endpoint);
+                await reporting.activePower(endpoint);
+                await reporting.powerFactor(endpoint);
+            }
+
+            if (endpoint.supportsInputCluster('seMetering')) {
+                await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.instantaneousDemand(endpoint);
+                await reporting.currentSummDelivered(endpoint);
+                await reporting.currentSummReceived(endpoint);
+            }
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
 
     // Nanoleaf
