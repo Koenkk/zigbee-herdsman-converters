@@ -15748,6 +15748,13 @@ const devices = [
         meta: {applyRedFix: true},
     },
     {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_h1jnz6l8'}],
+        model: 'HG06705',
+        vendor: 'Lidl',
+        description: 'Livarno Lux garden light RGB+CCT',
+        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
         model: 'HG06467',
         vendor: 'Lidl',
