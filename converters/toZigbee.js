@@ -1534,6 +1534,9 @@ const converters = {
             await entity.write('genBasic', payload, manufacturerOptions.hue);
             return {state: {led_indication: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
+        },
     },
     ZigUP_lock: {
         key: ['led'],
