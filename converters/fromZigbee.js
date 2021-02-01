@@ -4765,6 +4765,15 @@ const converters = {
             }
         },
     },
+    hue_motion_led_indication: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('51')) {
+                return {led_indication: msg.data['51'] === 1};
+            }
+        },
+    },
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff', 'commandMove', 'commandStop'],
