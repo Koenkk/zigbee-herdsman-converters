@@ -1332,6 +1332,42 @@ const converters = {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
+    livolo_dimmer_level: {
+        key: ['brightness', 'brightness_percent', 'level'],
+        convertSet: async (entity, key, value, meta) => {
+
+            // upscale to 100
+            let newValue;
+            if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value)/10);
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else {
+                if (value >= 0 && value <= 255) {
+                    newValue = Math.round(Number(value) * 100 / 255);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+            }
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+            const payload = {0x0301: {value: Buffer.from([newValue, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+            await entity.writeUndiv('genPowerCfg', payload,
+                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+            return {state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10) }, readAfterWriteTime: 250};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {

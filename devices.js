@@ -10592,6 +10592,30 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['TI0001-dimmer'],
+        model: 'TI0001-dimmer',
+        // eslint-disable-next-line
+        description: 'New Zigbee Dimmer [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/5516)',
+        vendor: 'Livolo',
+        extend: preset.light_onoff_brightness,
+        fromZigbee: [fz.livolo_dimmer_state],
+        toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (!globalStore.hasValue(device, 'interval')) {
+                await livolo.poll(device);
+                const interval = setInterval(async () => {
+                    await livolo.poll(device);
+                }, 300*1000); // Every 300 seconds
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+    },
 
     // Bosch
     {

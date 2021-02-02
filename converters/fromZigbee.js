@@ -1958,6 +1958,22 @@ const converters = {
             }
         },
     },
+    livolo_dimmer_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0)  {
+              if (msg.data[10] === 7)  {
+                const status = msg.data[14];
+                return {state: status & 1 ? 'ON' : 'OFF'};
+              } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
+                const value = msg.data[14] * 10;
+                return {brightness: Math.round((value / 1000) * 255), brightness_percent: Math.round(value / 10), level: value};
+              }
+            }
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -1999,6 +2015,11 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
                     // new switch, hack
                     meta.device.modelID = 'TI0001-switch';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
+                    // new dimmer, hack
+                    meta.device.modelID = 'TI0001-dimmer';
                     meta.device.save();
                 }
             }
