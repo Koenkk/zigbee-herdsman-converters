@@ -13865,6 +13865,13 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         },
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-hersman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
     },
 
     // Ajax Online
