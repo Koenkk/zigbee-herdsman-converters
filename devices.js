@@ -9250,6 +9250,13 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-hersman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
     },
     {
         fingerprint: [{modelID: 'RC-EM', manufacturerName: 'HEIMAN'}],
