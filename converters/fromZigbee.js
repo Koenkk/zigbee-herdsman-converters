@@ -2956,7 +2956,11 @@ const converters = {
                 if (presetOk) {
                     ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                     ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-                    ret.system_mode = getMetaValue(msg.endpoint, model, 'tuyaThermostatSystemMode')[value];
+                    const presetToSystemMode = getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode') || {};
+                    const systemMode = presetToSystemMode[value];
+                    if (typeof systemMode !== 'undefined') {
+                        ret.system_mode = systemMode;
+                    }
                 } else {
                     console.log(`TRV preset ${value} is not recognized.`);
                     return;
