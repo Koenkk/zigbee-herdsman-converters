@@ -15137,7 +15137,7 @@ const devices = [
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
-        fromZigbee: [fz.siterwell_thermostat, fz.ignore_basic_report],
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes4, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_child_lock, tz.siterwell_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
