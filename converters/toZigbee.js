@@ -163,7 +163,7 @@ const converters = {
                 value = lookup[value];
             }
 
-            const invert = utils.getMetaValue(entity, meta.mapped, 'coverInverted') ?
+            const invert = utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover;
             const position = invert ? 100 - value : value;
             await entity.command(
@@ -214,7 +214,7 @@ const converters = {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
-            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted') ?
+            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
             const position = invert ? 100 - value : value;
 
@@ -429,7 +429,7 @@ const converters = {
                 brightness = Math.min(254, brightness);
                 brightness = Math.max(onOff || meta.state.state === 'OFF' ? 0 : 1, brightness);
 
-                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1')) {
+                if (utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false)) {
                     if (onOff && value < 0 && brightness === 1) {
                         brightness = 0;
                     } else if (onOff && value > 0 && meta.state.brightness === 0) {
@@ -588,7 +588,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
-            const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1');
+            const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
             const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
             if (message.hasOwnProperty('brightness')) brightness = Number(message.brightness);
@@ -782,12 +782,12 @@ const converters = {
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
 
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsl')) {
                 newState.color = {hsl: value.hsl};
@@ -797,12 +797,12 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, v: value.b};
@@ -810,12 +810,12 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsb')) {
                 let hsv = value.hsb.split(',').map((i) => parseInt(i));
@@ -824,12 +824,12 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
                 newState.color = {h: value.h, s: value.s, v: value.v};
@@ -837,12 +837,12 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsv')) {
                 let hsv = value.hsv.split(',').map((i) => parseInt(i));
@@ -851,33 +851,33 @@ const converters = {
                 value.saturation = hsv.s * (2.54);
                 value.brightness = hsv.v * (2.54);
                 newState.brightness = value.brightness;
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturationAndBrightness';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, 100);
                 value.saturation = hsv.s * (2.54);
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturation';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturation';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), 100, 100);
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHue';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHue';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHue';
                 }
             } else if (value.hasOwnProperty('s')) {
                 newState.color = {s: value.s};
@@ -888,22 +888,22 @@ const converters = {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), value.saturation, 100);
                 value.saturation = hsv.s * (2.54);
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHueAndSaturation';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHueAndSaturation';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
-                if (!utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual')) {
-                    value.hue = Math.round(hsv.h / 360 * 254);
-                    command = 'moveToHue';
-                } else {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                     value.hue = hsv.h % 360 * (65535 / 360);
                     command = 'enhancedMoveToHue';
+                } else {
+                    value.hue = Math.round(hsv.h / 360 * 254);
+                    command = 'moveToHue';
                 }
             } else if (value.hasOwnProperty('saturation')) {
                 newState.color = {saturation: value.saturation};
@@ -968,7 +968,7 @@ const converters = {
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
                 // If we slighlty modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
-                if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix') && value.x == 0.701 && value.y === 0.299) {
+                if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix', 'allEqual', false) && value.x == 0.701 && value.y === 0.299) {
                     value.x = 0.7006;
                     value.y = 0.2993;
                 }
@@ -992,7 +992,7 @@ const converters = {
                 if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
             } else {
                 attributes.push('currentX', 'currentY');
-                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual')) {
+                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
                     attributes.push('currentHue', 'currentSaturation');
                 }
             }
@@ -2119,7 +2119,7 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
-            const multiEndpoint = (utils.getMetaValue(entity, meta.mapped, 'multiEndpoint') == true);
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
@@ -3794,7 +3794,16 @@ const converters = {
                         );
                         state['color'] = {x: color.x, y: color.y};
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
-                        if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual') == false) {
+                        if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                            const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                            extensionfieldsets.push(
+                                {
+                                    'clstId': 768,
+                                    'len': 13,
+                                    'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                                },
+                            );
+                        } else {
                             // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
                             // When the bulb or all bulbs in a group do not support enhanchedHue,
                             // a fallback to XY is done by converting HSV -> RGB -> XY
@@ -3804,15 +3813,6 @@ const converters = {
                                     'clstId': 768,
                                     'len': 4,
                                     'extField': [Math.round(colorXY.x * 65535), Math.round(colorXY.y * 65535)],
-                                },
-                            );
-                        } else {
-                            const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
-                            extensionfieldsets.push(
-                                {
-                                    'clstId': 768,
-                                    'len': 13,
-                                    'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
                                 },
                             );
                         }
