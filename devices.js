@@ -15924,14 +15924,14 @@ const devices = [
     },
     {
         zigbeeModel: ['GAS  SENSOR     '],
-        model: 'GAS  SENSOR',
+        model: 'M415-5C',
         vendor: 'BYUN',
         description: 'Gas sensor',
-        supports: 'gas',
         fromZigbee: [fz.byun_gas_true, fz.byun_gas_false],
         toZigbee: [],
         exposes: [e.gas()],
     },
+
     // Datek
     {
         zigbeeModel: ['PoP'],
