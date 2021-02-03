@@ -15774,6 +15774,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_kdpxju99'}],
@@ -15781,6 +15782,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot RGB',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_dbou1ap4'}],
@@ -15788,6 +15790,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb RGB',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_el5kt5im'}],
@@ -15823,6 +15826,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux mood light RGB+CCT',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
@@ -15830,6 +15834,7 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
     },
 
     // Atsmart
