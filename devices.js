@@ -11633,6 +11633,22 @@ const devices = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
+        zigbeeModel: ['SZ-DWS08N'],
+        model: 'SZ-DWS08',
+        vendor: 'Sercomm',
+        description: 'Magnetic door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    },
+    {
         zigbeeModel: ['SZ-PIR02_SF', 'SZ-PIR02'],
         model: 'AL-PIR02',
         vendor: 'Sercomm',
