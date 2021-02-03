@@ -3358,6 +3358,24 @@ const converters = {
             }
         },
     },
+    byun_gas_false: {
+        cluster: 1034,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data[0] == 24) {
+                return {gas: false};
+            }
+        },
+    },
+    byun_gas_true: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
+                return {gas: true};
+            }
+        },
+    },
     hue_smart_button_event: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
