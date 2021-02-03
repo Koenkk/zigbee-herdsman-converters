@@ -8673,6 +8673,16 @@ const devices = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
+        zigbeeModel: ['WS15_00.00.00.10TC'],
+        model: 'WLS-15ZBS',
+        vendor: 'Climax',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+
+    },
+    {
         zigbeeModel: ['SCM-3_00.00.03.15'],
         model: 'SCM-5ZBS',
         vendor: 'Climax',
