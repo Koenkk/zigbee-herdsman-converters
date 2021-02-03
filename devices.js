@@ -14936,6 +14936,22 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZHEMI101'],
+        model: 'ZHEMI101',
+        vendor: 'Develco',
+        description: 'Energy meter',
+        fromZigbee: [fz.metering],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+        exposes: [e.power(), e.energy()],
+    },
 
     // Aurora Lighting
     {
