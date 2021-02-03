@@ -1538,6 +1538,19 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
+    RTCGQ13LM_motion_sensitivity: {
+        key: ['motion_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'low': 1, 'medium': 2, 'high': 3};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('aqaraOpple', {0x010c: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {motion_sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x010c], manufacturerOptions.xiaomi);
+        },
+    },
     ZigUP_lock: {
         key: ['led'],
         convertSet: async (entity, key, value, meta) => {
