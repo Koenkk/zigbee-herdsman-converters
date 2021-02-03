@@ -9244,6 +9244,29 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'RC-EF-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HM1RC-2-E',
+        vendor: 'HEIMAN',
+        description: 'Smart remote controller',
+        fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-hersman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
+    },
+    {
         fingerprint: [{modelID: 'RC-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
