@@ -8662,15 +8662,9 @@ const devices = [
         vendor: 'Climax',
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryAlarmState(endpoint);
-        },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.tamper(), e.warning()],
+
     },
     {
         zigbeeModel: ['WS15_00.00.00.10TC'],
@@ -8680,7 +8674,6 @@ const devices = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-
     },
     {
         zigbeeModel: ['SCM-3_00.00.03.15'],
