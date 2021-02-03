@@ -8415,9 +8415,7 @@ const devices = [
         model: 'AV2010/26',
         vendor: 'Bitron',
         description: 'Wireless socket and brightness regulator',
-        fromZigbee: [fz.on_off, fz.brightness],
-        toZigbee: [tz.light_onoff_brightness],
-        exposes: [e.switch()],
+        extend: preset.light_onoff_brightness(),
         meta: {configureKey: 1},
     },
     {
