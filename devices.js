@@ -741,7 +741,7 @@ const devices = [
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);            
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
             await reporting.occupancy(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
