@@ -8416,7 +8416,12 @@ const devices = [
         vendor: 'Bitron',
         description: 'Wireless socket and brightness regulator',
         extend: preset.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['902010/28'],
