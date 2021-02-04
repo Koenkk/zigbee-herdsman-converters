@@ -1359,9 +1359,9 @@ const converters = {
             }
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payload = {0x0301: {value: Buffer.from([newValue, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
-            await entity.writeUndiv('genPowerCfg', payload,
+            await entity.write('genPowerCfg', payload,
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, commandKey: "writeUndiv"});
             return {state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10) }, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {
