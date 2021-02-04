@@ -6233,6 +6233,14 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
+        zigbeeModel: ['E1G-G8E'],
+        model: 'E1G-G8E',
+        vendor: 'Sengled',
+        description: 'Multicolor Light Strip (2M)',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['E11-U21U31'],
         model: 'E11-U21U31',
         vendor: 'Sengled',
