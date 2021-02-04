@@ -4796,6 +4796,16 @@ const converters = {
             }
         },
     },
+    RTCGQ13LM_motion_sensitivity: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x010c)) {
+                const lookup = {1: 'low', 2: 'medium', 3: 'high'};
+                return {motion_sensitivity: lookup[msg.data[0x010c]]};
+            }
+        },
+    },
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff', 'commandMove', 'commandStop'],
