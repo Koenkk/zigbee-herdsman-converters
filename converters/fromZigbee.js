@@ -731,10 +731,14 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            const contactProperty = postfixWithEndpointName('contact', msg, model);
+            const tamperProperty = postfixWithEndpointName('tamper', msg, model);
+            const batteryLowProperty = postfixWithEndpointName('battery_low', msg, model);
+
             return {
-                contact: !((zoneStatus & 1) > 0),
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                [contactProperty]: !((zoneStatus & 1) > 0),
+                [tamperProperty]: (zoneStatus & 1<<2) > 0,
+                [batteryLowProperty]: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -1028,6 +1032,17 @@ const converters = {
             }
 
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_move_color_temperature: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveColorTemp'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
+            const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1503,13 +1518,15 @@ const converters = {
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'OPEN'};
                 } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'CLOSE'};
                 } else {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
             }
+            case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
+                return {motor_speed: value};
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
@@ -1730,6 +1747,17 @@ const converters = {
                 reason: lookup[msg.data['41367']],
                 [`${ds18b20Id}`]: ds18b20Value,
             };
+        },
+    },
+    moes_power_on_behavior: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+                const property = postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
+            }
         },
     },
     eurotronic_thermostat: {
@@ -2695,9 +2723,9 @@ const converters = {
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
-                return {local_temperature: (value / 10).toFixed(1)};
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellHeatingSetpoint:
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellValvePos:
                 // single value 1-100%
                 break;
@@ -2928,6 +2956,10 @@ const converters = {
                 if (presetOk) {
                     ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                     ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
+                    const presetToSystemMode = getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
+                    if (value in presetToSystemMode) {
+                        ret.system_mode = presetToSystemMode[value];
+                    }
                 } else {
                     console.log(`TRV preset ${value} is not recognized.`);
                     return;
@@ -3294,7 +3326,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const state = value ? 'ON' : 'OFF';
             if (multiEndpoint) {
-                const lookup = {1: 'l1', 2: 'l2', 3: 'l3'};
+                const lookup = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4'};
                 const endpoint = lookup[dp];
                 if (endpoint in model.endpoint(msg.device)) {
                     return {[`state_${endpoint}`]: state};
@@ -3327,6 +3359,24 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
                 return {smoke: true};
+            }
+        },
+    },
+    byun_gas_false: {
+        cluster: 1034,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data[0] == 24) {
+                return {gas: false};
+            }
+        },
+    },
+    byun_gas_true: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
+                return {gas: true};
             }
         },
     },
@@ -4734,6 +4784,25 @@ const converters = {
             if (msg.data.hasOwnProperty('48')) {
                 const lookup = ['low', 'medium', 'high'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
+            }
+        },
+    },
+    hue_motion_led_indication: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('51')) {
+                return {led_indication: msg.data['51'] === 1};
+            }
+        },
+    },
+    RTCGQ13LM_motion_sensitivity: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x010c)) {
+                const lookup = {1: 'low', 2: 'medium', 3: 'high'};
+                return {motion_sensitivity: lookup[msg.data[0x010c]]};
             }
         },
     },
