@@ -6236,7 +6236,7 @@ const devices = [
         zigbeeModel: ['E1G-G8E'],
         model: 'E1G-G8E',
         vendor: 'Sengled',
-        description: 'Multicolor Light Strip (2M)',
+        description: 'Multicolor light strip (2M)',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
         ota: ota.zigbeeOTA,
     },
