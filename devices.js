@@ -10620,7 +10620,7 @@ const devices = [
         model: 'TI0001-dimmer',
         description: 'Zigbee dimmer',
         vendor: 'Livolo',
-        extend: preset.light_onoff_brightness,
+        extend: preset.light_onoff_brightness(),
         fromZigbee: [fz.livolo_dimmer_state],
         toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
         meta: {configureKey: 1},
