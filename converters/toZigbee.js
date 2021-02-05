@@ -1286,12 +1286,23 @@ const converters = {
             }
 
             const state = value.toLowerCase();
+            const postfix = meta.endpoint_name || 'left';
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payloadOn = {0x0001: {value: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOff = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
-            await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
+            const payloadOnRight = {0x0001: {value: Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            const payloadOffRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            if (postfix === 'left') {
+              await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                     reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+              return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'right') {
+              await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
+                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+              return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {
@@ -1361,7 +1372,7 @@ const converters = {
             const payload = {0x0301: {value: Buffer.from([newValue, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             await entity.write('genPowerCfg', payload,
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, commandKey: "writeUndiv"});
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
             return {state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10) }, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {

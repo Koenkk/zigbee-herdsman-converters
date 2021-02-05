@@ -10567,6 +10567,33 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['TI0001-switch-2gang'],
+        model: 'TI0001-switch-2gang',
+        // eslint-disable-next-line
+        description: 'New Zigbee Switch (2gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        vendor: 'Livolo',
+        extend: preset.switch(),
+        fromZigbee: [fz.livolo_new_switch_state_2gang],
+        toZigbee: [tz.livolo_socket_switch_on_off],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await livolo.poll(device);
+                if (!globalStore.hasValue(device, 'interval')) {
+                    const interval = setInterval(async () => {
+                        await livolo.poll(device);
+                    }, 300*1000); // Every 300 seconds
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
+        },
+    },
+    {
         zigbeeModel: ['TI0001-socket'],
         model: 'TI0001-socket',
         // eslint-disable-next-line

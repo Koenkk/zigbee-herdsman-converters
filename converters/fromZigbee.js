@@ -1958,6 +1958,22 @@ const converters = {
             }
         },
     },
+    livolo_new_switch_state_2gang: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+              if (msg.data[10] === 7)  {
+                const status = msg.data[14];
+                return {
+                  state_left: status & 1 ? 'ON' : 'OFF',
+                  state_right: status & 2 ? 'ON' : 'OFF',
+                };
+              }
+            }
+        },
+    },
     livolo_dimmer_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2015,6 +2031,11 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
                     // new switch, hack
                     meta.device.modelID = 'TI0001-switch';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 2, 0]), 13)) {
+                    // new switch, hack
+                    meta.device.modelID = 'TI0001-switch-2gang';
                     meta.device.save();
                 }
                 if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
