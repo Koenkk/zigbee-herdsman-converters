@@ -10545,6 +10545,7 @@ const devices = [
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_new_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
+        extend: preset.switch(),
         meta: {configureKey: 1},
         configure: livolo.poll,
         onEvent: async (type, data, device) => {
