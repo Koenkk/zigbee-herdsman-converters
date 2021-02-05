@@ -8973,15 +8973,18 @@ const devices = [
         vendor: 'Climax',
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.tamper(), e.warning()],
+
+    },
+    {
+        zigbeeModel: ['WS15_00.00.00.10TC'],
+        model: 'WLS-15ZBS',
+        vendor: 'Climax',
+        description: 'Water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryAlarmState(endpoint);
-        },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['SCM-3_00.00.03.15'],
@@ -12001,6 +12004,22 @@ const devices = [
     {
         zigbeeModel: ['SZ-DWS04', 'SZ-DWS04N_SF'],
         model: 'SZ-DWS04',
+        vendor: 'Sercomm',
+        description: 'Magnetic door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    },
+    {
+        zigbeeModel: ['SZ-DWS08N'],
+        model: 'SZ-DWS08',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
