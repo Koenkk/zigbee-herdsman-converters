@@ -1964,13 +1964,13 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
             if (msg.data.indexOf(stateHeader) === 0) {
-              if (msg.data[10] === 7)  {
-                const status = msg.data[14];
-                return {
-                  state_left: status & 1 ? 'ON' : 'OFF',
-                  state_right: status & 2 ? 'ON' : 'OFF',
-                };
-              }
+                if (msg.data[10] === 7) {
+                    const status = msg.data[14];
+                    return {
+                        state_left: status & 1 ? 'ON' : 'OFF',
+                        state_right: status & 2 ? 'ON' : 'OFF',
+                    };
+                }
             }
         },
     },
@@ -1979,14 +1979,14 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
-            if (msg.data.indexOf(stateHeader) === 0)  {
-              if (msg.data[10] === 7)  {
-                const status = msg.data[14];
-                return {state: status & 1 ? 'ON' : 'OFF'};
-              } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
-                const value = msg.data[14] * 10;
-                return {brightness: Math.round((value / 1000) * 255), brightness_percent: Math.round(value / 10), level: value};
-              }
+            if (msg.data.indexOf(stateHeader) === 0) {
+                if (msg.data[10] === 7) {
+                    const status = msg.data[14];
+                    return {state: status & 1 ? 'ON' : 'OFF'};
+                } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
+                    const value = msg.data[14] * 10;
+                    return {brightness: Math.round((value / 1000) * 255), brightness_percent: Math.round(value / 10), level: value};
+                }
             }
         },
     },
