@@ -10544,7 +10544,7 @@ const devices = [
         zigbeeModel: ['TI0001-switch'],
         model: 'TI0001-switch',
         // eslint-disable-next-line
-        description: 'New Zigbee Switch [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        description: 'Zigbee switch 1 gang',
         vendor: 'Livolo',
         extend: preset.switch(),
         fromZigbee: [fz.livolo_new_switch_state],
@@ -10570,7 +10570,7 @@ const devices = [
         zigbeeModel: ['TI0001-switch-2gang'],
         model: 'TI0001-switch-2gang',
         // eslint-disable-next-line
-        description: 'New Zigbee Switch (2gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        description: 'Zigbee Switch 2 gang',
         vendor: 'Livolo',
         extend: preset.switch(),
         fromZigbee: [fz.livolo_new_switch_state_2gang],
