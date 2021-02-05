@@ -11849,7 +11849,8 @@ const devices = [
         zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
         model: '511.000',
         vendor: 'Iluminize',
-        description: 'Zigbee 3.0 universal LED-controller, 5 channel 4A, RGBCCT LED',
+        whiteLabel: [{vendor: 'Sunricher', model: 'HK-ZD-RGBCCT-A'}],
+        description: 'Zigbee 3.0 universal LED-controller, 5 channel, RGBCCT LED',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
