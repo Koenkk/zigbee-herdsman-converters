@@ -3888,7 +3888,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['RWL020', 'RWL021'],
+        zigbeeModel: ['RWL020', 'RWL021', 'RWL022'],
         model: '324131092621',
         vendor: 'Philips',
         description: 'Hue dimmer switch',
