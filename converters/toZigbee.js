@@ -1293,15 +1293,15 @@ const converters = {
             const payloadOnRight = {0x0001: {value: Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
             const payloadOffRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
             if (postfix === 'left') {
-              await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
-                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
-              return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+                return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'right') {
-              await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
-                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
-              return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+                return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
             }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
@@ -1346,7 +1346,6 @@ const converters = {
     livolo_dimmer_level: {
         key: ['brightness', 'brightness_percent', 'level'],
         convertSet: async (entity, key, value, meta) => {
-
             // upscale to 100
             let newValue;
             if (key === 'level') {
@@ -1373,7 +1372,10 @@ const converters = {
             await entity.write('genPowerCfg', payload,
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                     reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
-            return {state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10) }, readAfterWriteTime: 250};
+            return {
+                state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10)},
+                readAfterWriteTime: 250,
+            };
         },
         convertGet: async (entity, key, meta) => {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
