@@ -1286,12 +1286,23 @@ const converters = {
             }
 
             const state = value.toLowerCase();
+            const postfix = meta.endpoint_name || 'left';
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payloadOn = {0x0001: {value: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOff = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
-            await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
-                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+            const payloadOnRight = {0x0001: {value: Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            const payloadOffRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            if (postfix === 'left') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+                return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'right') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9});
+                return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
         convertGet: async (entity, key, meta) => {
@@ -1327,6 +1338,44 @@ const converters = {
 
             await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: state, transtime: channel});
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        },
+    },
+    livolo_dimmer_level: {
+        key: ['brightness', 'brightness_percent', 'level'],
+        convertSet: async (entity, key, value, meta) => {
+            // upscale to 100
+            let newValue;
+            if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value)/10);
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else {
+                if (value >= 0 && value <= 255) {
+                    newValue = Math.round(Number(value) * 100 / 255);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+            }
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+            const payload = {0x0301: {value: Buffer.from([newValue, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+            await entity.write('genPowerCfg', payload,
+                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
+            return {
+                state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10)},
+                readAfterWriteTime: 250,
+            };
         },
         convertGet: async (entity, key, meta) => {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});

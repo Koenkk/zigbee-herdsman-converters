@@ -10567,10 +10567,8 @@ const devices = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
-        // eslint-disable-next-line
-        description: 'Zigbee switch (1 and 2 gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        description: 'Zigbee switch (1 and 2 gang)',
         vendor: 'Livolo',
-        extend: preset.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
         toZigbee: [tz.livolo_switch_on_off],
@@ -10595,12 +10593,36 @@ const devices = [
     {
         zigbeeModel: ['TI0001-switch'],
         model: 'TI0001-switch',
-        // eslint-disable-next-line
-        description: 'New Zigbee Switch [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        description: 'Zigbee switch 1 gang',
         vendor: 'Livolo',
-        extend: preset.switch(),
         fromZigbee: [fz.livolo_new_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await livolo.poll(device);
+                if (!globalStore.hasValue(device, 'interval')) {
+                    const interval = setInterval(async () => {
+                        await livolo.poll(device);
+                    }, 300*1000); // Every 300 seconds
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ['TI0001-switch-2gang'],
+        model: 'TI0001-switch-2gang',
+        description: 'Zigbee Switch 2 gang',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_new_switch_state_2gang],
+        toZigbee: [tz.livolo_socket_switch_on_off],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {configureKey: 1},
         configure: livolo.poll,
         onEvent: async (type, data, device) => {
@@ -10621,8 +10643,7 @@ const devices = [
     {
         zigbeeModel: ['TI0001-socket'],
         model: 'TI0001-socket',
-        // eslint-disable-next-line
-        description: 'New Zigbee Socket [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        description: 'Zigbee socket',
         vendor: 'Livolo',
         extend: preset.switch(),
         fromZigbee: [fz.livolo_socket_state],
@@ -10641,6 +10662,29 @@ const devices = [
                     }, 300*1000); // Every 300 seconds
                     globalStore.putValue(device, 'interval', interval);
                 }
+            }
+        },
+    },
+    {
+        zigbeeModel: ['TI0001-dimmer'],
+        model: 'TI0001-dimmer',
+        description: 'Zigbee dimmer',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_dimmer_state],
+        toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
+        exposes: [e.light_brightness()],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (!globalStore.hasValue(device, 'interval')) {
+                await livolo.poll(device);
+                const interval = setInterval(async () => {
+                    await livolo.poll(device);
+                }, 300*1000); // Every 300 seconds
+                globalStore.putValue(device, 'interval', interval);
             }
         },
     },
