@@ -10515,8 +10515,7 @@ const devices = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
-        // eslint-disable-next-line
-        description: 'Zigbee switch (1 and 2 gang) [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/592)',
+        description: 'Zigbee switch (1 and 2 gang)',
         vendor: 'Livolo',
         extend: preset.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
@@ -10543,7 +10542,6 @@ const devices = [
     {
         zigbeeModel: ['TI0001-switch'],
         model: 'TI0001-switch',
-        // eslint-disable-next-line
         description: 'Zigbee switch 1 gang',
         vendor: 'Livolo',
         extend: preset.switch(),
@@ -10569,7 +10567,6 @@ const devices = [
     {
         zigbeeModel: ['TI0001-switch-2gang'],
         model: 'TI0001-switch-2gang',
-        // eslint-disable-next-line
         description: 'Zigbee Switch 2 gang',
         vendor: 'Livolo',
         extend: preset.switch(),
@@ -10596,8 +10593,7 @@ const devices = [
     {
         zigbeeModel: ['TI0001-socket'],
         model: 'TI0001-socket',
-        // eslint-disable-next-line
-        description: 'New Zigbee Socket [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/3560)',
+        description: 'Zigbee socket',
         vendor: 'Livolo',
         extend: preset.switch(),
         fromZigbee: [fz.livolo_socket_state],
@@ -10622,8 +10618,7 @@ const devices = [
     {
         zigbeeModel: ['TI0001-dimmer'],
         model: 'TI0001-dimmer',
-        // eslint-disable-next-line
-        description: 'New Zigbee Dimmer [work in progress](https://github.com/Koenkk/zigbee2mqtt/issues/5516)',
+        description: 'Zigbee dimmer',
         vendor: 'Livolo',
         extend: preset.light_onoff_brightness,
         fromZigbee: [fz.livolo_dimmer_state],
