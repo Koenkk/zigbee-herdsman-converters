@@ -2041,7 +2041,182 @@ const converters = {
             }
         },
     },
-    tuya_led_control: {
+    moes_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+        },
+    },
+    moes_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTemp, value);
+        },
+    },
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value < 0) value = 4096 + value;
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesTempCalibration, value);
+        },
+    },
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const hold = value === 'hold' ? 0 : 1;
+            const schedule = value === 'program' ? 0 : 1;
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesHold, hold);
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesScheduleEnable, schedule);
+        },
+    },
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
+        },
+    },
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+                const lookup = {'in': 0, 'al': 1, 'ou': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+            }
+            if ((typeof value === 'number') && (value >=0) && (value <=2)) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSensor, value);
+            } else {
+                throw new Error(`Unsupported value: ${value}`);
+            }
+        },
+    },
+    moes_alt_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 2);
+            if (meta.state.system_mode == 'heat') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, temp);
+            } else if (meta.state.system_mode == 'auto') {
+                await tuya.senDataPointValue(entity, tuya.dataPoints.moesAltScheduleTempOverride, temp);
+            }
+        },
+    },
+    moes_alt_thermostat_comfort_temp_preset: {
+        key: ['comfort_temp_preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 2);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesAltComfortTemp, temp);
+        },
+    },
+    moes_alt_thermostat_eco_temp_preset: {
+        key: ['eco_temp_preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 2);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesAltEcoTemp, temp);
+        },
+    },
+    moes_alt_thermostat_schedule_override_setpoint: {
+        key: ['schedule_override_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 2);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesAltScheduleTempOverride, temp);
+        },
+    },
+    moes_alt_thermostat_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if ( value == 'auto' ) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesAltMode, 0);
+            } else if ( value == 'heat' ) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesAltMode, 1);
+            } else if ( value == 'off') {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesAltMode, 1);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, 0);
+            }
+        },
+    },
+    moes_alt_thermostat_away: {
+        key: ['away_mode', 'away_data'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key==='away_mode') {
+                if ( value == 'ON' ) {
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesAltMode, 2);
+                } else {
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesAltMode, 0);
+                }
+            } else if (key==='away_data') {
+                const output= new Buffer(8);
+                // byte 0 - Start Year (0x00 = 2000)
+                // byte 1 - Start Month
+                // byte 2 - Start Day
+                // byte 3 - Start Hour
+                // byte 4 - Start Minute
+                // byte 5 - Temperature (1~59 = 0.5~29.5°C (0.5 step))
+                // byte 6-7 - Duration in Hours (0~2400 (100 days))
+                output[0]=value.year > 2000 ? value.year-2000 : value.year; // year
+                output[1]=value.month; // month
+                output[2]=value.day; // day
+                output[3]=value.hour; // hour
+                output[4]=value.minute; // min
+                output[5]=Math.round(value.temperature * 2);
+                output[7]=value.away_hours & 0xFF;
+                output[6]=value.away_hours >> 8;
+                meta.logger.info(JSON.stringify({'send to tuya': output, 'value was': value, 'key was': key}));
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.moesAltVacationPeriod, output);
+            }
+        },
+    },
+    moes_alt_thermostat_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const weekDays=['mon' , 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            // byte 0 - Day of Week (0~7 = Mon ~ Sun) <- redundant?
+            // byte 1 - 1st period Temperature (1~59 = 0.5~29.5°C (0.5 step))
+            // byte 2 - 1st period end time (1~96 = 0:15 ~ 24:00 (15 min increment, i.e. 2 = 0:30, 3 = 0:45, ...))
+            // byte 3 - 2nd period Temperature
+            // byte 4 - 2nd period end time
+            // ...
+            // byte 16 - 8th period end time
+            // byte 17 - 9th period Temperature
+            // we overwirte only the received days. The other ones keep stored on the device
+            const keys = Object.keys(value);
+            for (const dayName of keys) { // for loop in order to delete the empty day schedules
+                const output= new Buffer(17); // empty output byte buffer
+                const dayNo=weekDays.indexOf(dayName);
+                output[0]=dayNo+1;
+                const schedule=value[dayName];
+                schedule.forEach((el, Index) => {
+                    if (Index <=8) {
+                        output[1+2*Index]=Math.round(el.temperature*2);
+                        output[2+2*Index]=el.hour*4+Math.floor((el.minute/15));
+                    } else {
+                        meta.logger.warn('more than 8 schedule points supplied for week-day '+dayName +
+                        ' additional schedule points will be ignored');
+                    }
+                });
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.moesAltScheduleDay1+dayNo, output);
+                await new Promise((r) => setTimeout(r, 2000));
+                // wait 2 seconds between schedule sends in order not to overload the device
+            }
+        },
+    },
+    moes_alt_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesAltChildLock,
+                ['LOCKED', 'ON', 'LOCK'].includes(value.toUpperCase()));
+        },
+    },
+    moes_alt_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value > 0) value = value*10;
+            if (value < 0) value = value*10 + 0x100000000;
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesAltTempCalibration, value);
+        },
+    },
+   tuya_led_control: {
         key: ['color', 'brightness', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'color_temp') {

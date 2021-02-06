@@ -14125,7 +14125,51 @@ const devices = [
             .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
             .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
     },
+    {
+        // Moes Tuya Alt Thermostat
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fhn3negr'},
+            { modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s' },
+        ],
+        model: 'TZE200_fhn3neg',
+        vendor: 'TuYa',
+        description: 'Radiator valve with thermostat',
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.ignore_tuya_set_time,  // handled in onEvent
+            fz.tuya_data_point_dump,
+            fz.moes_alt_thermostat,
+        ],
+        toZigbee: [
+            tz.moes_alt_thermostat_current_heating_setpoint,
+            tz.moes_alt_thermostat_comfort_temp_preset,
+            tz.moes_alt_thermostat_eco_temp_preset,
+            tz.moes_alt_thermostat_away,
+            tz.moes_alt_thermostat_mode,
+            tz.moes_alt_thermostat_child_lock,
+            tz.moes_alt_thermostat_calibration,
+            tz.moes_alt_thermostat_schedule_override_setpoint,
+            tz.moes_alt_thermostat_schedule,
+            tz.tuya_data_point_test,
+        ],
+        onEvent: tuya.onEventSetTime,
+        meta: {
+            configureKey: 1,
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [
+            e.battery(), e.battery_low(), e.window_detection(), e.child_lock(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5)
+                             .withLocalTemperature()
+                             .withSystemMode(['auto','heat','off'])
+                             .withPreset(['rapid','comfort','eco','open'])
+                             .withAwayMode()
+        ],
 
+    },
     // Schneider Electric
     {
         zigbeeModel: ['iTRV'],

@@ -3021,6 +3021,120 @@ const converters = {
             }
         },
     },
+    moes_alt_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            function weeklySchedule(day, value) {
+                // byte 0 - Day of Week (0~7 = Mon ~ Sun) <- redundant?
+                // byte 1 - 1st period Temperature (1~59 = 0.5~29.5°C (0.5 step))
+                // byte 2 - 1st period end time (1~96 = 0:15 ~ 24:00 (15 min increment, i.e. 2 = 0:30, 3 = 0:45, ...))
+                // byte 3 - 2nd period Temperature
+                // byte 4 - 2nd period end time
+                // ...
+                // byte 16 - 8th period end time
+                // byte 17 - 9th period Temperature
+                const weekDays=['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                // we get supplied in value only a weekday schedule, so we must add it to
+                // the weekly schedule from meta.state, if it exists
+                const weeklySchedule= meta.state.hasOwnProperty('weekly_schedule') ? meta.state.weekly_schedule : {};
+                meta.logger.info(JSON.stringify({'received day': day, 'received values': value}));
+                let daySchedule = []; // result array
+                for (let i=1; i<18 && value[i]; ++i) {
+                    const aTemp=value[i];
+                    ++i;
+                    const time=value[i];
+                    daySchedule=[...daySchedule, {
+                        temperature: Math.floor(aTemp/2),
+                        hour: Math.floor(time/4),
+                        minute: time % 4 *15,
+                    }];
+                }
+                meta.logger.info(JSON.stringify({'returned weekly schedule: ': daySchedule}));
+                return {'weekly-schedule': {...weeklySchedule, [weekDays[day]]: daySchedule}};
+            }
+            switch (dp) {
+            case tuya.dataPoints.moesAltMode: // 2
+                // 0-Schedule; 1-Manual; 2-Away
+                if (value == 0) {
+                    return {system_mode: 'auto', away_mode: 'OFF'};
+                } else if (value == 1) {
+                    return {system_mode: 'heat', away_mode: 'OFF'};
+                } else if (value == 2) {
+                    return {system_mode: 'auto', away_mode: 'ON'};
+                }
+                break;
+            case tuya.dataPoints.moesHeatingSetpoint: // 16
+                // 0 - Valve full OFF, 60 - Valve full ON : only in "manual" mode
+                return {current_heating_setpoint: (value / 2).toFixed(1)};
+            case tuya.dataPoints.moesLocalTemp: // 24
+                return {local_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.moesAltChildLock: // 30
+                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+            case tuya.dataPoints.moesAltBattery: // 34
+                return {
+                    battery: value > 130 ? 100 : value < 70 ? 0 : ((value - 70)*1.7).toFixed(1),
+                    battery_low: value < 90,
+                };
+            case tuya.dataPoints.moesAltComfortTemp: // 101
+                return {comfort_temp_preset: (value / 2).toFixed(1)};
+            case tuya.dataPoints.moesAltEcoTemp: // 102
+                return {eco_temp_preset: (value / 2).toFixed(1)};
+            case tuya.dataPoints.moesAltVacationPeriod: // 103
+                return {
+                    away_data: {
+                        year: value[0]+2000,
+                        month: value[1],
+                        day: value[2],
+                        hour: value[3],
+                        minute: value[4],
+                        temperature: (value[5] /2).toFixed(1),
+                        away_hours: value[6]<< 8 | value[7],
+                    },
+                };
+                // byte 0 - Start Year (0x00 = 2000)
+                // byte 1 - Start Month
+                // byte 2 - Start Day
+                // byte 3 - Start Hour
+                // byte 4 - Start Minute
+                // byte 5 - Temperature (1~59 = 0.5~29.5°C (0.5 step))
+                // byte 6-7 - Duration in Hours (0~2400 (100 days))
+            case tuya.dataPoints.moesAltTempCalibration: // 104
+                return {local_temperature_calibration: value > 55 ?
+                    ((value - 0x100000000)/10).toFixed(1): (value/ 10).toFixed(1)};
+            case tuya.dataPoints.moesAltScheduleTempOverride: // 105
+                return {schedule_override_setpoint: (value / 2).toFixed(1)};
+            case tuya.dataPoints.moesAltUnknown2: // 106
+                break;
+            case tuya.dataPoints.moesAltUnknown3: // 107
+                break;
+            case tuya.dataPoints.moesAltScheduleDay1: // 109
+                return weeklySchedule(0, value);
+            case tuya.dataPoints.moesAltScheduleDay2: // 110
+                return weeklySchedule(1, value);
+            case tuya.dataPoints.moesAltScheduleDay3: // 111
+                return weeklySchedule(2, value);
+            case tuya.dataPoints.moesAltScheduleDay4: // 112
+                return weeklySchedule(3, value);
+            case tuya.dataPoints.moesAltScheduleDay5: // 113
+                return weeklySchedule(4, value);
+            case tuya.dataPoints.moesAltScheduleDay6: // 114
+                return weeklySchedule(5, value);
+            case tuya.dataPoints.moesAltScheduleDay7: // 115
+                return weeklySchedule(6, value);
+            case tuya.dataPoints.moesAltOpenWindowTemp: // 116
+                break;
+            case tuya.dataPoints.moesAltOpenWindowTime: // 117
+                break;
+            case tuya.dataPoints.moesAltRequestUpdate: // 120
+                break;
+            default:
+                break;
+            }
+        },
+    },
     tuya_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
