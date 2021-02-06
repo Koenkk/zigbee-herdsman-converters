@@ -11614,11 +11614,12 @@ const devices = [
         description: 'Zigbee handheld remote CCT 4 channels',
         fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
             fz.command_step, fz.command_recall, fz.command_on, fz.command_off,
-            fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop, fz.command_move, 
+            fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop, fz.command_move,
             fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
         exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down', 'recall_*', 'on', 'off', 'toggle',
-            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
+            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
+            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -11632,18 +11633,19 @@ const devices = [
         description: 'Zigbee handheld remote RGBCCT 3 channels',
         fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
             fz.command_step, fz.command_recall, fz.command_on, fz.command_off,
-            fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop, fz.command_move, 
+            fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop, fz.command_move,
             fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
         exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down', 'recall_*', 'on', 'off', 'toggle',
-            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
+            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
+            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3};
         },
     },
-    
+
     // Samotech
     {
         zigbeeModel: ['SM308'],
