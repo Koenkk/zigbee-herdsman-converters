@@ -14729,6 +14729,13 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
+        zigbeeModel: ['VIYU_C35_470_RGBW_10297667'],
+        model: '10297667',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED bulb RGB E14',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+    },
+    {
         zigbeeModel: ['VIYU-A60-806-CCT-10011723'],
         model: '10011723',
         vendor: 'HORNBACH',
