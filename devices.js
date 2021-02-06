@@ -8210,6 +8210,13 @@ const devices = [
         description: 'Smart bulb',
         extend: preset.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['ZBT-DIMLight-GLS0044'],
+        model: '7ZA-A806ST-Q1R',
+        vendor: 'SmartThings',
+        description: 'Smart bulb',
+        extend: preset.light_onoff_brightness(),
+    },
 
     // Trust
     {
