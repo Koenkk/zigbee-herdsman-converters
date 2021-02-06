@@ -8439,6 +8439,13 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['902010/26'],
+        model: 'AV2010/26',
+        vendor: 'Bitron',
+        description: 'Wireless socket and brightness regulator',
+        extend: preset.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['902010/28'],
         model: '902010/128',
         vendor: 'Bitron',
