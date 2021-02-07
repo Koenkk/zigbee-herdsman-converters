@@ -9347,7 +9347,7 @@ const devices = [
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
         description: 'Smart siren',
-        fromZigbee: [fz.battery],
+        fromZigbee: [fz.battery, fz.ignore_basic_report],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
