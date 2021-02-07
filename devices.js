@@ -3067,7 +3067,7 @@ const devices = [
         model: '8718696153055',
         vendor: 'Philips',
         description: 'Hue White Table light',
-        extend:  preset.hue.light_onoff_brightness(),
+        extend: preset.hue.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
