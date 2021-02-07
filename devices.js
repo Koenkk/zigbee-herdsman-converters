@@ -14498,11 +14498,14 @@ const devices = [
         },
     },
     {
+        // The cover position is not reliable yet
+        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2214
         zigbeeModel: [' Shutter SW with level control\u0000'],
         model: 'L4027C/N4027C/NT4027C',
         vendor: 'BTicino',
         description: 'Shutter SW with level control',
-        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.ignore_zclversion_read, fz.legrand_binary_input_moving, fz.cover_position_tilt],
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.ignore_zclversion_read, fz.legrand_binary_input_moving,
+                fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed],
         exposes: [e.cover_position()],
         meta: {configureKey: 1, coverInverted: true},
