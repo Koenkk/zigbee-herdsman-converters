@@ -3063,6 +3063,14 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LDD001'],
+        model: '8718696153055',
+        vendor: 'Philips',
+        description: 'Hue White Table light',
+        extend: hue.light_onoff_brightness,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LDD002'],
         model: '8718696153062',
         vendor: 'Philips',
