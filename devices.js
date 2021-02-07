@@ -1973,7 +1973,7 @@ const devices = [
         description: 'Sound and flash siren',
         fromZigbee: [fz.ts0216_siren, fz.battery],
         exposes: [e.battery(), exposes.binary('alarm', ea.STATE_SET, true, false),
-            exposes.numeric('volume', ea.STATE).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
+            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
