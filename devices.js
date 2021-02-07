@@ -16195,6 +16195,24 @@ const devices = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
+	
+	// Frient Devolco
+	{
+		zigbeeModel: ['ZHEMI101'],
+		model: 'ZHEMI101',
+		vendor: 'Develco',
+		description: 'Energy meter',
+		fromZigbee: [fz.metering],
+		toZigbee: [],
+		meta: {configureKey: 1},
+		configure: async (device, coordinatorEndpoint, logger) => {
+			const endpoint = device.getEndpoint(2);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+			await reporting.instantaneousDemand(endpoint);
+			await reporting.readMeteringMultiplierDivisor(endpoint);
+		},
+		exposes: [e.power(), e.energy()],
+	},	
 ];
 
 module.exports = devices.map((device) => {
