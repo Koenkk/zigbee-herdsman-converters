@@ -9045,6 +9045,33 @@ const devices = [
         },
         exposes: [e.temperature(), e.humidity()],
     },
+    {
+        zigbeeModel: ['SRACBP5_00.00.03.06TC', 'SRAC_00.00.00.16TC'],
+        model: 'SRAC-23B-ZBSR',
+        vendor: 'Climax',
+        description: 'Smart siren',
+        fromZigbee: [fz.battery],
+        toZigbee: [tz.warning],
+        exposes: [e.warning(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ['WS15_00.00.00.14TC'],
+        model: 'WS-15ZBS',
+        vendor: 'Climax',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['CO_00.00.00.15TC'],
+        model: 'CO-8ZBS',
+        vendor: 'Climax',
+        description: 'Smart carbon monoxide sensor',
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+    },
 
     // Niviss
     {
