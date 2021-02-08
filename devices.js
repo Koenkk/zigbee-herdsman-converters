@@ -3066,7 +3066,7 @@ const devices = [
         zigbeeModel: ['LDD001'],
         model: '8718696153055',
         vendor: 'Philips',
-        description: 'Hue White Table light',
+        description: 'Hue white table light',
         extend: preset.hue.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
