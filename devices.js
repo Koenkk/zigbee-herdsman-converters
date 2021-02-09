@@ -4672,8 +4672,9 @@ const devices = [
             await firstEndpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.humidity(), e.pressure(),
-            exposes.numeric('temperature_ds', ea.STATE).withUnit('°C').withDescription('Measured temperature value'),
-            exposes.numeric('temperature_bme', ea.STATE).withUnit('°C').withDescription('Measured temperature value')],
+            e.temperature().withEndpoint('ds'),
+            e.temperature().withEndpoint('bme'),
+        ]
     },
     {
         zigbeeModel: ['DIYRuZ_AirSense'],
