@@ -10112,6 +10112,7 @@ const devices = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
         toZigbee: [],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K2-DIM'}],
     },
     {
         zigbeeModel: ['ICZB-KPD14S'],
