@@ -1301,6 +1301,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
+            {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -1315,6 +1316,7 @@ const devices = [
             {vendor: 'Norklmes', model: 'MKS-CM-W5'},
             {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
             {vendor: 'Moes', model: 'WS-EUB1-ZG'},
+            {vendor: 'AVATTO', model: 'ZGB-WS-EU'},
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
