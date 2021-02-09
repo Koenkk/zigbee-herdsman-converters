@@ -10801,9 +10801,9 @@ const devices = [
     },
     {
         zigbeeModel: ['IM-Z3.0-RGBW'],
-        model: '07004D',
+        model: '07004D/07005L',
         vendor: 'Immax',
-        description: 'Neo SMART LED E27 8,5W color, dimmable, Zigbee 3.0',
+        description: 'Neo SMART LED E27/E14 color, dimmable, Zigbee 3.0',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
     {
