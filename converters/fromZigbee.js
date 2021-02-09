@@ -623,20 +623,6 @@ const converters = {
             }
         },
     },
-    on_off_skip_duplicate_transaction_and_disable_default_response: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.type === 'attributeReport') {
-                msg.meta.frameControl.disableDefaultResponse = true;
-            }
-
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
-                const property = postfixWithEndpointName('state', msg, model);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    },
     power_on_behavior: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

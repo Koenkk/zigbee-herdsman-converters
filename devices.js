@@ -13877,11 +13877,14 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
         extend: preset.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true
         },
     },
     {
@@ -13890,7 +13893,10 @@ const devices = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
         extend: preset.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction_and_disable_default_response],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true
+        },
     },
     {
         zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA'],
@@ -13906,6 +13912,9 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true
         },
     },
     {
@@ -13923,6 +13932,9 @@ const devices = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true
         },
     },
 
