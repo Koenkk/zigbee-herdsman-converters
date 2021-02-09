@@ -4674,7 +4674,7 @@ const devices = [
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.humidity(), e.pressure(),
             e.temperature().withEndpoint('ds'),
             e.temperature().withEndpoint('bme'),
-        ]
+        ],
     },
     {
         zigbeeModel: ['DIYRuZ_AirSense'],
