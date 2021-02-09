@@ -310,9 +310,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
-            fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate, e.voltage()],
+            fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
     },
     {
@@ -794,8 +794,9 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, e.voltage(), fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
+        fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
+        exposes: [e.battery(), e.voltage(),
+            e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
     {
@@ -13885,7 +13886,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
         onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true
+            device.skipDefaultResponse = true;
         },
     },
     {
@@ -13896,7 +13897,7 @@ const devices = [
         extend: preset.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true
+            device.skipDefaultResponse = true;
         },
     },
     {
@@ -13915,7 +13916,7 @@ const devices = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
         onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true
+            device.skipDefaultResponse = true;
         },
     },
     {
@@ -13935,7 +13936,7 @@ const devices = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
         onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true
+            device.skipDefaultResponse = true;
         },
     },
 
