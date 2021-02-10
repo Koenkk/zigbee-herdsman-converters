@@ -2960,16 +2960,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCF002'],
-        model: '8718696167991',
-        vendor: 'Philips',
-        description: 'Hue Calla outdoor',
-        meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
-        ota: ota.zigbeeOTA,
-    },
-    {
-        zigbeeModel: ['LCF001'],
+        zigbeeModel: ['LCF002', 'LCF001'],
         model: '8718696167991',
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
