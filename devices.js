@@ -6252,22 +6252,22 @@ const devices = [
             await reporting.onOff(endpoint);
         },
     },
-	{
-		zigbeeModel: ['ZHA Smart Plug'], 
-		model: 'POTLK-WH02', 
-		vendor: 'GE', 
-		description: 'Outlink smart remote outlet', 
-		supports: 'on/off', 
-		fromZigbee: [fz.on_off], 
-		toZigbee: [tz.on_off], 
-		exposes: [e.switch()],
-		meta: {configureKey: 1},
-		configure: async (device, coordinatorEndpoint) => {
-			const endpoint = device.getEndpoint(1);
-			await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-			await configureReporting.onOff(endpoint);
+    {
+        zigbeeModel: ['ZHA Smart Plug'], 
+        model: 'POTLK-WH02', 
+        vendor: 'GE', 
+        description: 'Outlink smart remote outlet', 
+        supports: 'on/off', 
+        fromZigbee: [fz.on_off], 
+        toZigbee: [tz.on_off], 
+        exposes: [e.switch()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await configureReporting.onOff(endpoint);
         },
-	},
+    },
 
     // Sengled
     {
