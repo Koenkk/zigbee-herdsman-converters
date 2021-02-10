@@ -6258,7 +6258,7 @@ const devices = [
         vendor: 'GE', 
         description: 'Outlink smart remote outlet', 
         supports: 'on/off', 
-		extend: preset.switch(),
+        extend: preset.switch(),
         exposes: [e.switch()],
     },
 
