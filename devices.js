@@ -7671,6 +7671,16 @@ const devices = [
         },
         exposes: [e.cover_position()],
     },
+    {
+        zigbeeModel: ['ROB_200-018-0'],
+        model: 'ROB_200-018-0',
+        vendor: 'ROBB',
+        description: 'ZigBee knob smart dimmer',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
+        exposes: [e.action(['on', 'off', 'brightness_move_to_level'])],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
+    },
 
     // Namron
     {
