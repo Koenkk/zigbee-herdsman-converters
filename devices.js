@@ -6258,15 +6258,8 @@ const devices = [
         vendor: 'GE', 
         description: 'Outlink smart remote outlet', 
         supports: 'on/off', 
-        fromZigbee: [fz.on_off], 
-        toZigbee: [tz.on_off], 
+		extend: preset.switch(),
         exposes: [e.switch()],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await configureReporting.onOff(endpoint);
-        },
     },
 
     // Sengled
