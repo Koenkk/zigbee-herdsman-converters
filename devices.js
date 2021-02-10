@@ -7885,16 +7885,16 @@ const devices = [
         model: '3325-S',
         vendor: 'SmartThings',
         description: 'Motion sensor (2015 model)',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.occupancy(), e.battery(), e.tamper()],
     },
     {
         zigbeeModel: ['3321-S'],
