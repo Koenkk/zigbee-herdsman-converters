@@ -7925,7 +7925,9 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            // Does not support reading of acVoltageMultiplier/acVoltageDivisor
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             // Limit updates to 3V and max 600s (10m)
             await reporting.rmsVoltage(endpoint, {max: 600, change: 3});
             // Limit updates to 0.01A and max 600s (10m)
