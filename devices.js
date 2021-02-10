@@ -15209,6 +15209,25 @@ const devices = [
         },
         exposes: [e.power(), e.energy()],
     },
+    {
+        zigbeeModel: ['SMRZB-332'],
+        model: 'SMRZB-332',
+        vendor: 'Develco',
+        description: 'Smart relay DIN',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1},
+        exposes: [e.power(), e.energy(), e.switch()],
+        endpoint: (device) => {
+            return {'default': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
 
     // Aurora Lighting
     {
