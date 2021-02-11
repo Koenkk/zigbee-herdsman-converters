@@ -15540,6 +15540,13 @@ const devices = [
         description: 'Tint LED bulb E27 806 lumen, dimmable, color, white 1800-6500K',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
+    {
+        zigbeeModel: ['ZBT-DIMLight-Candle0800'],
+        model: 'HAL600',
+        vendor: 'Schwaiger',
+        description: 'LED candle bulb E14 470 lumen, dimmable, color, white 2700K',
+        extend: preset.light_onoff_brightness(),
+    },
 
     // Zipato
     {
