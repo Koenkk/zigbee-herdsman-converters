@@ -16337,12 +16337,13 @@ const devices = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
-    // Eaton/Halo
+
+    // Eaton/Halo LED
     {
         zigbeeModel: ['Halo_RL5601'],
         model: 'RL460WHZHA69', // The 4" CAN variant presents as 5/6" zigbeeModel.
         vendor: 'Eaton/Halo LED',
-        description: 'Wireless Controlled LED Retrofit Downlight',
+        description: 'Wireless Controlled LED retrofit downlight',
         extend: preset.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
     },
 ];
