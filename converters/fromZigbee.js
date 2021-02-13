@@ -1317,6 +1317,22 @@ const converters = {
             return result;
         },
     },
+    checkin_presence: {
+        cluster: 'genPollCtrl',
+        type: ['commandCheckin'],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, 'timer', timer);
+
+            return {presence: true};
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
@@ -5146,6 +5162,7 @@ const converters = {
             return {occupancy: (zoneStatus & 1<<2) > 0};
         },
     },
+
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

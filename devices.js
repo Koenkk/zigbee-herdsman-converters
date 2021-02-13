@@ -8633,6 +8633,30 @@ const devices = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
+        zigbeeModel: ['3450-L'],
+        model: '3450-L',
+        vendor: 'Iris',
+        description: 'Smart Fob',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.checkin_presence],
+        toZigbee: [],
+        exposes: [e.action(['on_1', 'off_1', 'on_2', 'off_2', 'on_3', 'off_3', 'on_4', 'off_4']),
+            e.battery(), e.presence()],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'genPollCtrl']);
+            await reporting.batteryVoltage(endpoint1);
+            const interval = 100 - 10; // 100 seconds is default timeout so set inverval to 10 seconds before
+            await endpoint1.write('genPollCtrl', {'checkinInterval': (interval * 4)});
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['3460-L'],
         model: '3460-L',
         vendor: 'Iris',
