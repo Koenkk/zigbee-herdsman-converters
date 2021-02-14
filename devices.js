@@ -9116,7 +9116,7 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['CO_00.00.00.15TC'],
+        zigbeeModel: ['CO_00.00.00.15TC', 'CO_00.00.00.22TC'],
         model: 'CO-8ZBS',
         vendor: 'Climax',
         description: 'Smart carbon monoxide sensor',
