@@ -15786,7 +15786,7 @@ const devices = [
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.current(), e.voltage()],
     },
     {
         zigbeeModel: ['Smart plug Zigbee PE'],
@@ -15807,7 +15807,7 @@ const devices = [
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
         },
         exposes: [
-            e.switch(), e.power(), e.energy(),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(),
             exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
