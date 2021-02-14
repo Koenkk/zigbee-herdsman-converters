@@ -12488,20 +12488,20 @@ const devices = [
         model: 'TH1123ZB',
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.metering, fz.ignore_temperature_report,
-            fz.legacy.sinope_thermostat_state],
+        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
+            fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
-            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
+        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
-                'seMetering'];
+                'haElectricalMeasurement', 'seMetering', 'manuSpecificSinope'];
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
@@ -12510,13 +12510,21 @@ const devices = [
             await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
-
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
             try {
-                await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
-                await reporting.instantaneousDemand(endpoint, {min: 10, max: 303, change: 1});
-            } catch (error) {
-                // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
-            }
+                await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
+            } catch (error) {/* Do nothing*/}
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            try {
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
 
             // Disable default reporting
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF});
@@ -12529,20 +12537,20 @@ const devices = [
         model: 'TH1124ZB',
         vendor: 'Sinope',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.metering, fz.ignore_temperature_report,
-            fz.legacy.sinope_thermostat_state],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
+            fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
-            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
+            tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
+        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
-                'seMetering'];
+                'haElectricalMeasurement', 'seMetering', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
@@ -12550,10 +12558,23 @@ const devices = [
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            try {
+                await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
+            } catch (error) {/* Do nothing*/}
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            try {
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
-                await reporting.instantaneousDemand(endpoint, {min: 10, max: 303, change: 1});
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
