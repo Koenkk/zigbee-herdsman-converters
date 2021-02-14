@@ -623,20 +623,6 @@ const converters = {
             }
         },
     },
-    on_off_skip_duplicate_transaction_and_disable_default_response: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.type === 'attributeReport') {
-                msg.meta.frameControl.disableDefaultResponse = true;
-            }
-
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
-                const property = postfixWithEndpointName('state', msg, model);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    },
     power_on_behavior: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -731,10 +717,14 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+            const contactProperty = postfixWithEndpointName('contact', msg, model);
+            const tamperProperty = postfixWithEndpointName('tamper', msg, model);
+            const batteryLowProperty = postfixWithEndpointName('battery_low', msg, model);
+
             return {
-                contact: !((zoneStatus & 1) > 0),
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                [contactProperty]: !((zoneStatus & 1) > 0),
+                [tamperProperty]: (zoneStatus & 1<<2) > 0,
+                [batteryLowProperty]: (zoneStatus & 1<<3) > 0,
             };
         },
     },
@@ -1028,6 +1018,17 @@ const converters = {
             }
 
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_move_color_temperature: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveColorTemp'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
+            const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1503,13 +1504,15 @@ const converters = {
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'OPEN'};
                 } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position};
+                    return {running: false, position: position, state: 'CLOSE'};
                 } else {
                     return {running: false}; // Not calibrated yet, no position is available
                 }
             }
+            case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
+                return {motor_speed: value};
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
@@ -1732,6 +1735,17 @@ const converters = {
             };
         },
     },
+    moes_power_on_behavior: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+                const property = postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
+            }
+        },
+    },
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -1930,6 +1944,38 @@ const converters = {
             }
         },
     },
+    livolo_new_switch_state_2gang: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                if (msg.data[10] === 7) {
+                    const status = msg.data[14];
+                    return {
+                        state_left: status & 1 ? 'ON' : 'OFF',
+                        state_right: status & 2 ? 'ON' : 'OFF',
+                    };
+                }
+            }
+        },
+    },
+    livolo_dimmer_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                if (msg.data[10] === 7) {
+                    const status = msg.data[14];
+                    return {state: status & 1 ? 'ON' : 'OFF'};
+                } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
+                    const value = msg.data[14] * 10;
+                    return {brightness: Math.round((value / 1000) * 255), brightness_percent: Math.round(value / 10), level: value};
+                }
+            }
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -1971,6 +2017,16 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
                     // new switch, hack
                     meta.device.modelID = 'TI0001-switch';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 2, 0]), 13)) {
+                    // new switch, hack
+                    meta.device.modelID = 'TI0001-switch-2gang';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
+                    // new dimmer, hack
+                    meta.device.modelID = 'TI0001-dimmer';
                     meta.device.save();
                 }
             }
@@ -2695,9 +2751,9 @@ const converters = {
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
-                return {local_temperature: (value / 10).toFixed(1)};
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellHeatingSetpoint:
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.saswellValvePos:
                 // single value 1-100%
                 break;
@@ -2928,6 +2984,10 @@ const converters = {
                 if (presetOk) {
                     ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                     ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
+                    const presetToSystemMode = getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
+                    if (value in presetToSystemMode) {
+                        ret.system_mode = presetToSystemMode[value];
+                    }
                 } else {
                     console.log(`TRV preset ${value} is not recognized.`);
                     return;
@@ -3294,7 +3354,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const state = value ? 'ON' : 'OFF';
             if (multiEndpoint) {
-                const lookup = {1: 'l1', 2: 'l2', 3: 'l3'};
+                const lookup = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4'};
                 const endpoint = lookup[dp];
                 if (endpoint in model.endpoint(msg.device)) {
                     return {[`state_${endpoint}`]: state};
@@ -3327,6 +3387,24 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
                 return {smoke: true};
+            }
+        },
+    },
+    byun_gas_false: {
+        cluster: 1034,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data[0] == 24) {
+                return {gas: false};
+            }
+        },
+    },
+    byun_gas_true: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 1 && msg.data['zonestatus'] == 33) {
+                return {gas: true};
             }
         },
     },
@@ -3562,7 +3640,7 @@ const converters = {
             if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
 
             // Maybe other QKBG also support release/hold?
-            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM'].includes(model.model) ?
+            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
@@ -4734,6 +4812,25 @@ const converters = {
             if (msg.data.hasOwnProperty('48')) {
                 const lookup = ['low', 'medium', 'high'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
+            }
+        },
+    },
+    hue_motion_led_indication: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('51')) {
+                return {led_indication: msg.data['51'] === 1};
+            }
+        },
+    },
+    RTCGQ13LM_motion_sensitivity: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x010c)) {
+                const lookup = {1: 'low', 2: 'medium', 3: 'high'};
+                return {motion_sensitivity: lookup[msg.data[0x010c]]};
             }
         },
     },
