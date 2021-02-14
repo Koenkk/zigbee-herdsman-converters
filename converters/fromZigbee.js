@@ -1333,6 +1333,9 @@ const converters = {
             return {presence: true};
         },
     },
+    // #endregion
+
+    // #region Non-generic converters
     command_on_presence: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1342,9 +1345,6 @@ const converters = {
             return {...payload1, ...payload2};
         },
     },
-    // #endregion
-
-    // #region Non-generic converters
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
