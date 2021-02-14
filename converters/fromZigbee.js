@@ -1324,13 +1324,22 @@ const converters = {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
 
-            // Stop existing timer because motion is detected and set a new one.
+            // Stop existing timer because presence is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
 
             const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
             globalStore.putValue(msg.endpoint, 'timer', timer);
 
             return {presence: true};
+        },
+    },
+    command_on_presence: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const payload1 = converters.checkin_presence.convert(model, msg, publish, options, meta);
+            const payload2 = converters.command_on.convert(model, msg, publish, options, meta);
+            return {...payload1, ...payload2};
         },
     },
     // #endregion

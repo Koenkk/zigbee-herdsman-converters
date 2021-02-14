@@ -8637,7 +8637,7 @@ const devices = [
         model: '3450-L',
         vendor: 'Iris',
         description: 'Smart Fob',
-        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.checkin_presence],
+        fromZigbee: [fz.command_on_presence, fz.command_off, fz.battery, fz.checkin_presence],
         toZigbee: [],
         exposes: [e.action(['on_1', 'off_1', 'on_2', 'off_2', 'on_3', 'off_3', 'on_4', 'off_4']),
             e.battery(), e.presence()],
