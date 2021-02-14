@@ -16324,6 +16324,13 @@ const devices = [
         description: 'E27 white and colour bulb',
         extend: preset.light_onoff_brightness_colortemp_colorxy(),
     },
+    {
+        zigbeeModel: ['PROLIGHT E27 WARM WHITE CLEAR'],
+        model: '5412748727432',
+        vendor: 'Prolight',
+        description: 'E27 filament bulb dimmable',
+        extend: preset.light_onoff_brightness(),
+    },
 
     // Fantem
     {
