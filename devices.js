@@ -301,7 +301,7 @@ const devices = [
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.voltage()],
         toZigbee: [],
     },
     {
