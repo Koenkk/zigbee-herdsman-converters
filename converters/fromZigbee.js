@@ -1319,7 +1319,7 @@ const converters = {
     },
     checkin_presence: {
         cluster: 'genPollCtrl',
-        type: ['commandCheckin'],
+        type: ['commandCheckIn'],
         convert: (model, msg, publish, options, meta) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
