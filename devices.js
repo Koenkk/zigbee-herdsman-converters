@@ -5981,9 +5981,9 @@ const devices = [
         model: 'Z3ContactSensor',
         vendor: 'KAMI',
         description: 'Z3 Contact sensor ',
-        fromZigbee: [fz.KAMI_contact],
+        fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
         toZigbee: [],
-        exposes: [e.contact()],
+        exposes: [e.contact(), e.occupancy()],
     },
 
     // Sylvania
