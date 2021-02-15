@@ -14273,7 +14273,8 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
-            return {l1: 1, l2: 2};
+            const hasEndpoint2 = !!device.getEndpoint(2);
+            return {l1: 1, l2: hasEndpoint2 ? 2 : 7};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
