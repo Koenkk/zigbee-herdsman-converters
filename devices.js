@@ -8525,6 +8525,15 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['AV2010/29A'],
+        model: 'AV2010/29A',
+        vendor: 'Bitron',
+        description: 'SMaBiT Zigbee outdoor siren',
+        fromZigbee: [fz.ias_no_alarm],
+        toZigbee: [tz.warning],
+        exposes: [e.warning(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['902010/32'],
         model: 'AV2010/32',
         vendor: 'Bitron',
