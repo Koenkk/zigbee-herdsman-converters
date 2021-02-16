@@ -78,12 +78,13 @@ const preset = {
             exposes,
             fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
             toZigbee,
-            meta: {configureKey: 2},
+            meta: {configureKey: 3},
             configure: async (device, coordinatorEndpoint, logger) => {
                 for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                     try {
                         await light.readColorCapabilities(endpoint);
                         await light.readColorTempMinMax(endpoint);
+                        await light.setupLightOptions(endpoint);
                     } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
                 }
             },
@@ -97,6 +98,15 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.setupLightOptions(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
     }),
     light_onoff_brightness_colorxy: (options={}) => ({
         exposes: [e.light_brightness_colorxy(), e.effect()],
@@ -106,11 +116,12 @@ const preset = {
             tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
             tz.light_hue_saturation_move, tz.light_hue_saturation_step,
         ],
-        meta: {configureKey: 2},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                 try {
                     await light.readColorCapabilities(endpoint);
+                    await light.setupLightOptions(endpoint);
                 } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
             }
         },
@@ -133,12 +144,13 @@ const preset = {
             exposes,
             fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
             toZigbee,
-            meta: {configureKey: 2},
+            meta: {configureKey: 3},
             configure: async (device, coordinatorEndpoint, logger) => {
                 for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                     try {
                         await light.readColorCapabilities(endpoint);
                         await light.readColorTempMinMax(endpoint);
+                        await light.setupLightOptions(endpoint);
                     } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
                 }
             },
@@ -162,12 +174,13 @@ const preset = {
             exposes,
             fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
             toZigbee,
-            meta: {configureKey: 2},
+            meta: {configureKey: 3},
             configure: async (device, coordinatorEndpoint, logger) => {
                 for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
                     try {
                         await light.readColorCapabilities(endpoint);
                         await light.readColorTempMinMax(endpoint);
+                        await light.setupLightOptions(endpoint);
                     } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
                 }
             },
