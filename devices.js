@@ -14301,7 +14301,7 @@ const devices = [
         model: 'ZTS-EU',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
-        exposes: [e.switch()],
+        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [ fz.tuya_switch_1, fz.tuya_switch_2 ],
         toZigbee: [ tz.tuya_switch_state ],
         meta: {configureKey: 1},
