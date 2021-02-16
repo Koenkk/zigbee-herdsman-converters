@@ -14302,8 +14302,8 @@ const devices = [
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [ fz.tuya_switch_1, fz.tuya_switch_2 ],
-        toZigbee: [ tz.tuya_switch_state ],
+        fromZigbee: [fz.tuya_switch_1, fz.tuya_switch_2],
+        toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
