@@ -1180,6 +1180,13 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'}, {manufacturerName: '_TZ3000_o4cjetlm'}],
+        model: 'ZN231392',
+        vendor: 'TuYa',
+        description: 'Smart water/gas valve',
+        extend: preset.switch(),
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'}],
         model: 'TS0505B',
         vendor: 'TuYa',
@@ -2263,13 +2270,6 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'}],
-        model: 'TS011F_valve',
-        vendor: 'Lonsonho',
-        description: 'Smart water/gas valve (upgrade version)',
-        extend: preset.switch(),
     },
 
     // IKEA
