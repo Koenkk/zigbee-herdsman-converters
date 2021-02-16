@@ -5146,6 +5146,91 @@ const converters = {
             return {occupancy: (zoneStatus & 1<<2) > 0};
         },
     },
+    innr_rc110_scene: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const sceneMap = {'2': '1', '52': '2', '102': '3', '152': '4', '153': '4', '194': '5', '254': '6'};
+            return {action: `scene_${sceneMap[msg.data.level]}`};
+        },
+    },
+    innr_rc110_levelCtrl_step: {
+        cluster: 'genLevelCtrl',
+        type: ['commandStep', 'commandStepWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+            const property = postfixWithEndpointName('brightness', msg, model);
+            const key = `simulated_brightness_${property}_brightness`;
+
+            let brightness = globalStore.getValue(msg.endpoint, key, 255);
+            const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
+            brightness += delta;
+            brightness = numberWithinRange(brightness, 0, 255);
+            globalStore.putValue(msg.endpoint, key, brightness);
+
+            const payload = {[property]: brightness};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    innr_rc110_levelCtrl_move: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMove', 'commandMoveWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const property = postfixWithEndpointName('brightness', msg, model);
+            const keyDirection = `simulated_brightness_${property}_direction`;
+            const keyTimer = `simulated_brightness_${property}_timer`;
+            const keyBrightness = `simulated_brightness_${property}_brightness`;
+
+            let deltaOpts = 20;
+            let intervalOpts = 200;
+
+            if (options.simulated_brightness) {
+                const opts = options.simulated_brightness;
+                deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
+                intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+            }
+
+            globalStore.putValue(msg.endpoint, keyDirection, direction);
+            if (globalStore.getValue(msg.endpoint, keyTimer) === undefined) {
+                const timer = setInterval(() => {
+                    let brightness = globalStore.getValue(msg.endpoint, keyBrightness, 255);
+                    const delta = globalStore.getValue(msg.endpoint, keyDirection) === 'up' ?
+                        deltaOpts : -1 * deltaOpts;
+                    brightness += delta;
+                    brightness = numberWithinRange(brightness, 0, 255);
+                    globalStore.putValue(msg.endpoint, keyBrightness, brightness);
+                    publish({[property]: brightness});
+                }, intervalOpts);
+
+                globalStore.putValue(msg.endpoint, keyTimer, timer);
+            }
+
+            const brightness = globalStore.getValue(msg.endpoint, keyBrightness, 255);
+            const payload = {[property]: brightness}
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    innr_rc110_levelCtrl_stop: {
+        cluster: 'genLevelCtrl',
+        type: ['commandStop', 'commandStopWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = postfixWithEndpointName('brightness', msg, model);
+            const key = `simulated_brightness_${property}_timer`;
+            const keyBrightness = `simulated_brightness_${property}_brightness`;
+
+            const timer = globalStore.getValue(msg.endpoint, key);
+            clearInterval(timer);
+            globalStore.putValue(msg.endpoint, key, undefined);
+
+            const brightness = globalStore.getValue(msg.endpoint, keyBrightness);
+            const payload = {[property]: brightness};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
