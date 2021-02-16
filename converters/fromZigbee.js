@@ -634,6 +634,17 @@ const converters = {
             }
         },
     },
+    ias_no_alarm: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1317,9 +1328,34 @@ const converters = {
             return result;
         },
     },
+    checkin_presence: {
+        cluster: 'genPollCtrl',
+        type: ['commandCheckIn'],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+
+            // Stop existing timer because presence is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, 'timer', timer);
+
+            return {presence: true};
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
+    command_on_presence: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const payload1 = converters.checkin_presence.convert(model, msg, publish, options, meta);
+            const payload2 = converters.command_on.convert(model, msg, publish, options, meta);
+            return {...payload1, ...payload2};
+        },
+    },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -4995,7 +5031,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const buttonLookup = {1: 'on', 2: 'up', 3: 'down', 4: 'off'};
             const button = buttonLookup[msg.data['button']];
-            const typeLookup = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
+            const typeLookup = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
             const type = typeLookup[msg.data['type']];
             const payload = {action: `${button}_${type}`};
 
@@ -5231,6 +5267,7 @@ const converters = {
             return payload;
         },
     },
+
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

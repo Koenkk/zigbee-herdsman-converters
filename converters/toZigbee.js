@@ -981,19 +981,34 @@ const converters = {
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            // Some bulb like Ikea Tådfri LED1624G9 do not support 'currentHue' and 'currentSaturation' attributes.
-            // Skip them if the `supportsHueAndSaturation` flag is set to false
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340
+            /**
+              * Not all bulbs suport the same features, we need to take care we read what is supported.
+              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
+              * `enhancedHue` indicates support for enhancedCurrentHue
+              *
+              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
+              *
+              * Additionally when we get a get payload, only request the fields included.
+             */
             const attributes = [];
-            if (meta.message && typeof meta.message.color === 'object') {
-                if (meta.message.color.hasOwnProperty('x')) attributes.push('currentX');
-                if (meta.message.color.hasOwnProperty('y')) attributes.push('currentY');
-                if (meta.message.color.hasOwnProperty('hue')) attributes.push('currentHue');
-                if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
-            } else {
-                attributes.push('currentX', 'currentY');
-                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                    attributes.push('currentHue', 'currentSaturation');
+
+            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
+                attributes.push('currentX');
+            }
+            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
+                attributes.push('currentY');
+            }
+
+            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
+                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
+                    if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                        attributes.push('enhancedCurrentHue');
+                    } else {
+                        attributes.push('currentHue');
+                    }
+                }
+                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
+                    attributes.push('currentSaturation');
                 }
             }
 
