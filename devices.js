@@ -5988,7 +5988,8 @@ const devices = [
         },
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint,
+                ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
             for (const ep of [3, 4, 5, 6, 7, 8]) {
                 const endpoint = device.getEndpoint(ep);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
