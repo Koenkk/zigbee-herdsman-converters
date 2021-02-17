@@ -3505,6 +3505,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCW002'],
+        model: '4090230P9',
+        vendor: 'Philips',
+        description: 'Hue Liane',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC001'],
         model: '3261030P7',
         vendor: 'Philips',
