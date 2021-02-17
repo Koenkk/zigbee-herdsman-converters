@@ -13507,9 +13507,10 @@ const devices = [
         model: 'TERNCY-DC01',
         vendor: 'TERNCY',
         description: 'Temperature & contact sensor ',
-        fromZigbee: [fz.terncy_temperature, fz.terncy_contact],
+        fromZigbee: [fz.terncy_temperature, fz.terncy_contact, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature(), e.contact()],
+        exposes: [e.temperature(), e.contact(), e.battery()],
+        meta: {battery: {dontDividePercentage: true}},
     },
     {
         zigbeeModel: ['TERNCY-PP01'],
