@@ -16465,6 +16465,39 @@ const devices = [
         description: 'Wireless Controlled LED retrofit downlight',
         extend: preset.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
     },
+
+    // Aldi
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_j0gtlepx'}],
+        model: 'L122FF63H11A5.0W',
+        vendor: 'Aldi',
+        description: 'LIGHTWAY Smart Home LED-lamp - Spot',
+        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_kohbva1f'}],
+        model: 'L122CB63H11A9.0W',
+        vendor: 'Aldi',
+        description: 'LIGHTWAY Smart Home LED-lamp - Bulb',
+        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_iivsrikg'}],
+        model: 'L122AA63H11A6.5W',
+        vendor: 'Aldi',
+        description: 'LIGHTWAY Smart Home LED-lamp - Candle',
+        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
+    },
+    {
+        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3000_g1glzzfk'}],
+        model: 'F122SB62H22A4.5W',
+        vendor: 'Aldi',
+        description: 'LIGHTWAY Smart Home LED-lamp - Filament',
+        extend: preset.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+    },
 ];
 
 module.exports = devices.map((device) => {
