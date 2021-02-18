@@ -5985,7 +5985,7 @@ const devices = [
         fromZigbee: [fz.ignore_basic_report,
             fz.ignore_command_off,
             fz.command_on_state, fz.command_off_state,
-            fz.innr_rc110_levelCtrl_move, fz.innr_rc110_levelCtrl_stop, fz.innr_rc110_levelCtrl_step,
+            fz.command_move, fz.command_stop, fz.command_step,
             fz.innr_rc110_scene,
             fz.linkquality_from_basic],
         toZigbee: [],
