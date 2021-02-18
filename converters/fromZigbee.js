@@ -3406,7 +3406,23 @@ const converters = {
         cluster: 'manuSpecificSamsungAccelerometer',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {moving: msg.data['acceleration'] === 1 ? true : false};
+            const payload = {};
+            if (msg.data.hasOwnProperty('acceleration')) payload.moving = msg.data['acceleration'] === 1;
+
+            // eslint-disable-next-line
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
+            /*
+                The axes reported by the sensor are mapped differently in the SmartThings DTH.
+                Preserving that functionality here.
+                xyzResults.x = z
+                xyzResults.y = y
+                xyzResults.z = -x
+            */
+            if (msg.data.hasOwnProperty('z_axis')) payload.x_axis = msg.data['z_axis'];
+            if (msg.data.hasOwnProperty('y_axis')) payload.y_axis = msg.data['y_axis'];
+            if (msg.data.hasOwnProperty('x_axis')) payload.z_axis = - msg.data['x_axis'];
+
+            return payload;
         },
     },
     byun_smoke_false: {

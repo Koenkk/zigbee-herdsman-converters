@@ -8132,11 +8132,19 @@ const devices = [
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payload = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
+            const payloadA = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
+            const payloadX = reporting.payload('x_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
+            const payloadY = reporting.payload('y_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
+            const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            exposes.binary('moving', ea.STATE, true, false)],
+        exposes: [
+            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
+            ...e.acceleration(),
+        ],
     },
     {
         zigbeeModel: ['multi'],
