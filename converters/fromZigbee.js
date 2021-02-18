@@ -4361,7 +4361,10 @@ const converters = {
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.ctrlbits === 1) return;
-            const timeout = msg.data.ontime / 10;
+
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : msg.data.ontime / 10;
+
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
 
