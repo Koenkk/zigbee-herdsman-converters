@@ -12,7 +12,7 @@
 const {
     precisionRound, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
     calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
-    batteryVoltageToPercentage, getMetaValue,
+    batteryVoltageToPercentage, getMetaValue, getSimulatedBrightnessKeys,
 } = require('../lib/utils');
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
@@ -968,30 +968,42 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
-            const payload = {action, action_rate: msg.data.rate};
-            addActionGroup(payload, msg, model);
+            let payload = {action, action_rate: msg.data.rate};
 
             if (options.simulated_brightness) {
                 const opts = options.simulated_brightness;
                 const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
                 const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+                const keys = getSimulatedBrightnessKeys(options, msg, model);
 
-                globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
-                if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
+                globalStore.putValue(msg.endpoint, keys.direction, direction);
+                if (globalStore.getValue(msg.endpoint, keys.timer) === undefined) {
                     const timer = setInterval(() => {
-                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
-                        const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
+                        let brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255);
+                        const delta = globalStore.getValue(msg.endpoint, keys.direction) === 'up' ?
                             deltaOpts : -1 * deltaOpts;
                         brightness += delta;
                         brightness = numberWithinRange(brightness, 0, 255);
-                        globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                        publish({brightness});
+                        globalStore.putValue(msg.endpoint, keys.brightness, brightness);
+                        let pub = {brightness};
+                        if (opts.multi_endpoint) {
+                            const property = postfixWithEndpointName('brightness', msg, model);
+                            pub = {[property]: brightness};
+                        }
+                        publish(pub);
                     }, intervalOpts);
 
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
+                    globalStore.putValue(msg.endpoint, keys.timer, timer);
+                }
+
+                if (opts.multi_endpoint) {
+                    const property = postfixWithEndpointName('brightness', msg, model);
+                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255)
+                    payload = {[property]: brightness};
                 }
             }
 
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -1000,22 +1012,28 @@ const converters = {
         type: ['commandStep', 'commandStepWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-            const payload = {
+            let payload = {
                 action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime / 100,
             };
-            addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
-                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                const keys = getSimulatedBrightnessKeys(options, msg, model);
+                let brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255);
                 const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
-                globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                globalStore.putValue(msg.endpoint, keys.brightness, brightness);
                 payload.brightness = brightness;
+
+                if (options.simulated_brightness.multi_endpoint) {
+                    const property = postfixWithEndpointName('brightness', msg, model);
+                    payload = {[property]: brightness};
+                }
             }
 
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
@@ -1023,12 +1041,19 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
+            let payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
             if (options.simulated_brightness) {
-                clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
-                globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
+                let keys = getSimulatedBrightnessKeys(options, msg, model);
+                clearInterval(globalStore.getValue(msg.endpoint, keys.timer));
+                globalStore.putValue(msg.endpoint, keys.timer, undefined);
+
+                if (options.simulated_brightness.multi_endpoint) {
+                    const property = postfixWithEndpointName('brightness', msg, model);
+                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255)
+                    payload = {[property]: brightness};
+                }
             }
 
-            const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
         },
