@@ -998,7 +998,7 @@ const converters = {
 
                 if (opts.multi_endpoint) {
                     const property = postfixWithEndpointName('brightness', msg, model);
-                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255)
+                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255);
                     payload = {[property]: brightness};
                 }
             }
@@ -1043,13 +1043,13 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             let payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
             if (options.simulated_brightness) {
-                let keys = getSimulatedBrightnessKeys(options, msg, model);
+                const keys = getSimulatedBrightnessKeys(options, msg, model);
                 clearInterval(globalStore.getValue(msg.endpoint, keys.timer));
                 globalStore.putValue(msg.endpoint, keys.timer, undefined);
 
                 if (options.simulated_brightness.multi_endpoint) {
                     const property = postfixWithEndpointName('brightness', msg, model);
-                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255)
+                    const brightness = globalStore.getValue(msg.endpoint, keys.brightness, 255);
                     payload = {[property]: brightness};
                 }
             }
