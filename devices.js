@@ -4484,9 +4484,15 @@ const devices = [
         model: 'GWRJN5169',
         vendor: 'OpenLumi',
         description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
-        fromZigbee: [],
+        fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
         toZigbee: [],
-        exposes: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
+            await reporting.deviceTemperature(endpoint, {min: repInterval.MINUTE, max: repInterval.MINUTES_5});
+        },
+        exposes: [e.device_temperature()],
     },
 
     // databyte.ch
