@@ -6473,6 +6473,14 @@ const devices = [
         exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['E1G-G8E'],
+        model: 'E1G-G8E',
+        vendor: 'Sengled',
+        description: 'Smart LED multicolor light strip',
+        extend: preset.light_onoff_brightness_colortemp_colorxy(),
+        ota: ota.zigbeeOTA,
+    },
 
     // Swann
     {
