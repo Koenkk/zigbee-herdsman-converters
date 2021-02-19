@@ -2739,7 +2739,8 @@ const converters = {
             case tuya.dataPoints.moesMinTemp:
                 return {min_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
-                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+                temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
+                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
