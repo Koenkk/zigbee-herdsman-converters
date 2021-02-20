@@ -11711,7 +11711,7 @@ const devices = [
         fromZigbee: preset.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: preset.light_onoff_brightness().toZigbee,
         meta: {configureKey: 2},
-        exposes: [e.light_brightness(), e.power(), e.energy()],
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
         whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -11741,7 +11741,23 @@ const devices = [
         model: 'SR-ZG9040A',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: preset.light_onoff_brightness(),
+        fromZigbee: preset.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
+        toZigbee: preset.light_onoff_brightness().toZigbee,
+        meta: {configureKey: 2},
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
     },
     {
         zigbeeModel: ['HK-ZD-DIM-A'],
