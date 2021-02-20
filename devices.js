@@ -11705,7 +11705,7 @@ const devices = [
         fromZigbee: preset.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: preset.light_onoff_brightness().toZigbee,
         meta: {configureKey: 2},
-        exposes: [e.light_brightness(), e.power(), e.energy()],
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
         whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -11738,7 +11738,7 @@ const devices = [
         fromZigbee: preset.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: preset.light_onoff_brightness().toZigbee,
         meta: {configureKey: 2},
-        exposes: [e.light_brightness(), e.power(), e.energy()],
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
