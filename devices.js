@@ -14885,8 +14885,21 @@ const devices = [
         exposes: [e.occupancy()],
     },
     {
+
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_aneiicmq'}],
+        model: 'BW-SS7_1gang',
+        vendor: 'BlitzWolf',
+        description: 'Zigbee 3.0 smart light switch module 1 gang',
+        extend: preset.switch(),
+        toZigbee: [tz.TYZB01_on_off],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_digziiav'}],
-        model: 'BW-SS7',
+        model: 'BW-SS7_2gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 2 gang',
         extend: preset.switch(),
