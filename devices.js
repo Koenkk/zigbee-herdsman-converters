@@ -5615,7 +5615,6 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
-        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5656,7 +5655,6 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
-        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
