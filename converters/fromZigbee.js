@@ -519,6 +519,16 @@ const converters = {
                 }
             }
 
+            if (msg.data.hasOwnProperty('options')) {
+                /*
+                * Bit | Value & Summary
+                * --------------------------
+                * 0   | 0: Do not execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
+                *     | 1: Execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
+                */
+                result.color_options = {execute_if_off: ((msg.data.options & 1<<0) > 0)};
+            }
+
             return result;
         },
     },
