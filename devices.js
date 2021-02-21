@@ -4813,7 +4813,7 @@ const devices = [
         zigbeeModel: ['BRHM8E27W70-I1'],
         model: 'BRHM8E27W70-I1',
         vendor: 'GS',
-        description: 'Smart dimmable, RGB + White (E27 & B22)',
+        description: 'Smart dimmable, RGB + white (E27 & B22)',
         extend: preset.light_onoff_brightness_colorxy(),
     },
 
