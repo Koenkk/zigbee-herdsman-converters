@@ -4809,6 +4809,13 @@ const devices = [
         },
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['BRHM8E27W70-I1'],
+        model: 'BRHM8E27W70-I1',
+        vendor: 'GS',
+        description: 'Smart dimmable, RGB + white (E27 & B22)',
+        extend: preset.light_onoff_brightness_colorxy(),
+    },
 
     // M-ELEC - https://melec.com.au/stitchy/
     {
