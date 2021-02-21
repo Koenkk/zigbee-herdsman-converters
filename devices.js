@@ -3842,7 +3842,7 @@ const devices = [
         zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
         model: '5061031P7',
         vendor: 'Philips',
-        description: 'Hue White & Color ambience Centris ceiling light(2 spots)',
+        description: 'Hue White & Color ambience Centris ceiling light (2 spots)',
         meta: {turnsOffAtBrightness1: true},
         extend: preset.hue.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
