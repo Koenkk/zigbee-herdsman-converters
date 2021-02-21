@@ -13014,7 +13014,7 @@ const devices = [
     // AwoX
     {
         zigbeeModel: ['TLSR82xx'],
-        model: '33951',
+        model: '33951/33948',
         vendor: 'AwoX',
         description: 'LED white',
         extend: preset.light_onoff_brightness(),
