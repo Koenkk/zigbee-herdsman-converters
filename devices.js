@@ -3278,7 +3278,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color([153, 500]),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -4930,7 +4930,7 @@ const devices = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: preset.ledvance.light_onoff_brightness_colortemp_color([153, 526]),
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
         exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
     },
