@@ -6,3 +6,4 @@ node_modules/
 .remote-sync.json
 .eslintrc.js
 .vscode
+tmp
