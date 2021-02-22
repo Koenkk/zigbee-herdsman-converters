@@ -4899,6 +4899,7 @@ const devices = [
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
         extend: preset.ledvance.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
     },
     {
         zigbeeModel: ['CLA60 TW OSRAM'],
@@ -4931,6 +4932,7 @@ const devices = [
         description: 'SMART+ LED CLASSIC E27 RGBW',
         extend: preset.ledvance.light_onoff_brightness_colortemp_color([153, 526]),
         ota: ota.ledvance,
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
     },
     {
         zigbeeModel: ['CLA60 RGBW II Z3'],
