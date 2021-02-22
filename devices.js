@@ -8143,7 +8143,7 @@ const devices = [
         },
         exposes: [
             e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.acceleration(), e.x_axis(), e.y_axis(), e.z_axis(),
+            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
         ],
     },
     {
