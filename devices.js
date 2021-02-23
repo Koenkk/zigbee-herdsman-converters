@@ -16573,21 +16573,19 @@ const devices = [
         description: 'LIGHTWAY smart home LED-lamp - filament',
         extend: preset.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
     },
-
-    // Megos
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_v1srfw9x'}],
         model: 'C422AC11D41H140.0W',
-        vendor: 'Megos',
-        description: 'LED Panel RGB+CCT 40W 3600lm 62 x 62 cm',
+        vendor: 'Aldi',
+        description: 'MEGOS LED panel RGB+CCT 40W 3600lm 62 x 62 cm',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_gb5gaeca'}],
         model: 'C422AC14D41H140.0W',
-        vendor: 'Megos',
-        description: 'LED Panel RGB+CCT 40W 3600lm 30 x 120 cm',
+        vendor: 'Aldi',
+        description: 'MEGOS LED panel RGB+CCT 40W 3600lm 30 x 120 cm',
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
     },
