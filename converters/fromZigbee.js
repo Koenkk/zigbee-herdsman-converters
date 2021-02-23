@@ -493,7 +493,8 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
-                result.color_mode = msg.data['colorMode'];
+                result.color_mode = constants.colorMode.hasOwnProperty(msg.data['colorMode']) ?
+                    constants.colorMode[msg.data['colorMode']] : msg.data['colorMode'];
             }
 
             if (
