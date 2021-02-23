@@ -16583,13 +16583,6 @@ const devices = [
         description: 'LIGHTWAY smart home LED-lamp - filament',
         extend: preset.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
     },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_gb5gaeca'}],
-        model: 'C422AC14D41H140.0W',
-        vendor: 'Aldi',
-        description: 'MEGOS smart home wall and ceiling lamp',
-        extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
-    },
 ];
 
 module.exports = devices.map((device) => {
