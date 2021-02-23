@@ -62,11 +62,12 @@ const preset = {
         ],
     }),
     light_onoff_brightness_colortemp: (options={}) => {
-        const exposes = [e.light_brightness_colortemp(options.colorTempRange), e.effect()];
+        const exposes = [e.light_brightness_colortemp(options.colorTempRange), e.effect(), e.light_color_options()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
+            tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -90,21 +91,21 @@ const preset = {
         };
     },
     light_onoff_brightness_color: (options={}) => ({
-        exposes: [e.light_brightness_color(), e.effect()],
+        exposes: [e.light_brightness_color(), e.effect(), e.light_color_options()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
-            tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
+            tz.effect, tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options,
         ],
     }),
     light_onoff_brightness_colorxy: (options={}) => ({
-        exposes: [e.light_brightness_colorxy(), e.effect()],
+        exposes: [e.light_brightness_colorxy(), e.effect(), e.light_color_options()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [
-            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
-            tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
+            tz.effect, tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -116,12 +117,12 @@ const preset = {
         },
     }),
     light_onoff_brightness_colortemp_color: (options={}) => {
-        const exposes = [e.light_brightness_colortemp_color(options.colorTempRange), e.effect()];
+        const exposes = [e.light_brightness_colortemp_color(options.colorTempRange), e.effect(), e.light_color_options()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup, tz.level_config,
+            tz.light_colortemp_startup, tz.level_config, tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -145,12 +146,12 @@ const preset = {
         };
     },
     light_onoff_brightness_colortemp_colorxy: (options={}) => {
-        const exposes = [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect()];
+        const exposes = [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect(), e.light_color_options()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup, tz.level_config,
+            tz.light_colortemp_startup, tz.level_config, tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -5625,7 +5626,6 @@ const devices = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
-        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5666,7 +5666,6 @@ const devices = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
-        exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {

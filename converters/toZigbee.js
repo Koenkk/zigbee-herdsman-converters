@@ -62,6 +62,17 @@ const converters = {
             await entity.read('genOnOff', ['startUpOnOff']);
         },
     },
+    light_color_options: {
+        key: ['color_options'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = (value.hasOwnProperty('execute_if_off') && value.execute_if_off) ? 1 : 0;
+            await entity.write('lightingColorCtrl', {options}, utils.getOptions(meta.mapped, entity));
+            return {state: {'color_options': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['options']);
+        },
+    },
     lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
