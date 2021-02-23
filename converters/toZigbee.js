@@ -63,6 +63,12 @@ const converters = {
             await entity.read('genOnOff', ['startUpOnOff']);
         },
     },
+    light_color_mode: {
+        key: ['color_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['colorMode']);
+        },
+    },
     light_color_options: {
         key: ['color_options'],
         convertSet: async (entity, key, value, meta) => {
