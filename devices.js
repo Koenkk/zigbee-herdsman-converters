@@ -11451,6 +11451,15 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['Window_Cov_v1.0'],
+        model: '14594',
+        vendor: 'Vimar',
+        description: 'Roller shutter with slat orientation and change-over relay',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
+    },
 
     // Stelpro
     {
