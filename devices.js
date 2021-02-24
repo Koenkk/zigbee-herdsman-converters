@@ -4030,7 +4030,6 @@ const devices = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['ROM001'],
