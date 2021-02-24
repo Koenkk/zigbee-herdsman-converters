@@ -1301,6 +1301,12 @@ const converters = {
             await entity.read('haElectricalMeasurement', ['activePower']);
         },
     },
+    metering_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('seMetering', ['instantaneousDemand']);
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
