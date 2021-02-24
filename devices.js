@@ -16635,6 +16635,15 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_colorxy({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
     },
+    {
+        fingerprint: [{modelID: 'ROB_200-018-0', manufacturerName: 'ROBB smarrt'}],
+        model: 'ROB_200-018-0',
+        vendor: 'ROBB smarrt',
+        description: 'ZigBee knob smart dimmer',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
+        exposes: [e.action(['on', 'off', 'brightness_move_to_level'])],
+        toZigbee: [],
+    },
 ];
 
 module.exports = devices.map((device) => {
