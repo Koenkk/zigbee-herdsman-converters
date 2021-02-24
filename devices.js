@@ -8216,16 +8216,21 @@ const devices = [
         model: 'IM6001-MPP01',
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2018 model)',
-        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery, fz.ignore_iaszone_attreport],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery, fz.smartthings_acceleration],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            const options = {manufacturerCode: 0x1241};
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
+            const payload = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving()],
     },
     {
         zigbeeModel: ['3310-S'],
