@@ -2108,7 +2108,7 @@ const devices = [
         fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report],
         toZigbee: [tz.neo_t_h_alarm],
         exposes: [
-            e.temperature(), e.humidity(), exposes.binary('humidity_alarm', ea.STATE_SET, true, false),
+            e.temperature(), e.humidity(), exposes.binary('humidity_alarm', ea.STATE_SET, true, false), e.battery_low(),
             exposes.binary('temperature_alarm', ea.STATE_SET, true, false),
             exposes.binary('alarm', ea.STATE_SET, true, false),
             exposes.enum('melody', ea.STATE_SET, Array.from(Array(18).keys()).map((x)=>(x+1).toString())),
@@ -2118,6 +2118,7 @@ const devices = [
             exposes.numeric('humidity_min', ea.STATE_SET).withUnit('%'),
             exposes.numeric('humidity_max', ea.STATE_SET).withUnit('%'),
             exposes.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
+            exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
         ],
     },
 

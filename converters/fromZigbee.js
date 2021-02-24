@@ -1856,8 +1856,11 @@ const converters = {
                 return {humidity_min: value};
             case tuya.dataPoints.neoMaxHumidity: // 0x026E [0,0,0,80] max alarm humidity
                 return {humidity_max: value};
-            case tuya.dataPoints.neoUnknown1: // 0x0465 [4]
-                break;
+            case tuya.dataPoints.neoPowerType: // 0x0465 [4]
+                return {
+                    power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                    battery_low: value === 3,
+                };
             case tuya.dataPoints.neoMelody: // 0x0466 [5] Melody
                 return {melody: value};
             case tuya.dataPoints.neoUnknown3: // 0x0473 [0]
