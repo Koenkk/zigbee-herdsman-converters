@@ -3329,6 +3329,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWB022'],
+        model: '9290018194',
+        vendor: 'Philips',
+        description: 'Hue white BR30',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCT003'],
         model: '8718696485880',
         vendor: 'Philips',
