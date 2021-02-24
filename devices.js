@@ -8157,8 +8157,7 @@ const devices = [
             const payload = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            exposes.binary('moving', ea.STATE, true, false)],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving()],
     },
     {
         zigbeeModel: ['3310-S'],
