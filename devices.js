@@ -4229,6 +4229,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1746230V7'],
+        model: '1746230V7',
+        vendor: 'Philips',
+        description: 'Hue Lily XL outdoor spot light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCL003'],
         model: '9290022891',
         vendor: 'Philips',
