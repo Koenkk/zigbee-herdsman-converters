@@ -3977,7 +3977,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['RWL020', 'RWL021', 'RWL022'],
+        zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
         description: 'Hue dimmer switch',
@@ -3999,6 +3999,27 @@ const devices = [
         },
         endpoint: (device) => {
             return {'ep1': 1, 'ep2': 2};
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RWL022'],
+        model: '929002398602',
+        vendor: 'Philips',
+        description: 'Hue dimmer switch',
+        fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
+            fz.hue_dimmer_switch, fz.battery],
+        exposes: [e.battery(), e.action(['on_press', 'on_hold', 'on_press_release', 'on_hold_release',
+            'off_press', 'off_hold', 'off_press_release', 'off_hold_release', 'up_press', 'up_hold', 'up_press_release', 'up_hold_release',
+            'down_press', 'down_hold', 'down_press_release', 'down_hold_release'])],
+        toZigbee: [],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
+            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
         ota: ota.zigbeeOTA,
     },
