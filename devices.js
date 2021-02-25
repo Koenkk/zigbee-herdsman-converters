@@ -4234,7 +4234,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily XL outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
