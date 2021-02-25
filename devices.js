@@ -2430,6 +2430,16 @@ const devices = [
         onEvent: ikea.bulbOnEvent,
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 CWS 806lm'],
+        model: 'LED1924G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E27 CWS 806 lumen, dimmable, color, opal white',
+        extend: preset.light_onoff_brightness_colorxy(),
+        ota: ota.tradfri,
+        meta: {supportsHueAndSaturation: false},
+        onEvent: ikea.bulbOnEvent,
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm', 'TRADFRI bulb E17 W op/ch 400lm'],
         model: 'LED1649C5',
         vendor: 'IKEA',
