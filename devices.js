@@ -1181,6 +1181,18 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'}],
+        model: 'TS011F_2_gang_wall',
+        vendor: 'TuYa',
+        description: '2 gang wall outlet',
+        extend: preset.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'}],
         model: 'ZN231392',
