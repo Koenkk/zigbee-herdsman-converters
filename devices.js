@@ -55,10 +55,10 @@ const preset = {
     }),
     light_onoff_brightness: (options={}) => ({
         exposes: [e.light_brightness(), e.effect()],
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.effect,
-            tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
+            tz.light_brightness_move, tz.light_brightness_step, tz.level_config, tz.power_on_behavior,
         ],
     }),
     light_onoff_brightness_colortemp: (options={}) => {
@@ -67,7 +67,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
-            tz.light_color_options,
+            tz.power_on_behavior, tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -77,7 +77,7 @@ const preset = {
 
         return {
             exposes,
-            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
             toZigbee,
             meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
@@ -92,20 +92,22 @@ const preset = {
     },
     light_onoff_brightness_color: (options={}) => ({
         exposes: [e.light_brightness_color(), e.effect(), e.light_color_options()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
-            tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options,
+            tz.power_on_behavior, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_color_options,
         ],
     }),
     light_onoff_brightness_colorxy: (options={}) => ({
         exposes: [e.light_brightness_colorxy(), e.effect(), e.light_color_options()],
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_brightness_step, tz.level_config,
-            tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options,
+            tz.power_on_behavior, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_color_options,
         ],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -122,7 +124,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup, tz.level_config, tz.light_color_options,
+            tz.light_colortemp_startup, tz.level_config, tz.power_on_behavior, tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -132,7 +134,7 @@ const preset = {
 
         return {
             exposes,
-            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
             toZigbee,
             meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
@@ -151,7 +153,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
             tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
-            tz.light_colortemp_startup, tz.level_config, tz.light_color_options,
+            tz.light_colortemp_startup, tz.level_config, tz.power_on_behavior, tz.light_color_options,
         ];
 
         if (options.disableColorTempStartup) {
@@ -161,7 +163,7 @@ const preset = {
 
         return {
             exposes,
-            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+            fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
             toZigbee,
             meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
