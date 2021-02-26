@@ -10790,6 +10790,11 @@ const devices = [
             tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor, tz.danfoss_heat_available, tz.danfoss_day_of_week,
             tz.danfoss_trigger_time, tz.danfoss_window_open, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
+            exposes.binary('mounted_mode', ea.STATE, true, false).withDescription(
+                'Mode in which the unit is mounted. This is set to `false` for normal mounting or `true` for vertical mounting'),
+            exposes.binary('heat_required', ea.STATE, true, false).withDescription('Wether or not the unit needs warm water'),
+            exposes.binary('window_open_internal', ea.STATE, 1, 0).withDescription('Most likely related to the option to set Window Detection mode'),
+            exposes.binary('setpoint_change_source', ea.STATE, 0, 1).withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand()],
         meta: {configureKey: 3},
         ota: ota.zigbeeOTA,
