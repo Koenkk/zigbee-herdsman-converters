@@ -1544,17 +1544,17 @@ const converters = {
             case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
             case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
-                return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
+                const running = dp === tuya.dataPoints.coverArrived ? false : true;
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
-                    return {running: false, position: position, state: 'OPEN'};
+                    return {running, position, state: 'OPEN'};
                 } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position, state: 'CLOSE'};
+                    return {running, position, state: 'CLOSE'};
                 } else {
-                    return {running: false}; // Not calibrated yet, no position is available
+                    return {running}; // Not calibrated yet, no position is available
                 }
             }
             case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
