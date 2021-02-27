@@ -62,7 +62,7 @@ const preset = {
         ],
     }),
     light_onoff_brightness_colortemp: (options={}) => {
-        const exposes = [e.light_brightness_colortemp(options.colorTempRange), e.effect(), e.light_color_options()];
+        const exposes = [e.light_brightness_colortemp(options.colorTempRange), e.effect()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.effect,
             tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
@@ -91,7 +91,7 @@ const preset = {
         };
     },
     light_onoff_brightness_color: (options={}) => ({
-        exposes: [e.light_brightness_color(), e.effect(), e.light_color_options()],
+        exposes: [e.light_brightness_color(), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
@@ -101,7 +101,7 @@ const preset = {
         ],
     }),
     light_onoff_brightness_colorxy: (options={}) => ({
-        exposes: [e.light_brightness_colorxy(), e.effect(), e.light_color_options()],
+        exposes: [e.light_brightness_colorxy(), e.effect()],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate,
@@ -119,7 +119,7 @@ const preset = {
         },
     }),
     light_onoff_brightness_colortemp_color: (options={}) => {
-        const exposes = [e.light_brightness_colortemp_color(options.colorTempRange), e.effect(), e.light_color_options()];
+        const exposes = [e.light_brightness_colortemp_color(options.colorTempRange), e.effect()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
@@ -148,7 +148,7 @@ const preset = {
         };
     },
     light_onoff_brightness_colortemp_colorxy: (options={}) => {
-        const exposes = [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect(), e.light_color_options()];
+        const exposes = [e.light_brightness_colortemp_colorxy(options.colorTempRange), e.effect()];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
             tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
