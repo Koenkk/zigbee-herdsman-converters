@@ -1333,6 +1333,7 @@ const devices = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_g1ib5ldv'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
