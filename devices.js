@@ -13400,7 +13400,7 @@ const devices = [
 
     // Ubisys
     {
-        zigbeeModel: ['S1 (5501)', 'S1-R (5601)'],
+        zigbeeModel: ['S1 (5501)'],
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
@@ -13418,6 +13418,48 @@ const devices = [
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 18 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
+             *
+             * This cluster uses the binding table for managing command targets.
+             * When factory fresh, this cluster is bound to endpoint #1 to
+             * enable local control.
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+            }
+        },
+        ota: ota.ubisys,
+    },
+    {
+        zigbeeModel: ['S1-R (5601)'],
+        model: 'S1-R',
+        vendor: 'Ubisys',
+        description: 'Power switch S1-R',
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+            e.action([
+                'toggle', 'on', 'off', 'recall_*',
+                'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            ])],
+        fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
+            fz.command_stop],
+        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+        endpoint: (device) => {
+            return {'l1': 1, 's1': 2, 'meter': 3};
+        },
+        meta: {configureKey: 3},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
