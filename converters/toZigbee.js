@@ -2168,7 +2168,8 @@ const converters = {
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+            // Always use same transid as tuya_dimmer_level (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
         },
     },
     tuya_dimmer_level: {
@@ -2206,7 +2207,8 @@ const converters = {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
             }
-            await tuya.sendDataPointValue(entity, dp, newValue);
+            // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await tuya.sendDataPointValue(entity, dp, newValue, 'setData', 1);
         },
     },
     tuya_switch_state: {
