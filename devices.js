@@ -12711,7 +12711,8 @@ const devices = [
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -12760,7 +12761,8 @@ const devices = [
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -12815,7 +12817,8 @@ const devices = [
             tz.sinope_temperature_sensor, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -12850,7 +12853,8 @@ const devices = [
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']), exposes.enum('backlight_auto_dim',
+            ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -12872,7 +12876,8 @@ const devices = [
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(), exposes.enum(
+            'backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
