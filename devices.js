@@ -9140,6 +9140,20 @@ const devices = [
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
+    {
+        zigbeeModel: ['SSW-S1'],
+        model: 'WSS-4E_00.00.03.08TC',
+        vendor: 'Blaupunkt',
+        description: '4-Touch single click buttons',
+        fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy.AV2010_34_click],
+        toZigbee: [],
+        exposes: [e.action(['recall_*'])],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+    },
 
     // Lupus
     {
