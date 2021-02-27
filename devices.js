@@ -13455,7 +13455,7 @@ const devices = [
             fz.command_stop],
         toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
         endpoint: (device) => {
-            return {'l1': 1, 's1': 2, 'meter': 3};
+            return {'l1': 1, 's1': 2, 'meter': 4};
         },
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
