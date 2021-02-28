@@ -9145,7 +9145,7 @@ const devices = [
         model: 'SSW-S1',
         vendor: 'Blaupunkt',
         description: '4-Touch single click buttons',
-        fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy.AV2010_34_click],
+        fromZigbee: [fz.battery, fz.command_recall],
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
         meta: {configureKey: 1},
