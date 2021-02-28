@@ -9147,7 +9147,7 @@ const devices = [
         description: '4-Touch single click buttons',
         fromZigbee: [fz.battery, fz.command_recall],
         toZigbee: [],
-        exposes: [e.action(['recall_*'])],
+        exposes: [e.action(['recall_*']), e.battery()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
