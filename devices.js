@@ -9141,8 +9141,8 @@ const devices = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
-        zigbeeModel: ['SSW-S1'],
-        model: 'WSS-4E_00.00.03.08TC',
+        zigbeeModel: ['WSS-4E_00.00.03.08TC'],
+        model: 'SSW-S1',
         vendor: 'Blaupunkt',
         description: '4-Touch single click buttons',
         fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy.AV2010_34_click],
