@@ -4475,7 +4475,9 @@ const devices = [
             for (let i = 1; i <= enpoinsCount; i++) {
                 const epName = `l${i}`;
                 features.push(e.switch().withEndpoint(epName));
-                features.push(exposes.text(epName, ea.ALL).withEndpoint(epName).withProperty(epName).withDescription('State or sensor value'));
+                features.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+                    .withProperty(epName).withDescription('State or sensor value')
+                );
             }
             return features;
         })(16)),
@@ -4484,7 +4486,7 @@ const devices = [
             return {
                 l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8,
                 l9: 9, l10: 10, l11: 11, l12: 12, l13: 13, l14: 14, l15: 15, l16: 16,
-                action: 1
+                action: 1,
             };
         },
     },

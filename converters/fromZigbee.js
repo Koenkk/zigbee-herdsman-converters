@@ -2133,6 +2133,7 @@ const converters = {
             const payload = {};
             const channel = msg.endpoint.ID;
             const name = `l${channel}`;
+            const endpoint = msg.endpoint;
             payload[name] = precisionRound(msg.data['presentValue'], 3);
             const cluster = 'genLevelCtrl';
             if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
