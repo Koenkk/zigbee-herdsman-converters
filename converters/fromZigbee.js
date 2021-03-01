@@ -2138,8 +2138,7 @@ const converters = {
             const cluster = 'genLevelCtrl';
             if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
                 payload['brightness_' + name] = msg.data['presentValue'];
-            }
-            else if (msg.data.hasOwnProperty('description')) {
+            } else if (msg.data.hasOwnProperty('description')) {
                 const data1 = msg.data['description'];
                 if (data1) {
                     const data2 = data1.split(',');

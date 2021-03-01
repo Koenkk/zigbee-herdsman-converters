@@ -4476,8 +4476,7 @@ const devices = [
                 const epName = `l${i}`;
                 features.push(e.switch().withEndpoint(epName));
                 features.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
-                    .withProperty(epName).withDescription('State or sensor value')
-                );
+                    .withProperty(epName).withDescription('State or sensor value'));
             }
             return features;
         })(16)),
