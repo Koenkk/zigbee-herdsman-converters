@@ -4470,7 +4470,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
-        exposes: [e.action(['single', 'double', 'tripple', 'hold']).withAccess(ea.STATE)].concat(((enpoinsCount) => {
+        exposes: [e.action(['single', 'double', 'tripple', 'hold']).withAccess(ea.STATE_SET)].concat(((enpoinsCount) => {
             const features = [];
             for (let i = 1; i <= enpoinsCount; i++) {
                 const epName = `l${i}`;
