@@ -8254,7 +8254,7 @@ const devices = [
         model: 'IM6001-MPP01',
         vendor: 'SmartThings',
         description: 'Multipurpose sensor (2018 model)',
-        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery, fz.smartthings_acceleration],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
         toZigbee: [],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -8265,10 +8265,19 @@ const devices = [
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payload = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payload, options);
+            const payloadA = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
+            const payloadX = reporting.payload('x_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
+            const payloadY = reporting.payload('y_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
+            const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving()],
+        exposes: [
+            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
+            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
+        ],
     },
     {
         zigbeeModel: ['3310-S'],
