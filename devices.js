@@ -4479,7 +4479,7 @@ const devices = [
             }
             return features;
         })(16)),
-        meta: {multiEndpoint: true, legacy: fz.legacy /* for subclassed custom converters */},
+        meta: {multiEndpoint: true, tuyaThermostatPreset: fz.legacy /* for subclassed custom converters */},
         endpoint: (device) => {
             return {
                 l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8,
