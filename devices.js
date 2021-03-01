@@ -250,7 +250,7 @@ const preset = {
         }),
     };
     preset.xiaomi = {
-        light_onoff_brightness_colortemp: (options={}) => ({
+        light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
             ...preset.light_onoff_brightness_colortemp(options),
             fromZigbee: preset.light_onoff_brightness_colortemp(options).fromZigbee.concat([
                 fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
