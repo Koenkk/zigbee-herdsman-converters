@@ -2134,7 +2134,11 @@ const converters = {
             const channel = msg.endpoint.ID;
             const name = `l${channel}`;
             payload[name] = precisionRound(msg.data['presentValue'], 3);
-            if (msg.data.hasOwnProperty('description')) {
+            const cluster = 'genLevelCtrl';
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload['brightness_' + name] = msg.data['presentValue'];
+            }
+            else if (msg.data.hasOwnProperty('description')) {
                 const data1 = msg.data['description'];
                 if (data1) {
                     const data2 = data1.split(',');
