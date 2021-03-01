@@ -4470,22 +4470,23 @@ const devices = [
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
-        exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
-            e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'), e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
-            exposes.text('', ea.ALL).withEndpoint('l1').withProperty('l1'),
-            exposes.text('', ea.ALL).withEndpoint('l2').withProperty('l2'),
-            exposes.text('', ea.ALL).withEndpoint('l3').withProperty('l3'),
-            exposes.text('', ea.ALL).withEndpoint('l4').withProperty('l4'),
-            exposes.text('', ea.ALL).withEndpoint('l5').withProperty('l5'),
-            exposes.text('', ea.ALL).withEndpoint('l6').withProperty('l6'),
-            exposes.text('', ea.ALL).withEndpoint('l7').withProperty('l7'),
-            exposes.text('', ea.ALL).withEndpoint('l8').withProperty('l8'),
-            e.temperature(), e.voltage().withAccess(ea.STATE), e.pressure(), e.humidity(),
-            e.action(['single', 'double', 'tripple', 'hold']).withAccess(ea.STATE_SET)],
-        meta: {multiEndpoint: true},
+        exposes: [e.action(['single', 'double', 'tripple', 'hold']).withAccess(ea.STATE_SET)].concat(((enpoinsCount) => {
+            const features = [];
+            for (let i = 1; i <= enpoinsCount; i++) {
+                const epName = `l${i}`;
+                features.push(e.switch().withEndpoint(epName));
+                features.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+                    .withProperty(epName).withDescription('State or sensor value'));
+            }
+            return features;
+        })(16)),
+        meta: {multiEndpoint: true, tuyaThermostatPreset: fz.legacy /* for subclassed custom converters */},
         endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8, action: 1};
+            return {
+                l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8,
+                l9: 9, l10: 10, l11: 11, l12: 12, l13: 13, l14: 14, l15: 15, l16: 16,
+                action: 1,
+            };
         },
     },
     {
