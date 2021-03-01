@@ -250,7 +250,7 @@ const preset = {
         }),
     };
     preset.xiaomi = {
-        light_onoff_brightness_colortemp: (options={}) => ({
+        light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
             ...preset.light_onoff_brightness_colortemp(options),
             fromZigbee: preset.light_onoff_brightness_colortemp(options).fromZigbee.concat([
                 fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
@@ -267,35 +267,35 @@ const devices = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        ...preset.xiaomi.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwopcn02'],
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        ...preset.xiaomi.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwopcn03'],
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        ...preset.xiaomi.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
         model: 'JWSP001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        ...preset.xiaomi.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        ...preset.xiaomi.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
