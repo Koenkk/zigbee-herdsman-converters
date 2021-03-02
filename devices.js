@@ -15094,9 +15094,15 @@ const devices = [
         model: 'ZS110050078',
         vendor: 'Linkind',
         description: 'Door/window Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['ZBT-DIMSwitch-D0001'],
