@@ -2754,8 +2754,8 @@ const converters = {
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
                 return {max_temperature: value};
-            case tuya.dataPoints.moesMinTemp:
-                return {min_temperature: value};
+            case tuya.dataPoints.moesDeadZoneTemp:
+                return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 return {local_temperature: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
