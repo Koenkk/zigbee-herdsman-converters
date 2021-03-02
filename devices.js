@@ -15939,16 +15939,18 @@ const devices = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode, tz.thermostat_keypad_lockout],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'], ea.STATE)],
-        meta: {configureKey: 1},
+            .withSystemMode(['heat', 'sleep'])],
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl',
-                'hvacThermostat', 'hvacUserInterfaceCfg']);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'hvacThermostat']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 60, max: 43200, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 90, max: 900, change: 10});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 65534, change: 1});
+            await reporting.thermostatPIHeatingDemand(endpoint, {min: 60, max: 3600, change: 1});
+
+            // read keypadLockout, we don't need reporting as it cannot be set physically on the device
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
 
