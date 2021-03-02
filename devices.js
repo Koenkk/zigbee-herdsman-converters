@@ -15934,12 +15934,13 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl',
-                'hvacThermostat', 'hvacUserInterfaceCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+
+            // read keypadLockout, we don't need reporting as it cannot be set physically on the device
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
 
