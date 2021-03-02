@@ -8627,13 +8627,14 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['902010/22'],
+        zigbeeModel: ['902010/22', 'IR_00.00.03.12TC'],
         model: 'AV2010/22',
         vendor: 'Bitron',
         description: 'Wireless motion detector',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        whiteLabel: [{vendor: 'ClimaxTechnology', model: 'IR-9ZBS-SL'}],
     },
     {
         zigbeeModel: ['AV2010/22A'],
