@@ -10793,6 +10793,19 @@ const devices = [
             await reporting.brightness(endpoint);
         },
     },
+    {
+        zigbeeModel: ['BPU3'],
+        model: 'BPU3',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart plug',
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 
     // Danfoss
     {
