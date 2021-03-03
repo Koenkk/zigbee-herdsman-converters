@@ -14031,7 +14031,7 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69'],
+        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', 'MultIR'],
         model: 'SW30',
         vendor: 'ORVIBO',
         description: 'Water leakage sensor',
