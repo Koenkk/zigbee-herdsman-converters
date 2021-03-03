@@ -14544,10 +14544,11 @@ const devices = [
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_deadzone_temperature],
-        exposes: [e.child_lock(), e.deadzone_temperature(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-            .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
-            .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-            .withPreset(['hold', 'program']).withSelectSensor(['IN', 'AL', 'OU'],ea.STATE_SET)],
+        exposes: [e.child_lock(), e.deadzone_temperature(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
+                .withPreset(['hold', 'program']).withSelectSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
     },
     {
