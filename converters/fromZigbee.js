@@ -2730,18 +2730,18 @@ const converters = {
             case tuya.dataPoints.moesSchedule:
                 return {
                     program: [
-                        {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
-                        {p2: value[3] + 'h:' + value[4] + 'm ' + value[5] + '°C'},
-                        {p3: value[6] + 'h:' + value[7] + 'm ' + value[8] + '°C'},
-                        {p4: value[9] + 'h:' + value[10] + 'm ' + value[11] + '°C'},
-                        {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14] + '°C'},
-                        {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17] + '°C'},
-                        {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20] + '°C'},
-                        {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23] + '°C'},
-                        {su1: value[24] + 'h:' + value[25] + 'm ' + value[26] + '°C'},
-                        {su2: value[27] + 'h:' + value[28] + 'm ' + value[29] + '°C'},
-                        {su3: value[30] + 'h:' + value[31] + 'm ' + value[32] + '°C'},
-                        {su4: value[33] + 'h:' + value[34] + 'm ' + value[35] + '°C'},
+                        {p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
+                        {p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
+                        {p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
+                        {p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
+                        {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
+                        {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
+                        {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
+                        {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
+                        {su1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
+                        {su2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
+                        {su3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
+                        {su4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
                     ],
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
@@ -2754,8 +2754,8 @@ const converters = {
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
                 return {max_temperature: value};
-            case tuya.dataPoints.moesMinTemp:
-                return {min_temperature: value};
+            case tuya.dataPoints.moesDeadZoneTemp:
+                return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 return {local_temperature: parseFloat((value / 10).toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:

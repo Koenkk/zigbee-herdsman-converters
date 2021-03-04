@@ -2015,10 +2015,10 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
         },
     },
-    moes_thermostat_min_temperature: {
-        key: ['min_temperature'],
+    moes_thermostat_deadzone_temperature: {
+        key: ['deadzone_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTemp, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesDeadZoneTemp, value);
         },
     },
     moes_thermostat_calibration: {
