@@ -1163,6 +1163,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+            return {readAfterWriteTime: 250, state: {keypad_lockout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
     thermostat_temperature_setpoint_hold: {
@@ -2015,10 +2019,10 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
         },
     },
-    moes_thermostat_min_temperature: {
-        key: ['min_temperature'],
+    moes_thermostat_deadzone_temperature: {
+        key: ['deadzone_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTemp, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesDeadZoneTemp, value);
         },
     },
     moes_thermostat_calibration: {
