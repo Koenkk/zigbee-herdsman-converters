@@ -13421,6 +13421,22 @@ const devices = [
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },
+    {
+        zigbeeModel: ['SG-V100-ZB'],
+        model: 'SG-V100-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT remote control smart Gas Lock',
+        fromZigbee: [fz.on_off, fz.battery],
+        toZigbee: [tz.on_off], // Only support 'Off' command
+        meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.battery(), e.switch()],
+    },
 
     // CREE
     {
