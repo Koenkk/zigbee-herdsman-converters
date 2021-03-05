@@ -10545,7 +10545,7 @@ const devices = [
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         toZigbee: preset.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -10791,6 +10791,19 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['BPU3'],
+        model: 'BPU3',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart plug',
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
 
@@ -14031,7 +14044,7 @@ const devices = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69'],
+        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', 'MultIR'],
         model: 'SW30',
         vendor: 'ORVIBO',
         description: 'Water leakage sensor',
@@ -14543,11 +14556,12 @@ const devices = [
         description: 'Moes BHT series Thermostat',
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
-            tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_min_temperature],
-        exposes: [e.child_lock(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-            .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
-            .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-            .withPreset(['hold', 'program'])],
+            tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_deadzone_temperature],
+        exposes: [e.child_lock(), e.deadzone_temperature(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
+                .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
     },
     {
@@ -15125,6 +15139,16 @@ const devices = [
         vendor: 'Linkind',
         description: 'Control outlet',
         extend: preset.switch(),
+        toZigbee: preset.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on', 'toggle'])
+            .withDescription('Controls the behaviour when the device is powered on')]),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
 
     // BlitzWolf
@@ -15945,7 +15969,7 @@ const devices = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode, tz.thermostat_keypad_lockout],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['heat', 'sleep'])],
+            .withSystemMode(['heat', 'sleep']), e.keypad_lockout()],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
