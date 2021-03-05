@@ -13435,7 +13435,7 @@ const devices = [
             await reporting.onOff(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.battery(), e.switch()],
+        exposes: [e.battery(), e.switch(), e.voltage()],
     },
 
     // CREE
