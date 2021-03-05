@@ -5393,6 +5393,14 @@ const devices = [
         extend: preset.ledvance.light_onoff_brightness_colortemp(),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['Gardenpole Mini RGBW Z3'],
+        model: '4058075208353',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Gardenpole Multicolour',
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
 
     // Hive
     {
