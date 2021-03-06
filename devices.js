@@ -11131,6 +11131,29 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['TI0001-cover'],
+        model: 'TI0001-cover',
+        description: 'Zigbee roller blind motor',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_cover_state],
+        toZigbee: [tz.livolo_cover_position],
+        exposes: [e.cover_position()],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (!globalStore.hasValue(device, 'interval')) {
+                await livolo.poll(device);
+                const interval = setInterval(async () => {
+                    await livolo.poll(device);
+                }, 300*1000); // Every 300 seconds
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+    },
 
     // Bosch
     {

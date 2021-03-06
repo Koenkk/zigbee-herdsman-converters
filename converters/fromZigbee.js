@@ -2037,6 +2037,23 @@ const converters = {
             }
         },
     },
+    livolo_cover_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                const dp = msg.data[10];
+                if (dp === 12 || dp === 15) {
+                    const position = 100 - msg.data[13];
+                    const state = position > 0 ? 'OPEN' : 'CLOSE';
+                    return {position, state};
+                } else { // TODO: Unknown dps
+                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: ${msg.data.toString('hex')}`);
+                }
+            }
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2088,6 +2105,10 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
                     // new dimmer, hack
                     meta.device.modelID = 'TI0001-dimmer';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 21, 0]), 13)) {
+                    meta.device.modelID = 'TI0001-cover';
                     meta.device.save();
                 }
             }
