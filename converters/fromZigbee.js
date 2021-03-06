@@ -140,7 +140,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('keypadLockout')) {
-                result.keypad_lockout = constants.keypadLockoutMode.includes(msg.data['keypadLockout']) ?
+                result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
             return result;
