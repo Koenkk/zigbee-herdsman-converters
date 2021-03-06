@@ -6286,6 +6286,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DG6HD'],
+        model: 'DG6HD-1BW',
+        vendor: 'Leviton',
+        description: 'Zigbee in-wall smart dimmer',
+        extend: preset.light_onoff_brightness({disableEffect: true}),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['65A01-1'],
         model: 'RC-2000WH',
         vendor: 'Leviton',
