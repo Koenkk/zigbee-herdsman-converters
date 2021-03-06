@@ -1183,7 +1183,8 @@ const devices = [
 
     // TuYa
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
