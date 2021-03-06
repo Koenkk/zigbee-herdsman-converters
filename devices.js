@@ -558,6 +558,12 @@ const devices = [
             return {'system': 1, 'default': 2};
         },
         onEvent: xiaomi.preventReset,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.switch.b2lacn02'],
@@ -573,6 +579,12 @@ const devices = [
             return {'system': 1, 'left': 2, 'right': 3};
         },
         onEvent: xiaomi.preventReset,
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.switch.l3acn3'],
