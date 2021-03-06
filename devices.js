@@ -2585,7 +2585,7 @@ const devices = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: preset.switch(),
-        toZigbee: preset.switch().toZigbee.concat([tz.power_on_behavior]),
+        toZigbee: [tz.on_off_timed, tz.power_on_behavior],
         fromZigbee: preset.switch().fromZigbee.concat([fz.power_on_behavior]),
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])

@@ -164,6 +164,40 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
+    on_off_timed: {
+        key: ['state', 'on_time', 'off_wait_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            const state = message.hasOwnProperty('state') ? message.state : null;
+
+            if (state !== 'onWithTimedOff') {
+                return await converters.on_off.convertSet(entity, key, value, meta);
+            }
+
+            const onTime = message.hasOwnProperty('on_time') ? message.on_time : 0;
+            const offWaitTime = message.hasOwnProperty('off_wait_time') ? message.off_wait_time : 0;
+
+            if (!Number.isInteger(onTime)) {
+                throw Error('The on_time value must be convertible to an integer');
+            }
+            if (!Number.isInteger(offWaitTime)) {
+                throw Error('The off_wait_time value must be convertible to an integer');
+            }
+
+            await entity.command(
+                'genOnOff',
+                'onWithTimedOff',
+                {
+                    ctrlbits: 0,
+                    ontime: onTime,
+                    offwaittime: offWaitTime,
+                },
+                utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
     cover_via_brightness: {
         key: ['position', 'state'],
         convertSet: async (entity, key, value, meta) => {
