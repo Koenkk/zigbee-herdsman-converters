@@ -574,12 +574,11 @@ const devices = [
             fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, configureKey: 1},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
         onEvent: xiaomi.preventReset,
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
