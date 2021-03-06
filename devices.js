@@ -639,7 +639,7 @@ const devices = [
         },
         onEvent: xiaomi.preventReset,
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE), e.action(['hold', 'single', 'double', 'triple', 'release'])],
+            e.voltage().withAccess(ea.STATE), e.action(['single', 'release'])],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
