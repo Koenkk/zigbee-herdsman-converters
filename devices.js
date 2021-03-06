@@ -88,8 +88,8 @@ const preset = {
         };
     },
     light_onoff_brightness_color: (options={}) => {
-        options = {disableEffect: false, onlyXY: true, ...options};
-        const exposes = [(options.onlyXY ? e.light_brightness_colorxy() : e.light_brightness_color()),
+        options = {disableEffect: false, supportsHS: false, ...options};
+        const exposes = [(options.supportsHS ? e.light_brightness_color() : e.light_brightness_colorxy()),
             ...(!options.disableEffect ? [e.effect()] : [])];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
@@ -108,9 +108,9 @@ const preset = {
         };
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
-        options = {disableEffect: false, onlyXY: true, disableColorTempStartup: false, ...options};
-        const exposes = [(options.onlyXY ? e.light_brightness_colortemp_colorxy(options.colorTempRange) :
-            e.light_brightness_colortemp_color(options.colorTempRange)), ...(!options.disableEffect ? [e.effect()] : [])];
+        options = {disableEffect: false, supportsHS: false, disableColorTempStartup: false, ...options};
+        const exposes = [(options.supportsHS ? e.light_brightness_colortemp_color(options.colorTempRange) :
+            e.light_brightness_colortemp_colorxy(options.colorTempRange)), ...(!options.disableEffect ? [e.effect()] : [])];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
         const toZigbee = [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
@@ -181,13 +181,13 @@ const preset = {
             toZigbee: preset.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
         light_onoff_brightness_color: (options={}) => ({
-            ...preset.light_onoff_brightness_color({onlyXY: false, ...options}),
-            toZigbee: preset.light_onoff_brightness_color({onlyXY: false, ...options}).toZigbee
+            ...preset.light_onoff_brightness_color({supportsHS: true, ...options}),
+            toZigbee: preset.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee
                 .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
         light_onoff_brightness_colortemp_color: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp_color({onlyXY: false, ...options}),
-            toZigbee: preset.light_onoff_brightness_colortemp_color({onlyXY: false, ...options})
+            ...preset.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
+            toZigbee: preset.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
                 .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         }),
     };
@@ -201,12 +201,12 @@ const preset = {
             toZigbee: preset.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.ledvance_commands]),
         }),
         light_onoff_brightness_color: (options={}) => ({
-            ...preset.light_onoff_brightness_color({onlyXY: false, ...options}),
-            toZigbee: preset.light_onoff_brightness_color({onlyXY: false, ...options}).toZigbee.concat([tz.ledvance_commands]),
+            ...preset.light_onoff_brightness_color({supportsHS: true, ...options}),
+            toZigbee: preset.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
         }),
         light_onoff_brightness_colortemp_color: (options={}) => ({
-            ...preset.light_onoff_brightness_colortemp_color({onlyXY: false, ...options}),
-            toZigbee: preset.light_onoff_brightness_colortemp_color({onlyXY: false, ...options}).toZigbee.concat([tz.ledvance_commands]),
+            ...preset.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
+            toZigbee: preset.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
         }),
     };
     preset.xiaomi = {
@@ -1113,7 +1113,7 @@ const devices = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: preset.light_onoff_brightness_colortemp_color({onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({supportsHS: true}),
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
@@ -5642,7 +5642,7 @@ const devices = [
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5650,7 +5650,7 @@ const devices = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5658,7 +5658,7 @@ const devices = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5674,7 +5674,7 @@ const devices = [
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5682,7 +5682,7 @@ const devices = [
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5690,7 +5690,7 @@ const devices = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5730,7 +5730,7 @@ const devices = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5738,7 +5738,7 @@ const devices = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -5842,7 +5842,7 @@ const devices = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
@@ -5995,7 +5995,7 @@ const devices = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -6068,7 +6068,7 @@ const devices = [
         model: 'OFL 120 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -6076,7 +6076,7 @@ const devices = [
         model: 'OFL 140 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -6084,7 +6084,7 @@ const devices = [
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], onlyXY: false}),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -10536,8 +10536,8 @@ const devices = [
         model: '404000/404005/404012',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
-        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], onlyXY: false}),
-        toZigbee: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], onlyXY: false}).toZigbee
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}),
+        toZigbee: preset.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}).toZigbee
             .concat([tz.tint_scene]),
         // GU10 bulb does not support enhancedHue,
         // we can identify these based on the presense of haDiagnostic input cluster
