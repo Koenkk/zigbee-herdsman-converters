@@ -13425,7 +13425,7 @@ const devices = [
         zigbeeModel: ['SG-V100-ZB'],
         model: 'SG-V100-ZB',
         vendor: 'Dawon DNS',
-        description: 'IOT remote control smart Gas Lock',
+        description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off], // Only support 'Off' command
         meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
