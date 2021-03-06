@@ -16151,6 +16151,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['43082'],
+        model: '43082',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart dimmer',
+        extend: preset.light_onoff_brightness({disableEffect: true}),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['43084'],
         model: '43084',
         vendor: 'Enbrighten',
