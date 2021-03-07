@@ -16799,14 +16799,14 @@ const devices = [
 
     // Fantem
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},{modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}, {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy, fz.ZB003X_tamper],
         toZigbee: [tz.ZB003X],
-        exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(), e.humidity(),
-            exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes'),
+        exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
+            e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes'),
             exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration'),
             exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration'),
             exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration'),
