@@ -3360,7 +3360,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -7576,7 +7576,7 @@ const devices = [
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
         description: 'Zigbee 10W Floodlight RGB+CCT (plus)',
-        extend: preset.gledopto.light_onoff_brightness_colortemp_color(),
+        extend: preset.gledopto.light_onoff_brightness_colortemp_color({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004P', 'GL-FL-004TZP'],
@@ -7628,7 +7628,7 @@ const devices = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 60W Floodlight RGB+CCT (pro)',
-        extend: preset.gledopto.light_onoff_brightness_colortemp_color(),
+        extend: preset.gledopto.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-G-001Z'],
