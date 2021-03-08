@@ -3544,7 +3544,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCW002'],
+        zigbeeModel: ['LCW002', '4090230P9'],
         model: '4090230P9',
         vendor: 'Philips',
         description: 'Hue Liane',
