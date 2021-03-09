@@ -16893,6 +16893,16 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
     },
+
+    // SOHAN Electric
+    {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_bezfthwc'}],
+        model: 'RDCBC/Z',
+        vendor: 'SOHAN Electric',
+        description: 'SOHAN Electric DIN Circuit Breaker (1 Pole / 2 Poles)',
+        extend: preset.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
+    },
 ];
 
 module.exports = devices.map((device) => {
