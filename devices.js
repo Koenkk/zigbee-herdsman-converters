@@ -9363,7 +9363,7 @@ const devices = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0'],
+        zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0', 'PIR_TPV13'],
         model: 'HS3MS',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
