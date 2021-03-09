@@ -8261,6 +8261,9 @@ const devices = [
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
             const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [
             e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
