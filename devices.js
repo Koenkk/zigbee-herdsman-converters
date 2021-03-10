@@ -16899,7 +16899,7 @@ const devices = [
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_bezfthwc'}],
         model: 'RDCBC/Z',
         vendor: 'SOHAN Electric',
-        description: 'SOHAN Electric DIN Circuit Breaker (1 Pole / 2 Poles)',
+        description: 'DIN circuit breaker (1 pole / 2 poles)',
         extend: preset.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
