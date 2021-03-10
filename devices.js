@@ -264,7 +264,7 @@ const devices = [
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage()],
         toZigbee: [],
     },
     {
@@ -273,7 +273,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -284,7 +284,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch (with gyroscope)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy.WXKG12LM_action_click_multistate],
         toZigbee: [],
     },
@@ -294,7 +294,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single']), e.voltage()],
+        exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG03LM_click],
         toZigbee: [],
         onEvent: xiaomi.preventReset,
@@ -305,7 +305,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch (2018 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -318,7 +318,7 @@ const devices = [
         description: 'Aqara D1 single key wireless wall switch',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -332,7 +332,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.voltage()],
+        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG02LM_click],
         toZigbee: [],
         onEvent: xiaomi.preventReset,
@@ -344,7 +344,7 @@ const devices = [
         description: 'Aqara double key wireless wall switch (2018 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
-            'hold_left', 'hold_right', 'hold_both']), e.voltage()],
+            'hold_left', 'hold_right', 'hold_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
@@ -501,7 +501,7 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
-        exposes: [e.battery(), e.voltage(), e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.action([
             'left', 'right', 'both', 'left_double', 'right_double', 'both_double', 'left_long', 'right_long', 'both_long'])],
         onEvent: xiaomi.preventReset,
     },
@@ -636,7 +636,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.weather'],
@@ -646,7 +646,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}, configureKey: 1},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure, fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
@@ -665,7 +665,7 @@ const devices = [
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
@@ -675,7 +675,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.voltage()],
+        exposes: [e.battery(), e.occupancy(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
@@ -685,7 +685,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.temperature(), e.voltage(), e.illuminance_lux().withProperty('illuminance'),
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
@@ -734,7 +734,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.voltage()],
+        exposes: [e.battery(), e.contact(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -744,7 +744,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.temperature(), e.voltage()],
+        exposes: [e.battery(), e.contact(), e.temperature(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
@@ -754,7 +754,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -764,7 +764,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -773,7 +773,7 @@ const devices = [
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.voltage(),
+        exposes: [e.battery(), e.battery_voltage(),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
@@ -866,7 +866,7 @@ const devices = [
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.voltage(),
+            exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
         ],
     },
     {
@@ -900,7 +900,7 @@ const devices = [
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
             e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', ea.STATE),
-            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.voltage(),
+            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.battery_voltage(),
         ],
     },
     {
@@ -967,7 +967,7 @@ const devices = [
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.xiaomi_battery],
         toZigbee: [],
         exposes: [
-            e.battery(), e.voltage(), e.battery_low(), exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.battery(), e.battery_voltage(), e.battery_low(), exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
             exposes.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
             exposes.enum('action', ea.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
@@ -1476,7 +1476,7 @@ const devices = [
         description: 'Temperature & humidity sensor with display',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['TS0041'],
@@ -9135,7 +9135,7 @@ const devices = [
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,
             fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1_with_timeout],
-        exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
+        exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
             exposes.numeric('action_code', ea.STATE), exposes.text('action_zone', ea.STATE), e.temperature(), e.action([
                 'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
             ])],
