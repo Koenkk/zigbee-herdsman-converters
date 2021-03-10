@@ -7174,7 +7174,6 @@ const devices = [
     },
 
     // Gledopto
-
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
@@ -7355,6 +7354,14 @@ const devices = [
         model: 'GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller W',
+        extend: preset.gledopto.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['GL-C-009P'],
+        model: 'GL-C-009P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee LED Controller W (pro)',
         extend: preset.gledopto.light_onoff_brightness(),
     },
     {
