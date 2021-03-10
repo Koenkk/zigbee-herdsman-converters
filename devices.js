@@ -4467,7 +4467,7 @@ const devices = [
             '(https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
         fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
         toZigbee: [],
-        exposes: [e.device_temperature(), e.linkquality()],
+        exposes: [e.device_temperature()],
     },
     {
         zigbeeModel: ['ptvo.switch'],
