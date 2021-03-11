@@ -1542,9 +1542,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
-            case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const running = dp === tuya.dataPoints.coverArrived ? false : true;
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
@@ -1560,6 +1558,9 @@ const converters = {
             }
             case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
                 return {motor_speed: value};
+            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+                break;
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
