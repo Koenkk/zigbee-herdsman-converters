@@ -14859,7 +14859,7 @@ const devices = [
         zigbeeModel: ['LK Switch'],
         model: 'LK Switch',
         vendor: 'Schneider Electric',
-        description: 'LK FUGA® Wiser wireless double relay',
+        description: 'LK FUGA Wiser Wireless Double Relay',
         meta: {multiEndpoint: true, configureKey: 1},
         fromZigbee: [fz.on_off, fzLocal.wiser_fuga_relay_command],
         toZigbee: [tz.on_off],
