@@ -1410,7 +1410,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Security remote control',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Woox', model: 'R7054'}, {vendor: 'Nedis', model: 'ZBRC10WT'}],
         meta: {configureKey: 1},
@@ -2846,6 +2846,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4034030P6'],
+        model: '4034030P6',
+        vendor: 'Philips',
+        description: 'Hue Fair with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWO003'],
         model: '8719514279131',
         vendor: 'Philips',
@@ -3954,7 +3963,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -8786,6 +8795,20 @@ const devices = [
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
+    {
+        zigbeeModel: ['902010/23'],
+        model: '902010/23',
+        vendor: 'Bitron',
+        description: '4 button Zigbee remote control',
+        fromZigbee: [fz.ias_no_alarm, fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_*']), e.battery_low()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl']);
+        },
+    },
 
     // Iris
     {
@@ -9077,7 +9100,7 @@ const devices = [
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
         exposes: [e.battery(), e.temperature(), e.action([
-            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -9154,7 +9177,7 @@ const devices = [
             fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1_with_timeout],
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
             exposes.numeric('action_code', ea.STATE), exposes.text('action_zone', ea.STATE), e.temperature(), e.action([
-                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency',
             ])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -10908,7 +10931,15 @@ const devices = [
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
-            .withPiHeatingDemand()],
+            .withPiHeatingDemand(),
+        exposes.enum('eurotronic_trv_mode', exposes.access.ALL, [1, 2])
+            .withDescription('Select between direct control of the valve via the `eurotronic_valve_position` or automatic control of the '+
+            'valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value '+
+            'to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) '+
+            'and the buttons on the device are disabled.'),
+        exposes.numeric('eurotronic_valve_position', exposes.access.ALL).withValueMin(0).withValueMax(255)
+            .withDescription('Directly control the radiator valve when `eurotronic_trv_mode` is set to 1. The values range from 0 (valve '+
+            'closed) to 255 (valve fully open)')],
         meta: {configureKey: 3},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -13497,7 +13528,7 @@ const devices = [
         vendor: 'Dawon DNS',
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
-        toZigbee: [tz.on_off], // Only support 'Off' command
+        toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
         meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -14541,7 +14572,7 @@ const devices = [
         description: 'Smart remote controller',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
