@@ -14866,7 +14866,7 @@ const devices = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
         },
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['button_*_single'])],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['s*_single'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(6)) {
