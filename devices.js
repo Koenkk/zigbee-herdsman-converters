@@ -2846,6 +2846,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4034030P6'],
+        model: '4034030P6',
+        vendor: 'Philips',
+        description: 'Hue Fair with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWO003'],
         model: '8719514279131',
         vendor: 'Philips',
