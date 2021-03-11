@@ -1410,7 +1410,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Security remote control',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Woox', model: 'R7054'}, {vendor: 'Nedis', model: 'ZBRC10WT'}],
         meta: {configureKey: 1},
@@ -9077,7 +9077,7 @@ const devices = [
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
         exposes: [e.battery(), e.temperature(), e.action([
-            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -9154,7 +9154,7 @@ const devices = [
             fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1_with_timeout],
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
             exposes.numeric('action_code', ea.STATE), exposes.text('action_zone', ea.STATE), e.temperature(), e.action([
-                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency',
             ])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -14541,7 +14541,7 @@ const devices = [
         description: 'Smart remote controller',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
