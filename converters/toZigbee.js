@@ -4501,6 +4501,17 @@ const converters = {
             return {state: {sensitivity: value}};
         },
     },
+    dawondns_only_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            utils.validateValue(value, ['off']);
+            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
 
     // #endregion
 
