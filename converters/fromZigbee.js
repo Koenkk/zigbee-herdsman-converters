@@ -1457,7 +1457,7 @@ const converters = {
             case tuya.dataPoints.hyState: // 0x017D work state
                 return {state: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.hyChildLock: // 0x0181 Changed child lock status
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.hyExternalTemp: // external sensor temperature
                 return {external_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.hyAwayDays: // away preset days
@@ -2748,7 +2748,7 @@ const converters = {
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.moesChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesMaxTempLimit:
@@ -2803,7 +2803,7 @@ const converters = {
             case tuya.dataPoints.saswellTempCalibration:
                 return {local_temperature_calibration: value > 6 ? 0xFFFFFFFF - value : value};
             case tuya.dataPoints.saswellChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
@@ -2931,7 +2931,7 @@ const converters = {
                     device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.heatingSetpoint:
                 return {current_heating_setpoint: (value / 10).toFixed(1)};
             case tuya.dataPoints.localTemp:
@@ -3001,7 +3001,7 @@ const converters = {
                     {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
                 ]};
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.siterwellWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.valveDetection:

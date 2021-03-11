@@ -4384,7 +4384,7 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.hyState, value === 'ON');
                 break;
             case 'child_lock':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCKED');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCK');
                 break;
             case 'away_preset_days':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.hyAwayDays, value);
