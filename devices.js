@@ -14861,7 +14861,7 @@ const devices = [
         vendor: 'Schneider Electric',
         description: 'LK FUGA Wiser Wireless Double Relay',
         meta: {multiEndpoint: true, configureKey: 1},
-        fromZigbee: [fz.on_off, fzLocal.wiser_fuga_relay_command],
+        fromZigbee: [fz.on_off, fz.wiser_fuga_relay_command],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
