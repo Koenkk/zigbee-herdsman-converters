@@ -4501,6 +4501,12 @@ const converters = {
             return {state: {sensitivity: value}};
         },
     },
+    viessmann_window_open: {
+        key: ['window_open'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannCustom0'], {manufacturerCode: 0x1221});
+        },
+    },
     dawondns_only_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
