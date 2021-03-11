@@ -1602,6 +1602,16 @@ const converters = {
             return result;
         },
     },
+    wiser_fuga_relay_command: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            return {
+                action: `${button}_single`,
+            };
+        },
+    },
     tuya_doorbell_button: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
