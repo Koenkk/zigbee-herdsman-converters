@@ -228,6 +228,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
         extend: preset.xiaomi.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.cwopcn02'],
@@ -235,6 +236,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
         extend: preset.xiaomi.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.cwopcn03'],
@@ -242,6 +244,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
         extend: preset.xiaomi.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
@@ -435,6 +438,7 @@ const devices = [
             device.type = 'EndDevice';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
@@ -450,6 +454,7 @@ const devices = [
             return {'system': 1};
         },
         onEvent: xiaomi.preventReset,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -471,6 +476,7 @@ const devices = [
             device.type = 'EndDevice';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
@@ -489,6 +495,7 @@ const devices = [
             return {'left': 1, 'right': 2, 'system': 1};
         },
         onEvent: xiaomi.preventReset,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
@@ -544,6 +551,7 @@ const devices = [
             device.type = 'EndDevice';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.l3acn3'],
@@ -570,6 +578,7 @@ const devices = [
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n3acn3'],
@@ -627,6 +636,7 @@ const devices = [
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
             'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both'])],
         onEvent: xiaomi.preventReset,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
@@ -765,6 +775,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -785,6 +796,7 @@ const devices = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.power_outage_memory()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -810,6 +822,7 @@ const devices = [
             e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
@@ -845,6 +858,7 @@ const devices = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
         },
         exposes: [e.switch(), e.power(), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE), e.current()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
@@ -855,6 +869,7 @@ const devices = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.power_outage_memory()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -920,6 +935,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
@@ -942,6 +958,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.relay.c2acn01'],
@@ -958,6 +975,7 @@ const devices = [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time')],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
@@ -981,6 +999,7 @@ const devices = [
             device.type = 'EndDevice';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
@@ -1021,6 +1040,7 @@ const devices = [
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
             ]),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.b286opcn01'],
@@ -1106,6 +1126,7 @@ const devices = [
             await reporting.illuminance(endpoint, {min: 15, max: repInterval.HOUR, change: 500});
         },
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
