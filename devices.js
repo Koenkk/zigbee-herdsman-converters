@@ -8786,6 +8786,20 @@ const devices = [
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
+    {
+        zigbeeModel: ['902010/23'],
+        model: '902010/23',
+        vendor: 'Bitron',
+        description: '4 Button ZigBee Remote Control',
+        fromZigbee: [fz.ias_no_alarm,fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_*']),e.battery_low()],
+        configure: async (device, coordinatorEndpoint) => {
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg','genBasic','genOnOff', 'genLevelCtrl']);
+	 	}
+	},
 
     // Iris
     {
