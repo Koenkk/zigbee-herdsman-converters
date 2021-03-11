@@ -13505,7 +13505,7 @@ const devices = [
         vendor: 'Dawon DNS',
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
-        toZigbee: [tz.on_off], // Only support 'Off' command
+        toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
         meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
