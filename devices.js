@@ -8790,7 +8790,7 @@ const devices = [
         zigbeeModel: ['902010/23'],
         model: '902010/23',
         vendor: 'Bitron',
-        description: '4 Button ZigBee Remote Control',
+        description: '4 button Zigbee remote control',
         fromZigbee: [fz.ias_no_alarm, fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
         toZigbee: [],
         meta: {configureKey: 1},
@@ -8800,6 +8800,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl']);
         },
     },
+
     // Iris
     {
         zigbeeModel: ['3210-L'],
