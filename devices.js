@@ -16070,8 +16070,13 @@ const devices = [
         fromZigbee: [fz.legacy.viessmann_thermostat_att_report, fz.battery, fz.legacy.hvac_user_interface],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode, tz.thermostat_keypad_lockout, tz.viessmann_window_open],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['heat', 'sleep']), e.keypad_lockout()],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withLocalTemperature().withSystemMode(['heat', 'sleep']),
+            exposes.binary('window_open', ea.STATE_GET, true, false)
+                .withDescription('A window was opened (detected based on sudden temperature drop).'),
+            e.keypad_lockout(),
+        ],
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
