@@ -1745,11 +1745,20 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.thermostat.convert(model, msg, publish, options, meta);
+
             // ViessMann TRVs report piHeatingDemand from 0-5
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
             delete result.pi_heating_demand;
+
+            // viessmannCustom0
+            // 0-2: unknown
+            // 3: window open (OO on display)
+            if (msg.data.hasOwnProperty('viessmannCustom0')) {
+                result.window_open = (msg.data['viessmannCustom0'] == 3);
+            }
+
             return result;
         },
     },
