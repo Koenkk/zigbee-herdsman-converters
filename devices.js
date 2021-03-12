@@ -3262,7 +3262,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3423,7 +3423,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3693,7 +3693,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3720,7 +3720,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3837,7 +3837,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp (low voltage)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -4307,7 +4307,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
