@@ -5521,13 +5521,6 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['RGBBulb01UK'],
-        model: 'HV-GSCXZB269K',
-        vendor: 'Hive',
-        description: 'Active smart bulb RGB LED (B22)',
-        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-    },   
-    {
         zigbeeModel: ['TRV001'],
         model: 'UK7004240',
         vendor: 'Hive',
@@ -15809,7 +15802,7 @@ const devices = [
     },
     {
         zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK'],
-        model: 'AU-A1GSZ9RGBW',
+        model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
         extend: preset.light_onoff_brightness_colortemp_color(),
