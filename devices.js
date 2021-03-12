@@ -14283,7 +14283,7 @@ const devices = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         meta: {configureKey: 1},
