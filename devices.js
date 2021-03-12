@@ -5508,7 +5508,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TWBulb01UK'],
-        model: 'HV-GSCXZB279_HV-GSCXZB229',
+        model: 'HV-GSCXZB279_HV-GSCXZB229_HV-GSCXZB229K',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: preset.light_onoff_brightness_colortemp(),
@@ -5520,6 +5520,13 @@ const devices = [
         description: 'Active light, warm to cool white (GU10)',
         extend: preset.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['RGBBulb01UK'],
+        model: 'HV-GSCXZB269K',
+        vendor: 'Hive',
+        description: 'Active smart bulb RGB LED (B22)',
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+    },   
     {
         zigbeeModel: ['TRV001'],
         model: 'UK7004240',
