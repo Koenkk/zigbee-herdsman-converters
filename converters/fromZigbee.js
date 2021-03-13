@@ -849,6 +849,14 @@ const converters = {
             };
         },
     },
+    ias_ace_occupancy_with_timeout: {
+        cluster: 'ssIasAce',
+        type: 'commandGetPanelStatus',
+        convert: (model, msg, publish, options, meta) => {
+            msg.data.occupancy = 1;
+            return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+        },
+    },
     command_recall: {
         cluster: 'genScenes',
         type: 'commandRecall',
