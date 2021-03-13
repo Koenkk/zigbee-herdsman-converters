@@ -11138,7 +11138,7 @@ const devices = [
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_cover_state, fz.command_off],
         toZigbee: [tz.livolo_cover_position],
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
         meta: {configureKey: 1},
         configure: livolo.poll,
         onEvent: async (type, data, device) => {
