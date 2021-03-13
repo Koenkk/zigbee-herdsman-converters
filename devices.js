@@ -11152,6 +11152,20 @@ const devices = [
                 }, 300*1000); // Every 300 seconds
                 globalStore.putValue(device, 'interval', interval);
             }
+            // This is needed while pairing in order to let the device know that the interview went right and prevent
+            // it from disconnecting from the Zigbee network.
+            if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
+                const dp = data.data[10];
+                if (data.data.indexOf(Buffer.from([0x7a, 0xd1])) === 0) {
+                    const endpoint = device.getEndpoint(6);
+                    if (dp === 0x02) {
+                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const payload = {0x0802: {value: [data.data[3], 0, 0, 0, 0, 0, 0], type: data.data[2]}};
+                        await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
+                    }
+                }
+            }
         },
     },
 
