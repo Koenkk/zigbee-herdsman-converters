@@ -9596,6 +9596,22 @@ const devices = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
+        fingerprint: [{modelID: 'DoorSensor-EF-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS1DS-E',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         zigbeeModel: ['DOOR_TPV13', 'DOOR_TPV12'],
         model: 'HEIMAN-M1',
         vendor: 'HEIMAN',
