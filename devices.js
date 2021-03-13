@@ -91,7 +91,7 @@ const preset = {
         options = {disableEffect: false, supportsHS: false, ...options};
         const exposes = [(options.supportsHS ? e.light_brightness_color() : e.light_brightness_colorxy()),
             ...(!options.disableEffect ? [e.effect()] : [])];
-        const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
+        const fromZigbee = [fzc.color_olortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_brightness_step, tz.level_config, tz.power_on_behavior, tz.light_hue_saturation_move,
             tz.light_hue_saturation_step, tz.light_color_options, ...(!options.disableEffect ? [tz.effect] : [])];
@@ -13323,13 +13323,12 @@ const devices = [
         model: '33943',
         vendor: 'AwoX',
         description: 'LED RGB & Brightness',
-        fromZigbee: [fz.color, fz.on_off, fz.brightness, fz.level_config,fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config,fz.ignore_basic_report],
         toZigbee: [
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_hue_saturation_move,
-            tz.light_hue_saturation_step, tz.light_colortemp_startup, tz.level_config, tz.power_on_behavior, tz.light_color_options,
-            ...([tz.effect])],
-        exposes: [e.light_brightness_colortemp_colorxy(true), ...([e.effect()])],
+            tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step,
+            tz.level_config, tz.power_on_behavior, tz.light_color_options,tz.effect],
+        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()]
     },
     {
         fingerprint: [
