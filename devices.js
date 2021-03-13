@@ -14861,12 +14861,12 @@ const devices = [
         vendor: 'Schneider Electric',
         description: 'LK FUGA Wiser Wireless Double Relay',
         meta: {multiEndpoint: true, configureKey: 1},
-        fromZigbee: [fz.on_off, fz.wiser_fuga_relay_command],
+        fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
         },
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['s*_single'])],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['on_s*', 'off_s*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(6)) {
