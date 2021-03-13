@@ -13319,7 +13319,7 @@ const devices = [
         extend: preset.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TLSR82xx'],
+        fingerprint: [{modelID: 'TLSR82xx', manufacturerName: 'AwoX'}],
         model: '33943',
         vendor: 'AwoX',
         description: 'LED RGB & Brightness',
