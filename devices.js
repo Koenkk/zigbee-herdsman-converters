@@ -11136,7 +11136,7 @@ const devices = [
         model: 'TI0001-cover',
         description: 'Zigbee roller blind motor',
         vendor: 'Livolo',
-        fromZigbee: [fz.livolo_cover_state],
+        fromZigbee: [fz.livolo_cover_state, fz.command_off],
         toZigbee: [tz.livolo_cover_position],
         exposes: [e.cover_position()],
         meta: {configureKey: 1},
