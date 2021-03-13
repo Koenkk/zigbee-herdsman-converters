@@ -2041,15 +2041,37 @@ const converters = {
         cluster: 'genPowerCfg',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            const stateHeader = Buffer.from([122, 209]);
-            if (msg.data.indexOf(stateHeader) === 0) {
-                const dp = msg.data[10];
-                if (dp === 12 || dp === 15) {
-                    const position = 100 - msg.data[13];
-                    const state = position > 0 ? 'OPEN' : 'CLOSE';
-                    return {position, state};
-                } else { // TODO: Unknown dps
-                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: ${msg.data.toString('hex')}`);
+            const dp = msg.data[10];
+            if (msg.data.indexOf(Buffer.from([0x7a, 0xd1])) === 0) { // Normal operation messages
+                const reportType = msg.data[12];
+                switch (dp) {
+                case 0x0c:
+                case 0x0f:
+                    if (reportType === 0x04) { // Position report
+                        const position = options.invert_cover ? 100 - msg.data[13] : msg.data[13];
+                        const state = position > 0 ? 'OPEN' : 'CLOSE';
+                        return {position, state};
+                    }
+                    if (reportType === 0x12) { // Speed report
+                        const motorSpeed = msg.data[13];
+                        return {motor_speed: motorSpeed};
+                    } else if (reportType === 0x13) { // Direction report
+                        const direction = msg.data[13];
+                        if (direction === 0x70) {
+                            options.invert_cover = false;
+                        } else if (direction === 0xf0) {
+                            options.invert_cover = true;
+                        }
+                    }
+                    break;
+                case 0x02:
+                case 0x03:
+                    // Ignore special commands used only when pairing, as these will rather be handled by `onEvent`
+                    return null;
+                default:
+                    // Unknown dps
+                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
+                     ${msg.data.toString('hex')}`);
                 }
             }
         },
