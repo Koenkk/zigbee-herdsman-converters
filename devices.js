@@ -1180,6 +1180,20 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}],
+        model: 'WHD02',
+        vendor: 'TuYa',
+        description: 'Wall switch module',
+        toZigbee: preset.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on')]),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}],
         model: 'TS011F_2_gang_wall',
