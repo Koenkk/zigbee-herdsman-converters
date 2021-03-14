@@ -5405,7 +5405,7 @@ const devices = [
         model: 'GPDRPLOP401100CE',
         vendor: 'LEDVANCE',
         description: 'Panel TW LED 625 UGR19',
-        extend: preset.ledvance.light_onoff_brightness_colortemp(),
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
