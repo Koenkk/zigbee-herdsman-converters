@@ -2042,13 +2042,13 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[10];
-            if (msg.data.indexOf(Buffer.from([0x7a, 0xd1])) === 0) { // Normal operation messages
+            if (msg.data[0] === 0x7a & msg.data[1] === 0xd1) {
                 const reportType = msg.data[12];
                 switch (dp) {
                 case 0x0c:
                 case 0x0f:
                     if (reportType === 0x04) { // Position report
-                        const position = options.invert_cover ? 100 - msg.data[13] : msg.data[13];
+                        const position = meta.state.motor_direction === 'FORWARD' ? msg.data[13] : 100 - msg.data[13];
                         const state = position > 0 ? 'OPEN' : 'CLOSE';
                         return {position, state};
                     }
@@ -2058,9 +2058,9 @@ const converters = {
                     } else if (reportType === 0x13) { // Direction report
                         const direction = msg.data[13];
                         if (direction === 0x70) {
-                            options.invert_cover = false;
+                            return {motor_direction: 'REVERSE'};
                         } else if (direction === 0xf0) {
-                            options.invert_cover = true;
+                            return {motor_direction: 'FORWARD'};
                         }
                     }
                     break;

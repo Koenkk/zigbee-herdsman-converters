@@ -11156,7 +11156,7 @@ const devices = [
             // it from disconnecting from the Zigbee network.
             if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
                 const dp = data.data[10];
-                if (data.data.indexOf(Buffer.from([0x7a, 0xd1])) === 0) {
+                if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
                     const endpoint = device.getEndpoint(6);
                     if (dp === 0x02) {
                         const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
