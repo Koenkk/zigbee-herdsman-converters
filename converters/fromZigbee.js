@@ -140,7 +140,8 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('keypadLockout')) {
-                result.keypad_lockout = msg.data['keypadLockout'] !== 0;
+                result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
+                    constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
             return result;
         },
@@ -519,6 +520,16 @@ const converters = {
                 }
             }
 
+            if (msg.data.hasOwnProperty('options')) {
+                /*
+                * Bit | Value & Summary
+                * --------------------------
+                * 0   | 0: Do not execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
+                *     | 1: Execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
+                */
+                result.color_options = {execute_if_off: ((msg.data.options & 1<<0) > 0)};
+            }
+
             return result;
         },
     },
@@ -623,20 +634,6 @@ const converters = {
             }
         },
     },
-    on_off_skip_duplicate_transaction_and_disable_default_response: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.type === 'attributeReport') {
-                msg.meta.frameControl.disableDefaultResponse = true;
-            }
-
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
-                const property = postfixWithEndpointName('state', msg, model);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    },
     power_on_behavior: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -646,6 +643,17 @@ const converters = {
                 const property = postfixWithEndpointName('power_on_behavior', msg, model);
                 return {[property]: lookup[msg.data['startUpOnOff']]};
             }
+        },
+    },
+    ias_no_alarm: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
         },
     },
     ias_water_leak_alarm_1: {
@@ -1331,9 +1339,34 @@ const converters = {
             return result;
         },
     },
+    checkin_presence: {
+        cluster: 'genPollCtrl',
+        type: ['commandCheckIn'],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
+
+            // Stop existing timer because presence is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, 'timer', timer);
+
+            return {presence: true};
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
+    command_on_presence: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const payload1 = converters.checkin_presence.convert(model, msg, publish, options, meta);
+            const payload2 = converters.command_on.convert(model, msg, publish, options, meta);
+            return {...payload1, ...payload2};
+        },
+    },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -1424,7 +1457,7 @@ const converters = {
             case tuya.dataPoints.hyState: // 0x017D work state
                 return {state: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.hyChildLock: // 0x0181 Changed child lock status
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.hyExternalTemp: // external sensor temperature
                 return {external_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.hyAwayDays: // away preset days
@@ -1463,6 +1496,14 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
+        },
+    },
+    ias_ace_occupancy_with_timeout: {
+        cluster: 'ssIasAce',
+        type: 'commandGetPanelStatus',
+        convert: (model, msg, publish, options, meta) => {
+            msg.data.occupancy = 1;
+            return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
     tuya_led_controller: {
@@ -1509,24 +1550,25 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
-            case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
-                return {running: true};
             case tuya.dataPoints.coverArrived: { // Arrived at position
+                const running = dp === tuya.dataPoints.coverArrived ? false : true;
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
 
                 if (position > 0 && position <= 100) {
-                    return {running: false, position: position, state: 'OPEN'};
+                    return {running, position, state: 'OPEN'};
                 } else if (position == 0) { // Report fully closed
-                    return {running: false, position: position, state: 'CLOSE'};
+                    return {running, position, state: 'CLOSE'};
                 } else {
-                    return {running: false}; // Not calibrated yet, no position is available
+                    return {running}; // Not calibrated yet, no position is available
                 }
             }
             case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
                 return {motor_speed: value};
+            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+                break;
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
@@ -1573,6 +1615,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
             const lookup = {1: 'pressed'};
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -1711,11 +1754,33 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.thermostat.convert(model, msg, publish, options, meta);
+
             // ViessMann TRVs report piHeatingDemand from 0-5
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
             delete result.pi_heating_demand;
+
+            // viessmannCustom0
+            // 0-2, 5: unknown
+            // 3: window open (OO on display, no heating)
+            // 4: window open (OO on display, heating)
+            if (msg.data.hasOwnProperty('viessmannCustom0')) {
+                result.window_open = ((msg.data['viessmannCustom0'] == 3) || (msg.data['viessmannCustom0'] == 4));
+            }
+
+            // viessmannWindowOpenForce (rw, bool)
+            if (msg.data.hasOwnProperty('viessmannWindowOpenForce')) {
+                result.window_open_force = (msg.data['viessmannWindowOpenForce'] == 1);
+            }
+
+            // viessmannAssemblyMode (ro, bool)
+            // 0: TRV installed
+            // 1: TRV ready to install (-- on display)
+            if (msg.data.hasOwnProperty('viessmannAssemblyMode')) {
+                result.assembly_mode = (msg.data['viessmannAssemblyMode'] == 1);
+            }
+
             return result;
         },
     },
@@ -1823,8 +1888,11 @@ const converters = {
                 return {humidity_min: value};
             case tuya.dataPoints.neoMaxHumidity: // 0x026E [0,0,0,80] max alarm humidity
                 return {humidity_max: value};
-            case tuya.dataPoints.neoUnknown1: // 0x0465 [4]
-                break;
+            case tuya.dataPoints.neoPowerType: // 0x0465 [4]
+                return {
+                    power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                    battery_low: value === 3,
+                };
             case tuya.dataPoints.neoMelody: // 0x0466 [5] Melody
                 return {melody: value};
             case tuya.dataPoints.neoUnknown3: // 0x0473 [0]
@@ -2097,8 +2165,12 @@ const converters = {
             const payload = {};
             const channel = msg.endpoint.ID;
             const name = `l${channel}`;
+            const endpoint = msg.endpoint;
             payload[name] = precisionRound(msg.data['presentValue'], 3);
-            if (msg.data.hasOwnProperty('description')) {
+            const cluster = 'genLevelCtrl';
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload['brightness_' + name] = msg.data['presentValue'];
+            } else if (msg.data.hasOwnProperty('description')) {
                 const data1 = msg.data['description'];
                 if (data1) {
                     const data2 = data1.split(',');
@@ -2690,34 +2762,35 @@ const converters = {
             case tuya.dataPoints.moesSchedule:
                 return {
                     program: [
-                        {p1: value[0] + 'h:' + value[1] + 'm ' + value[2] + '°C'},
-                        {p2: value[3] + 'h:' + value[4] + 'm ' + value[5] + '°C'},
-                        {p3: value[6] + 'h:' + value[7] + 'm ' + value[8] + '°C'},
-                        {p4: value[9] + 'h:' + value[10] + 'm ' + value[11] + '°C'},
-                        {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14] + '°C'},
-                        {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17] + '°C'},
-                        {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20] + '°C'},
-                        {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23] + '°C'},
-                        {su1: value[24] + 'h:' + value[25] + 'm ' + value[26] + '°C'},
-                        {su2: value[27] + 'h:' + value[28] + 'm ' + value[29] + '°C'},
-                        {su3: value[30] + 'h:' + value[31] + 'm ' + value[32] + '°C'},
-                        {su4: value[33] + 'h:' + value[34] + 'm ' + value[35] + '°C'},
+                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
+                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
+                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
+                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
+                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
+                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
+                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
+                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
+                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
+                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
+                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
+                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
                     ],
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.moesChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesMaxTempLimit:
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
                 return {max_temperature: value};
-            case tuya.dataPoints.moesMinTemp:
-                return {min_temperature: value};
+            case tuya.dataPoints.moesDeadZoneTemp:
+                return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
-                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+                temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
+                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
@@ -2761,7 +2834,7 @@ const converters = {
             case tuya.dataPoints.saswellTempCalibration:
                 return {local_temperature_calibration: value > 6 ? 0xFFFFFFFF - value : value};
             case tuya.dataPoints.saswellChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
@@ -2889,7 +2962,7 @@ const converters = {
                     device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.heatingSetpoint:
                 return {current_heating_setpoint: (value / 10).toFixed(1)};
             case tuya.dataPoints.localTemp:
@@ -2959,7 +3032,7 @@ const converters = {
                     {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
                 ]};
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.siterwellWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.valveDetection:
@@ -3383,7 +3456,23 @@ const converters = {
         cluster: 'manuSpecificSamsungAccelerometer',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {moving: msg.data['acceleration'] === 1 ? true : false};
+            const payload = {};
+            if (msg.data.hasOwnProperty('acceleration')) payload.moving = msg.data['acceleration'] === 1;
+
+            // eslint-disable-next-line
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
+            /*
+                The axes reported by the sensor are mapped differently in the SmartThings DTH.
+                Preserving that functionality here.
+                xyzResults.x = z
+                xyzResults.y = y
+                xyzResults.z = -x
+            */
+            if (msg.data.hasOwnProperty('z_axis')) payload.x_axis = msg.data['z_axis'];
+            if (msg.data.hasOwnProperty('y_axis')) payload.y_axis = msg.data['y_axis'];
+            if (msg.data.hasOwnProperty('x_axis')) payload.z_axis = - msg.data['x_axis'];
+
+            return payload;
         },
     },
     byun_smoke_false: {
@@ -3654,7 +3743,7 @@ const converters = {
             if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
 
             // Maybe other QKBG also support release/hold?
-            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM'].includes(model.model) ?
+            const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
@@ -4338,7 +4427,10 @@ const converters = {
         type: 'commandOnWithTimedOff',
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.ctrlbits === 1) return;
-            const timeout = msg.data.ontime / 10;
+
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                options.occupancy_timeout : msg.data.ontime / 10;
+
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
 
@@ -5009,7 +5101,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const buttonLookup = {1: 'on', 2: 'up', 3: 'down', 4: 'off'};
             const button = buttonLookup[msg.data['button']];
-            const typeLookup = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
+            const typeLookup = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
             const type = typeLookup[msg.data['type']];
             const payload = {action: `${button}_${type}`};
 
@@ -5157,9 +5249,10 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            return {occupancy: (zoneStatus & 1<<2) > 0};
+            return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

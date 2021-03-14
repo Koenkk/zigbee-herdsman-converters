@@ -18,6 +18,7 @@ const manufacturerOptions = {
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
 const converters = {
@@ -60,6 +61,17 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['startUpOnOff']);
+        },
+    },
+    light_color_options: {
+        key: ['color_options'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = (value.hasOwnProperty('execute_if_off') && value.execute_if_off) ? 1 : 0;
+            await entity.write('lightingColorCtrl', {options}, utils.getOptions(meta.mapped, entity));
+            return {state: {'color_options': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['options']);
         },
     },
     lock: {
@@ -981,19 +993,34 @@ const converters = {
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            // Some bulb like Ikea Tådfri LED1624G9 do not support 'currentHue' and 'currentSaturation' attributes.
-            // Skip them if the `supportsHueAndSaturation` flag is set to false
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340
+            /**
+              * Not all bulbs suport the same features, we need to take care we read what is supported.
+              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
+              * `enhancedHue` indicates support for enhancedCurrentHue
+              *
+              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
+              *
+              * Additionally when we get a get payload, only request the fields included.
+             */
             const attributes = [];
-            if (meta.message && typeof meta.message.color === 'object') {
-                if (meta.message.color.hasOwnProperty('x')) attributes.push('currentX');
-                if (meta.message.color.hasOwnProperty('y')) attributes.push('currentY');
-                if (meta.message.color.hasOwnProperty('hue')) attributes.push('currentHue');
-                if (meta.message.color.hasOwnProperty('saturation')) attributes.push('currentSaturation');
-            } else {
-                attributes.push('currentX', 'currentY');
-                if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                    attributes.push('currentHue', 'currentSaturation');
+
+            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
+                attributes.push('currentX');
+            }
+            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
+                attributes.push('currentY');
+            }
+
+            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
+                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
+                    if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                        attributes.push('enhancedCurrentHue');
+                    } else {
+                        attributes.push('currentHue');
+                    }
+                }
+                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
+                    attributes.push('currentSaturation');
                 }
             }
 
@@ -1137,6 +1164,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+            return {readAfterWriteTime: 250, state: {keypad_lockout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
     thermostat_temperature_setpoint_hold: {
@@ -1273,6 +1304,12 @@ const converters = {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['activePower']);
+        },
+    },
+    metering_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('seMetering', ['instantaneousDemand']);
         },
     },
     // #endregion
@@ -1983,10 +2020,10 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
         },
     },
-    moes_thermostat_min_temperature: {
-        key: ['min_temperature'],
+    moes_thermostat_deadzone_temperature: {
+        key: ['deadzone_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTemp, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesDeadZoneTemp, value);
         },
     },
     moes_thermostat_calibration: {
@@ -1994,6 +2031,12 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 4096 + value;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesTempCalibration, value);
+        },
+    },
+    moes_thermostat_max_temperature_limit: {
+        key: ['max_temperature_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMaxTempLimit, value);
         },
     },
     moes_thermostat_mode: {
@@ -2136,7 +2179,8 @@ const converters = {
     tuya_dimmer_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+            // Always use same transid as tuya_dimmer_level (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
         },
     },
     tuya_dimmer_level: {
@@ -2174,7 +2218,8 @@ const converters = {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
             }
-            await tuya.sendDataPointValue(entity, dp, newValue);
+            // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await tuya.sendDataPointValue(entity, dp, newValue, 'setData', 1);
         },
     },
     tuya_switch_state: {
@@ -2571,7 +2616,7 @@ const converters = {
         },
     },
     ptvo_switch_analog_input: {
-        key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'],
+        key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8', 'l9', 'l10', 'l11', 'l12', 'l13', 'l14', 'l15', 'l16'],
         convertGet: async (entity, key, meta) => {
             const epId = parseInt(key.substr(1, 1));
             if ( utils.hasEndpoints(meta.device, [epId]) ) {
@@ -2616,6 +2661,16 @@ const converters = {
             }
             const cluster = 'genLevelCtrl';
             if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                const message = meta.message;
+
+                let brightness = undefined;
+                if (message.hasOwnProperty('brightness')) brightness = Number(message.brightness);
+                else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+
+                if ((brightness !== undefined) && (brightness === 0)) {
+                    message.state = 'off';
+                    message.brightness = 1;
+                }
                 return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
             } else {
                 throw new Error('LevelControl not supported on this endpoint.');
@@ -4330,7 +4385,7 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.hyState, value === 'ON');
                 break;
             case 'child_lock':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCKED');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCK');
                 break;
             case 'away_preset_days':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.hyAwayDays, value);
@@ -4445,6 +4500,43 @@ const converters = {
             const sens = {'high': 0, 'medium': 2, 'low': 6}[value];
             await entity.write('ssIasZone', {currentZoneSensitivityLevel: sens});
             return {state: {sensitivity: value}};
+        },
+    },
+    viessmann_window_open: {
+        key: ['window_open'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannCustom0'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_window_open_force: {
+        key: ['window_open_force'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'boolean') {
+                await entity.write('hvacThermostat', {'viessmannWindowOpenForce': value}, manufacturerOptions.viessmann);
+                return {readAfterWriteTime: 200, state: {'window_open_force': value}};
+            } else {
+                meta.logger.error('window_open_force must be a boolean!');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannWindowOpenForce'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_assembly_mode: {
+        key: ['assembly_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannAssemblyMode'], manufacturerOptions.viessmann);
+        },
+    },
+    dawondns_only_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            utils.validateValue(value, ['off']);
+            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
         },
     },
 
