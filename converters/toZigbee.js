@@ -177,11 +177,11 @@ const converters = {
             const onTime = message.hasOwnProperty('on_time') ? message.on_time : 0;
             const offWaitTime = message.hasOwnProperty('off_wait_time') ? message.off_wait_time : 0;
 
-            if (!Number.isInteger(onTime)) {
-                throw Error('The on_time value must be convertible to an integer');
+            if (typeof onTime !== 'number') {
+                throw Error('The on_time value must be a number!');
             }
-            if (!Number.isInteger(offWaitTime)) {
-                throw Error('The off_wait_time value must be convertible to an integer');
+            if (typeof offWaitTime !== 'number') {
+                throw Error('The off_wait_time value must be a number!');
             }
 
             await entity.command(
@@ -189,8 +189,8 @@ const converters = {
                 'onWithTimedOff',
                 {
                     ctrlbits: 0,
-                    ontime: onTime,
-                    offwaittime: offWaitTime,
+                    ontime: Math.round(onTime * 10),
+                    offwaittime: Math.round(offWaitTime * 10),
                 },
                 utils.getOptions(meta.mapped, entity));
         },
