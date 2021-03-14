@@ -152,47 +152,37 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             value = value.toLowerCase();
             utils.validateValue(value, ['toggle', 'off', 'on']);
-            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
-            if (value === 'toggle') {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-            } else {
-                return {state: {state: value.toUpperCase()}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
-        },
-    },
-    on_off_timed: {
-        key: ['state', 'on_time', 'off_wait_time'],
-        convertSet: async (entity, key, value, meta) => {
-            const {message} = meta;
-            const state = message.hasOwnProperty('state') ? message.state : null;
 
-            if (state !== 'onWithTimedOff') {
-                return await converters.on_off.convertSet(entity, key, value, meta);
-            }
+            if (value === 'on' && (message.hasOwnProperty('on_time') || message.hasOwnProperty('off_wait_time'))) {
+                const onTime = message.hasOwnProperty('on_time') ? message.on_time : 0;
+                const offWaitTime = message.hasOwnProperty('off_wait_time') ? message.off_wait_time : 0;
 
-            const onTime = message.hasOwnProperty('on_time') ? message.on_time : 0;
-            const offWaitTime = message.hasOwnProperty('off_wait_time') ? message.off_wait_time : 0;
+                if (typeof onTime !== 'number') {
+                    throw Error('The on_time value must be a number!');
+                }
+                if (typeof offWaitTime !== 'number') {
+                    throw Error('The off_wait_time value must be a number!');
+                }
 
-            if (typeof onTime !== 'number') {
-                throw Error('The on_time value must be a number!');
+                await entity.command(
+                    'genOnOff',
+                    'onWithTimedOff',
+                    {
+                        ctrlbits: 0,
+                        ontime: Math.round(onTime * 10),
+                        offwaittime: Math.round(offWaitTime * 10),
+                    },
+                    utils.getOptions(meta.mapped, entity));
             }
-            if (typeof offWaitTime !== 'number') {
-                throw Error('The off_wait_time value must be a number!');
+            else {
+                await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
+                if (value === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    return currentState ? { state: { state: currentState === 'OFF' ? 'ON' : 'OFF' } } : {};
+                } else {
+                    return { state: { state: value.toUpperCase() } };
+                }
             }
-
-            await entity.command(
-                'genOnOff',
-                'onWithTimedOff',
-                {
-                    ctrlbits: 0,
-                    ontime: Math.round(onTime * 10),
-                    offwaittime: Math.round(offWaitTime * 10),
-                },
-                utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
