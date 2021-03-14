@@ -153,9 +153,9 @@ const converters = {
             value = value.toLowerCase();
             utils.validateValue(value, ['toggle', 'off', 'on']);
 
-            if (value === 'on' && (message.hasOwnProperty('on_time') || message.hasOwnProperty('off_wait_time'))) {
-                const onTime = message.hasOwnProperty('on_time') ? message.on_time : 0;
-                const offWaitTime = message.hasOwnProperty('off_wait_time') ? message.off_wait_time : 0;
+            if (value === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
+                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -173,14 +173,13 @@ const converters = {
                         offwaittime: Math.round(offWaitTime * 10),
                     },
                     utils.getOptions(meta.mapped, entity));
-            }
-            else {
+            } else {
                 await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
                 if (value === 'toggle') {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
                     return currentState ? { state: { state: currentState === 'OFF' ? 'ON' : 'OFF' } } : {};
                 } else {
-                    return { state: { state: value.toUpperCase() } };
+                    return {state: {state: value.toUpperCase()}};
                 }
             }
         },
