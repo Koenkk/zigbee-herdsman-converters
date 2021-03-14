@@ -18,6 +18,7 @@ const manufacturerOptions = {
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
 const converters = {
@@ -4504,7 +4505,27 @@ const converters = {
     viessmann_window_open: {
         key: ['window_open'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['viessmannCustom0'], {manufacturerCode: 0x1221});
+            await entity.read('hvacThermostat', ['viessmannCustom0'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_window_open_force: {
+        key: ['window_open_force'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'boolean') {
+                await entity.write('hvacThermostat', {'viessmannWindowOpenForce': value}, manufacturerOptions.viessmann);
+                return {readAfterWriteTime: 200, state: {'window_open_force': value}};
+            } else {
+                meta.logger.error('window_open_force must be a boolean!');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannWindowOpenForce'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_assembly_mode: {
+        key: ['assembly_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannAssemblyMode'], manufacturerOptions.viessmann);
         },
     },
     dawondns_only_off: {

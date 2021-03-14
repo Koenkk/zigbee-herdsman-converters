@@ -1762,10 +1762,23 @@ const converters = {
             delete result.pi_heating_demand;
 
             // viessmannCustom0
-            // 0-2: unknown
-            // 3: window open (OO on display)
+            // 0-2, 5: unknown
+            // 3: window open (OO on display, no heating)
+            // 4: window open (OO on display, heating)
             if (msg.data.hasOwnProperty('viessmannCustom0')) {
-                result.window_open = (msg.data['viessmannCustom0'] == 3);
+                result.window_open = ((msg.data['viessmannCustom0'] == 3) || (msg.data['viessmannCustom0'] == 4));
+            }
+
+            // viessmannWindowOpenForce (rw, bool)
+            if (msg.data.hasOwnProperty('viessmannWindowOpenForce')) {
+                result.window_open_force = (msg.data['viessmannWindowOpenForce'] == 1);
+            }
+
+            // viessmannAssemblyMode (ro, bool)
+            // 0: TRV installed
+            // 1: TRV ready to install (-- on display)
+            if (msg.data.hasOwnProperty('viessmannAssemblyMode')) {
+                result.assembly_mode = (msg.data['viessmannAssemblyMode'] == 1);
             }
 
             return result;

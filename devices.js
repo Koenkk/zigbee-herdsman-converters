@@ -16205,12 +16205,16 @@ const devices = [
         description: 'ViCare radiator thermostat valve',
         fromZigbee: [fz.legacy.viessmann_thermostat_att_report, fz.battery, fz.legacy.hvac_user_interface],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode, tz.thermostat_keypad_lockout, tz.viessmann_window_open],
+            tz.thermostat_system_mode, tz.thermostat_keypad_lockout, tz.viessmann_window_open, tz.viessmann_window_open_force,
+            tz.viessmann_assembly_mode,
+        ],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1)
                 .withLocalTemperature().withSystemMode(['heat', 'sleep']),
             exposes.binary('window_open', ea.STATE_GET, true, false)
-                .withDescription('A window was opened (detected based on sudden temperature drop).'),
+                .withDescription('Detected by sudden temperature drop or set manually.'),
+            exposes.binary('window_open_force', ea.ALL, true, false)
+                .withDescription('Manually set window_open, ~1 minute to take affect.'),
             e.keypad_lockout(),
         ],
         meta: {configureKey: 3},
@@ -16228,6 +16232,9 @@ const devices = [
             // manufacturer attributes
             await endpoint.configureReporting('hvacThermostat', [{attribute: 'viessmannCustom0', minimumReportInterval: 60,
                 maximumReportInterval: 3600}], options);
+
+            // read window_open_force, we don't need reporting as it cannot be set physically on the device
+            await endpoint.read('hvacThermostat', ['viessmannWindowOpenForce'], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
