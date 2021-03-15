@@ -5645,7 +5645,7 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
     },
-        {
+    {
         zigbeeModel: ['SLR2b'],
         model: 'SLR2b',
         vendor: 'Hive',
