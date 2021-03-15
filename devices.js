@@ -9573,7 +9573,7 @@ const devices = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DoorSensor-N','DoorSensor-N-3.0'],
+        zigbeeModel: ['DoorSensor-N', 'DoorSensor-N-3.0'],
         model: 'HS3DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
@@ -9589,7 +9589,7 @@ const devices = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DoorSensor-EM','DoorSensor-EF-3.0'],
+        zigbeeModel: ['DoorSensor-EM', 'DoorSensor-EF-3.0'],
         model: 'HS1DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
