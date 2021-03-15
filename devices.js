@@ -5645,6 +5645,43 @@ const devices = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
     },
+        {
+        zigbeeModel: ['SLR2b'],
+        model: 'SLR2b',
+        vendor: 'Hive',
+        description: 'Dual channel heating and hot water thermostat',
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.thermostat_weekly_schedule_rsp],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+        endpoint: (device) => {
+            return {'heat': 5, 'water': 6};
+        },
+        meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const heatEndpoint = device.getEndpoint(5);
+            const waterEndpoint = device.getEndpoint(6);
+            const binds = [
+                'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
+            ];
+            await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(heatEndpoint, 0, repInterval.HOUR, 1);
+            await reporting.thermostatRunningState(heatEndpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint);
+            await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
+            await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatRunningState(waterEndpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
+            await reporting.thermostatTemperatureSetpointHold(waterEndpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
+        },
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('heat'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
+    },
     {
         zigbeeModel: ['WPT1'],
         model: 'WPT1',
