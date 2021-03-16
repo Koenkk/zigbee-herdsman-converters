@@ -1457,7 +1457,7 @@ const converters = {
             case tuya.dataPoints.hyState: // 0x017D work state
                 return {state: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.hyChildLock: // 0x0181 Changed child lock status
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.hyExternalTemp: // external sensor temperature
                 return {external_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.hyAwayDays: // away preset days
@@ -1496,6 +1496,14 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
+        },
+    },
+    ias_ace_occupancy_with_timeout: {
+        cluster: 'ssIasAce',
+        type: 'commandGetPanelStatus',
+        convert: (model, msg, publish, options, meta) => {
+            msg.data.occupancy = 1;
+            return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
     tuya_led_controller: {
@@ -1542,9 +1550,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
-            case tuya.dataPoints.state: // Confirm opening/closing/stopping (triggered from Zigbee)
             case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverChange: // Started moving (triggered by transmitter or pulling on curtain)
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const running = dp === tuya.dataPoints.coverArrived ? false : true;
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
@@ -1560,6 +1566,9 @@ const converters = {
             }
             case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
                 return {motor_speed: value};
+            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+                break;
             case tuya.dataPoints.config: // Returned by configuration set; ignore
                 break;
             default: // Unknown code
@@ -1745,11 +1754,33 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.thermostat.convert(model, msg, publish, options, meta);
+
             // ViessMann TRVs report piHeatingDemand from 0-5
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
             delete result.pi_heating_demand;
+
+            // viessmannCustom0
+            // 0-2, 5: unknown
+            // 3: window open (OO on display, no heating)
+            // 4: window open (OO on display, heating)
+            if (msg.data.hasOwnProperty('viessmannCustom0')) {
+                result.window_open = ((msg.data['viessmannCustom0'] == 3) || (msg.data['viessmannCustom0'] == 4));
+            }
+
+            // viessmannWindowOpenForce (rw, bool)
+            if (msg.data.hasOwnProperty('viessmannWindowOpenForce')) {
+                result.window_open_force = (msg.data['viessmannWindowOpenForce'] == 1);
+            }
+
+            // viessmannAssemblyMode (ro, bool)
+            // 0: TRV installed
+            // 1: TRV ready to install (-- on display)
+            if (msg.data.hasOwnProperty('viessmannAssemblyMode')) {
+                result.assembly_mode = (msg.data['viessmannAssemblyMode'] == 1);
+            }
+
             return result;
         },
     },
@@ -2027,6 +2058,45 @@ const converters = {
             }
         },
     },
+    livolo_cover_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data[10];
+            if (msg.data[0] === 0x7a & msg.data[1] === 0xd1) {
+                const reportType = msg.data[12];
+                switch (dp) {
+                case 0x0c:
+                case 0x0f:
+                    if (reportType === 0x04) { // Position report
+                        const position = meta.state.motor_direction === 'FORWARD' ? msg.data[13] : 100 - msg.data[13];
+                        const state = position > 0 ? 'OPEN' : 'CLOSE';
+                        return {position, state};
+                    }
+                    if (reportType === 0x12) { // Speed report
+                        const motorSpeed = msg.data[13];
+                        return {motor_speed: motorSpeed};
+                    } else if (reportType === 0x13) { // Direction report
+                        const direction = msg.data[13];
+                        if (direction === 0x70) {
+                            return {motor_direction: 'REVERSE'};
+                        } else if (direction === 0xf0) {
+                            return {motor_direction: 'FORWARD'};
+                        }
+                    }
+                    break;
+                case 0x02:
+                case 0x03:
+                    // Ignore special commands used only when pairing, as these will rather be handled by `onEvent`
+                    return null;
+                default:
+                    // Unknown dps
+                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
+                     ${msg.data.toString('hex')}`);
+                }
+            }
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2078,6 +2148,10 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
                     // new dimmer, hack
                     meta.device.modelID = 'TI0001-dimmer';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 21, 0]), 13)) {
+                    meta.device.modelID = 'TI0001-cover';
                     meta.device.save();
                 }
             }
@@ -2731,24 +2805,24 @@ const converters = {
             case tuya.dataPoints.moesSchedule:
                 return {
                     program: [
-                        {p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
-                        {p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
-                        {p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
-                        {p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
-                        {sa1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
-                        {sa2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
-                        {sa3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
-                        {sa4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
-                        {su1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
-                        {su2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
-                        {su3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
-                        {su4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
+                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
+                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
+                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
+                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
+                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
+                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
+                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
+                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
+                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
+                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
+                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
+                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
                     ],
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.moesChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesMaxTempLimit:
@@ -2803,7 +2877,7 @@ const converters = {
             case tuya.dataPoints.saswellTempCalibration:
                 return {local_temperature_calibration: value > 6 ? 0xFFFFFFFF - value : value};
             case tuya.dataPoints.saswellChildLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.saswellState:
                 return {system_mode: value ? 'heat' : 'off'};
             case tuya.dataPoints.saswellLocalTemp:
@@ -2931,7 +3005,7 @@ const converters = {
                     device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.heatingSetpoint:
                 return {current_heating_setpoint: (value / 10).toFixed(1)};
             case tuya.dataPoints.localTemp:
@@ -3001,7 +3075,7 @@ const converters = {
                     {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
                 ]};
             case tuya.dataPoints.childLock:
-                return {child_lock: value ? 'LOCKED' : 'UNLOCKED'};
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.siterwellWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.valveDetection:
@@ -5218,7 +5292,7 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            return {occupancy: (zoneStatus & 1<<2) > 0};
+            return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
 

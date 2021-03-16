@@ -18,6 +18,7 @@ const manufacturerOptions = {
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
 const converters = {
@@ -148,16 +149,32 @@ const converters = {
         },
     },
     on_off: {
-        key: ['state'],
+        key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            utils.validateValue(value, ['toggle', 'off', 'on']);
-            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
-            if (value === 'toggle') {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+            const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+            utils.validateValue(state, ['toggle', 'off', 'on']);
+
+            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
+                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+
+                if (typeof onTime !== 'number') {
+                    throw Error('The on_time value must be a number!');
+                }
+                if (typeof offWaitTime !== 'number') {
+                    throw Error('The off_wait_time value must be a number!');
+                }
+
+                const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+                await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
             } else {
-                return {state: {state: value.toUpperCase()}};
+                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                } else {
+                    return {state: {state: state.toUpperCase()}};
+                }
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -1417,6 +1434,39 @@ const converters = {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
+    livolo_cover_position: {
+        key: ['state', 'position'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'position') {
+                const position = meta.state.motor_direction === 'FORWARD' ? value : 100 - value;
+                await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+                const payload = {0x0401: {value: Buffer.from([position, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+                await entity.write('genPowerCfg', payload,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
+                return {
+                    state: {position: value},
+                    readAfterWriteTime: 250,
+                };
+            } else if (key === 'state') {
+                let position;
+                switch (value) {
+                case 'OPEN':
+                    position = 100;
+                    break;
+                case 'CLOSE':
+                    position = 0;
+                    break;
+                default:
+                    throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
+                }
+                return await converters.livolo_cover_position.convertSet(entity, 'position', position, meta);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {
@@ -2030,6 +2080,12 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 4096 + value;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesTempCalibration, value);
+        },
+    },
+    moes_thermostat_max_temperature_limit: {
+        key: ['max_temperature_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMaxTempLimit, value);
         },
     },
     moes_thermostat_mode: {
@@ -4378,7 +4434,7 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.hyState, value === 'ON');
                 break;
             case 'child_lock':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCKED');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hyChildLock, value === 'LOCK');
                 break;
             case 'away_preset_days':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.hyAwayDays, value);
@@ -4493,6 +4549,43 @@ const converters = {
             const sens = {'high': 0, 'medium': 2, 'low': 6}[value];
             await entity.write('ssIasZone', {currentZoneSensitivityLevel: sens});
             return {state: {sensitivity: value}};
+        },
+    },
+    viessmann_window_open: {
+        key: ['window_open'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannCustom0'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_window_open_force: {
+        key: ['window_open_force'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'boolean') {
+                await entity.write('hvacThermostat', {'viessmannWindowOpenForce': value}, manufacturerOptions.viessmann);
+                return {readAfterWriteTime: 200, state: {'window_open_force': value}};
+            } else {
+                meta.logger.error('window_open_force must be a boolean!');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannWindowOpenForce'], manufacturerOptions.viessmann);
+        },
+    },
+    viessmann_assembly_mode: {
+        key: ['assembly_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['viessmannAssemblyMode'], manufacturerOptions.viessmann);
+        },
+    },
+    dawondns_only_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            utils.validateValue(value, ['off']);
+            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
         },
     },
 

@@ -264,7 +264,7 @@ const devices = [
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage()],
         toZigbee: [],
     },
     {
@@ -273,7 +273,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_battery,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -284,7 +284,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch (with gyroscope)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_multistate_action, fz.legacy.WXKG12LM_action_click_multistate],
         toZigbee: [],
     },
@@ -294,7 +294,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single']), e.voltage()],
+        exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG03LM_click],
         toZigbee: [],
         onEvent: xiaomi.preventReset,
@@ -305,7 +305,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wireless wall switch (2018 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -318,7 +318,7 @@ const devices = [
         description: 'Aqara D1 single key wireless wall switch',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -332,7 +332,7 @@ const devices = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.voltage()],
+        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG02LM_click],
         toZigbee: [],
         onEvent: xiaomi.preventReset,
@@ -344,7 +344,7 @@ const devices = [
         description: 'Aqara double key wireless wall switch (2018 model)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
-            'hold_left', 'hold_right', 'hold_both']), e.voltage()],
+            'hold_left', 'hold_right', 'hold_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
@@ -501,7 +501,7 @@ const devices = [
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
         },
-        exposes: [e.battery(), e.voltage(), e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.action([
             'left', 'right', 'both', 'left_double', 'right_double', 'both_double', 'left_long', 'right_long', 'both_long'])],
         onEvent: xiaomi.preventReset,
     },
@@ -636,7 +636,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.WSDCGQ01LM_WSDCGQ11LM_interval, fz.xiaomi_temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.weather'],
@@ -646,7 +646,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}, configureKey: 1},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure, fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
@@ -665,7 +665,7 @@ const devices = [
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
@@ -675,7 +675,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.voltage()],
+        exposes: [e.battery(), e.occupancy(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
@@ -685,7 +685,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance, fz.RTCGQ11LM_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.temperature(), e.voltage(), e.illuminance_lux().withProperty('illuminance'),
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
@@ -734,7 +734,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.voltage()],
+        exposes: [e.battery(), e.contact(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -744,7 +744,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.temperature(), e.voltage()],
+        exposes: [e.battery(), e.contact(), e.temperature(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
@@ -754,7 +754,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -764,7 +764,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -773,7 +773,8 @@ const devices = [
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.voltage(),
+        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'),
+            e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
@@ -866,7 +867,7 @@ const devices = [
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.voltage(),
+            exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
         ],
     },
     {
@@ -900,7 +901,7 @@ const devices = [
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
             e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', ea.STATE),
-            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.voltage(),
+            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.battery_voltage(),
         ],
     },
     {
@@ -967,7 +968,7 @@ const devices = [
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery, fz.xiaomi_battery],
         toZigbee: [],
         exposes: [
-            e.battery(), e.voltage(), e.battery_low(), exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.battery(), e.battery_voltage(), e.battery_low(), exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
             exposes.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
             exposes.enum('action', ea.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
@@ -1157,6 +1158,20 @@ const devices = [
     },
 
     // TuYa
+    {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}],
+        model: 'WHD02',
+        vendor: 'TuYa',
+        description: 'Wall switch module',
+        toZigbee: preset.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: preset.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: preset.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on')]),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}],
@@ -1410,7 +1425,7 @@ const devices = [
         vendor: 'TuYa',
         description: 'Security remote control',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Woox', model: 'R7054'}, {vendor: 'Nedis', model: 'ZBRC10WT'}],
         meta: {configureKey: 1},
@@ -1476,7 +1491,7 @@ const devices = [
         description: 'Temperature & humidity sensor with display',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['TS0041'],
@@ -2846,6 +2861,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4034030P6'],
+        model: '4034030P6',
+        vendor: 'Philips',
+        description: 'Hue Fair with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWO003'],
         model: '8719514279131',
         vendor: 'Philips',
@@ -3253,7 +3277,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3360,7 +3384,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3414,7 +3438,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3424,6 +3448,24 @@ const devices = [
         description: 'Hue white ambiance GU10 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3418131P6'],
+        model: '3418131P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3417931P6'],
+        model: '3417931P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore GU10 with Bluetooth (2 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3544,7 +3586,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCW002'],
+        zigbeeModel: ['LCW002', '4090230P9'],
         model: '4090230P9',
         vendor: 'Philips',
         description: 'Hue Liane',
@@ -3666,7 +3708,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3693,7 +3735,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3810,7 +3852,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp (low voltage)',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -3949,10 +3991,19 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5063231P7'],
+        model: '5063231P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato (2 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063331P7'],
         model: '5063331P7',
         vendor: 'Philips',
-        description: 'Hue Bluetooth White & Color Ambiance spot Fugato (3 spots)',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato (3 spots)',
         meta: {turnsOffAtBrightness1: true},
         extend: preset.hue.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
@@ -4271,7 +4322,16 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp_color(),
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['1741530P7'],
+        model: '1741530P7',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor spot light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -4443,12 +4503,22 @@ const devices = [
     },
     {
         zigbeeModel: ['cc2538.router.v1'],
-        model: 'CC2538.ROUTER',
+        model: 'CC2538.ROUTER.V1',
         vendor: 'Custom devices (DiY)',
         description: '[MODKAM stick СС2538 router](https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
         fromZigbee: [fz.ignore_basic_report],
         toZigbee: [],
         exposes: [],
+    },
+    {
+        zigbeeModel: ['cc2538.router.v2'],
+        model: 'CC2538.ROUTER.V2',
+        vendor: 'Custom devices (DiY)',
+        description: '[MODKAM stick СС2538 router with temperature sensor]' +
+            '(https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
+        fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
+        toZigbee: [],
+        exposes: [e.device_temperature()],
     },
     {
         zigbeeModel: ['ptvo.switch'],
@@ -5324,6 +5394,14 @@ const devices = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Panel TW 620 UGR19'],
+        model: 'GPDRPLOP401100CE',
+        vendor: 'LEDVANCE',
+        description: 'Panel TW LED 625 UGR19',
+        extend: preset.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['A60 RGBW Value II'],
         model: 'AC25697',
         vendor: 'LEDVANCE',
@@ -5480,7 +5558,7 @@ const devices = [
     },
     {
         zigbeeModel: ['TWBulb01UK'],
-        model: 'HV-GSCXZB279_HV-GSCXZB229',
+        model: 'HV-GSCXZB279_HV-GSCXZB229_HV-GSCXZB229K',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
         extend: preset.light_onoff_brightness_colortemp(),
@@ -5544,6 +5622,43 @@ const devices = [
         vendor: 'Hive',
         description: 'Dual channel heating and hot water thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.thermostat_weekly_schedule_rsp],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+        endpoint: (device) => {
+            return {'heat': 5, 'water': 6};
+        },
+        meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const heatEndpoint = device.getEndpoint(5);
+            const waterEndpoint = device.getEndpoint(6);
+            const binds = [
+                'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
+            ];
+            await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(heatEndpoint, 0, repInterval.HOUR, 1);
+            await reporting.thermostatRunningState(heatEndpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint);
+            await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
+            await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatRunningState(waterEndpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
+            await reporting.thermostatTemperatureSetpointHold(waterEndpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
+        },
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('heat'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
+    },
+    {
+        zigbeeModel: ['SLR2b'],
+        model: 'SLR2b',
+        vendor: 'Hive',
+        description: 'Dual channel heating and hot water thermostat',
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
@@ -5753,6 +5868,14 @@ const devices = [
         model: 'RB 162',
         vendor: 'Innr',
         description: 'E27 bulb',
+        extend: preset.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 172 W'],
+        model: 'RB 172 W',
+        vendor: 'Innr',
+        description: 'ZigBee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm',
         extend: preset.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
@@ -7155,7 +7278,6 @@ const devices = [
     },
 
     // Gledopto
-
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
@@ -7336,6 +7458,14 @@ const devices = [
         model: 'GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller W',
+        extend: preset.gledopto.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['GL-C-009P'],
+        model: 'GL-C-009P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee LED Controller W (pro)',
         extend: preset.gledopto.light_onoff_brightness(),
     },
     {
@@ -7576,7 +7706,7 @@ const devices = [
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
         description: 'Zigbee 10W Floodlight RGB+CCT (plus)',
-        extend: preset.gledopto.light_onoff_brightness_colortemp_color(),
+        extend: preset.gledopto.light_onoff_brightness_colortemp_color({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004P', 'GL-FL-004TZP'],
@@ -7628,7 +7758,7 @@ const devices = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 60W Floodlight RGB+CCT (pro)',
-        extend: preset.gledopto.light_onoff_brightness_colortemp_color(),
+        extend: preset.gledopto.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-G-001Z'],
@@ -8252,6 +8382,9 @@ const devices = [
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
             const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [
             e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
@@ -8757,6 +8890,20 @@ const devices = [
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
+    {
+        zigbeeModel: ['902010/23'],
+        model: '902010/23',
+        vendor: 'Bitron',
+        description: '4 button Zigbee remote control',
+        fromZigbee: [fz.ias_no_alarm, fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_*']), e.battery_low()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl']);
+        },
+    },
 
     // Iris
     {
@@ -9046,9 +9193,9 @@ const devices = [
         vendor: 'Centralite',
         description: '3-Series security keypad',
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery],
-        exposes: [e.battery(), e.temperature(), e.action([
-            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_ace_occupancy_with_timeout],
+        exposes: [e.battery(), e.temperature(), e.occupancy(), e.action([
+            'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -9122,10 +9269,10 @@ const devices = [
         description: 'Alarm security keypad',
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,
-            fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1_with_timeout],
-        exposes: [e.battery(), e.voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
+            fz.ias_ace_occupancy_with_timeout],
+        exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),
             exposes.numeric('action_code', ea.STATE), exposes.text('action_zone', ea.STATE), e.temperature(), e.action([
-                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency',
+                'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency',
             ])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -9363,7 +9510,7 @@ const devices = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0'],
+        zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0', 'PIR_TPV13'],
         model: 'HS3MS',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
@@ -9479,8 +9626,8 @@ const devices = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DoorSensor-N'],
-        model: 'HS1DS/HS3DS',
+        zigbeeModel: ['DoorSensor-N', 'DoorSensor-N-3.0'],
+        model: 'HS3DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
@@ -9495,26 +9642,8 @@ const devices = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DOOR_TPV13', 'DOOR_TPV12'],
-        model: 'HEIMAN-M1',
-        vendor: 'HEIMAN',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
-    },
-    {
-        zigbeeModel: ['DoorSensor-EM'],
-        model: 'HS1DS-E',
-        vendor: 'HEIMAN',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
-    },
-    {
-        fingerprint: [{modelID: 'DoorSensor-N-3.0', manufacturerName: 'HEIMAN'}],
-        model: 'HS3DS',
+        zigbeeModel: ['DoorSensor-EM', 'DoorSensor-EF-3.0'],
+        model: 'HS1DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
@@ -9527,6 +9656,15 @@ const devices = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ['DOOR_TPV13', 'DOOR_TPV12'],
+        model: 'HEIMAN-M1',
+        vendor: 'HEIMAN',
+        description: 'Door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['WaterSensor-N'],
@@ -10841,19 +10979,27 @@ const devices = [
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand()],
-        meta: {configureKey: 3},
+        meta: {configureKey: 4},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1246};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+
+            // standard ZCL attributes
+            await reporting.batteryPercentageRemaining(endpoint, {min: 60, max: 43200, change: 1});
             await reporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 1});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
+
+            // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4012, type: 0x10}, minimumReportInterval: 0,
                 maximumReportInterval: repInterval.MINUTES_10, reportableChange: 1}], options);
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4000, type: 0x30}, minimumReportInterval: 0,
                 maximumReportInterval: repInterval.HOUR, reportableChange: 1}], options);
+
+            // read keypadLockout, we don't need reporting as it cannot be set physically on the device
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
 
@@ -10871,7 +11017,15 @@ const devices = [
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
-            .withPiHeatingDemand()],
+            .withPiHeatingDemand(),
+        exposes.enum('eurotronic_trv_mode', exposes.access.ALL, [1, 2])
+            .withDescription('Select between direct control of the valve via the `eurotronic_valve_position` or automatic control of the '+
+            'valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value '+
+            'to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) '+
+            'and the buttons on the device are disabled.'),
+        exposes.numeric('eurotronic_valve_position', exposes.access.ALL).withValueMin(0).withValueMax(255)
+            .withDescription('Directly control the radiator valve when `eurotronic_trv_mode` is set to 1. The values range from 0 (valve '+
+            'closed) to 255 (valve fully open)')],
         meta: {configureKey: 3},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -11011,6 +11165,43 @@ const devices = [
                     await livolo.poll(device);
                 }, 300*1000); // Every 300 seconds
                 globalStore.putValue(device, 'interval', interval);
+            }
+        },
+    },
+    {
+        zigbeeModel: ['TI0001-cover'],
+        model: 'TI0001-cover',
+        description: 'Zigbee roller blind motor',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_cover_state, fz.command_off],
+        toZigbee: [tz.livolo_cover_position],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (!globalStore.hasValue(device, 'interval')) {
+                await livolo.poll(device);
+                const interval = setInterval(async () => {
+                    await livolo.poll(device);
+                }, 300*1000); // Every 300 seconds
+                globalStore.putValue(device, 'interval', interval);
+            }
+            // This is needed while pairing in order to let the device know that the interview went right and prevent
+            // it from disconnecting from the Zigbee network.
+            if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
+                const dp = data.data[10];
+                if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
+                    const endpoint = device.getEndpoint(6);
+                    if (dp === 0x02) {
+                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const payload = {0x0802: {value: [data.data[3], 0, 0, 0, 0, 0, 0], type: data.data[2]}};
+                        await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
+                    }
+                }
             }
         },
     },
@@ -13204,6 +13395,18 @@ const devices = [
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599], outputClusters: [6]},
+                {ID: 3, profileID: 4751, deviceID: 269, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+            ]},
+        ],
+        model: '33944',
+        vendor: 'AwoX',
+        description: 'LED E27 light with color and color temperature',
+        extend: preset.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
                 {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599], outputClusters: [6]},
                 {ID: 3, profileID: 4751, deviceID: 268, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
             ]},
@@ -13460,13 +13663,14 @@ const devices = [
         vendor: 'Dawon DNS',
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
-        toZigbee: [tz.on_off], // Only support 'Off' command
-        meta: {configureKey: 1, battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.onOff(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.switch(), e.voltage()],
     },
@@ -14193,15 +14397,16 @@ const devices = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
         description: 'Contact sensor',
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['WB01', 'WB-01'],
@@ -14238,10 +14443,10 @@ const devices = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK08'}],
         description: 'Temperature and humidity sensor',
-        exposes: [e.battery(), e.temperature(), e.humidity()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
@@ -14250,6 +14455,7 @@ const devices = [
                 await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
+                await reporting.batteryPercentageRemaining(endpoint);
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */}
         },
     },
@@ -14504,7 +14710,7 @@ const devices = [
         description: 'Smart remote controller',
         fromZigbee: [fz.command_arm, fz.command_emergency, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'invalid_code', 'emergency'])],
+        exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -14605,8 +14811,9 @@ const devices = [
         description: 'Moes BHT series Thermostat',
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
-            tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration, tz.moes_thermostat_deadzone_temperature],
-        exposes: [e.child_lock(), e.deadzone_temperature(),
+            tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
+            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
+        exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
@@ -14615,7 +14822,7 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}],
-        model: 'ZTS-EU',
+        model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
@@ -14624,6 +14831,21 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_tz32mtza'}],
+        model: 'ZTS-EU_3gang',
+        vendor: 'Moes',
+        description: 'Wall touch light switch (3 gang)',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.tuya_switch_2],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1};
         },
     },
     {
@@ -14769,6 +14991,29 @@ const devices = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['LK Switch'],
+        model: '545D6514',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless double relay',
+        meta: {multiEndpoint: true, configureKey: 1},
+        fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
+        },
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['on_s*', 'off_s*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.endpoints.forEach(async (ep) => {
+                if (ep.outputClusters.includes(6)) {
+                    await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
+                    if (ep.ID <= 2) {
+                        await reporting.onOff(ep);
+                    }
+                }
+            });
+        },
+    },
 
     // Legrand
     {
@@ -14851,7 +15096,7 @@ const devices = [
             // support binary report on moving state (supposed)
             fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingAlwaysEnableLed],
-        meta: {configureKey: 1, coverInverted: true},
+        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
@@ -15580,6 +15825,27 @@ const devices = [
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
+        zigbeeModel: ['HESZB-120'],
+        model: 'HESZB-120',
+        vendor: 'Develco',
+        description: 'Fire detector with siren',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(35);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
+            await reporting.batteryVoltage(endpoint);
+            const endpoint2 = device.getEndpoint(38);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint2);
+        },
+        endpoint: (device) => {
+            return {default: 35};
+        },
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
+    },
+    {
         zigbeeModel: ['MOSZB-130'],
         model: 'MOSZB-130',
         vendor: 'Develco',
@@ -15716,7 +15982,7 @@ const devices = [
     },
     {
         zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK'],
-        model: 'AU-A1GSZ9RGBW',
+        model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
         extend: preset.light_onoff_brightness_colortemp_color(),
@@ -15784,6 +16050,28 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['DoubleSocket50AU'],
+        model: 'AU-A1ZBDSS',
+        vendor: 'Aurora Lighting',
+        description: 'Double smart socket UK',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.power().withEndpoint('left'), e.power().withEndpoint('right')],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint2);
         },
     },
     {
@@ -16016,17 +16304,36 @@ const devices = [
         description: 'ViCare radiator thermostat valve',
         fromZigbee: [fz.legacy.viessmann_thermostat_att_report, fz.battery, fz.legacy.hvac_user_interface],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode, tz.thermostat_keypad_lockout],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['heat', 'sleep']), e.keypad_lockout()],
-        meta: {configureKey: 2},
+            tz.thermostat_system_mode, tz.thermostat_keypad_lockout, tz.viessmann_window_open, tz.viessmann_window_open_force,
+            tz.viessmann_assembly_mode,
+        ],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withLocalTemperature().withSystemMode(['heat', 'sleep']),
+            exposes.binary('window_open', ea.STATE_GET, true, false)
+                .withDescription('Detected by sudden temperature drop or set manually.'),
+            exposes.binary('window_open_force', ea.ALL, true, false)
+                .withDescription('Manually set window_open, ~1 minute to take affect.'),
+            e.keypad_lockout(),
+        ],
+        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: 0x1221};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'hvacThermostat']);
+
+            // standard ZCL attributes
             await reporting.batteryPercentageRemaining(endpoint, {min: 60, max: 43200, change: 1});
             await reporting.thermostatTemperature(endpoint, {min: 90, max: 900, change: 10});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 65534, change: 1});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 60, max: 3600, change: 1});
+
+            // manufacturer attributes
+            await endpoint.configureReporting('hvacThermostat', [{attribute: 'viessmannCustom0', minimumReportInterval: 60,
+                maximumReportInterval: 3600}], options);
+
+            // read window_open_force, we don't need reporting as it cannot be set physically on the device
+            await endpoint.read('hvacThermostat', ['viessmannWindowOpenForce'], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -16799,14 +17106,14 @@ const devices = [
 
     // Fantem
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}, {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [tz.ZB003X],
-        exposes: [e.occupancy(), e.battery(), e.illuminance().withUnit('lx'), e.temperature(), e.humidity(),
-            exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes'),
+        exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
+            e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes'),
             exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration'),
             exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration'),
             exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration'),
@@ -16874,6 +17181,16 @@ const devices = [
         description: 'MEGOS LED panel RGB+CCT 40W 3600lm 30 x 120 cm',
         extend: preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
+    },
+
+    // SOHAN Electric
+    {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_bezfthwc'}],
+        model: 'RDCBC/Z',
+        vendor: 'SOHAN Electric',
+        description: 'DIN circuit breaker (1 pole / 2 poles)',
+        extend: preset.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
 ];
 
