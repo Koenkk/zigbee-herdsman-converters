@@ -14834,6 +14834,21 @@ const devices = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g1ib5ldv'}],
+        model: 'ZTS-EU_2gang',
+        vendor: 'Moes',
+        description: 'Wall touch light switch (2 gang)',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.tuya_switch_2],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1};
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_tz32mtza'}],
         model: 'ZTS-EU_3gang',
         vendor: 'Moes',
