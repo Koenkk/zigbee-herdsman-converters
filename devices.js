@@ -16384,7 +16384,7 @@ const devices = [
         vendor: 'EchoStar',
         description: 'SAGE by Hughes doorbell sensor',
         fromZigbee: [fz.SAGE206612_state, fz.battery],
-        exposes: [e.battery(), e.action(['on'])],
+        exposes: [e.battery(), e.action(['bell1', 'bell2'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
     },
