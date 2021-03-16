@@ -5830,7 +5830,7 @@ const devices = [
         zigbeeModel: ['RB 172 W'],
         model: 'RB 172 W',
         vendor: 'Innr',
-        description: 'ZigBee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm', # Taken from EU CE Declaration of Conformity
+        description: 'ZigBee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm',
         extend: preset.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
