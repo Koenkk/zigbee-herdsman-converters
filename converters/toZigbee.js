@@ -1418,6 +1418,39 @@ const converters = {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
+    livolo_cover_position: {
+        key: ['state', 'position'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'position') {
+                const position = meta.state.motor_direction === 'FORWARD' ? value : 100 - value;
+                await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+                const payload = {0x0401: {value: Buffer.from([position, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
+                await entity.write('genPowerCfg', payload,
+                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
+                return {
+                    state: {position: value},
+                    readAfterWriteTime: 250,
+                };
+            } else if (key === 'state') {
+                let position;
+                switch (value) {
+                case 'OPEN':
+                    position = 100;
+                    break;
+                case 'CLOSE':
+                    position = 0;
+                    break;
+                default:
+                    throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
+                }
+                return await converters.livolo_cover_position.convertSet(entity, 'position', position, meta);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+        },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {

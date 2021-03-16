@@ -2058,6 +2058,45 @@ const converters = {
             }
         },
     },
+    livolo_cover_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data[10];
+            if (msg.data[0] === 0x7a & msg.data[1] === 0xd1) {
+                const reportType = msg.data[12];
+                switch (dp) {
+                case 0x0c:
+                case 0x0f:
+                    if (reportType === 0x04) { // Position report
+                        const position = meta.state.motor_direction === 'FORWARD' ? msg.data[13] : 100 - msg.data[13];
+                        const state = position > 0 ? 'OPEN' : 'CLOSE';
+                        return {position, state};
+                    }
+                    if (reportType === 0x12) { // Speed report
+                        const motorSpeed = msg.data[13];
+                        return {motor_speed: motorSpeed};
+                    } else if (reportType === 0x13) { // Direction report
+                        const direction = msg.data[13];
+                        if (direction === 0x70) {
+                            return {motor_direction: 'REVERSE'};
+                        } else if (direction === 0xf0) {
+                            return {motor_direction: 'FORWARD'};
+                        }
+                    }
+                    break;
+                case 0x02:
+                case 0x03:
+                    // Ignore special commands used only when pairing, as these will rather be handled by `onEvent`
+                    return null;
+                default:
+                    // Unknown dps
+                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
+                     ${msg.data.toString('hex')}`);
+                }
+            }
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2109,6 +2148,10 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
                     // new dimmer, hack
                     meta.device.modelID = 'TI0001-dimmer';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 21, 0]), 13)) {
+                    meta.device.modelID = 'TI0001-cover';
                     meta.device.save();
                 }
             }

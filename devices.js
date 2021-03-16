@@ -11177,6 +11177,43 @@ const devices = [
             }
         },
     },
+    {
+        zigbeeModel: ['TI0001-cover'],
+        model: 'TI0001-cover',
+        description: 'Zigbee roller blind motor',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_cover_state, fz.command_off],
+        toZigbee: [tz.livolo_cover_position],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        meta: {configureKey: 1},
+        configure: livolo.poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+            }
+            if (!globalStore.hasValue(device, 'interval')) {
+                await livolo.poll(device);
+                const interval = setInterval(async () => {
+                    await livolo.poll(device);
+                }, 300*1000); // Every 300 seconds
+                globalStore.putValue(device, 'interval', interval);
+            }
+            // This is needed while pairing in order to let the device know that the interview went right and prevent
+            // it from disconnecting from the Zigbee network.
+            if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
+                const dp = data.data[10];
+                if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
+                    const endpoint = device.getEndpoint(6);
+                    if (dp === 0x02) {
+                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const payload = {0x0802: {value: [data.data[3], 0, 0, 0, 0, 0, 0], type: data.data[2]}};
+                        await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
+                    }
+                }
+            }
+        },
+    },
 
     // Bosch
     {
