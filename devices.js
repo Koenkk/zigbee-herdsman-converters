@@ -13393,7 +13393,7 @@ const devices = [
         ],
         model: '33943',
         vendor: 'AwoX',
-        description: 'LED RGB & Brightness',
+        description: 'LED RGB & brightness',
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
             tz.ignore_rate, tz.light_brightness_move, tz.light_colortemp_move,
