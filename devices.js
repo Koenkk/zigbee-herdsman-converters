@@ -15809,6 +15809,27 @@ const devices = [
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
+        zigbeeModel: ['HESZB-120'],
+        model: 'HESZB-120',
+        vendor: 'Develco',
+        description: 'Fire detector with siren',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.warning],
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(35);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
+            await reporting.batteryVoltage(endpoint);
+            const endpoint2 = device.getEndpoint(38);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint2);
+        },
+        endpoint: (device) => {
+            return {default: 35};
+        },
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
+    },
+    {
         zigbeeModel: ['MOSZB-130'],
         model: 'MOSZB-130',
         vendor: 'Develco',
