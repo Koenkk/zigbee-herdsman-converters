@@ -13385,7 +13385,12 @@ const devices = [
         extend: preset.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'TLSR82xx', manufacturerName: 'AwoX'}],
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [6, 25]},
+                {ID: 3, profileID: 49152, deviceID: 258, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+            ]},
+        ],
         model: '33943',
         vendor: 'AwoX',
         description: 'LED RGB & Brightness',
