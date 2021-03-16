@@ -520,12 +520,13 @@ const converters = {
 
                 await entity.command('lightingColorCtrl', 'moveColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
-                // As we cannot determine the new brightness state, we read it from the device
+                // We cannot determine the color temperaturefrom the current state so we read it, because
+                // - Color mode could have been swithed (x/y or colortemp)
                 if (value === 'stop' || value === 0) {
                     const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                     if (entityToRead) {
                         await utils.sleep(100);
-                        await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
+                        await entityToRead.read('lightingColorCtrl', ['colorTemperature', 'colorMode']);
                     }
                 }
             } else {
@@ -565,7 +566,7 @@ const converters = {
             const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
                 await utils.sleep(100 + (transition * 100));
-                await entityToRead.read('lightingColorCtrl', [attribute]);
+                await entityToRead.read('lightingColorCtrl', [attribute, 'colorMode']);
             }
         },
     },
@@ -591,12 +592,13 @@ const converters = {
 
             await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
-            // As we cannot determine the new brightness state, we read it from the device
+            // We cannot determine the hue/saturation from the current state so we read it, because
+            // - Color mode could have been swithed (x/y or colortemp)
             if (value === 'stop' || value === 0) {
                 const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                 if (entityToRead) {
                     await utils.sleep(100);
-                    await entityToRead.read('lightingColorCtrl', [attribute]);
+                    await entityToRead.read('lightingColorCtrl', [attribute, 'colorMode']);
                 }
             }
         },
@@ -737,7 +739,7 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
+            return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
@@ -934,6 +936,7 @@ const converters = {
 
             switch (command) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -946,15 +949,18 @@ const converters = {
                 command = 'enhancedMoveToHueAndSaturation';
                 break;
             case 'enhancedMoveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'enhancedMoveToHue':
+                newState.color_mode = constants.colorMode[0];
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -967,15 +973,18 @@ const converters = {
                 command = 'moveToHueAndSaturation';
                 break;
             case 'moveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHue':
+                newState.color_mode = constants.colorMode[0];
                 zclData.hue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.saturation = value.saturation;
                 break;
 
@@ -992,6 +1001,7 @@ const converters = {
                 }
 
                 newState.color = {x: value.x, y: value.y};
+                newState.color_mode = constants.colorMode[1];
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
