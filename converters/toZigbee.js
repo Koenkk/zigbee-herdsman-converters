@@ -149,16 +149,32 @@ const converters = {
         },
     },
     on_off: {
-        key: ['state'],
+        key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            utils.validateValue(value, ['toggle', 'off', 'on']);
-            await entity.command('genOnOff', value, {}, utils.getOptions(meta.mapped, entity));
-            if (value === 'toggle') {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+            const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+            utils.validateValue(state, ['toggle', 'off', 'on']);
+
+            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
+                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+
+                if (typeof onTime !== 'number') {
+                    throw Error('The on_time value must be a number!');
+                }
+                if (typeof offWaitTime !== 'number') {
+                    throw Error('The off_wait_time value must be a number!');
+                }
+
+                const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+                await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
             } else {
-                return {state: {state: value.toUpperCase()}};
+                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                } else {
+                    return {state: {state: state.toUpperCase()}};
+                }
             }
         },
         convertGet: async (entity, key, meta) => {
