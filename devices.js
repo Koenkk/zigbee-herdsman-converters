@@ -9610,8 +9610,8 @@ const devices = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['DoorSensor-N'],
-        model: 'HS1DS/HS3DS',
+        zigbeeModel: ['DoorSensor-N', 'DoorSensor-N-3.0'],
+        model: 'HS3DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
@@ -9626,8 +9626,8 @@ const devices = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: 'DoorSensor-EF-3.0', manufacturerName: 'HEIMAN'}],
-        model: 'HS1DS-EF',
+        zigbeeModel: ['DoorSensor-EM', 'DoorSensor-EF-3.0'],
+        model: 'HS1DS',
         vendor: 'HEIMAN',
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
@@ -9649,31 +9649,6 @@ const devices = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-    },
-    {
-        zigbeeModel: ['DoorSensor-EM'],
-        model: 'HS1DS-E',
-        vendor: 'HEIMAN',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
-    },
-    {
-        fingerprint: [{modelID: 'DoorSensor-N-3.0', manufacturerName: 'HEIMAN'}],
-        model: 'HS3DS',
-        vendor: 'HEIMAN',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-        },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['WaterSensor-N'],
