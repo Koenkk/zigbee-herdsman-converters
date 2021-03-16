@@ -3842,17 +3842,36 @@ const converters = {
                 const membersState = {};
                 for (const member of entity.members) {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
-                        membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                        const newState = member.meta.scenes[metaKey].state;
+                        if (newState.hasOwnProperty('color_temp')) {
+                            newState.color_mode = constants.colorMode[2];
+                        } else if (newState.hasOwnProperty('color')) {
+                            if (newState.color.hasOwnProperty('x')) {
+                                newState.color_mode = constants.colorMode[1];
+                            } else {
+                                newState.color_mode = constants.colorMode[0];
+                            }
+                        }
+                        membersState[member.getDevice().ieeeAddr] = newState;
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
-
                 return {membersState};
             } else {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    return {state: entity.meta.scenes[metaKey].state};
+                    const newState = entity.meta.scenes[metaKey].state;
+                    if (newState.hasOwnProperty('color_temp')) {
+                        newState.color_mode = constants.colorMode[2];
+                    } else if (newState.hasOwnProperty('color')) {
+                        if (newState.color.hasOwnProperty('x')) {
+                            newState.color_mode = constants.colorMode[1];
+                        } else {
+                            newState.color_mode = constants.colorMode[0];
+                        }
+                    }
+                    return {state: newState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
