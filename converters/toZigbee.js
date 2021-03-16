@@ -164,15 +164,8 @@ const converters = {
                     throw Error('The off_wait_time value must be a number!');
                 }
 
-                await entity.command(
-                    'genOnOff',
-                    'onWithTimedOff',
-                    {
-                        ctrlbits: 0,
-                        ontime: Math.round(onTime * 10),
-                        offwaittime: Math.round(offWaitTime * 10),
-                    },
-                    utils.getOptions(meta.mapped, entity));
+                const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+                await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
             } else {
                 await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
                 if (state === 'toggle') {
