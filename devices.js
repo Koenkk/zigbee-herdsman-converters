@@ -16045,6 +16045,28 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['DoubleSocket50AU'],
+        model: 'AU-A1ZBDSS',
+        vendor: 'Aurora Lighting',
+        description: 'Double smart socket UK',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.power().withEndpoint('left'), e.power().withEndpoint('right')],
+        toZigbee: [tz.on_off],
+        meta: {configureKey: 1, multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint2);
+        },
+    },
+    {
         zigbeeModel: ['SmartPlug51AU'],
         model: 'AU-A1ZBPIA',
         vendor: 'Aurora Lighting',
