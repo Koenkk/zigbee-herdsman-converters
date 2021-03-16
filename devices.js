@@ -13394,12 +13394,7 @@ const devices = [
         model: '33943',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition,
-            tz.ignore_rate, tz.light_brightness_move, tz.light_colortemp_move,
-            tz.light_brightness_step, tz.light_colortemp_step, tz.level_config,
-            tz.power_on_behavior, tz.light_color_options, tz.effect],
-        exposes: [e.light_brightness_colortemp_colorxy().removeFeature('color_temp_startup'), e.effect()],
+        extend: preset.light_onoff_brightness_colortemp_color(),
     },
     {
         fingerprint: [
