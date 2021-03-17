@@ -4510,7 +4510,7 @@ const converters = {
     },
     SAGE206612_state: {
         cluster: 'genOnOff',
-        type: 'commandOn',
+        type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options, meta) => {
             const timeout = 28;
 
@@ -4518,13 +4518,13 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'action', []);
             }
 
-
+            const lookup = {'commandOn': 'bell1', 'commandOff': 'bell2'};
             const timer = setTimeout(() => globalStore.getValue(msg.endpoint, 'action').pop(), timeout * 1000);
 
             const list = globalStore.getValue(msg.endpoint, 'action');
             if (list.length === 0 || list.length > 4) {
                 list.push(timer);
-                return {action: 'on'};
+                return {action: lookup[msg.type]};
             } else if (timeout > 0) {
                 list.push(timer);
             }
