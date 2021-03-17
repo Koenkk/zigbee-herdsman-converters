@@ -11246,6 +11246,13 @@ const devices = [
 
     // Immax
     {
+        zigbeeModel: ['E27-filament-Dim-ZB3.0'],
+        model: '07088L',
+        vendor: 'Immax',
+        description: 'Neo SMART LED filament E27 6.3W warm white, dimmable, Zigbee 3.0',
+        extend: preset.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['IM-Z3.0-DIM'],
         model: '07005B',
         vendor: 'Immax',
