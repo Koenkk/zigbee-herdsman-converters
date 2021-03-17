@@ -63,6 +63,12 @@ const converters = {
             await entity.read('genOnOff', ['startUpOnOff']);
         },
     },
+    light_color_mode: {
+        key: ['color_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['colorMode']);
+        },
+    },
     light_color_options: {
         key: ['color_options'],
         convertSet: async (entity, key, value, meta) => {
@@ -530,12 +536,13 @@ const converters = {
 
                 await entity.command('lightingColorCtrl', 'moveColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
-                // As we cannot determine the new brightness state, we read it from the device
+                // We cannot determine the color temperaturefrom the current state so we read it, because
+                // - Color mode could have been swithed (x/y or colortemp)
                 if (value === 'stop' || value === 0) {
                     const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                     if (entityToRead) {
                         await utils.sleep(100);
-                        await entityToRead.read('lightingColorCtrl', ['colorTemperature']);
+                        await entityToRead.read('lightingColorCtrl', ['colorTemperature', 'colorMode']);
                     }
                 }
             } else {
@@ -575,7 +582,7 @@ const converters = {
             const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
                 await utils.sleep(100 + (transition * 100));
-                await entityToRead.read('lightingColorCtrl', [attribute]);
+                await entityToRead.read('lightingColorCtrl', [attribute, 'colorMode']);
             }
         },
     },
@@ -601,12 +608,13 @@ const converters = {
 
             await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
-            // As we cannot determine the new brightness state, we read it from the device
+            // We cannot determine the hue/saturation from the current state so we read it, because
+            // - Color mode could have been swithed (x/y or colortemp)
             if (value === 'stop' || value === 0) {
                 const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                 if (entityToRead) {
                     await utils.sleep(100);
-                    await entityToRead.read('lightingColorCtrl', [attribute]);
+                    await entityToRead.read('lightingColorCtrl', [attribute, 'colorMode']);
                 }
             }
         },
@@ -747,7 +755,7 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: {color_temp: value}, readAfterWriteTime: payload.transtime * 100};
+            return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
@@ -944,6 +952,7 @@ const converters = {
 
             switch (command) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -956,15 +965,18 @@ const converters = {
                 command = 'enhancedMoveToHueAndSaturation';
                 break;
             case 'enhancedMoveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'enhancedMoveToHue':
+                newState.color_mode = constants.colorMode[0];
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -977,15 +989,18 @@ const converters = {
                 command = 'moveToHueAndSaturation';
                 break;
             case 'moveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHue':
+                newState.color_mode = constants.colorMode[0];
                 zclData.hue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToSaturation':
+                newState.color_mode = constants.colorMode[0];
                 zclData.saturation = value.saturation;
                 break;
 
@@ -1002,6 +1017,7 @@ const converters = {
                 }
 
                 newState.color = {x: value.x, y: value.y};
+                newState.color_mode = constants.colorMode[1];
                 zclData.colorx = Math.round(value.x * 65535);
                 zclData.colory = Math.round(value.y * 65535);
             }
@@ -3869,23 +3885,36 @@ const converters = {
             const sceneid = value;
             await entity.command('genScenes', 'recall', {groupid, sceneid}, utils.getOptions(meta.mapped));
 
+            const addColorMode = (newState) => {
+                if (newState.hasOwnProperty('color_temp')) {
+                    newState.color_mode = constants.colorMode[2];
+                } else if (newState.hasOwnProperty('color')) {
+                    if (newState.color.hasOwnProperty('x')) {
+                        newState.color_mode = constants.colorMode[1];
+                    } else {
+                        newState.color_mode = constants.colorMode[0];
+                    }
+                }
+
+                return newState;
+            };
+
             const isGroup = entity.constructor.name === 'Group';
             const metaKey = `${sceneid}_${groupid}`;
             if (isGroup) {
                 const membersState = {};
                 for (const member of entity.members) {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
-                        membersState[member.getDevice().ieeeAddr] = member.meta.scenes[metaKey].state;
+                        membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
-
                 return {membersState};
             } else {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    return {state: entity.meta.scenes[metaKey].state};
+                    return {state: addColorMode(entity.meta.scenes[metaKey].state)};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
