@@ -8316,14 +8316,17 @@ const devices = [
         description: 'Motion sensor (2016 model)',
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.occupancy(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['3305-S', '3305'],
