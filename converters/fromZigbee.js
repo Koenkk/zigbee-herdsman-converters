@@ -3002,7 +3002,7 @@ const converters = {
                     low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
                     internal_sensor_error: (value & 1<<2) > 0 ? 'ON' : 'OFF',
                     external_sensor_error: (value & 1<<3) > 0 ? 'ON' : 'OFF',
-                    battery_low: (value & 1<<4) > 0 ? 'ON' : 'OFF',
+                    battery_low: (value & 1<<4) > 0,
                     device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
