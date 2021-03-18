@@ -11363,14 +11363,14 @@ const devices = [
         model: '07073L',
         vendor: 'Immax',
         description: 'Neo CANTO/HIPODROMO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['IM-Z3.0-CCT'],
         model: '07042L',
         vendor: 'Immax',
         description: 'Neo RECUADRO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
 
     // Yale
