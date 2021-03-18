@@ -16401,7 +16401,7 @@ const devices = [
             const endpoint = device.getEndpoint(18);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
-        }
+        },
     },
 
     // Plugwise
