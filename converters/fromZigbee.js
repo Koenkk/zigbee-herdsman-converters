@@ -4929,6 +4929,20 @@ const converters = {
             };
         },
     },
+    KAMI_contact: {
+        cluster: 'ssIasZone',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: msg.data[7] === 0};
+        },
+    },
+    KAMI_occupancy: {
+        cluster: 'msOccupancySensing',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: msg.data[7] === 0};
+        },
+    },
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

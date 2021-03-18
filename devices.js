@@ -6232,6 +6232,17 @@ const devices = [
         exposes: [],
     },
 
+    // KAMI
+    {
+        zigbeeModel: ['Z3ContactSensor'],
+        model: 'N20',
+        vendor: 'KAMI',
+        description: 'Entry sensor',
+        fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
+        toZigbee: [],
+        exposes: [e.contact(), e.occupancy()],
+    },
+
     // Sylvania
     {
         zigbeeModel: ['LIGHTIFY Dimming Switch'],
