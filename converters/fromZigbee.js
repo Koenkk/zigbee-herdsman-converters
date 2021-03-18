@@ -493,7 +493,8 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
-                result.color_mode = msg.data['colorMode'];
+                result.color_mode = constants.colorMode.hasOwnProperty(msg.data['colorMode']) ?
+                    constants.colorMode[msg.data['colorMode']] : msg.data['colorMode'];
             }
 
             if (
@@ -3001,7 +3002,7 @@ const converters = {
                     low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
                     internal_sensor_error: (value & 1<<2) > 0 ? 'ON' : 'OFF',
                     external_sensor_error: (value & 1<<3) > 0 ? 'ON' : 'OFF',
-                    battery_low: (value & 1<<4) > 0 ? 'ON' : 'OFF',
+                    battery_low: (value & 1<<4) > 0,
                     device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
@@ -4510,7 +4511,7 @@ const converters = {
     },
     SAGE206612_state: {
         cluster: 'genOnOff',
-        type: 'commandOn',
+        type: ['commandOn', 'commandOff'],
         convert: (model, msg, publish, options, meta) => {
             const timeout = 28;
 
@@ -4518,13 +4519,13 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'action', []);
             }
 
-
+            const lookup = {'commandOn': 'bell1', 'commandOff': 'bell2'};
             const timer = setTimeout(() => globalStore.getValue(msg.endpoint, 'action').pop(), timeout * 1000);
 
             const list = globalStore.getValue(msg.endpoint, 'action');
             if (list.length === 0 || list.length > 4) {
                 list.push(timer);
-                return {action: 'on'};
+                return {action: lookup[msg.type]};
             } else if (timeout > 0) {
                 list.push(timer);
             }
@@ -4926,6 +4927,20 @@ const converters = {
                 type: data['inactiveText'],
                 rssi: data['presentValue'],
             };
+        },
+    },
+    KAMI_contact: {
+        cluster: 'ssIasZone',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: msg.data[7] === 0};
+        },
+    },
+    KAMI_occupancy: {
+        cluster: 'msOccupancySensing',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: msg.data[7] === 0};
         },
     },
     DNCKAT_S00X_buttons: {
