@@ -11357,6 +11357,21 @@ const devices = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(),
             e.humidity()],
     },
+    {
+        zigbeeModel: ['ColorTemperature'],
+        fingerprint: [{modelID: '07073L', manufacturerName: 'Seastar Intelligence'}],
+        model: '07073L',
+        vendor: 'Immax',
+        description: 'Neo CANTO/HIPODROMO SMART, color temp, dimmable, Zigbee 3.0',
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['IM-Z3.0-CCT'],
+        model: '07042L',
+        vendor: 'Immax',
+        description: 'Neo RECUADRO SMART, color temp, dimmable, Zigbee 3.0',
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
 
     // Yale
     {
