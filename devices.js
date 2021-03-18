@@ -5980,7 +5980,7 @@ const devices = [
         zigbeeModel: ['Z3ContactSensor'],
         model: 'N20',
         vendor: 'KAMI',
-        description: 'Entry sensor ',
+        description: 'Entry sensor',
         fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
         toZigbee: [],
         exposes: [e.contact(), e.occupancy()],
