@@ -5975,12 +5975,12 @@ const devices = [
         exposes: [],
     },
 
-    //KAMI
+    // KAMI
     {
         zigbeeModel: ['Z3ContactSensor'],
-        model: 'Z3ContactSensor',
+        model: 'N20',
         vendor: 'KAMI',
-        description: 'Z3 Contact sensor ',
+        description: 'Entry sensor ',
         fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
         toZigbee: [],
         exposes: [e.contact(), e.occupancy()],
