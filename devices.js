@@ -67,7 +67,7 @@ const preset = {
         const exposes = [e.light_brightness_colortemp(options.colorTempRange), ...(!options.disableEffect ? [e.effect()] : [])];
         const toZigbee = [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
-            tz.power_on_behavior, tz.light_color_options, tz.light_color_mode, ...(!options.disableEffect ? [tz.effect] : [])];
+            tz.power_on_behavior, tz.light_color_options, ...(!options.disableEffect ? [tz.effect] : [])];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
 
         if (options.disableColorTempStartup) {
@@ -94,7 +94,7 @@ const preset = {
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_brightness_step, tz.level_config, tz.power_on_behavior, tz.light_hue_saturation_move,
-            tz.light_hue_saturation_step, tz.light_color_options, tz.light_color_mode, ...(!options.disableEffect ? [tz.effect] : [])];
+            tz.light_hue_saturation_step, tz.light_color_options, ...(!options.disableEffect ? [tz.effect] : [])];
 
         return {
             exposes, fromZigbee, toZigbee, meta: {configureKey: 2},
@@ -116,7 +116,7 @@ const preset = {
             tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_hue_saturation_move,
             tz.light_hue_saturation_step, tz.light_colortemp_startup, tz.level_config, tz.power_on_behavior, tz.light_color_options,
-            tz.light_color_mode, ...(!options.disableEffect ? [tz.effect] : [])];
+            ...(!options.disableEffect ? [tz.effect] : [])];
 
         if (options.disableColorTempStartup) {
             exposes[0].removeFeature('color_temp_startup');
@@ -1174,7 +1174,7 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
@@ -6232,17 +6232,6 @@ const devices = [
         exposes: [],
     },
 
-    // KAMI
-    {
-        zigbeeModel: ['Z3ContactSensor'],
-        model: 'N20',
-        vendor: 'KAMI',
-        description: 'Entry sensor',
-        fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
-        toZigbee: [],
-        exposes: [e.contact(), e.occupancy()],
-    },
-
     // Sylvania
     {
         zigbeeModel: ['LIGHTIFY Dimming Switch'],
@@ -8327,17 +8316,14 @@ const devices = [
         description: 'Motion sensor (2016 model)',
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_1500_2800'}},
+        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            // Has Unknown power source, force it.
-            device.powerSource = 'Battery';
-            device.save();
         },
-        exposes: [e.temperature(), e.occupancy(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['3305-S', '3305'],
@@ -11257,13 +11243,6 @@ const devices = [
 
     // Immax
     {
-        zigbeeModel: ['E27-filament-Dim-ZB3.0'],
-        model: '07088L',
-        vendor: 'Immax',
-        description: 'Neo SMART LED filament E27 6.3W warm white, dimmable, Zigbee 3.0',
-        extend: preset.light_onoff_brightness(),
-    },
-    {
         zigbeeModel: ['IM-Z3.0-DIM'],
         model: '07005B',
         vendor: 'Immax',
@@ -11367,21 +11346,6 @@ const devices = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(),
             e.humidity()],
-    },
-    {
-        zigbeeModel: ['ColorTemperature'],
-        fingerprint: [{modelID: '07073L', manufacturerName: 'Seastar Intelligence'}],
-        model: '07073L',
-        vendor: 'Immax',
-        description: 'Neo CANTO/HIPODROMO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-    },
-    {
-        zigbeeModel: ['IM-Z3.0-CCT'],
-        model: '07042L',
-        vendor: 'Immax',
-        description: 'Neo RECUADRO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
 
     // Yale
@@ -13431,18 +13395,6 @@ const devices = [
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [6, 25]},
-                {ID: 3, profileID: 49152, deviceID: 258, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
-            ]},
-        ],
-        model: '33943',
-        vendor: 'AwoX',
-        description: 'LED RGB & brightness',
-        extend: preset.light_onoff_brightness_colortemp_color(),
-    },
-    {
-        fingerprint: [
-            {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
                 {ID: 1, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599], outputClusters: [6]},
                 {ID: 3, profileID: 4751, deviceID: 269, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
             ]},
@@ -14109,7 +14061,7 @@ const devices = [
 
     // ORVIBO
     {
-        zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f', '51725b7bcba945c8a595b325127461e9'],
+        zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f'],
         model: 'CR11S8UZ',
         vendor: 'ORVIBO',
         description: 'Smart sticker switch',
@@ -16432,9 +16384,24 @@ const devices = [
         vendor: 'EchoStar',
         description: 'SAGE by Hughes doorbell sensor',
         fromZigbee: [fz.SAGE206612_state, fz.battery],
-        exposes: [e.battery(), e.action(['bell1', 'bell2'])],
+        exposes: [e.battery(), e.action(['on'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+    },
+    {
+        zigbeeModel: [' Switch'],
+        model: 'SAGE206611',
+        vendor: 'Echostar',
+        description: 'SAGE by Hughes single gang light switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off'])],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(18);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        }
     },
 
     // Plugwise
