@@ -15418,7 +15418,7 @@ const devices = [
         vendor: 'Linkind',
         description: '1-key remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery(), e.battery_low()],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
