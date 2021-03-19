@@ -4988,6 +4988,16 @@ const converters = {
             }
         },
     },
+    hue_wall_switch_device_mode: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('52')) {
+                const values = ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'];
+                return {device_mode: values[msg.data['52']]};
+            }
+        },
+    },
     RTCGQ13LM_motion_sensitivity: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],

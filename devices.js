@@ -4055,6 +4055,25 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['RDM001'],
+        model: '929003017102',
+        vendor: 'Philips',
+        description: 'Hue wall switch module',
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode],
+        exposes: [e.battery(),
+            exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
+        toZigbee: [tz.hue_wall_switch_device_mode],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            await endpoint.write('genBasic', {0x0034: {value: 0, type: 48}}, options);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RWL020', 'RWL021'],
         model: '324131092621',
         vendor: 'Philips',
