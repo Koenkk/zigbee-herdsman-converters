@@ -5163,6 +5163,17 @@ const converters = {
             return payload;
         },
     },
+    hue_wall_switch: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {1: 'left', 2: 'right'};
+            const button = buttonLookup[msg.data['button']];
+            const typeLookup = {0: 'press', 2: 'press_release'};
+            const type = typeLookup[msg.data['type']];
+            return {action: `${button}_${type}`};
+        },
+    },
     hue_dimmer_switch: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
