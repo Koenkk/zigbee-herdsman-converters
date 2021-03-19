@@ -12674,7 +12674,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
@@ -15467,7 +15467,7 @@ const devices = [
         vendor: 'Linkind',
         description: '1-key remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery(), e.battery_low()],
         toZigbee: [],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -16437,7 +16437,21 @@ const devices = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
     },
-
+    {
+        zigbeeModel: [' Switch'],
+        model: 'SAGE206611',
+        vendor: 'Echostar',
+        description: 'SAGE by Hughes single gang light switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off'])],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(18);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
     // Plugwise
     {
         zigbeeModel: ['160-01'],
