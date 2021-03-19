@@ -16452,6 +16452,7 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+
     // Plugwise
     {
         zigbeeModel: ['160-01'],
