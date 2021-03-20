@@ -9208,8 +9208,8 @@ const devices = [
         vendor: 'Centralite',
         description: '3-Series security keypad',
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_ace_occupancy_with_timeout],
-        exposes: [e.battery(), e.temperature(), e.occupancy(), e.action([
+        fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_ace_occupancy_with_timeout, fz.ias_zone_tamper],
+        exposes: [e.battery(), e.temperature(), e.occupancy(), e.tamper(), e.action([
             'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
