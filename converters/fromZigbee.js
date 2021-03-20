@@ -1507,6 +1507,16 @@ const converters = {
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
     },
+    ias_zone_tamper: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonstatus;
+            return {
+                tamper: zoneStatus == 4 ? true : false   
+            };
+        },
+    },
     tuya_led_controller: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
