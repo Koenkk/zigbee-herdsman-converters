@@ -1513,7 +1513,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonstatus;
             return {
-                tamper: zoneStatus == 4 ? true : false
+                tamper: zoneStatus == 4 ? true : false,
             };
         },
     },
