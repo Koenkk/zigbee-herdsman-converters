@@ -2833,6 +2833,16 @@ const devices = [
         ota: ota.tradfri,
         onEvent: ikea.bulbOnEvent,
     },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm'],
+        model: 'LED1925G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 470 lumen, dimmable, white spectrum, colour spectrum',
+        extend: preset.light_onoff_brightness_colortemp_color(),
+        ota: ota.tradfri,
+        onEvent: ikea.bulbOnEvent,
+    },
+
 
     // Philips
     {
