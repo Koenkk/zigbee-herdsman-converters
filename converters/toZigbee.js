@@ -23,6 +23,13 @@ const manufacturerOptions = {
 
 const converters = {
     // #region Generic converters
+    read: {
+        key: ['read'],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await entity.read(value.cluster, value.attributes);
+            meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
+        },
+    },
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
