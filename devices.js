@@ -12956,7 +12956,7 @@ const devices = [
         model: 'ZM-CSW032-D',
         vendor: 'Zemismart',
         description: 'Curtain/roller blind switch',
-		supports: 'open, close, stop',
+        supports: 'open, close, stop',
         fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position],
         toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
