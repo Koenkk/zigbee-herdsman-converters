@@ -398,7 +398,7 @@ describe('index.js', () => {
             for (const expose of definition.exposes.filter(e => e.type === 'light')) {
                 const colorTemp = expose.features.find(f => f.name === 'color_temp');
                 if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
-                    throw new Error(`'${definition.model}' is missing color temp range`);
+                    throw new Error(`'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`);
                 }
             }
         }
