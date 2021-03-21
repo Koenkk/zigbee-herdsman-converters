@@ -3524,6 +3524,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3418411P6'],
+        model: '3418411P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC021'],
         model: '3435011P7',
         vendor: 'Philips',
