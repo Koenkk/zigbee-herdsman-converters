@@ -2843,7 +2843,6 @@ const devices = [
         onEvent: ikea.bulbOnEvent,
     },
 
-
     // Philips
     {
         zigbeeModel: ['LWU001'],
