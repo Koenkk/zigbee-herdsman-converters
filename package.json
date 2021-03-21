@@ -23,8 +23,8 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "jest test",
-    "test-watch": "jest test --watch"
+    "test": "ZHC_TEST=true jest test",
+    "test-watch": "ZHC_TEST=true jest test --watch"
   },
   "author": "Koen Kanters",
   "license": "MIT",

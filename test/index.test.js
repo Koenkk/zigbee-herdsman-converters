@@ -3,6 +3,8 @@ const devices = require('../devices');
 const exposes = require('../lib/exposes');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
+const fs = require('fs');
+const path = require('path');
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -388,5 +390,17 @@ describe('index.js', () => {
                 }
             }
         });
+    });
+
+    it('Check if all exposes have a color temp range', () => {
+        const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
+        for (const definition of devices) {
+            for (const expose of definition.exposes.filter(e => e.type === 'light')) {
+                const colorTemp = expose.features.find(f => f.name === 'color_temp');
+                if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
+                    throw new Error(`'${definition.model}' is missing color temp range`);
+                }
+            }
+        }
     });
 });

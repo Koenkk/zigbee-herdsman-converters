@@ -10394,7 +10394,7 @@ const devices = [
     },
     {
         zigbeeModel: ['NLG-RGBW light '], // the space as the end is intentional, as this is what the device sends
-        model: 'NLG-RGBW light ',
+        model: 'NLG-RGBW_light',
         vendor: 'Paul Neuhaus',
         description: 'Various RGBW lights (e.g. 100.110.39)',
         extend: preset.light_onoff_brightness_colortemp_color(),
