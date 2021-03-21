@@ -222,6 +222,23 @@ const converters = {
             await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
         },
     },
+    bTicino_4027C_cover_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+            value = value.toLowerCase();
+            let tmp = 50;
+            utils.validateValue(value, Object.keys(lookup));
+
+            if (value.localeCompare('open') == 0) {
+                tmp = 100;
+            } else if (value.localeCompare('close') == 0) {
+                tmp = 0;
+            }
+            await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
+            return {state: {position: tmp}, readAfterWriteTime: 0};
+        },
+    },
     cover_position_tilt: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
@@ -245,6 +262,30 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
+        },
+    },
+    bTicino_4027C_cover_position: {
+        key: ['position'],
+        convertSet: async (entity, key, value, meta) => {
+            let position = value;
+
+            if ( position >= 50) {
+                position = 100;
+            } else {
+                position = 0;
+            }
+
+            await entity.command(
+                'closuresWindowCovering',
+                'goToLiftPercentage',
+                {percentageliftvalue: position},
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            return {state: {['position']: position}, readAfterWriteTime: 0};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
     },
     occupancy_timeout: {

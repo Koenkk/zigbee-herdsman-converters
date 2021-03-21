@@ -3527,6 +3527,13 @@ const converters = {
             return {action: msg.data.presentValue ? 'moving' : 'stopped'};
         },
     },
+    bTicino_4027C_binary_input_moving: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.presentValue ? 'stopped' : 'moving', position: 50};
+        },
+    },
     legrand_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
