@@ -23,6 +23,13 @@ const manufacturerOptions = {
 
 const converters = {
     // #region Generic converters
+    read: {
+        key: ['read'],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await entity.read(value.cluster, value.attributes);
+            meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
+        },
+    },
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
@@ -3180,6 +3187,35 @@ const converters = {
         key: ['tint_scene'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genBasic', {0x4005: {value, type: 0x20}}, manufacturerOptions.tint);
+        },
+    },
+    bticino_4027C_cover_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+
+            let position = 50;
+            if (value.localeCompare('open') == 0) {
+                position = 100;
+            } else if (value.localeCompare('close') == 0) {
+                position = 0;
+            }
+            await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
+            return {state: {position}, readAfterWriteTime: 0};
+        },
+    },
+    bticino_4027C_cover_position: {
+        key: ['position'],
+        convertSet: async (entity, key, value, meta) => {
+            const position = value >= 50 ? 100 : 0;
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: position},
+                utils.getOptions(meta.mapped, entity));
+            return {state: {['position']: position}, readAfterWriteTime: 0};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
     },
     legrand_identify: {

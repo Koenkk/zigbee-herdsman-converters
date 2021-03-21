@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "14.0.91",
+  "version": "14.0.92",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
@@ -23,8 +23,8 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "jest test",
-    "test-watch": "jest test --watch"
+    "test": "ZHC_TEST=true jest test",
+    "test-watch": "ZHC_TEST=true jest test --watch"
   },
   "author": "Koen Kanters",
   "license": "MIT",
