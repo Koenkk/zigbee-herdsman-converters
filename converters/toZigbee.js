@@ -279,36 +279,36 @@ const converters = {
     ZMCSW032D_cover_position: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
-            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+            if (meta.options.hasOwnProperty('time_close') && meta.options.hasOwnProperty('time_open')) {
                 const sleepSeconds = async (s) => {
-					return new Promise((resolve) => setTimeout(resolve, s * 1000));
-				};
+                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                };
 
-				const oldPosition = meta.state.position;
-				if (value == 100) {
-					await entity.command('closuresWindowCovering', "upOpen", {}, utils.getOptions(meta.mapped));
-				} else if (value == 0) {
-					await entity.command('closuresWindowCovering', "downClose", {}, utils.getOptions(meta.mapped));
-				} else {
-					if (oldPosition > value) {
-						const delta = oldPosition - value;
-						let mutiplicateur = meta.options.time_open/100;
-						const timeBeforeStop = delta*mutiplicateur;
-						await entity.command('closuresWindowCovering', "downClose", {}, utils.getOptions(meta.mapped));
-						await sleepSeconds(timeBeforeStop);
-						await entity.command('closuresWindowCovering', "stop", {}, utils.getOptions(meta.mapped));
-					} else if (oldPosition < value) {
-						const delta = value - oldPosition;
-						let mutiplicateur = meta.options.time_close/100;
-						const timeBeforeStop = delta*mutiplicateur;
-						await entity.command('closuresWindowCovering', "upOpen", {}, utils.getOptions(meta.mapped));
-						await sleepSeconds(timeBeforeStop);
-						await entity.command('closuresWindowCovering', "stop", {}, utils.getOptions(meta.mapped));
-					}
-				}
+                const oldPosition = meta.state.position;
+                if (value == 100) {
+                    await entity.command('closuresWindowCovering', "upOpen", {}, utils.getOptions(meta.mapped));
+                } else if (value == 0) {
+                    await entity.command('closuresWindowCovering', "downClose", {}, utils.getOptions(meta.mapped));
+                } else {
+                    if (oldPosition > value) {
+                        const delta = oldPosition - value;
+                        let mutiplicateur = meta.options.time_open/100;
+                        const timeBeforeStop = delta*mutiplicateur;
+                        await entity.command('closuresWindowCovering', "downClose", {}, utils.getOptions(meta.mapped));
+                        await sleepSeconds(timeBeforeStop);
+                        await entity.command('closuresWindowCovering', "stop", {}, utils.getOptions(meta.mapped));
+                    } else if (oldPosition < value) {
+                        const delta = value - oldPosition;
+                        let mutiplicateur = meta.options.time_close/100;
+                        const timeBeforeStop = delta*mutiplicateur;
+                        await entity.command('closuresWindowCovering', "upOpen", {}, utils.getOptions(meta.mapped));
+                        await sleepSeconds(timeBeforeStop);
+                        await entity.command('closuresWindowCovering', "stop", {}, utils.getOptions(meta.mapped));
+                    }
+                }
 
-				return {state: {position: value}};
-			}
+                return {state: {position: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
