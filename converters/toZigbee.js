@@ -1472,18 +1472,27 @@ const converters = {
                     readAfterWriteTime: 250,
                 };
             } else if (key === 'state') {
-                let position;
+                let payload;
+                const options = {frameType: 0, manufacturerCode: 0x1ad2, disableDefaultResponse: true,
+                    disableResponse: true, reservedBits: 3, direction: 1, writeUndiv: true,
+                    transactionSequenceNumber: 0xe9};
                 switch (value) {
                 case 'OPEN':
-                    position = 100;
+                    payload =
+                        {attrId: 0x0000, selector: null, elementData: [0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
                     break;
                 case 'CLOSE':
-                    position = 0;
+                    payload =
+                        {attrId: 0x0000, selector: null, elementData: [0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
+                    break;
+                case 'STOP':
+                    payload =
+                        {attrId: 0x0000, selector: null, elementData: [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
                     break;
                 default:
                     throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
                 }
-                return await converters.livolo_cover_position.convertSet(entity, 'position', position, meta);
+                return await entity.writeStruct('genPowerCfg', [payload], options);
             }
         },
         convertGet: async (entity, key, meta) => {
