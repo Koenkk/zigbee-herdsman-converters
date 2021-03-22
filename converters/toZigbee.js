@@ -2053,7 +2053,7 @@ const converters = {
     danfoss_trigger_time: {
         key: ['trigger_time'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4011: {value: (value ? 0x01: 0x00), type: 0x21}};
+            const payload = {0x4011: {value: value, type: 0x21}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
         },
         convertGet: async (entity, key, meta) => {

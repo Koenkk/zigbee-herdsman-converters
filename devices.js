@@ -10990,10 +10990,20 @@ const devices = [
                 'Mode in which the unit is mounted. This is set to `false` for normal mounting or `true` for vertical mounting'),
             exposes.binary('heat_required', ea.STATE, true, false).withDescription('Wether or not the unit needs warm water'),
             exposes.binary('window_open_internal', ea.STATE, 1, 0)
-                .withDescription('Most likely related to the option to set Window Detection mode'),
+                .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
+                '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand()],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand(),
+            exposes.binary('window_open_external', ea.ALL, true, false),
+            exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
+                .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
+            exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined)'),
+            exposes.binary('heat_available', ea.ALL, true, false),
+            exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
+                .withDescription('Scale factor of setpoint filter timeconstant'+
+                ' ("aggressiveness" of control algorithm) 1= Quick ...  5=Moderate ... 10=Slow')],
         meta: {configureKey: 4},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -11015,6 +11025,14 @@ const devices = [
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+            await endpoint.read('hvacThermostat', [0x4003, 0x4010, 0x4011, 0x4020], options);
+
+            // Seems that it is bug in Danfoss, device does not asks for the time with binding
+            // So, we need to write time during configure (same as for HEIMAN devices)
+            const time = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+            // Time-master + synchronised
+            const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
+            endpoint.write('genTime', values);
         },
     },
 
