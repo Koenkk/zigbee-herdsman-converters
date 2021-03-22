@@ -4593,18 +4593,18 @@ const converters = {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         // postion cast float to int
                         result.position = currentPosition | 0;
-                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     } else {
                         entry.CurrentPosition = lastPreviousAction;
                         result.position = lastPreviousAction;
-                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     }
                 }
+                result.position = options.invert_cover ? 100 - result.position : result.position;
             } else {
                 // Previous solution without time_close and time_open
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
                     const liftPercentage = msg.data['currentPositionLiftPercentage'];
                     result.position = liftPercentage;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
                 }
             }
             return result;
