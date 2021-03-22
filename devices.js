@@ -4066,7 +4066,7 @@ const devices = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg','genOnOff','manuSpecificPhilips']);
             await reporting.batteryPercentageRemaining(endpoint);
             const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0034: {value: 0, type: 48}}, options);
