@@ -11264,8 +11264,16 @@ const devices = [
         description: 'Zigbee roller blind motor',
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_cover_state, fz.command_off],
-        toZigbee: [tz.livolo_cover_position],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        toZigbee: [tz.livolo_cover_state, tz.livolo_cover_position, tz.livolo_cover_options],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.composite('options', 'options')
+                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+                    .withValueMin(20)
+                    .withValueMax(40)
+                    .withDescription('Motor speed')
+                    .withUnit('rpm')),
+        ],
         meta: {configureKey: 1},
         configure: livolo.poll,
         onEvent: async (type, data, device) => {
