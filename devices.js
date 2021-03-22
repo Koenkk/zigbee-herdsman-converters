@@ -9989,7 +9989,7 @@ const devices = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['GASSensor-EFR-3.0'],
+        zigbeeModel: ['GASSensor-EFR-3.0', 'GASSensor-EF-3.0'],
         model: 'HS1CG-E_3.0',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
