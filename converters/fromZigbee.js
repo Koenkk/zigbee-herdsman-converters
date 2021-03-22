@@ -4588,13 +4588,16 @@ const converters = {
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50 ) {
                     // postion cast float to int
                     result.position = currentPosition | 0;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
                 } else {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         // postion cast float to int
                         result.position = currentPosition | 0;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     } else {
                         entry.CurrentPosition = lastPreviousAction;
                         result.position = lastPreviousAction;
+                        result.position = options.invert_cover ? 100 - result.position : result.position;
                     }
                 }
             } else {
