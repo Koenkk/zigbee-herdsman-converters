@@ -2072,7 +2072,8 @@ const converters = {
                     if (reportType === 0x04) { // Position report
                         const position = meta.state.motor_direction === 'FORWARD' ? msg.data[13] : 100 - msg.data[13];
                         const state = position > 0 ? 'OPEN' : 'CLOSE';
-                        return {position, state};
+                        const moving = dp === 0x0f;
+                        return {position, state, moving};
                     }
                     if (reportType === 0x12) { // Speed report
                         const motorSpeed = msg.data[13];

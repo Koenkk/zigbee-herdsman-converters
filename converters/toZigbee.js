@@ -1505,6 +1505,25 @@ const converters = {
                 disableResponse: true, reservedBits: 3, direction: 1, writeUndiv: true,
                 transactionSequenceNumber: 0xe9};
 
+            if (value.hasOwnProperty('motor_direction')) {
+                let direction;
+                switch (value.motor_direction) {
+                case 'FORWARD':
+                    direction = 0x80;
+                    break;
+                case 'REVERSE':
+                    direction = 0x00;
+                    break;
+                default:
+                    throw new Error(`livolo_cover_options: ${value.motor_direction} is not a valid motor direction \
+                     (must be one of 'FORWARD' or 'REVERSE')`);
+                }
+
+                const payload =
+                    {0x1301: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+                await entity.write('genPowerCfg', payload, options);
+            }
+
             if (value.hasOwnProperty('motor_speed')) {
                 if (value.motor_speed < 20 || value.motor_speed > 40) {
                     throw new Error('livolo_cover_options: Motor speed is out of range (20-40)');

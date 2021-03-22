@@ -11268,11 +11268,16 @@ const devices = [
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.composite('options', 'options')
+                .withDescription('Motor options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(20)
                     .withValueMax(40)
                     .withDescription('Motor speed')
-                    .withUnit('rpm')),
+                    .withUnit('rpm'))
+                .withFeature(exposes.enum('motor_direction', ea.STATE_SET, ['FORWARD', 'REVERSE'])
+                    .withDescription('Motor direction')),
+            exposes.binary('moving', ea.STATE)
+                .withDescription('Motor is moving'),
         ],
         meta: {configureKey: 1},
         configure: livolo.poll,
