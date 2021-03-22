@@ -1257,7 +1257,7 @@ const devices = [
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
         model: 'R7060',
         vendor: 'Woox',
-        description: 'Smart Garden Irrigation Control',
+        description: 'Smart garden irrigation control',
         extend: preset.switch(),
         meta: {disableDefaultResponse: true},
     },
