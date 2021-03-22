@@ -1262,6 +1262,14 @@ const devices = [
         meta: {disableDefaultResponse: true},
     },
     {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
+        model: 'R7060',
+        vendor: 'Woox',
+        description: 'Smart Garden Irrigation Control',
+        extend: preset.switch(),
+        meta: {disableDefaultResponse: true},
+    },
+    {
         fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
         model: 'TS0108',
         vendor: 'TuYa',
