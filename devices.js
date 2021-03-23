@@ -1258,7 +1258,10 @@ const devices = [
         model: 'R7060',
         vendor: 'Woox',
         description: 'Smart garden irrigation control',
-        extend: preset.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.woox_R7060],
+        toZigbee: [tz.on_off],
+        onEvent: tuya.onEventSetTime,
+        exposes: [e.switch()],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -1340,7 +1343,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         whiteLabel: [
@@ -1369,7 +1372,7 @@ const devices = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch_2],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -1384,7 +1387,7 @@ const devices = [
         description: '2 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1404,7 +1407,7 @@ const devices = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_1, fz.ignore_basic_report, fz.tuya_switch_2],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2176,7 +2179,7 @@ const devices = [
         description: '1 gang switch',
         extend: preset.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
     },
     {
@@ -2187,7 +2190,7 @@ const devices = [
         extend: preset.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2203,7 +2206,7 @@ const devices = [
         extend: preset.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read],
+        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -7885,7 +7888,7 @@ const devices = [
         description: '1 gang switch',
         extend: preset.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_2, fz.ignore_time_read, fz.ignore_basic_report],
+        fromZigbee: [fz.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
     },
     {
@@ -14918,7 +14921,7 @@ const devices = [
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_1, fz.tuya_switch_2],
+        fromZigbee: [fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -14932,7 +14935,7 @@ const devices = [
         description: 'Wall touch light switch (3 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch_2],
+        fromZigbee: [fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
