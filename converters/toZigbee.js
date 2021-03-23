@@ -1480,7 +1480,7 @@ const converters = {
             default:
                 throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
             }
-            return await entity.writeStruct('genPowerCfg', [payload], options);
+            return await entity.writeStructured('genPowerCfg', [payload], options);
         },
     },
     livolo_cover_position: {
