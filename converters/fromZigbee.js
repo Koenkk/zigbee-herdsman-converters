@@ -3466,19 +3466,9 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
-    tuya_switch_1: {
+    tuya_switch: {
         cluster: 'manuSpecificTuya',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            const key = msg.data[5];
-            const val = msg.data[9];
-            const lookup = {1: 'state_l1', 2: 'state_l2', 3: 'state_l3', 4: 'state_l4'};
-            return {[lookup[key]]: (val) ? 'ON': 'OFF'};
-        },
-    },
-    tuya_switch_2: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
