@@ -8949,6 +8949,22 @@ const devices = [
 
     // Iris
     {
+        zigbeeModel: ['1116-S'],
+        model: 'IL06_1',
+        vendor: 'Iris',
+        description: 'Contact and temperature sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}, configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    },
+    {
         zigbeeModel: ['3210-L'],
         model: '3210-L',
         vendor: 'Iris',
