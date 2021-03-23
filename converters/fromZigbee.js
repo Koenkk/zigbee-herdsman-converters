@@ -5262,44 +5262,40 @@ const converters = {
     },
     ZB003X: {
         cluster: 'manuSpecificTuya',
-        type: ['raw'],
+        type: ['commandActiveStatusReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data[5];
-            const value = tuya.getDataValue(tuya.dataTypes.value, msg.data.slice(8));
-            let val;
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
             switch (dp) {
-            case 107: // 0x6b temperature
+            case tuya.fantemTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(
                     (value / 10).toFixed(1), options, 'temperature')};
-            case 108: // 0x6c humidity
+            case tuya.fantemHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            case 110: // 0x6e battery
+            case tuya.fantemBattery:
                 return {battery: value};
-            case 102: // 0x66 reporting time
+            case tuya.fantemReportingTime:
                 return {reporting_time: value};
-            case 104: // 0x68 temperature calibration
-                val = value;
-                // for negative values produce complimentary hex (equivalent to negative values)
-                if (val > 4294967295) val = val - 4294967295;
-                return {temperature_calibration: (val / 10).toFixed(1)};
-            case 105: // 0x69 humidity calibration
-                val = value;
-                // for negative values produce complimentary hex (equivalent to negative values)
-                if (val > 4294967295) val = val - 4294967295;
-                return {humidity_calibration: val};
-            case 106: // 0x6a lux calibration
-                val = value;
-                // for negative values produce complimentary hex (equivalent to negative values)
-                if (val > 4294967295) val = val - 4294967295;
-                return {illuminance_calibration: val};
-            case 109: // 0x6d PIR enable
-                return {pir_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
-            case 111: // 0x6f led enable
-                return {led_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
-            case 112: // 0x70 reporting enable
-                return {reporting_enable: tuya.getDataValue(tuya.dataTypes.bool, msg.data.slice(9))};
-            default: // Unknown code
-                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            case tuya.fantemTempCalibration:
+                return {
+                    temperature_calibration: (
+                        (value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value) / 10
+                    ).toFixed(1),
+                };
+            case tuya.fantemHumidityCalibration:
+                return {humidity_calibration: value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value};
+            case tuya.fantemLuxCalibration:
+                return {illuminance_calibration: value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value};
+            case tuya.fantemMotionEnable:
+                return {pir_enable: value};
+            case tuya.fantemLedEnable:
+                return {led_enable: value};
+            case tuya.fantemReportingEnable:
+                return {reporting_enable: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:FantemZB003X: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
     },
