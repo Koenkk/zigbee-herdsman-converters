@@ -1494,7 +1494,7 @@ const converters = {
             case tuya.dataPoints.hyAlarm: // [16] [0]
                 return {alarm: (value > 0) ? true : false};
             default: // The purpose of the codes 17 & 19 are still unknown
-                meta.logger.warn(`zigbee-herdsman-converters:hy_thermostat: NOT RECOGNIZED DP #${
+                meta.logger.warn(`zigbee-herdsman-converters:hy_thermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -2858,7 +2858,7 @@ const converters = {
                     return {sensor: 'not_supported'};
                 }
             default: // DataPoint 17 is unknown
-                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: NOT RECOGNIZED DP #${
+                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -2979,7 +2979,7 @@ const converters = {
             case tuya.dataPoints.saswellAntiScaling:
                 return {anti_scaling: value ? 'ON' : 'OFF'};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: NOT RECOGNIZED DP #${
+                meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -3028,7 +3028,7 @@ const converters = {
             case tuya.dataPoints.runningState:
                 return {running_state: value ? 'heat' : 'idle'};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:eTopThermostat: NOT RECOGNIZED DP #${
+                meta.logger.warn(`zigbee-herdsman-converters:eTopThermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -3133,7 +3133,7 @@ const converters = {
             case tuya.dataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {week: tuya.thermostatWeekFormat[value]};
             default: // The purpose of the dps 17 & 19 is still unknown
-                console.log(`zigbee-herdsman-converters:tuyaThermostat: NOT RECOGNIZED DP #${
+                console.log(`zigbee-herdsman-converters:tuyaThermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
