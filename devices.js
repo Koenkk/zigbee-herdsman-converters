@@ -8008,7 +8008,7 @@ const devices = [
         zigbeeModel: ['4512705'],
         model: '4512705',
         vendor: 'Namron',
-        description: 'Zigbee 4 channel Remote Control',
+        description: 'Zigbee 4 channel remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
         exposes: [e.battery(), e.action([
