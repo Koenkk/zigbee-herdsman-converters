@@ -318,7 +318,9 @@ const devices = [
         description: 'Aqara D1 single key wireless wall switch',
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
+        exposes: [e.battery(),
+            e.action(['single_left', 'single_right', 'double_left', 'double_right', 'hold_left', 'hold_right']),
+            e.battery_voltage()],
         onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
