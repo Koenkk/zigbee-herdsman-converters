@@ -7978,7 +7978,7 @@ const devices = [
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
