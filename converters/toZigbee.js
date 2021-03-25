@@ -26,7 +26,7 @@ const converters = {
     read: {
         key: ['read'],
         convertSet: async (entity, key, value, meta) => {
-            const result = await entity.read(value.cluster, value.attributes);
+            const result = await entity.read(value.cluster, value.attributes, (value.options === undefined ? {} : value.options));
             meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
         },
     },
