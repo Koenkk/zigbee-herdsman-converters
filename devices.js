@@ -3529,7 +3529,7 @@ const devices = [
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: preset.hue.light_onoff_brightness_colortemp(),
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
