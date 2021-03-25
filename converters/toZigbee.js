@@ -26,8 +26,11 @@ const converters = {
     read: {
         key: ['read'],
         convertSet: async (entity, key, value, meta) => {
-            const result = await entity.read(value.cluster, value.attributes, (value.options === undefined ? {} : value.options));
+            const result = await entity.read(value.cluster, value.attributes, (value.hasOwnProperty('options') ? value.options : {}));
             meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
+            if (value.hasOwnProperty('state_property')) {
+                return {state: {[value.state_property]: result}};
+            }
         },
     },
     factory_reset: {
