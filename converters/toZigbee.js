@@ -36,7 +36,11 @@ const converters = {
     write: {
         key: ['write'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write(value.cluster, value.payload, utils.getOptions(meta.mapped, entity));
+            const options = utils.getOptions(meta.mapped, entity);
+            if (value.hasOwnProperty('options')) {
+                Object.assign(options, value.options);
+            }
+            await entity.write(value.cluster, value.payload, options);
             meta.logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`);
         },
     },
