@@ -1480,20 +1480,29 @@ const converters = {
             default:
                 throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
             }
-            return await entity.writeStructured('genPowerCfg', [payload], options);
+            await entity.writeStructured('genPowerCfg', [payload], options);
+            return {
+                state: {
+                    moving: true,
+                },
+                readAfterWriteTime: 250,
+            };
         },
     },
     livolo_cover_position: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
-            const position = meta.state.motor_direction === 'FORWARD' ? value : 100 - value;
+            const position = 100 - value;
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payload = {0x0401: {value: [position, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: 1}};
             await entity.write('genPowerCfg', payload,
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                     reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
             return {
-                state: {position: value},
+                state: {
+                    position: value,
+                    moving: true,
+                },
                 readAfterWriteTime: 250,
             };
         },
@@ -1509,10 +1518,10 @@ const converters = {
                 let direction;
                 switch (value.motor_direction) {
                 case 'FORWARD':
-                    direction = 0x80;
+                    direction = 0x00;
                     break;
                 case 'REVERSE':
-                    direction = 0x00;
+                    direction = 0x80;
                     break;
                 default:
                     throw new Error(`livolo_cover_options: ${value.motor_direction} is not a valid motor direction \
