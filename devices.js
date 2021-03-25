@@ -15569,6 +15569,22 @@ const devices = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZB-KeyfodGeneric-D0001'],
+        model: 'ZS130000178',
+        vendor: 'Linkind',
+        description: 'Security system key fob',
+        fromZigbee: [fz.command_arm, fz.command_emergency],
+        toZigbee: [],
+        exposes: [e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-hersman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
+    },
 
     // BlitzWolf
     {
