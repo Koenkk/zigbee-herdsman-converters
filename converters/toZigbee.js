@@ -26,8 +26,22 @@ const converters = {
     read: {
         key: ['read'],
         convertSet: async (entity, key, value, meta) => {
-            const result = await entity.read(value.cluster, value.attributes);
+            const result = await entity.read(value.cluster, value.attributes, (value.hasOwnProperty('options') ? value.options : {}));
             meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
+            if (value.hasOwnProperty('state_property')) {
+                return {state: {[value.state_property]: result}};
+            }
+        },
+    },
+    write: {
+        key: ['write'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = utils.getOptions(meta.mapped, entity);
+            if (value.hasOwnProperty('options')) {
+                Object.assign(options, value.options);
+            }
+            await entity.write(value.cluster, value.payload, options);
+            meta.logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`);
         },
     },
     factory_reset: {
