@@ -2064,31 +2064,36 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[10];
+            const defaults = {motor_direction: 'FORWARD', motor_speed: 40};
             if (msg.data[0] === 0x7a & msg.data[1] === 0xd1) {
                 const reportType = msg.data[12];
                 switch (dp) {
                 case 0x0c:
                 case 0x0f:
                     if (reportType === 0x04) { // Position report
-                        const position = meta.state.motor_direction === 'FORWARD' ? msg.data[13] : 100 - msg.data[13];
+                        const position = 100 - msg.data[13];
                         const state = position > 0 ? 'OPEN' : 'CLOSE';
-                        return {position, state};
+                        const moving = dp === 0x0f;
+                        return {...defaults, ...meta.state, position, state, moving};
                     }
                     if (reportType === 0x12) { // Speed report
                         const motorSpeed = msg.data[13];
-                        return {motor_speed: motorSpeed};
+                        return {...defaults, ...meta.state, motor_speed: motorSpeed};
                     } else if (reportType === 0x13) { // Direction report
                         const direction = msg.data[13];
-                        if (direction === 0x70) {
-                            return {motor_direction: 'REVERSE'};
-                        } else if (direction === 0xf0) {
-                            return {motor_direction: 'FORWARD'};
+                        if (direction < 0x80) {
+                            return {...defaults, ...meta.state, motor_direction: 'FORWARD'};
+                        } else {
+                            return {...defaults, ...meta.state, motor_direction: 'REVERSE'};
                         }
                     }
                     break;
                 case 0x02:
                 case 0x03:
                     // Ignore special commands used only when pairing, as these will rather be handled by `onEvent`
+                    return null;
+                case 0x08:
+                    // Ignore general command acknowledgements, as they provide no useful information.
                     return null;
                 default:
                     // Unknown dps

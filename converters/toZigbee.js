@@ -1471,37 +1471,90 @@ const converters = {
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
         },
     },
-    livolo_cover_position: {
-        key: ['state', 'position'],
+    livolo_cover_state: {
+        key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'position') {
-                const position = meta.state.motor_direction === 'FORWARD' ? value : 100 - value;
-                await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
-                const payload = {0x0401: {value: Buffer.from([position, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
-                await entity.write('genPowerCfg', payload,
-                    {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
-                return {
-                    state: {position: value},
-                    readAfterWriteTime: 250,
-                };
-            } else if (key === 'state') {
-                let position;
-                switch (value) {
-                case 'OPEN':
-                    position = 100;
+            let payload;
+            const options = {frameType: 0, manufacturerCode: 0x1ad2, disableDefaultResponse: true,
+                disableResponse: true, reservedBits: 3, direction: 1, writeUndiv: true,
+                transactionSequenceNumber: 0xe9};
+            switch (value) {
+            case 'OPEN':
+                payload =
+                    {attrId: 0x0000, selector: null, elementData: [0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
+                break;
+            case 'CLOSE':
+                payload =
+                    {attrId: 0x0000, selector: null, elementData: [0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
+                break;
+            case 'STOP':
+                payload =
+                    {attrId: 0x0000, selector: null, elementData: [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
+                break;
+            default:
+                throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
+            }
+            await entity.writeStructured('genPowerCfg', [payload], options);
+            return {
+                state: {
+                    moving: true,
+                },
+                readAfterWriteTime: 250,
+            };
+        },
+    },
+    livolo_cover_position: {
+        key: ['position'],
+        convertSet: async (entity, key, value, meta) => {
+            const position = 100 - value;
+            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+            const payload = {0x0401: {value: [position, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: 1}};
+            await entity.write('genPowerCfg', payload,
+                {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                    reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
+            return {
+                state: {
+                    position: value,
+                    moving: true,
+                },
+                readAfterWriteTime: 250,
+            };
+        },
+    },
+    livolo_cover_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = {frameType: 0, manufacturerCode: 0x1ad2, disableDefaultResponse: true,
+                disableResponse: true, reservedBits: 3, direction: 1, writeUndiv: true,
+                transactionSequenceNumber: 0xe9};
+
+            if (value.hasOwnProperty('motor_direction')) {
+                let direction;
+                switch (value.motor_direction) {
+                case 'FORWARD':
+                    direction = 0x00;
                     break;
-                case 'CLOSE':
-                    position = 0;
+                case 'REVERSE':
+                    direction = 0x80;
                     break;
                 default:
-                    throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
+                    throw new Error(`livolo_cover_options: ${value.motor_direction} is not a valid motor direction \
+                     (must be one of 'FORWARD' or 'REVERSE')`);
                 }
-                return await converters.livolo_cover_position.convertSet(entity, 'position', position, meta);
+
+                const payload =
+                    {0x1301: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+                await entity.write('genPowerCfg', payload, options);
             }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
+
+            if (value.hasOwnProperty('motor_speed')) {
+                if (value.motor_speed < 20 || value.motor_speed > 40) {
+                    throw new Error('livolo_cover_options: Motor speed is out of range (20-40)');
+                }
+                const payload =
+                    {0x1201: {value: [value.motor_speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+                await entity.write('genPowerCfg', payload, options);
+            }
         },
     },
     gledopto_light_onoff_brightness: {
