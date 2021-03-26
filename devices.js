@@ -16422,7 +16422,7 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume()],
-    }
+    },
 
     // Schwaiger
     {
