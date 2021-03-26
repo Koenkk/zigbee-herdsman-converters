@@ -9906,7 +9906,7 @@ const devices = [
         },
     },
     {
-        fingerprint: [{modelID: 'HT-N', manufacturerName: 'HEIMAN'}],
+        zigbeeModel: ['HT-N', 'HT-EF-3.0'],
         model: 'HS1HT-N',
         vendor: 'HEIMAN',
         description: 'Smart temperature & humidity Sensor',
