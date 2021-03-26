@@ -2112,6 +2112,19 @@ const converters = {
             }
         },
     },
+    easycode_action: {
+        cluster: 'closuresDoorLock',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // Device send malformed messages: https://github.com/Koenkk/zigbee2mqtt/issues/6551#issuecomment-808400018
+            const message = {data: {
+                opereventsrc: msg.data[3],
+                opereventcode: msg.data[4],
+                userid: 0,
+            }};
+            return converters.lock_operation_event.convert(model, message, publish, options, meta);
+        },
+    },
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],

@@ -16412,7 +16412,7 @@ const devices = [
         model: 'EasyCode903G2.1',
         vendor: 'EasyAccess',
         description: 'EasyFinger V2',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        fromZigbee: [fz.lock, fz.easycode_action, fz.battery],
         toZigbee: [tz.lock, tz.lock_auto_relock_time, tz.lock_sound_volume],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -16421,7 +16421,7 @@ const devices = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume()],
+        exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume(), e.action(['TODO'])],
     },
 
     // Schwaiger
