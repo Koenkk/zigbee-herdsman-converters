@@ -16406,6 +16406,24 @@ const devices = [
         whiteLabel: [{vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'}],
     },
 
+    // EasyAccess
+    {
+        zigbeeModel: ['EasyCode903G2.1'],
+        model: 'EasyCode903G2.1',
+        vendor: 'EasyAccess',
+        description: 'EasyFinger V2',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        toZigbee: [tz.lock, tz.lock_auto_relock_time, tz.lock_sound_volume],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume()],
+    }
+
     // Schwaiger
     {
         zigbeeModel: ['SPW35Z-D0'],

@@ -202,13 +202,22 @@ const converters = {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const result = {};
             if (msg.data.hasOwnProperty('lockState')) {
-                const lookup = {0: 'not_fully_locked', 1: 'locked', 2: 'unlocked'};
-                return {
-                    state: msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK',
-                    lock_state: lookup[msg.data['lockState']],
-                };
+                result.state = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
+                const lookup = ['not_fully_locked', 'locked','unlocked'];
+                result.lock_state = lookup[msg.data['lockState']];
             }
+
+            if (msg.data.hasOwnProperty('autoRelockTime')) {
+                result.auto_relock_time = msg.data.autoRelockTime;
+            }
+
+            if (msg.data.hasOwnProperty('soundVolume')) {
+                result.sound_volume = constants.lockSoundVolume[msg.data.soundVolume];
+            }
+
+            return result;
         },
     },
     lock_pin_code_response: {
