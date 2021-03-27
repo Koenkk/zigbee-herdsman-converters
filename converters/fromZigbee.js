@@ -205,7 +205,7 @@ const converters = {
             const result = {};
             if (msg.data.hasOwnProperty('lockState')) {
                 result.state = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
-                const lookup = ['not_fully_locked', 'locked','unlocked'];
+                const lookup = ['not_fully_locked', 'locked', 'unlocked'];
                 result.lock_state = lookup[msg.data['lockState']];
             }
 
@@ -2116,13 +2116,18 @@ const converters = {
         cluster: 'closuresDoorLock',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            // Device send malformed messages: https://github.com/Koenkk/zigbee2mqtt/issues/6551#issuecomment-808400018
-            const message = {data: {
-                opereventsrc: msg.data[3],
-                opereventcode: msg.data[4],
-                userid: 0,
-            }};
-            return converters.lock_operation_event.convert(model, message, publish, options, meta);
+            const lookup = {
+                13: 'manual_lock',
+                14: 'zigbee_unlock',
+                3: 'rfid_unlock',
+                0: 'keypad_unlock',
+            };
+            const value = lookup[msg.data[4]];
+            if (value == 'manual_lock' || value == 'zigbee_unlock') {
+                return {action: value};
+            } else {
+                return {action: lookup[msg.data[3]]};
+            }
         },
     },
     livolo_switch_state_raw: {
