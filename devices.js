@@ -15018,7 +15018,23 @@ const devices = [
             .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
             .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
     },
-
+    // HGKG
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dzuqwsyg'}],
+        model: 'BAC-002-ALZB',
+        vendor: 'HKGK',
+        description: 'BAC series Thermostat',
+        fromZigbee: [fz.hgkg_thermostat],
+        toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
+            tz.hgkg_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
+            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
+        exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withSystemMode(['off', 'cool'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
+                .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
+        onEvent: tuya.onEventSetLocalTime,
+    },
     // Schneider Electric
     {
         zigbeeModel: ['iTRV'],
