@@ -17264,16 +17264,16 @@ const devices = [
         toZigbee: [tz.on_off],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-           const endpoint = device.getEndpoint(1);
-           await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
-           await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-           await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-           await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-           await reporting.onOff(endpoint);
-           await reporting.rmsVoltage(endpoint);
-           await reporting.rmsCurrent(endpoint);
-           await reporting.activePower(endpoint);
-           await reporting.temperature(endpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.temperature(endpoint);
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
     },
