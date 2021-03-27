@@ -17274,7 +17274,7 @@ const devices = [
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
-        },                                                                                               
+        },
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
     },
 
