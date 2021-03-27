@@ -12570,7 +12570,20 @@ const devices = [
         zigbeeModel: ['511.202'],
         model: '511.202',
         vendor: 'Iluminize',
-        description: 'Zigbee 3.0 Schalt-Aktor mini 1x230V, 200W/400W',
+        description: 'Zigbee 3.0 switch mini 1x230V, 200W/400W',
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['5120.1210'],
+        model: '5120.1210',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 switch mini 1x230V without neutral, 200W/400W',
         extend: preset.switch(),
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
