@@ -14593,7 +14593,9 @@ const devices = [
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */}
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
+                logger.error(`Configure failed: ${e}`);
+            }
         },
     },
     {
