@@ -1229,6 +1229,7 @@ const devices = [
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'}],
         model: 'TS0202',
         vendor: 'TuYa',
