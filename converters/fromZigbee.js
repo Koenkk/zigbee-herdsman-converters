@@ -2827,9 +2827,9 @@ const converters = {
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
-                  return {system_mode: value ? 'cool' : 'off'};
+                    return {system_mode: value ? 'cool' : 'off'};
                 } else {
-                  return {system_mode: value ? 'heat' : 'off'};
+                    return {system_mode: value ? 'heat' : 'off'};
                 }
             case tuya.dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
