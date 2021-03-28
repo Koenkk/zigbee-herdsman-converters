@@ -2117,13 +2117,13 @@ const converters = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             const lookup = {
-                13: 'manual_lock',
+                13: 'lock',
                 14: 'zigbee_unlock',
                 3: 'rfid_unlock',
                 0: 'keypad_unlock',
             };
             const value = lookup[msg.data[4]];
-            if (value == 'manual_lock' || value == 'zigbee_unlock') {
+            if (value == 'lock' || value == 'zigbee_unlock') {
                 return {action: value};
             } else {
                 return {action: lookup[msg.data[3]]};

@@ -16424,7 +16424,7 @@ const devices = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume(),
-            e.action(['zigbee_unlock', 'manual_unlock', 'rfid_unlock', 'keypad_unlock'])],
+            e.action(['zigbee_unlock', 'lock', 'rfid_unlock', 'keypad_unlock'])],
     },
 
     // Schwaiger
