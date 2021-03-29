@@ -13058,8 +13058,8 @@ const devices = [
         model: 'ZM-CSW032-D',
         vendor: 'Zemismart',
         description: 'Curtain/roller blind switch',
-        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position],
+        toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {configureKey: 1, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
