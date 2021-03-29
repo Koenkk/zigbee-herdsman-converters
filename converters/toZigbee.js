@@ -2256,6 +2256,13 @@ const converters = {
             }
         },
     },
+    easycode_auto_relock: {
+        key: ['auto_relock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {autoRelockTime: value ? 1 : 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {auto_relock: value}};
+        },
+    },
     tuya_led_control: {
         key: ['color', 'brightness', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
