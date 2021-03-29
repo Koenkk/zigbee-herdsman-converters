@@ -3220,7 +3220,7 @@ const converters = {
             return {action: postfixWithEndpointName('toggle', msg, model)};
         },
     },
-    E1524_E1810_arrow_click: {
+    ikea_arrow_click: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options, meta) => {
@@ -3233,7 +3233,7 @@ const converters = {
             return {action: `arrow_${direction}_click`};
         },
     },
-    E1524_E1810_arrow_hold: {
+    ikea_arrow_hold: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options, meta) => {
@@ -3242,7 +3242,7 @@ const converters = {
             return {action: `arrow_${direction}_hold`};
         },
     },
-    E1524_E1810_arrow_release: {
+    ikea_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
         convert: (model, msg, publish, options, meta) => {

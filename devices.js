@@ -2610,8 +2610,8 @@ const devices = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.E1524_E1810_arrow_click, fz.E1524_E1810_arrow_hold,
-            fz.E1524_E1810_arrow_release],
+        fromZigbee: [fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
+            fz.ikea_arrow_release],
         exposes: [e.battery(), e.action(['brightness_down_release', 'toggle_hold',
             'toggle', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold', 'arrow_right_hold', 'arrow_left_release',
             'arrow_right_release', 'brightness_up_click', 'brightness_down_click', 'brightness_up_hold', 'brightness_up_release'])],
@@ -2622,6 +2622,26 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            await endpoint.bind('genOnOff', defaultBindGroup);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Remote Control N2'],
+        model: 'W2049',
+        vendor: 'IKEA',
+        description: 'STYRBAR remote control N2',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+            fz.ikea_arrow_hold, fz.ikea_arrow_release],
+        exposes: [e.battery(), e.action(['brightness_up_click', 'brightness_down_click', 'brightness_up_hold', 'brightness_down_hold',
+            'brightness_up_release', 'brightness_down_release', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
+            'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
+        toZigbee: [],
+        ota: ota.tradfri,
+        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
             await endpoint.bind('genOnOff', defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
