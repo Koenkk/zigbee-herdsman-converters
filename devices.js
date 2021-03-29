@@ -17280,9 +17280,9 @@ const devices = [
 
     {
         zigbeeModel: ['HAN'],
-        model: 'Datek HAN',
+        model: 'Datek_HAN',
         vendor: 'Datek',
-        description: 'Datek Eva AMS HAN power-meter sensor',
+        description: 'Eva AMS HAN power-meter sensor',
         fromZigbee: [fz.metering, fz.electrical_measurement],
         toZigbee: [],
         ota: ota.zigbeeOTA,
