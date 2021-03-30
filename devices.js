@@ -7469,7 +7469,7 @@ const devices = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
-        extend: preset.gledopto.light_onoff_brightness_color(),
+        extend: preset.gledopto.light_onoff_brightness_colortemp_color(),
     },
     {
         fingerprint: [
