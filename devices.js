@@ -17319,17 +17319,17 @@ const devices = [
     },
 
     {
-        zigbeeModel: ['HAN'],
-        model: 'Datek_HAN',
+        zigbeeModel: ['Meter Reader'],
+        model: 'Meter_Reader',
         vendor: 'Datek',
-        description: 'Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement],
+        description: 'Datek Eva AMS HAN power-meter sensor',
+        fromZigbee: [fz.metering, fz.electrical_measurement, fz.temperature],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
@@ -17337,9 +17337,10 @@ const devices = [
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
+            await reporting.temperature(endpoint);
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
-            e.voltage_phase_c()],
+            e.voltage_phase_c(), e.temperature()],
     },
 
     // Prolight
