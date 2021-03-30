@@ -6100,7 +6100,7 @@ const devices = [
         zigbeeModel: ['RCL 110'],
         model: 'RCL 110',
         vendor: 'Innr',
-        description: 'Round Ceiling Light',
+        description: 'Round ceiling light',
         extend: preset.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
