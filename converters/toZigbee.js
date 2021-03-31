@@ -651,7 +651,7 @@ const converters = {
             if (message.hasOwnProperty('brightness')) {
                 brightness = Number(message.brightness);
             } else if (message.hasOwnProperty('brightness_percent')) {
-                brightness = utils.mapNumberRange(Number(message.brightness_percent, 0, 100, 0, 255));
+                brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
             if (brightness !== undefined && (isNaN(brightness) || brightness < 0 || brightness > 255)) {
