@@ -10,7 +10,7 @@
  */
 
 const {
-    precisionRound, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
+    precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
     calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
     batteryVoltageToPercentage, getMetaValue,
 } = require('../lib/utils');
@@ -97,7 +97,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('pIHeatingDemand')) {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
-                    precisionRound(msg.data['pIHeatingDemand'] / 255.0 * 100.0, 0);
+                    mapNumberRange(msg.data['pIHeatingDemand'], 0, 255, 0, 100);
             }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model)] = msg.data['tempSetpointHold'] == 1;
@@ -505,19 +505,19 @@ const converters = {
                 result.color = {};
 
                 if (msg.data.hasOwnProperty('currentX')) {
-                    result.color.x = precisionRound(msg.data['currentX'] / 65535, 4);
+                    result.color.x = mapNumberRange(msg.data['currentX'], 0, 65535, 0, 1, 4);
                 }
                 if (msg.data.hasOwnProperty('currentY')) {
-                    result.color.y = precisionRound(msg.data['currentY'] / 65535, 4);
+                    result.color.y = mapNumberRange(msg.data['currentY'], 0, 65535, 0, 1, 4);
                 }
                 if (msg.data.hasOwnProperty('currentSaturation')) {
-                    result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+                    result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
                 }
                 if (msg.data.hasOwnProperty('currentHue')) {
-                    result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+                    result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360, 0);
                 }
                 if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
-                    result.color.hue = precisionRound(msg.data['enhancedCurrentHue'] / (65535 / 360), 1);
+                    result.color.hue = mapNumberRange(msg.data['enhancedCurrentHue'], 0, 65535, 0, 360, 1);
                 }
             }
 
@@ -1081,7 +1081,7 @@ const converters = {
             const payload = {
                 action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
-                action_hue: msg.data.enhancehue * 360 / 65536 % 360,
+                action_hue: mapNumberRange(msg.data.enhancehue, 0, 65535, 0, 360, 1),
                 action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
@@ -1256,8 +1256,8 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const currentLevel = msg.data['currentLevel'];
-            let position = Math.round(Number(currentLevel) / 2.55).toString();
+            const currentLevel = Number(msg.data['currentLevel']);
+            let position = mapNumberRange(currentLevel, 0, 255, 0, 100).toString();
             position = options.invert_cover ? 100 - position : position;
             const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
             return {state: state, position: position};
@@ -1518,7 +1518,7 @@ const converters = {
                 // Mapping from
                 // Warmwhite 0 -> 255 Coldwhite
                 // to Homeassistant: Coldwhite 153 -> 500 Warmwight
-                result.color_temp = Math.round(-1.36 * value + 500);
+                result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
             }
 
             if (msg.data.hasOwnProperty('tuyaBrightness')) {
@@ -1528,12 +1528,12 @@ const converters = {
             result.color = {};
 
             if (msg.data.hasOwnProperty('currentHue')) {
-                result.color.hue = precisionRound((msg.data['currentHue'] * 360) / 254, 0);
+                result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360);
                 result.color.h = result.color.hue; // deprecated
             }
 
             if (msg.data.hasOwnProperty('currentSaturation')) {
-                result.color.saturation = precisionRound(msg.data['currentSaturation'] / 2.54, 0);
+                result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
                 result.color.s = result.color.saturation; // deprecated
             }
 
@@ -2054,7 +2054,11 @@ const converters = {
                     return {state: status & 1 ? 'ON' : 'OFF'};
                 } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
                     const value = msg.data[14] * 10;
-                    return {brightness: Math.round((value / 1000) * 255), brightness_percent: Math.round(value / 10), level: value};
+                    return {
+                        brightness: mapNumberRange(value, 0, 1000, 0, 255),
+                        brightness_percent: mapNumberRange(value, 0, 1000, 0, 100),
+                        level: value,
+                    };
                 }
             }
         },
@@ -2314,17 +2318,17 @@ const converters = {
                     result.effect = null;
                 }
             } if (dp === tuya.dataPoints.silvercrestSetBrightness) {
-                result.brightness = (value / 1000) * 255;
+                result.brightness = mapNumberRange(value, 0, 1000, 0, 255);
             } else if (dp === tuya.dataPoints.silvercrestSetColor) {
                 const h = parseInt(value.substring(0, 4), 16);
                 const s = parseInt(value.substring(4, 8), 16);
                 const b = parseInt(value.substring(8, 12), 16);
-                result.color = {b: (b / 1000) * 255, h, s: s / 10};
+                result.color = {b: mapNumberRange(b, 0, 1000, 0, 255), h, s: mapNumberRange(s, 0, 1000, 0, 100)};
                 result.brightness = result.color.b;
             } else if (dp === tuya.dataPoints.silvercrestSetEffect) {
                 result.effect = {
                     effect: getKey(tuya.silvercrestEffects, value.substring(0, 2), '', String),
-                    speed: (parseInt(value.substring(2, 4)) / 64) * 100,
+                    speed: mapNumberRange(parseInt(value.substring(2, 4)), 0, 64, 0, 100),
                     colors: [],
                 };
 
@@ -3155,8 +3159,7 @@ const converters = {
             if (msg.data.dp === tuya.dataPoints.state) {
                 return {state: value ? 'ON': 'OFF'};
             } else { // TODO: Unknown dp, assumed value type
-                const normalised = (value - 10) / (1000 - 10);
-                return {brightness: Math.round(normalised * 254), level: value};
+                return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
             }
         },
     },
@@ -4647,7 +4650,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             return {
                 requested_brightness_level: msg.data.level,
-                requested_brightness_percent: Math.round(msg.data.level / 254 * 100),
+                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
             };
         },
     },
