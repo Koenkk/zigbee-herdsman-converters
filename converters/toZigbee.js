@@ -224,7 +224,7 @@ const converters = {
             await entity.command(
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
-                {level: Math.round(Number(position) * 2.55).toString(), transtime: 0},
+                {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255).toString(), transtime: 0},
                 utils.getOptions(meta.mapped, entity),
             );
 
@@ -648,8 +648,11 @@ const converters = {
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
             const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
-            if (message.hasOwnProperty('brightness')) brightness = Number(message.brightness);
-            else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+            if (message.hasOwnProperty('brightness')) {
+                brightness = Number(message.brightness);
+            } else if (message.hasOwnProperty('brightness_percent')) {
+                brightness = utils.mapNumberRange(Number(message.brightness_percent, 0, 100, 0, 255));
+            }
 
             if (brightness !== undefined && (isNaN(brightness) || brightness < 0 || brightness > 255)) {
                 // Allow 255 value, changing this to 254 would be a breaking change.
@@ -757,8 +760,7 @@ const converters = {
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
 
             if (key === 'color_temp_percent') {
-                value = Number(value) * 3.46;
-                value = Math.round(value + 154).toString();
+                value = utils.mapNumberRange(value, 0, 100, 154, 500).toString();
             }
 
             if (typeof value === 'string' && isNaN(value)) {
@@ -835,15 +837,15 @@ const converters = {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
                     utils.hslToHSV(utils.correctHue(value.h, meta), value.s, value.l)));
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
 
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsl')) {
@@ -851,121 +853,121 @@ const converters = {
                 const hsl = value.hsl.split(',').map((i) => parseInt(i));
                 const hsv = utils.gammaCorrectHSV(...Object.values(
                     utils.hslToHSV(utils.correctHue(hsl[0], meta), hsl[1], hsl[2])));
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
                 newState.color = {h: value.h, s: value.s, v: value.b};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, value.b);
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsb')) {
                 let hsv = value.hsb.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
                 hsv = utils.gammaCorrectHSV(utils.correctHue(hsv[0], meta), hsv[1], hsv[2]);
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
                 newState.color = {h: value.h, s: value.s, v: value.v};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, value.v);
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('hsv')) {
                 let hsv = value.hsv.split(',').map((i) => parseInt(i));
                 newState.color = {h: hsv[0], s: hsv[1], v: hsv[2]};
                 hsv = utils.gammaCorrectHSV(utils.correctHue(hsv[0], meta), hsv[1], hsv[2]);
-                value.saturation = hsv.s * (2.54);
-                value.brightness = hsv.v * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                value.brightness = utils.mapNumberRange(hsv.v, 0, 100, 0, 254);
                 newState.brightness = value.brightness;
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturationAndBrightness';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturationAndBrightness';
                 }
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
                 newState.color = {h: value.h, s: value.s};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), value.s, 100);
-                value.saturation = hsv.s * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturation';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('h')) {
                 newState.color = {h: value.h};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.h, meta), 100, 100);
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHue';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHue';
                 }
             } else if (value.hasOwnProperty('s')) {
                 newState.color = {s: value.s};
                 const hsv = utils.gammaCorrectHSV(360, value.s, 100);
-                value.saturation = hsv.s * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
                 command = 'moveToSaturation';
             } else if (value.hasOwnProperty('hue') && value.hasOwnProperty('saturation')) {
                 newState.color = {hue: value.hue, saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), value.saturation, 100);
-                value.saturation = hsv.s * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHueAndSaturation';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHueAndSaturation';
                 }
             } else if (value.hasOwnProperty('hue')) {
                 newState.color = {hue: value.hue};
                 const hsv = utils.gammaCorrectHSV(utils.correctHue(value.hue, meta), 100, 100);
                 if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    value.hue = hsv.h % 360 * (65535 / 360);
+                    value.hue = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
                     command = 'enhancedMoveToHue';
                 } else {
-                    value.hue = Math.round(hsv.h / 360 * 254);
+                    value.hue = utils.mapNumberRange(hsv.h, 0, 360, 0, 254);
                     command = 'moveToHue';
                 }
             } else if (value.hasOwnProperty('saturation')) {
                 newState.color = {saturation: value.saturation};
                 const hsv = utils.gammaCorrectHSV(360, value.saturation, 100);
-                value.saturation = hsv.s * (2.54);
+                value.saturation = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
                 command = 'moveToSaturation';
             }
 
@@ -1039,8 +1041,8 @@ const converters = {
 
                 newState.color = {x: value.x, y: value.y};
                 newState.color_mode = constants.colorMode[1];
-                zclData.colorx = Math.round(value.x * 65535);
-                zclData.colory = Math.round(value.y * 65535);
+                zclData.colorx = utils.mapNumberRange(value.x, 0, 1, 0, 65535);
+                zclData.colory = utils.mapNumberRange(value.y, 0, 1, 0, 65535);
             }
             await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
@@ -1437,22 +1439,23 @@ const converters = {
         key: ['brightness', 'brightness_percent', 'level'],
         convertSet: async (entity, key, value, meta) => {
             // upscale to 100
+            value = Number(value);
             let newValue;
             if (key === 'level') {
                 if (value >= 0 && value <= 1000) {
-                    newValue = Math.round(Number(value)/10);
+                    newValue = utils.mapNumberRange(value, 0, 1000, 0, 100);
                 } else {
                     throw new Error('Dimmer level is out of range 0..1000');
                 }
             } else if (key === 'brightness_percent') {
                 if (value >= 0 && value <= 100) {
-                    newValue = Math.round(Number(value));
+                    newValue = Math.round(value);
                 } else {
                     throw new Error('Dimmer brightness_percent is out of range 0..100');
                 }
             } else {
                 if (value >= 0 && value <= 255) {
-                    newValue = Math.round(Number(value) * 100 / 255);
+                    newValue = utils.mapNumberRange(value, 0, 255, 0, 100);
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
@@ -1463,7 +1466,7 @@ const converters = {
                 {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                     reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9, writeUndiv: true});
             return {
-                state: {brightness_percent: newValue, brightness: Math.round((newValue * 255) / 100), level: (newValue*10)},
+                state: {brightness_percent: newValue, brightness: utils.mapNumberRange(newValue, 0, 100, 0, 255), level: (newValue*10)},
                 readAfterWriteTime: 250,
             };
         },
@@ -1701,7 +1704,7 @@ const converters = {
                         }
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
                         const xy = utils.hexToXY(meta.message.hue_power_on_color);
-                        value = {x: xy.x * 65535, y: xy.y * 65535};
+                        value = {x: utils.mapNumberRange(xy.x, 0, 1, 0, 65535), y: utils.mapNumberRange(xy.y, 0, 1, 0, 65535)};
 
                         // Set colortemp to default
                         if (supports.colorTemperature) {
@@ -2284,7 +2287,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'color_temp') {
                 value = Number(value);
-                const mappedValue = Math.round(-0.734 * value + 367);
+                const mappedValue = utils.mapNumberRange(value, 500, 154, 0, 254);
                 const payload = {colortemp: mappedValue, transtime: 0};
                 // disable tuya rgb mode
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
@@ -2294,15 +2297,15 @@ const converters = {
             // transtime is ignored
             const payload = {
                 transtime: 0,
-                hue: Math.round((meta.state.color.h * 254) / 360),
-                saturation: Math.round(meta.state.color.s * 2.54),
+                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
+                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
                 brightness: meta.state.brightness || 255,
             };
             if (value.h) {
-                payload.hue = Math.round((value.h * 254) / 360);
+                payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
             }
             if (value.s) {
-                payload.saturation = Math.round(value.s * 2.54);
+                payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
             }
             if (value.b) {
                 payload.brightness = value.b;
@@ -2353,8 +2356,8 @@ const converters = {
                 const hue = {};
                 const saturation = {};
 
-                hue.hue = Math.round((value.h * 254) / 360);
-                saturation.saturation = Math.round(value.s * 2.54);
+                hue.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+                saturation.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
 
                 hue.transtime = saturation.transtime = 0;
                 hue.direction = 0;
@@ -2389,7 +2392,7 @@ const converters = {
             }
             if (key === 'brightness_min') {
                 if (value >= 0 && value <= 100) {
-                    newValue = Math.round(Number(value) * 10);
+                    newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
                     dp = tuya.dataPoints.dimmerLevel;
                 } else {
                     throw new Error('Dimmer brightness_min is out of range 0..100');
@@ -2402,13 +2405,13 @@ const converters = {
                 }
             } else if (key === 'brightness_percent') {
                 if (value >= 0 && value <= 100) {
-                    newValue = Math.round(Number(value) * 10);
+                    newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
                 } else {
                     throw new Error('Dimmer brightness_percent is out of range 0..100');
                 }
             } else {
                 if (value >= 0 && value <= 255) {
-                    newValue = Math.round(Number(value) * 1000 / 255);
+                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
@@ -4129,7 +4132,9 @@ const converters = {
                     val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
 
                     const xy = utils.miredsToXY(val);
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
+                    const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
+                    const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
+                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -4139,22 +4144,26 @@ const converters = {
                     }
                     const color = typeof val === 'string' ? utils.hexToXY(val) : val;
                     if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        const xScaled = utils.mapNumberRange(color.x, 0, 1, 0, 65535);
+                        const yScaled = utils.mapNumberRange(color.y, 0, 1, 0, 65535);
                         extensionfieldsets.push(
                             {
                                 'clstId': 768,
                                 'len': 4,
-                                'extField': [Math.round(color.x * 65535), Math.round(color.y * 65535)],
+                                'extField': [xScaled, yScaled],
                             },
                         );
                         state['color'] = {x: color.x, y: color.y};
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
                         if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                             const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                            const hScaled = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
+                            const sScaled = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
                             extensionfieldsets.push(
                                 {
                                     'clstId': 768,
                                     'len': 13,
-                                    'extField': [0, 0, (hsv.h % 360 * (65535 / 360)), (hsv.s * (2.54)), 0, 0, 0, 0],
+                                    'extField': [0, 0, hScaled, sScaled, 0, 0, 0, 0],
                                 },
                             );
                         } else {
@@ -4162,11 +4171,13 @@ const converters = {
                             // When the bulb or all bulbs in a group do not support enhanchedHue,
                             // a fallback to XY is done by converting HSV -> RGB -> XY
                             const colorXY = utils.rgbToXY(...Object.values(utils.hsvToRgb(color.hue, color.saturation, 100)));
+                            const xScaled = utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535);
+                            const yScaled = utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535);
                             extensionfieldsets.push(
                                 {
                                     'clstId': 768,
                                     'len': 4,
-                                    'extField': [Math.round(colorXY.x * 65535), Math.round(colorXY.y * 65535)],
+                                    'extField': [xScaled, yScaled],
                                 },
                             );
                         }
@@ -4349,17 +4360,13 @@ const converters = {
     silvercrest_smart_led_string: {
         key: ['color', 'brightness', 'effect'],
         convertSet: async (entity, key, value, meta) => {
-            const scale = (value, valueMin, valueMax, min, max) => {
-                return min + ((max-min) / (valueMax - valueMin)) * value;
-            };
-
             if (key === 'effect') {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.effect);
 
                 let data = [];
                 const effect = tuya.silvercrestEffects[value.effect];
                 data = data.concat(tuya.convertStringToHexArray(effect));
-                let speed = Math.round(scale(value.speed, 0, 100, 0, 64));
+                let speed = utils.mapNumberRange(value.speed, 0, 100, 0, 64);
 
                 // Max speed what the gateways sends is 64.
                 if (speed > 64) {
@@ -4421,7 +4428,7 @@ const converters = {
                 let data = [0x00, 0x00];
 
                 // Scale it to what the device expects (0-1000 instead of 0-255)
-                const scaled = Math.round(scale(value, 0, 255, 0, 1000));
+                const scaled = utils.mapNumberRange(value, 0, 255, 0, 1000);
                 data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(scaled));
 
                 await tuya.sendDataPoint(entity, tuya.dataTypes.value, tuya.dataPoints.silvercrestSetBrightness, data);
@@ -4457,16 +4464,16 @@ const converters = {
                     // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
                     // The device expects a round number, otherwise everything breaks
                     if (s) {
-                        hsb.s = make4sizedString(Math.round(s * 10).toString(16));
+                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
                     } else if (state.color && state.color.s) {
-                        hsb.s = make4sizedString(Math.round(state.color.s * 10).toString(16));
+                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.s, 0, 100, 0, 1000).toString(16));
                     }
 
                     // Scale 0-255 to 0-1000 what the device expects.
                     if (b) {
-                        hsb.b = make4sizedString(Math.round(scale(b, 0, 255, 0, 1000)).toString(16));
+                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
                     } else if (state.brightness) {
-                        hsb.b = make4sizedString(Math.round(scale(state.brightness, 0, 255, 0, 1000)).toString(16));
+                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
                     }
 
                     return hsb;
