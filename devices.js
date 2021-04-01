@@ -475,6 +475,18 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['lumi.airmonitor.acn01'],
+        model: 'VOCKQJK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara TVOC air health sensor',
+        fromZigbee: [],
+        exposes: [],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+        },
+    },
+    {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
         model: 'QBKG12LM',
         vendor: 'Xiaomi',
