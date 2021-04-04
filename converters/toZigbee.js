@@ -1827,6 +1827,14 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
+    xiaomi_light_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBasic', {0xFF19: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+
+            return {state: {power_outage_memory: value}};
+        },
+    },
     xiaomi_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {

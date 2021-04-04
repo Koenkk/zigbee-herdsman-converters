@@ -227,7 +227,13 @@ const devices = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        extend: preset.xiaomi.light_onoff_brightness_colortemp(),
+        toZigbee: preset.xiaomi.light_onoff_brightness_colortemp().toZigbee.concat([
+            tz.xiaomi_light_power_outage_memory]),
+        fromZigbee: preset.xiaomi.light_onoff_brightness_colortemp().fromZigbee,
+        // power_on_behavior 'toggle' does not seem to be supported
+        exposes: preset.xiaomi.light_onoff_brightness_colortemp().exposes.concat([
+            e.power_outage_memory()]),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.cwopcn02'],
