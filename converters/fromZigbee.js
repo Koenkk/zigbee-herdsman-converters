@@ -5336,6 +5336,22 @@ const converters = {
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+    tuya_gas: {
+        cluster: 'manuSpecificTuya',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case tuya.dataPoints.state:
+                return {gas: value === 0 ? true : false};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_gas: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     woox_R7060: {
         cluster: 'manuSpecificTuya',
         type: ['commandActiveStatusReport'],

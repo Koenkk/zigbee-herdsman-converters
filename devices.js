@@ -1161,6 +1161,15 @@ const devices = [
 
     // TuYa
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
+        model: 'TS0601_gas_sensor',
+        vendor: 'TuYa',
+        description: 'gas sensor',
+        fromZigbee: [fz.tuya_gas],
+        toZigbee: [],
+        exposes: [e.gas()],
+    },
+    {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}],
         model: 'WHD02',
         vendor: 'TuYa',
