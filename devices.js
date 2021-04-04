@@ -17105,9 +17105,9 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED light strip 2.5m',
         ...preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, configureKey: 1},
+        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 31});
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
     {
@@ -17125,9 +17125,9 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
         ...preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, configureKey: 1},
+        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 31});
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
     {
@@ -17136,9 +17136,9 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot RGB',
         ...preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, configureKey: 1},
+        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 31});
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
     {
@@ -17202,9 +17202,9 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux mood light RGB+CCT',
         ...preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, configureKey: 1},
+        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 31});
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
     {
@@ -17213,9 +17213,9 @@ const devices = [
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
         ...preset.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, configureKey: 1},
+        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 31});
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
 
