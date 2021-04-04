@@ -117,6 +117,28 @@ const converters = {
             await entity.read('closuresDoorLock', ['lockState']);
         },
     },
+    lock_auto_relock_time: {
+        key: ['auto_relock_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {autoRelockTime: value}, utils.getOptions(meta.mapped, entity));
+            return {state: {auto_relock_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', ['autoRelockTime']);
+        },
+    },
+    lock_sound_volume: {
+        key: ['sound_volume'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.validateValue(value, constants.lockSoundVolume);
+            await entity.write('closuresDoorLock',
+                {soundVolume: constants.lockSoundVolume.indexOf(value)}, utils.getOptions(meta.mapped, entity));
+            return {state: {sound_volume: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', ['soundVolume']);
+        },
+    },
     pincode_lock: {
         key: ['pin_code'],
         convertSet: async (entity, key, value, meta) => {
@@ -2280,6 +2302,13 @@ const converters = {
             } else {
                 throw new Error(`Unsupported value: ${value}`);
             }
+        },
+    },
+    easycode_auto_relock: {
+        key: ['auto_relock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {autoRelockTime: value ? 1 : 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {auto_relock: value}};
         },
     },
     tuya_led_control: {

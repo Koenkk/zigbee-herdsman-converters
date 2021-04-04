@@ -14644,7 +14644,9 @@ const devices = [
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */}
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
+                logger.error(`Configure failed: ${e}`);
+            }
         },
     },
     {
@@ -16473,6 +16475,26 @@ const devices = [
         toZigbee: [],
         exposes: [e.action(['*'])],
         whiteLabel: [{vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'}],
+    },
+
+    // EasyAccess
+    {
+        zigbeeModel: ['EasyCode903G2.1'],
+        model: 'EasyCode903G2.1',
+        vendor: 'EasyAccess',
+        description: 'EasyFinger V2',
+        fromZigbee: [fz.lock, fz.easycode_action, fz.battery],
+        toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery(), e.sound_volume(),
+            e.action(['zigbee_unlock', 'lock', 'rfid_unlock', 'keypad_unlock']),
+            exposes.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.')],
     },
 
     // Schwaiger
