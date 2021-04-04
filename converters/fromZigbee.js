@@ -5307,30 +5307,30 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
-            case tuya.fantemTemp:
+            case tuya.dataPoints.fantemTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(
                     (value / 10).toFixed(1), options, 'temperature')};
-            case tuya.fantemHumidity:
+            case tuya.dataPoints.fantemHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            case tuya.fantemBattery:
+            case tuya.dataPoints.fantemBattery:
                 return {battery: value};
-            case tuya.fantemReportingTime:
+            case tuya.dataPoints.fantemReportingTime:
                 return {reporting_time: value};
-            case tuya.fantemTempCalibration:
+            case tuya.dataPoints.fantemTempCalibration:
                 return {
                     temperature_calibration: (
                         (value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value) / 10
                     ).toFixed(1),
                 };
-            case tuya.fantemHumidityCalibration:
+            case tuya.dataPoints.fantemHumidityCalibration:
                 return {humidity_calibration: value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value};
-            case tuya.fantemLuxCalibration:
+            case tuya.dataPoints.fantemLuxCalibration:
                 return {illuminance_calibration: value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value};
-            case tuya.fantemMotionEnable:
+            case tuya.dataPoints.fantemMotionEnable:
                 return {pir_enable: value};
-            case tuya.fantemLedEnable:
+            case tuya.dataPoints.fantemLedEnable:
                 return {led_enable: value};
-            case tuya.fantemReportingEnable:
+            case tuya.dataPoints.fantemReportingEnable:
                 return {reporting_enable: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:FantemZB003X: Unrecognized DP #${
