@@ -14784,7 +14784,7 @@ const devices = [
         extend: preset.switch(),
     },
     {
-        zigbeeModel: ['TS0207'],
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
         model: 'TS0207',
         vendor: 'CR Smart Home',
         description: 'Water leak detector',
