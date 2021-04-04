@@ -15048,7 +15048,11 @@ const devices = [
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
-        whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}, {vendor: 'Hama', model: '00176592'}],
+        whiteLabel: [
+            {vendor: 'HiHome', model: 'WZB-TRVL'},
+            {vendor: 'Hama', model: '00176592'},
+            {vendor: 'RTX', model: 'ZB-RT1'},
+        ],
         fromZigbee: [fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule],
         toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
             tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
