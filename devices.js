@@ -482,8 +482,9 @@ const devices = [
         fromZigbee: [],
         exposes: [],
         toZigbee: [],
-        meta: {configureKey: 1},
+        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['msRelativeHumidity']);
         },
     },
     {
