@@ -9736,7 +9736,38 @@ const devices = [
             await configureReporting.onOff(endpoint);
         },
     },
-
+    {
+        zigbeeModel: ['RGBgenie ZB-5004'],
+        model: 'ZB-5004',
+        vendor: 'RGBgenie',
+        description: 'Zigbee 3.0 remote control',
+        fromZigbee: [
+            fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery
+        ],
+        exposes: [
+            e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])
+        ],
+        toZigbee: [],
+    },
+    {
+    zigbeeModel: ['RGBgenie ZB-5028'],
+    model: 'ZB-5028',
+    vendor: 'RGBgenie',
+    description: 'Zigbee handheld remote RGBW 4 channels',
+    fromZigbee: [
+        fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
+        fz.command_step, fz.command_recall, fz.ZG2819S_command_on, fz.ZG2819S_command_off
+    ],
+    exposes: [
+        e.battery(), e.action([
+        'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down', 'recall_*', 'on', 'off'])
+    ],
+    toZigbee: [],
+    meta: {multiEndpoint: true},
+    endpoint: (device) => {
+        return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};},
+    },  
+ 
     // Sercomm
     {
         zigbeeModel: ['SZ-ESW01'],
