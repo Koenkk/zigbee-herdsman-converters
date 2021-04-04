@@ -1319,6 +1319,14 @@ const devices = [
         whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'}],
+        model: 'TS011F_wall_outlet',
+        vendor: 'TuYa',
+        description: 'In-wall outlet',
+        extend: preset.switch(),
+        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
