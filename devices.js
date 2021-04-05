@@ -695,7 +695,7 @@ const devices = [
         model: 'RTCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 human body movement and illuminance sensor (illuminance not supported for now)',
-        fromZigbee: [fz.occupancy, fz.battery],
+        fromZigbee: [fz.occupancy, fz.occupancy_timeout, fz.battery],
         toZigbee: [tz.occupancy_timeout],
         exposes: [e.occupancy(), e.battery(),
             exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
@@ -706,6 +706,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
             await reporting.occupancy(endpoint);
             await reporting.batteryVoltage(endpoint);
+			await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
     {
