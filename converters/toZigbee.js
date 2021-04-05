@@ -782,7 +782,10 @@ const converters = {
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
 
             if (key === 'color_temp_percent') {
-                value = utils.mapNumberRange(value, 0, 100, 154, 500).toString();
+                value = utils.mapNumberRange(value,
+                    0, 100,
+                    ((colorTempMin != null) ? colorTempMin : 154), ((colorTempMax != null) ? colorTempMax : 500),
+                ).toString();
             }
 
             if (typeof value === 'string' && isNaN(value)) {
