@@ -4506,6 +4506,15 @@ const devices = [
         extend: preset.hue.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['3418631P6'],
+        model: '3418631P6',
+        vendor: 'Philips',
+        description: 'Hue Adore bathroom mirror',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 
     // Belkin
     {
