@@ -12768,14 +12768,10 @@ const devices = [
     {
         zigbeeModel: ['RGBgenie ZB-5004'],
         model: 'ZB-5004',
-        vendor: 'RGBgenie',
+        vendor: 'RGB Genie',
         description: 'Zigbee 3.0 remote control',
-        fromZigbee: [
-            fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery
-        ],
-        exposes: [
-            e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])
-        ],
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
     },
 
