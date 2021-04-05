@@ -706,7 +706,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
             await reporting.occupancy(endpoint);
             await reporting.batteryVoltage(endpoint);
-			await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
     {
