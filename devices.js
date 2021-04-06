@@ -16021,7 +16021,7 @@ const devices = [
         zigbeeModel: ['SMRZB-143'],
         model: 'SMRZB-143',
         vendor: 'Develco',
-        description: 'Smart Cable',
+        description: 'Smart cable',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
