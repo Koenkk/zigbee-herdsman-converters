@@ -16043,6 +16043,32 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['SMRZB-143'],
+        model: 'SMRZB-143',
+        vendor: 'Develco',
+        description: 'Smart cable',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.deviceTemperature(endpoint, {change: 2}); // Device temperature reports with 2 degree change
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
+            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
+            await reporting.rmsVoltage(endpoint, {min: repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
+            await reporting.instantaneousDemand(endpoint, {min: repInterval.MINUTES_5, change: 10});
+        },
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ['EMIZB-132'],
         model: 'EMIZB-132',
         vendor: 'Develco',
