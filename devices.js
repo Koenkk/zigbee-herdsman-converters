@@ -1134,7 +1134,6 @@ const devices = [
             await reporting.illuminance(endpoint, {min: 15, max: repInterval.HOUR, change: 500});
         },
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
