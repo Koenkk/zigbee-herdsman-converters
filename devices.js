@@ -1781,6 +1781,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
                 const interval = setInterval(async () => {
@@ -5842,6 +5843,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const interval = setInterval(async () => {
                     try {
@@ -7926,6 +7928,7 @@ const devices = [
             // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const interval = setInterval(async () => {
                     try {
@@ -9717,6 +9720,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
                 const interval = setInterval(async () => {
@@ -10772,6 +10776,7 @@ const devices = [
             // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const interval = setInterval(async () => {
                     try {
@@ -11222,6 +11227,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await livolo.poll(device);
@@ -11245,6 +11251,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await livolo.poll(device);
@@ -11270,6 +11277,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await livolo.poll(device);
@@ -11295,6 +11303,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await livolo.poll(device);
@@ -11320,6 +11329,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (!globalStore.hasValue(device, 'interval')) {
                 await livolo.poll(device);
@@ -11356,6 +11366,7 @@ const devices = [
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             }
             if (!globalStore.hasValue(device, 'interval')) {
                 await livolo.poll(device);
@@ -15931,6 +15942,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const interval = setInterval(async () => {
                     try {
