@@ -16402,7 +16402,8 @@ const devices = [
             await reporting.deviceTemperature(endpoint);
 
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.rmsVoltage(endpoint, {change: 100});
+            // Report 5v voltage change, 5a current, 5 watt power change to reduce the noise
+            await reporting.rmsVoltage(endpoint, {change: 500});
             await reporting.rmsCurrent(endpoint, {change: 500});
             await reporting.activePower(endpoint, {change: 5});
 
