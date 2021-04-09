@@ -17577,6 +17577,16 @@ const devices = [
         extend: preset.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
+
+    // WETEN
+    {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_wrhhi5h2'}],
+        model: '1GNNTS',
+        vendor: 'WETEN',
+        description: '1 gang no neutral touch wall switch',
+        extend: preset.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
+    },
 ];
 
 module.exports = devices.map((device) => {
