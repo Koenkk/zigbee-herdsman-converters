@@ -12463,7 +12463,7 @@ const devices = [
         },
     },
     {
-        zigbeeModel: ['HOMA1064'],
+        zigbeeModel: ['HOMA1064', '012'],
         model: 'HLC833-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
