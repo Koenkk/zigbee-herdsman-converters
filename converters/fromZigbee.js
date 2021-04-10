@@ -5365,7 +5365,7 @@ const converters = {
     },
     tuya_gas: {
         cluster: 'manuSpecificTuya',
-        type: ['raw'],
+        type: ['commandGetData'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
