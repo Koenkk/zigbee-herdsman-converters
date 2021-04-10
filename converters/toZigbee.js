@@ -3332,18 +3332,6 @@ const converters = {
             return {state: {position}, readAfterWriteTime: 0};
         },
     },
-    bticino_4027C_cover_position: {
-        key: ['position'],
-        convertSet: async (entity, key, value, meta) => {
-            const position = value >= 50 ? 100 : 0;
-            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: position},
-                utils.getOptions(meta.mapped, entity));
-            return {state: {['position']: position}, readAfterWriteTime: 0};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
-        },
-    },
     legrand_identify: {
         key: ['identify'],
         convertSet: async (entity, key, value, meta) => {
