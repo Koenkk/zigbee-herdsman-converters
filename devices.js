@@ -78,12 +78,7 @@ const preset = {
         return {
             exposes, fromZigbee, toZigbee, meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
-                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                    try {
-                        await light.readColorCapabilities(endpoint);
-                        await light.readColorTempMinMax(endpoint);
-                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-                }
+                await light.configure(device, coordinatorEndpoint, logger, true);
             },
         };
     },
@@ -99,11 +94,7 @@ const preset = {
         return {
             exposes, fromZigbee, toZigbee, meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
-                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                    try {
-                        await light.readColorCapabilities(endpoint);
-                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-                }
+                await light.configure(device, coordinatorEndpoint, logger, false);
             },
         };
     },
@@ -126,12 +117,7 @@ const preset = {
         return {
             exposes, fromZigbee, toZigbee, meta: {configureKey: 2},
             configure: async (device, coordinatorEndpoint, logger) => {
-                for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
-                    try {
-                        await light.readColorCapabilities(endpoint);
-                        await light.readColorTempMinMax(endpoint);
-                    } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
-                }
+                await light.configure(device, coordinatorEndpoint, logger, true);
             },
         };
     },
@@ -1319,7 +1305,6 @@ const devices = [
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        extend: preset.light_onoff_brightness(),
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         meta: {configureKey: 1},
@@ -1938,7 +1923,6 @@ const devices = [
         description: 'Zigbee smart dimmer',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
-        extend: preset.light_onoff_brightness(),
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
