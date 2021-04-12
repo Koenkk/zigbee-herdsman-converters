@@ -313,7 +313,7 @@ const devices = [
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
         toZigbee: [],
         exposes: [e.battery(),
-            e.action(['single_left', 'single_right', 'double_left', 'double_right', 'hold_left', 'hold_right']),
+            e.action(['single', 'double', 'hold']),
             e.battery_voltage()],
         onEvent: xiaomi.preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
@@ -502,7 +502,9 @@ const devices = [
             return {left: 1, right: 2, both: 3};
         },
         exposes: [e.battery(), e.battery_voltage(), e.action([
-            'left', 'right', 'both', 'left_double', 'right_double', 'both_double', 'left_long', 'right_long', 'both_long'])],
+            'single_left', 'single_right', 'single_both',
+            'double_left', 'double_right', 'double_both',
+            'hold_left', 'hold_right', 'hold_both'])],
         onEvent: xiaomi.preventReset,
     },
     {
