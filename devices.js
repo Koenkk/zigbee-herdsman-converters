@@ -2313,18 +2313,12 @@ const devices = [
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
-        fingerprint: [
-            {modelID: 'ZB-CL01', manufacturerName: 'eWeLight'},
-            {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'},
-        ],
+        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'}],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: preset.light_onoff_brightness_colortemp_color({
-            disableColorTempStartup: true,
-            colorTempRange: [153, 370],
-            disableEffect: true,
-        }),
+        extend: preset.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, colorTempRange: [153, 370], disableEffect: true}),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
@@ -14995,10 +14989,7 @@ const devices = [
         model: 'AJ_ZB_GU10',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro GU10 spotlight bulb',
-        extend: preset.light_onoff_brightness_colortemp_color({
-            colorTempRange: [158, 495],
-            disableEffect: true,
-        }),
+        extend: preset.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
     },
 
     // Moes
