@@ -12752,6 +12752,28 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
 
+    // NEXENTRO by Insta
+    {
+        zigbeeModel: ['Generic UP Device'],
+        model: '57008000',
+        vendor: 'Insta GmbH',
+        description: 'Blinds actor with Lift/Tilt Calibration & with with inputs for wall switches',
+        fromZigbee: [fz.cover_position_tilt, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position_tilt()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(device.getEndpoint(6));
+            await reporting.currentPositionTiltPercentage(device.getEndpoint(6));
+
+            // Has Unknown power source, force it here.
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+
     // RGB Genie
     {
         zigbeeModel: ['RGBgenie ZB-5121'],
