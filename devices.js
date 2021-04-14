@@ -2320,7 +2320,11 @@ const devices = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 370],
+            disableEffect: true,
+        }),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
@@ -14987,11 +14991,14 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['AJ_ZB30_GU10'],
+        zigbeeModel: ['AJ_ZB30_GU10', 'AJ_ZB120_GU10'],
         model: 'AJ_ZB_GU10',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro GU10 spotlight bulb',
-        extend: preset.light_onoff_brightness_colortemp_color(),
+        extend: preset.light_onoff_brightness_colortemp_color({
+            colorTempRange: [158, 495],
+            disableEffect: true,
+        }),
     },
 
     // Moes
@@ -16288,6 +16295,13 @@ const devices = [
         vendor: 'Aurora Lighting',
         description: 'AOne 4.8W smart dimmable GU10 lamp 3000K',
         extend: preset.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['FWA60Bulb50AU'],
+        model: 'AU-A1VGSZ5E/19',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 4W smart dimmable Vintage GLS lamp 1900K',
+        extend: preset.light_onoff_brightness({disableEffect: true}),
     },
     {
         zigbeeModel: ['RGBGU10Bulb50AU'],
