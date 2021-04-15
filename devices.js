@@ -12751,13 +12751,11 @@ const devices = [
         toZigbee: [],
         ota: ota.zigbeeOTA,
     },
-
-    // NEXENTRO by Insta
     {
         zigbeeModel: ['Generic UP Device'],
         model: '57008000',
-        vendor: 'Insta GmbH',
-        description: 'Blinds actor with Lift/Tilt Calibration & with with inputs for wall switches',
+        vendor: 'Insta',
+        description: 'Blinds actor with lift/tilt calibration & with with inputs for wall switches',
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position_tilt()],
