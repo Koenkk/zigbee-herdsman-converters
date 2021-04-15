@@ -17523,7 +17523,7 @@ const devices = [
         description: 'Wireless Controlled LED retrofit downlight',
         extend: preset.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
     },
-    
+
     // Matcall BV
     {
         zigbeeModel: ['ZG 401224'],
@@ -17533,7 +17533,7 @@ const devices = [
         exposes: [e.light_brightness()],
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_brightness_step, tz.level_config, tz.power_on_behavior]
+            tz.light_brightness_step, tz.level_config, tz.power_on_behavior],
     },
     {
         zigbeeModel: ['ZG 430700', 'ZG  430700'],
@@ -17543,7 +17543,7 @@ const devices = [
         exposes: [e.light_brightness()],
         fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_brightness_step, tz.level_config, tz.power_on_behavior]
+            tz.light_brightness_step, tz.level_config, tz.power_on_behavior],
     },
 
     // Aldi
