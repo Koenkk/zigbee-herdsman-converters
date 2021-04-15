@@ -15125,7 +15125,9 @@ const devices = [
             {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'w7cahqs\u0000', manufacturerName: '_TYST11_yw7cahqs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yw7cahqs'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yw7cahqs'},
+	    {modelId: 'TS0601', manufacturerName: '_TZE200_azqp6ssj'}
+	],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
         description: 'Thermostatic radiator valve',
