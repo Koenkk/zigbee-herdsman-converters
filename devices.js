@@ -1232,7 +1232,7 @@ const devices = [
         description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB',
         extend: preset.light_onoff_brightness_color(),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
-        meta: {applyRedFix: true},
+        meta: {applyRedFix: true, enhancedHue: false},
     },
     {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'}],
