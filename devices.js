@@ -17527,23 +17527,17 @@ const devices = [
     // Matcall BV
     {
         zigbeeModel: ['ZG 401224'],
-        model: 'ZG 401224',
+        model: 'ZG401224',
         vendor: 'Matcall bv',
         description: 'Matcall LED Dimmer driver',
-        exposes: [e.light_brightness()],
-        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_brightness_step, tz.level_config, tz.power_on_behavior],
+        extend: preset.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['ZG 430700', 'ZG  430700'],
-        model: 'ZG 430700',
+        model: 'ZG430700',
         vendor: 'MatcaII  bv',
         description: 'Matcall LED Dimmer driver',
-        exposes: [e.light_brightness()],
-        fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_brightness_step, tz.level_config, tz.power_on_behavior],
+        extend: preset.light_onoff_brightness(),
     },
 
     // Aldi
