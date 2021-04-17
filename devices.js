@@ -6948,7 +6948,8 @@ const devices = [
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 light controller',
         extend: preset.switch(),
-        whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'}],
+        whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
+            {vendor: 'Moes', model: 'ZK-CH-2U', description: 'Plug with 2 USB ports'}],
         meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
