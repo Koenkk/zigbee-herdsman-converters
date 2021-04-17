@@ -17562,6 +17562,22 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
     },
 
+    // Matcall BV
+    {
+        zigbeeModel: ['ZG 401224'],
+        model: 'ZG401224',
+        vendor: 'Matcall',
+        description: 'LED dimmer driver',
+        extend: preset.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['ZG 430700', 'ZG  430700'],
+        model: 'ZG430700',
+        vendor: 'Matcall',
+        description: 'LED dimmer driver',
+        extend: preset.light_onoff_brightness(),
+    },
+
     // Aldi
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_j0gtlepx'}],
