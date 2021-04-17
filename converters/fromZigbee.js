@@ -864,7 +864,7 @@ const converters = {
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -873,7 +873,7 @@ const converters = {
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName(`panic`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -906,7 +906,7 @@ const converters = {
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('stop', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -915,7 +915,7 @@ const converters = {
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('open', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -924,7 +924,7 @@ const converters = {
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('close', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -933,7 +933,7 @@ const converters = {
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('on', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -942,7 +942,7 @@ const converters = {
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('off', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -951,7 +951,7 @@ const converters = {
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName(`off`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -960,7 +960,7 @@ const converters = {
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('toggle', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -973,7 +973,7 @@ const converters = {
                 action_level: msg.data.level,
                 action_transition_time: msg.data.transtime / 100,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
 
             if (options.simulated_brightness) {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
@@ -990,7 +990,7 @@ const converters = {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
 
             if (options.simulated_brightness) {
                 const opts = options.simulated_brightness;
@@ -1026,7 +1026,7 @@ const converters = {
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime / 100,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
 
             if (options.simulated_brightness) {
                 let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
@@ -1050,7 +1050,7 @@ const converters = {
             }
 
             const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1061,7 +1061,7 @@ const converters = {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1079,7 +1079,7 @@ const converters = {
                 payload.action_transition_time = msg.data.transtime / 100;
             }
 
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1095,7 +1095,7 @@ const converters = {
                 action_transition_time: msg.data.transtime,
             };
 
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1109,7 +1109,7 @@ const converters = {
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime/100,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1123,7 +1123,7 @@ const converters = {
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime/100,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1152,7 +1152,7 @@ const converters = {
                 action_start_hue: msg.data.starthue,
             };
 
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1165,7 +1165,7 @@ const converters = {
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1181,7 +1181,7 @@ const converters = {
                 },
                 action_transition_time: msg.data.transtime,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1190,7 +1190,7 @@ const converters = {
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName('hue_move', msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1203,7 +1203,7 @@ const converters = {
                 action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -1213,7 +1213,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -2626,7 +2626,7 @@ const converters = {
         type: 'write',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: `scene_${msg.data['16389']}`};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
@@ -4431,7 +4431,7 @@ const converters = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: postfixWithEndpointName(`color_stop`, msg, model)};
-            addActionGroup(payload, msg, model);
+            addActionGroup(payload, msg, model, options);
             return payload;
         },
     },
