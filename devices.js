@@ -759,7 +759,7 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
