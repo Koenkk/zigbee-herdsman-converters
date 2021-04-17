@@ -3321,9 +3321,8 @@ const converters = {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
             const lookup = invert ?
-              {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'}
-              :
-              {'open': 'downClose', 'close': 'upOpen', 'stop': 'stop', 'on': 'downClose', 'off': 'upOpen'};
+                {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'} :
+                {'open': 'downClose', 'close': 'upOpen', 'stop': 'stop', 'on': 'downClose', 'off': 'upOpen'};
 
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
@@ -3343,15 +3342,15 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
-            let new_position = value;
+            let newPosition = value;
             if (meta.options.no_position_support) {
-                new_position = value >= 50 ? 100 : 0;
+                newPosition = value >= 50 ? 100 : 0;
             }
-            const position = new_position;
+            const position = newPosition;
             if (invert) {
-                new_position = 100 - new_position;
+                newPosition = 100 - newPosition;
             }
-            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: new_position},
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: newPosition},
                 utils.getOptions(meta.mapped, entity));
             return {state: {['position']: position}, readAfterWriteTime: 0};
         },

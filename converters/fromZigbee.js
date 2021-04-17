@@ -3605,8 +3605,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return options.no_position_support ?
-                {action: msg.data.presentValue ? 'stopped' : 'moving', position: 50}
-                :
+                {action: msg.data.presentValue ? 'stopped' : 'moving', position: 50} :
                 {action: msg.data.presentValue ? 'stopped' : 'moving'};
         },
     },
