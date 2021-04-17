@@ -503,6 +503,10 @@ const converters = {
 
             if (meta.state.hasOwnProperty('brightness')) {
                 let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
+                if (value === 0) {
+                    brightness = (await entity.read('genLevelCtrl', ['currentLevel'])).currentLevel;
+                }
+
                 brightness = Math.min(254, brightness);
                 brightness = Math.max(onOff || meta.state.state === 'OFF' ? 0 : 1, brightness);
 
