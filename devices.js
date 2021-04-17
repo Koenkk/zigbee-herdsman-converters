@@ -9051,9 +9051,9 @@ const devices = [
         model: '902010/29',
         vendor: 'Bitron',
         description: 'Zigbee outdoor siren',
-        fromZigbee: [fz.ias_smoke_alarm_1],
+        fromZigbee: [fz.battery],
         toZigbee: [tz.warning],
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
+        exposes: [e.battery_low(), e.tamper(), e.warning()],
     },
     {
         zigbeeModel: ['902010/23'],
