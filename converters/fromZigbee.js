@@ -3604,7 +3604,7 @@ const converters = {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: msg.data.presentValue ? 'stopped' : 'moving'};
+            return {action: msg.data.presentValue ? 'stopped' : 'moving', position: 50};
         },
     },
     legrand_scenes: {
