@@ -16310,6 +16310,13 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['FWG125Bulb50AU'],
+        model: 'AU-A1VG125Z5E/19',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 4W smart dimmable G125 lamp 1900K',
+        extend: preset.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['FWGU10Bulb50AU', 'FWGU10Bulb01UK'],
         model: 'AU-A1GUZB5/30',
         vendor: 'Aurora Lighting',
