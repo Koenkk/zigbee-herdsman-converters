@@ -3505,6 +3505,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTD005'],
+        model: '5995111U5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance 5/6" retrofit recessed downlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTG001'],
         model: '9290019534',
         vendor: 'Philips',
