@@ -504,7 +504,10 @@ const converters = {
             if (meta.state.hasOwnProperty('brightness')) {
                 let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
                 if (value === 0) {
-                    brightness = (await entity.read('genLevelCtrl', ['currentLevel'])).currentLevel;
+                    const entityToRead = utils.getEntityOrFirstGroupMember(entity);
+                    if (entityToRead) {
+                        brightness = (await entityToRead.read('genLevelCtrl', ['currentLevel'])).currentLevel;
+                    }
                 }
 
                 brightness = Math.min(254, brightness);
@@ -530,7 +533,7 @@ const converters = {
 
                 // As we cannot determine the new brightness state, we read it from the device
                 await utils.sleep(500);
-                const target = entity.constructor.name === 'Group' ? entity.members[0] : entity;
+                const target = utils.getEntityOrFirstGroupMember(entity);
                 await target.read('genOnOff', ['onOff']);
                 await target.read('genLevelCtrl', ['currentLevel']);
             } else {
