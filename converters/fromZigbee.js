@@ -3505,6 +3505,29 @@ const converters = {
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
     },
+    frankever_valve: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse', 'commandActiveStatusReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dp = msg.data.dp;
+            switch (dp) {
+            case tuya.dataPoints.state: {
+                return {state: value ? 'ON': 'OFF'};
+            }
+            case tuya.dataPoints.frankEverTreshold: {
+                return {threshold: value};
+            }
+            case tuya.dataPoints.frankEverTimer: {
+                return {timer: value / 60};
+            }
+            default: {
+                meta.logger.warn(`zigbee-herdsman-converters:FrankeverValve: NOT RECOGNIZED DP ` +
+                    `#${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+            }
+        },
+    },
     tuya_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],

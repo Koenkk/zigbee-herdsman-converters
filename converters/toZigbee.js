@@ -2473,6 +2473,25 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
+    frankever_threshold: {
+        key: ['threshold'],
+        convertSet: async (entity, key, value, meta) => {
+            // input to multiple of 10 with max value of 100
+            const thresh = Math.abs(Math.min(10*(Math.floor(value/10)), 100));
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTreshold, thresh, 'setData', 1);
+            return {state: {threshold: value}};
+        },
+    },
+    frankever_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTimer, timer, 'setData', 1);
+            return {state: {timer: value}};
+        },
+    },
     RM01_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         convertSet: async (entity, key, value, meta) => {

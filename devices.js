@@ -11940,6 +11940,21 @@ const devices = [
         toZigbee: [],
     },
 
+    // FrankEver
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wt9agwf3'}],
+        model: 'FK_V02',
+        vendor: 'FrankEver',
+        description: 'Zigbee smart water valve',
+        fromZigbee: [fz.frankever_valve],
+        toZigbee: [tz.tuya_switch_state, tz.frankever_threshold, tz.frankever_timer],
+        exposes: [e.switch(),
+            exposes.numeric('threshold', exposes.access.ALL).withValueMin(0).withValueMax(100).withUnit('%')
+                .withDescription('Valve open percentage (multiple of 10)'),
+            exposes.numeric('timer', exposes.access.ALL).withValueMin(0).withValueMax(600).withUnit('minutes')
+                .withDescription('Countdown timer in minutes')],
+    },
+
     // Vimar
     {
         zigbeeModel: ['2_Way_Switch_v1.0', 'On_Off_Switch_v1.0'],
