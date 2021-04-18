@@ -3322,7 +3322,12 @@ const converters = {
     bticino_4027C_cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
+                !meta.options.invert_cover : meta.options.invert_cover);
+            const lookup = invert ?
+                {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'} :
+                {'open': 'downClose', 'close': 'upOpen', 'stop': 'stop', 'on': 'downClose', 'off': 'upOpen'};
+
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
 
@@ -3339,8 +3344,17 @@ const converters = {
     bticino_4027C_cover_position: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
-            const position = value >= 50 ? 100 : 0;
-            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: position},
+            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
+                !meta.options.invert_cover : meta.options.invert_cover);
+            let newPosition = value;
+            if (meta.options.no_position_support) {
+                newPosition = value >= 50 ? 100 : 0;
+            }
+            const position = newPosition;
+            if (invert) {
+                newPosition = 100 - newPosition;
+            }
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: newPosition},
                 utils.getOptions(meta.mapped, entity));
             return {state: {['position']: position}, readAfterWriteTime: 0};
         },

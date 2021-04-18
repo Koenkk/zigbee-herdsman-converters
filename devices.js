@@ -15600,7 +15600,9 @@ const devices = [
         },
     },
     {
-        // This device provides only three values: 0, 100 and 50, 50 means an idefinite position between 1 and 99.
+        // Newer firmwares (e.g. 001f) Does support partial position reporting
+        // Old firmware of this device provides only three values: 0, 100 and 50, 50 means an idefinite position between 1 and 99.
+        // If you have an old Firmware set no_position_support to true
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2214 - 1st very basic support
         zigbeeModel: [' Shutter SW with level control\u0000'],
         model: 'K4027C/L4027C/N4027C/NT4027C',
