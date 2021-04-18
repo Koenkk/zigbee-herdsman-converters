@@ -15934,6 +15934,13 @@ const devices = [
         description: 'FLAIR Viyu Smart GU10 CCT lamp',
         extend: preset.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['VIYU_A60_470_FI_D_CCT_10297665'],
+        model: '10297665',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED bulb CCT E27 filament',
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
+    },
 
     // LifeControl
     {
