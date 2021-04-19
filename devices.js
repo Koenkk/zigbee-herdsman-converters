@@ -10540,7 +10540,7 @@ const devices = [
         model: 'NLG-TW light',
         vendor: 'Paul Neuhaus',
         description: 'Various tunable white lights (e.g. 8195-55)',
-        extend: preset.light_onoff_brightness_colortemp(),
+        extend: preset.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['NLG-RGBW light '], // the space as the end is intentional, as this is what the device sends
