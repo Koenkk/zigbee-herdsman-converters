@@ -704,7 +704,8 @@ const converters = {
                         globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
 
-                    let level = state === 'off' ? 0 : globalStore.getValue(entity, 'brightness', 254);
+                    const fallbackLevel = utils.getObjectProperty(meta.state, 'brightness', 254);
+                    let level = state === 'off' ? 0 : globalStore.getValue(entity, 'brightness', fallbackLevel);
                     if (state === 'on' && level === 0) level = turnsOffAtBrightness1 ? 2 : 1;
 
                     const payload = {level, transtime: transition.time};
