@@ -14404,7 +14404,7 @@ const devices = [
         extend: preset.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593'],
+        zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593', '8762413da99140cbb809195ff40f8c51'],
         model: 'RL804QZB',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
