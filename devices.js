@@ -6151,6 +6151,14 @@ const devices = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RSL 115'],
+        model: 'RSL 115',
+        vendor: 'Innr',
+        description: 'Recessed spot light',
+        extend: preset.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['PL 110'],
         model: 'PL 110',
         vendor: 'Innr',
