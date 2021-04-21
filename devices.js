@@ -4426,7 +4426,7 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1741530P7'],
+        zigbeeModel: ['1741530P7', '1741430P7'],
         model: '1741530P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
