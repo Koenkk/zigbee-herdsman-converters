@@ -16341,6 +16341,7 @@ const devices = [
         model: 'AU-A1VG125Z5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable G125 lamp 1900K',
+        meta: {turnsOffAtBrightness1: true},
         extend: preset.light_onoff_brightness(),
     },
     {
