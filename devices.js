@@ -12792,6 +12792,9 @@ const devices = [
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position_tilt()],
+        endpoint: (device) => {
+            return {'default': 6};
+        },
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['closuresWindowCovering']);
