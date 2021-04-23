@@ -12630,7 +12630,8 @@ const devices = [
         description: 'Universal wink enabled white ceiling fan premier remote control',
         fromZigbee: preset.light_onoff_brightness().fromZigbee.concat([fz.fan]),
         toZigbee: preset.light_onoff_brightness().toZigbee.concat([tz.fan_mode]),
-        exposes: [e.light_brightness(), e.fan()],
+        //RS: //exposes: [e.light_brightness(), e.fan()],
+        exposes: [e.light_brightness(), exposes.climate().withFanMode(["off", "low", "medium", "high", "on", "smart"])],
         meta: {disableDefaultResponse: true, configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -12638,6 +12639,8 @@ const devices = [
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
             await reporting.fanMode(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
