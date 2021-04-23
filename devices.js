@@ -11454,6 +11454,13 @@ const devices = [
 
     // Immax
     {
+        zigbeeModel: ['ZBT-CCTfilament-D0000'],
+        model: '07089L',
+        vendor: 'Immax',
+        description: 'NEO SMART LED E27 5W',
+        extend: preset.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['E27-filament-Dim-ZB3.0'],
         model: '07088L',
         vendor: 'Immax',
