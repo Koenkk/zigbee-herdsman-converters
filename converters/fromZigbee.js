@@ -1266,7 +1266,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const currentLevel = Number(msg.data['currentLevel']);
-            let position = mapNumberRange(currentLevel, 0, 255, 0, 100).toString();
+            let position = mapNumberRange(currentLevel, 0, 255, 0, 100);
             position = options.invert_cover ? 100 - position : position;
             const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
             return {state: state, position: position};
