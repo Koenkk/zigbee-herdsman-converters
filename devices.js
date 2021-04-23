@@ -12440,6 +12440,22 @@ const devices = [
             return {ep1: 1, ep2: 2, ep3: 3};
         },
     },
+    {
+        zigbeeModel: ['HK-ZCC-A'],
+        model: 'SR-ZG9080A',
+        vendor: 'Sunricher',
+        description: 'Sunricher Zigbee Curtain Motor Controller',
+        supports: 'position and state',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
 
     // Samotech
     {
