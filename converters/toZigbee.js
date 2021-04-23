@@ -812,7 +812,8 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
+            //RS://return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
+            return {state: {color_temp: value, color_mode: constants.colorMode[2], mode: 'ct'}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorTemperature']);
@@ -866,7 +867,8 @@ const converters = {
                 value.y = xy.y;
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
-                value = {x: xy.x, y: xy.y};
+                //RS://value = {x: xy.x, y: xy.y};
+                value = {hex: value.hex, x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
@@ -1010,6 +1012,8 @@ const converters = {
             switch (command) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -1023,17 +1027,22 @@ const converters = {
                 break;
             case 'enhancedMoveToHueAndSaturation':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'enhancedMoveToHue':
                 newState.color_mode = constants.colorMode[0];
+                newState.mode = 'xy';
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHueAndSaturationAndBrightness':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -1047,17 +1056,23 @@ const converters = {
                 break;
             case 'moveToHueAndSaturation':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHue':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.hue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToSaturation':
                 newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.saturation = value.saturation;
                 break;
 
@@ -1073,8 +1088,11 @@ const converters = {
                     value.y = 0.2993;
                 }
 
-                newState.color = {x: value.x, y: value.y};
+                //RS://newState.color = {x: value.x, y: value.y};
+                newState.color = {hex: value.hex, x: value.x, y: value.y};
                 newState.color_mode = constants.colorMode[1];
+                //RS://
+                newState.mode = 'xy';
                 zclData.colorx = utils.mapNumberRange(value.x, 0, 1, 0, 65535);
                 zclData.colory = utils.mapNumberRange(value.y, 0, 1, 0, 65535);
             }
@@ -1133,14 +1151,17 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                }
-
+                //RS://
+                //if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                //    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                //}
+                result.state.mode = 'xy';
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
                 result.state.color = utils.miredsToXY(result.state.color_temp);
+                //RS://
+                result.state.mode = 'ct';
                 return result;
             }
         },
@@ -1664,14 +1685,17 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                }
-
+                //RS://
+                //if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                //    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                //}
+                result.state.mode = 'xy';
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.gledopto_light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = utils.miredsToXY(result.state.color_temp);
+                //RS://
+                //result.state.color = utils.miredsToXY(result.state.color_temp);
+                result.state.mode = 'ct';
                 return result;
             }
         },
@@ -4131,11 +4155,17 @@ const converters = {
             const addColorMode = (newState) => {
                 if (newState.hasOwnProperty('color_temp')) {
                     newState.color_mode = constants.colorMode[2];
+                    //RS://
+                    newState.mode = 'ct';
                 } else if (newState.hasOwnProperty('color')) {
                     if (newState.color.hasOwnProperty('x')) {
                         newState.color_mode = constants.colorMode[1];
+                        //RS://
+                        newState.mode = 'xy';
                     } else {
                         newState.color_mode = constants.colorMode[0];
+                        //RS://
+                        newState.mode = 'ct';
                     }
                 }
 
@@ -4217,6 +4247,8 @@ const converters = {
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
                     state['color_temp'] = val;
+                    //RS://
+                    state['mode'] = 'ct';
                 } else if (attribute === 'color') {
                     try {
                         val = JSON.parse(val);
@@ -4234,7 +4266,9 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
-                        state['color'] = {x: color.x, y: color.y};
+                        //RS://
+                        state['color'] = {hex: value.hex, x: color.x, y: color.y};
+                        state['mode'] = 'xy';
                     } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
                         if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                             const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
