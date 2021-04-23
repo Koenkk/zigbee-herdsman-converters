@@ -534,8 +534,9 @@ const converters = {
                 // As we cannot determine the new brightness state, we read it from the device
                 await utils.sleep(500);
                 const target = utils.getEntityOrFirstGroupMember(entity);
-                await target.read('genOnOff', ['onOff']);
-                await target.read('genLevelCtrl', ['currentLevel']);
+                const onOff = (await target.read('genOnOff', ['onOff'])).onOff;
+                const brightness = (await target.read('genLevelCtrl', ['currentLevel'])).currentLevel;
+                return {state: {brightness, state: onOff === 1 ? 'ON' : 'OFF'}};
             } else {
                 value = Number(value);
                 if (isNaN(value)) {
