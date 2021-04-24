@@ -12710,6 +12710,19 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['5120.1200'],
+        model: '5120.1200',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 switch mini 1x230V with neutral, 200W/400W',
+        extend: preset.switch(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['5120.1210'],
         model: '5120.1210',
         vendor: 'Iluminize',
