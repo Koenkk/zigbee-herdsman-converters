@@ -1820,14 +1820,14 @@ const converters = {
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
-    aqara_switchtype: {
-        key: ['switchtype'],
+    xiaomi_switch_type: {
+        key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'toggle': 1, 'momentary': 2};
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             await entity.write('aqaraOpple', {0x000A: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
-            return {state: {switchtype: value}};
+            return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x000A], manufacturerOptions.xiaomi);

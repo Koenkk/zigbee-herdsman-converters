@@ -4370,17 +4370,17 @@ const converters = {
             return result;
         },
     },
-    aqara_switchtype: {
+    xiaomi_switch_type: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x000A)) {
                 const lookup = {1: 'toggle', 2: 'momentary'};
-                return {switchtype: lookup[msg.data[0x000A]]};
+                return {switch_type: lookup[msg.data[0x000A]]};
             }
         },
     },
-    aqara_power_outage_memory: {
+    xiaomi_switch_power_outage_memory: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
