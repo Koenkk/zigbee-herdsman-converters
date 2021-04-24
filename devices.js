@@ -13139,15 +13139,16 @@ const devices = [
         description: 'Multi-function button',
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
         toZigbee: [],
-        meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        //meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
+        //configure: async (device, coordinatorEndpoint, logger) => {
+        //    const endpoint = device.getEndpoint(1);
+        //    const bindClusters = ['genPowerCfg'];
+        //    await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            //await reporting.batteryVoltage(endpoint);
+        //    await reporting.batteryPercentageRemaining(endpoint);
+        //},
+        exposes: [e.action(['single', 'double', 'hold']),e.battery_low(),e.battery()],
     },
     {
         zigbeeModel: ['3AFE14010402000D', '3AFE27010402000D', '3AFE28010402000D'],
