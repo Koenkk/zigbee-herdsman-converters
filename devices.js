@@ -15266,6 +15266,20 @@ const devices = [
         },
     },
     {
+        zigbeeModel: ['PUCK/DIMMER/1'],
+        model: 'CCT5010-0001',
+        vendor: 'Schneider Electric',
+        description: 'Micro module dimmer',
+        extend: preset.light_onoff_brightness(),
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
