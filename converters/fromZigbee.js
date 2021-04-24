@@ -741,6 +741,7 @@ const converters = {
                 restore_reports: (zoneStatus & 1<<5) > 0,
                 trouble: (zoneStatus & 1<<6) > 0,
                 ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
             };
         },
     },
