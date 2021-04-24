@@ -13140,7 +13140,7 @@ const devices = [
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {configureKey: 4, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             const endpoint = device.getEndpoint(1);
