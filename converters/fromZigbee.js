@@ -4370,6 +4370,26 @@ const converters = {
             return result;
         },
     },
+    aqara_switchtype: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x000A)) {
+                const lookup = {1: 'toggle', 2: 'momentary'};
+                return {switchtype: lookup[msg.data[0x000A]]};
+            }
+        },
+    },
+    aqara_power_outage_memory: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0201)) {
+                const lookup = {false: 'false', true: 'true'};
+                return {power_outage_memory: lookup[msg.data[0x0201]]};
+            }
+        },
+    },
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
