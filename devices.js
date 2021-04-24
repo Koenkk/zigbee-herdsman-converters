@@ -13142,10 +13142,12 @@ const devices = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
             await reporting.batteryVoltage(endpoint);
+            device.save();
         },
         exposes: [e.action(['single', 'double', 'hold']),e.battery_low(),e.battery()],
     },
