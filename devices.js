@@ -13149,7 +13149,7 @@ const devices = [
             await reporting.batteryVoltage(endpoint);
             device.save();
         },
-        exposes: [e.action(['single', 'double', 'hold']),e.battery_low(),e.battery()],
+        exposes: [e.action(['single', 'double', 'hold']),e.battery()],
     },
     {
         zigbeeModel: ['3AFE14010402000D', '3AFE27010402000D', '3AFE28010402000D'],
