@@ -12448,8 +12448,8 @@ const devices = [
         supports: 'position and state',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
-        meta: {configureKey: 1},
+        exposes: [e.cover_position().setAccess('state', ea.ALL),exposes.enum('state', ea.ALL, ['open', 'stop', 'close','on','off'])],
+        meta: {configureKey: 1, coverInverted : false},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
