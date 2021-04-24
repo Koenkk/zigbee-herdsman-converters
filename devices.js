@@ -16238,7 +16238,7 @@ const devices = [
         endpoint: (device) => {
             return {default: 35};
         },
-        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.tamper(), e.warning()],
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(), e.warning()],
     },
     {
         zigbeeModel: ['HESZB-120'],
