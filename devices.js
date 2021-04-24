@@ -12804,6 +12804,7 @@ const devices = [
         },
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await utils.sleep(10000); // https://github.com/Koenkk/zigbee-herdsman-converters/issues/2493
             await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(device.getEndpoint(6));
