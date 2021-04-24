@@ -13140,14 +13140,13 @@ const devices = [
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        //meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
-        //configure: async (device, coordinatorEndpoint, logger) => {
-        //    const endpoint = device.getEndpoint(1);
-        //    const bindClusters = ['genPowerCfg'];
-        //    await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            //await reporting.batteryVoltage(endpoint);
-        //    await reporting.batteryPercentageRemaining(endpoint);
-        //},
+        meta: {configureKey: 3, battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.batteryVoltage(endpoint);
+        },
         exposes: [e.action(['single', 'double', 'hold']),e.battery_low(),e.battery()],
     },
     {
