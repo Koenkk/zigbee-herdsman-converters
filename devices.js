@@ -12447,7 +12447,7 @@ const devices = [
         description: 'Curtain motor controller',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position().setAccess('state', ea.ALL),exposes.enum('state', ea.ALL, ['open', 'stop', 'close','on','off'])],
+        exposes: [e.cover_position()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
