@@ -13138,7 +13138,7 @@ const devices = [
         vendor: 'Konke',
         description: 'Multi-function button',
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold']),e.battery_voltage()],
         toZigbee: [],
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
