@@ -218,7 +218,7 @@ const devices = [
         fromZigbee: preset.xiaomi.light_onoff_brightness_colortemp().fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: preset.xiaomi.light_onoff_brightness_colortemp().exposes.concat([
-            e.power_outage_memory()]),
+            e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
     {
