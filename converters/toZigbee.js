@@ -1851,6 +1851,15 @@ const converters = {
 
             return {state: {power_outage_memory: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0201]);
+            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0xFFF0]);
+            } else {
+                throw new Error('Not supported');
+            }
+        },
     },
     xiaomi_light_power_outage_memory: {
         key: ['power_outage_memory'],
