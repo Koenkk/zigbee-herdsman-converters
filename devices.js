@@ -11302,6 +11302,9 @@ const devices = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {configureKey: 1},
         configure: livolo.poll,
+        endpoint: (device) => {
+            return {'left': 6, 'right': 6};
+        },
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
