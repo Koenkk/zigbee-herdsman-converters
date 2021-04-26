@@ -17155,6 +17155,44 @@ const devices = [
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },
+    {
+        zigbeeModel: ['CB432'],
+        model: 'CB432',
+        vendor: 'OWON',
+        description: '32A/63A power circuit breaker',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
+        },
+    },
+    {
+        zigbeeModel: ['PIR313-E'],
+        model: 'PIR313-E',
+        vendor: 'OWON',
+        description: 'Motion sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity,
+            fz.occupancy_timeout, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'),
+            e.temperature(), e.humidity()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
 
     // LeTV
     {
