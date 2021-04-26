@@ -197,6 +197,55 @@ const converters = {
             }
         },
     },
+    lock_userstatus: {
+        key: ['user_status'],
+        convertSet: async (entity, key, value, meta) => {
+            const user = value.user;
+            if ( isNaN(user) ) {
+                throw new Error('user must be numbers');
+            }
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                throw new Error('user must be in range for device');
+            }
+
+            const status = utils.getKey(constants.lockUserStatus, value.status, undefined, Number);
+
+            if (status === undefined) {
+                throw new Error(`Unsupported status: '${value.status}', should be one of: ${Object.values(constants.lockUserStatus)}`);
+            }
+
+            await entity.command(
+                'closuresDoorLock',
+                'setUserStatus',
+                {
+                    'userid': user,
+                    'userstatus': status,
+                },
+                utils.getOptions(meta.mapped),
+            );
+        },
+        convertGet: async (entity, key, meta) => {
+            const user = meta && meta.message && meta.message.user_status ? meta.message.user_status.user : undefined;
+
+            if (user === undefined) {
+                const max = meta.mapped.meta.pinCodeCount;
+                // Get all
+                const options = utils.getOptions(meta);
+                for (let i = 0; i < max; i++) {
+                    await entity.command('closuresDoorLock', 'getUserStatus', {userid: i}, options);
+                }
+            } else {
+                if (isNaN(user)) {
+                    throw new Error('user must be numbers');
+                }
+                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                    throw new Error('userId must be in range for device');
+                }
+
+                await entity.command('closuresDoorLock', 'getUserStatus', {userid: user}, utils.getOptions(meta));
+            }
+        },
+    },
     on_off: {
         key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {

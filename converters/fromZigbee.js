@@ -225,27 +225,38 @@ const converters = {
         type: ['commandGetPinCodeRsp'],
         convert: (model, msg, publish, options, meta) => {
             const {data} = msg;
-            let status = '';
-            let pinCodeValue = null;
-            switch (data.userstatus) {
-            case 0:
-                status = 'available';
-                break;
-            case 1:
-                status = 'enabled';
-                pinCodeValue = data.pincodevalue;
-                break;
-            case 2:
-                status = 'disabled';
-                break;
-            default:
-                status = 'not_supported';
+            let status = constants.lockUserStatus[data.userstatus];
+
+            if (status === undefined) {
+                status = `not_supported_${data.userstatus}`;
             }
+
             const userId = data.userid.toString();
             const result = {users: {}};
             result.users[userId] = {status: status};
-            if (options && options.expose_pin && pinCodeValue) {
-                result.users[userId].pin_code = pinCodeValue;
+            if (options && options.expose_pin && data.pincodevalue) {
+                result.users[userId].pin_code = data.pincodevalue;
+            }
+            return result;
+        },
+    },
+    lock_user_status_response: {
+        cluster: 'closuresDoorLock',
+        type: ['commandGetUserStatusRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            const {data} = msg;
+
+            let status = constants.lockUserStatus[data.userstatus];
+
+            if (status === undefined) {
+                status = `not_supported_${data.userstatus}`;
+            }
+
+            const userId = data.userid.toString();
+            const result = {users: {}};
+            result.users[userId] = {status: status};
+            if (options && options.expose_pin && data.pincodevalue) {
+                result.users[userId].pin_code = data.pincodevalue;
             }
             return result;
         },
