@@ -4385,7 +4385,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x0201)) {
-                const lookup = {false: 'false', true: 'true'};
+                const lookup = [false, true];
                 return {power_outage_memory: lookup[msg.data[0x0201]]};
             }
         },
