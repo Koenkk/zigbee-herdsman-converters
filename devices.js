@@ -14983,6 +14983,7 @@ const devices = [
         description: 'Zigbee & Z-wave dimmer ',
         extend: preset.light_onoff_brightness(),
         meta: {configureKey: 1},
+        whiteLabel: [{vendor: 'Iolloi', model: 'ID-EU20FW09'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
