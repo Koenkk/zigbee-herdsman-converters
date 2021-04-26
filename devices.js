@@ -17166,20 +17166,20 @@ const devices = [
         model: 'PIR313-E',
         vendor: 'OWON',
         description: 'Motion sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, 
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity,
             fz.occupancy_timeout, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'),
+            e.temperature(), e.humidity()],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             device.powerSource = 'Battery';
             device.save();
-        },        
+        },
     },
 
     // LeTV
