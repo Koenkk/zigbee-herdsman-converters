@@ -228,7 +228,7 @@ const converters = {
             let status = constants.lockUserStatus[data.userstatus];
 
             if (status === undefined) {
-                status = `not_supported (${data.userstatus})`;
+                status = `not_supported_${data.userstatus}`;
             }
 
             const userId = data.userid.toString();
@@ -249,7 +249,7 @@ const converters = {
             let status = constants.lockUserStatus[data.userstatus];
 
             if (status === undefined) {
-                status = `not_supported (${data.userstatus})`;
+                status = `not_supported_${data.userstatus}`;
             }
 
             const userId = data.userid.toString();
