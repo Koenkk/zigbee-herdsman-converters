@@ -40,11 +40,9 @@ const constants = require('./lib/constants');
 const livolo = require('./lib/livolo');
 const legrand = require('./lib/legrand');
 const xiaomi = require('./lib/xiaomi');
-const {repInterval, defaultBindGroup, OneJanuary2000} = require('./lib/constants');
 const reporting = require('./lib/reporting');
 const extend = require('./lib/extend');
 const utils = require('./lib/utils');
-
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -961,7 +959,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
             await reporting.batteryVoltage(endpoint);
-            await reporting.illuminance(endpoint, {min: 15, max: repInterval.HOUR, change: 500});
+            await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
     },
@@ -2495,7 +2493,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', defaultBindGroup);
+            await endpoint.bind('genOnOff', constants.defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -2515,7 +2513,7 @@ const devices = [
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.bind('genOnOff', defaultBindGroup);
+            await endpoint.bind('genOnOff', constants.defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -2537,7 +2535,7 @@ const devices = [
             // group 0 causing the remote to control them.
             // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', defaultBindGroup);
+            await endpoint.bind('genOnOff', constants.defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -2558,7 +2556,7 @@ const devices = [
             // group 0 causing the remote to control them.
             // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', defaultBindGroup);
+            await endpoint.bind('genOnOff', constants.defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -2592,7 +2590,7 @@ const devices = [
             // By default this device controls group 0, some devices are by default in
             // group 0 causing the remote to control them.
             // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
-            await reporting.bind(endpoint, defaultBindGroup, ['genPowerCfg']);
+            await reporting.bind(endpoint, constants.defaultBindGroup, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
@@ -2701,7 +2699,7 @@ const devices = [
             // group 0 causing the remote to control them.
             // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
             // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', defaultBindGroup);
+            await endpoint.bind('genOnOff', constants.defaultBindGroup);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -4603,7 +4601,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-            await reporting.deviceTemperature(endpoint, {min: repInterval.MINUTE, max: repInterval.MINUTES_5});
+            await reporting.deviceTemperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_5});
         },
         exposes: [e.device_temperature()],
     },
@@ -4784,9 +4782,9 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
 
             const payload = [
-                {attribute: {ID: 0xF001, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: repInterval.MINUTE,
+                {attribute: {ID: 0xF001, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: constants.repInterval.MINUTE,
                     reportableChange: 0},
-                {attribute: {ID: 0xF002, type: 0x23}, minimumReportInterval: 0, maximumReportInterval: repInterval.MINUTE,
+                {attribute: {ID: 0xF002, type: 0x23}, minimumReportInterval: 0, maximumReportInterval: constants.repInterval.MINUTE,
                     reportableChange: 0}];
             await endpoint.configureReporting('msIlluminanceMeasurement', payload);
         },
@@ -5582,7 +5580,7 @@ const devices = [
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperatureSetpointHold(endpoint);
@@ -5609,7 +5607,7 @@ const devices = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
             ];
             await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(heatEndpoint, 0, repInterval.HOUR, 1);
+            await reporting.thermostatTemperature(heatEndpoint, 0, constants.repInterval.HOUR, 1);
             await reporting.thermostatRunningState(heatEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
@@ -5646,7 +5644,7 @@ const devices = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
             ];
             await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(heatEndpoint, 0, repInterval.HOUR, 1);
+            await reporting.thermostatTemperature(heatEndpoint, 0, constants.repInterval.HOUR, 1);
             await reporting.thermostatRunningState(heatEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
@@ -8413,13 +8411,13 @@ const devices = [
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
+            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, repInterval.MINUTE, 1);
+            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, repInterval.MINUTE, 1);
+            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = 'Battery';
@@ -8446,13 +8444,13 @@ const devices = [
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, repInterval.MINUTE, 1);
+            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, repInterval.MINUTE, 1);
+            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, repInterval.MINUTE, 1);
+            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
         },
         exposes: [
@@ -8478,7 +8476,7 @@ const devices = [
             const payload = [{
                 attribute: 'measuredValue',
                 minimumReportInterval: 10,
-                maximumReportInterval: repInterval.HOUR,
+                maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10,
             }];
             await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
@@ -8885,7 +8883,7 @@ const devices = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 900, max: repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 900, max: constants.repInterval.HOUR, change: 1});
             await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -9692,7 +9690,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
@@ -9708,7 +9706,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
@@ -9733,7 +9731,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
@@ -9750,7 +9748,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -9766,7 +9764,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         onEvent: async (type, data, device) => {
@@ -9789,7 +9787,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -9883,7 +9881,7 @@ const devices = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
-            await reporting.batteryPercentageRemaining(endpoint1, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint1, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
 
             const endpoint2 = device.getEndpoint(2);
@@ -9973,7 +9971,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -9989,7 +9987,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
         },
     },
     {
@@ -10022,7 +10020,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
@@ -10038,7 +10036,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
@@ -10055,27 +10053,27 @@ const devices = [
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload('measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
                     },
                     batteryState: async (endpoint, overrides) => {
-                        const payload = reporting.payload('batteryState', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     pm10measuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload('pm10measuredValue', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('pm10measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     tvocMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload('tvocMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('tvocMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     aqiMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload('aqiMeasuredValue', 0, repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload('aqiMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                 },
@@ -10101,7 +10099,7 @@ const devices = [
 
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
-            const time = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
             endpoint.write('genTime', values);
@@ -10121,7 +10119,7 @@ const devices = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: repInterval.MINUTES_5, max: repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
         },
     },
     {
@@ -10346,7 +10344,7 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
-            const payload = [{attribute: 'currentLevel', minimumReportInterval: 300, maximumReportInterval: repInterval.HOUR,
+            const payload = [{attribute: 'currentLevel', minimumReportInterval: 300, maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1}];
             await endpoint.configureReporting('genLevelCtrl', payload);
         },
@@ -11037,15 +11035,15 @@ const devices = [
 
             // standard ZCL attributes
             await reporting.batteryPercentageRemaining(endpoint, {min: 60, max: 43200, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
 
             // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4012, type: 0x10}, minimumReportInterval: 0,
-                maximumReportInterval: repInterval.MINUTES_10, reportableChange: 1}], options);
+                maximumReportInterval: constants.repInterval.MINUTES_10, reportableChange: 1}], options);
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4000, type: 0x30}, minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR, reportableChange: 1}], options);
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -11053,7 +11051,7 @@ const devices = [
 
             // Seems that it is bug in Danfoss, device does not asks for the time with binding
             // So, we need to write time during configure (same as for HEIMAN devices)
-            const time = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
             endpoint.write('genTime', values);
@@ -11089,14 +11087,14 @@ const devices = [
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint, {min: 0, max: repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4003, type: 41}, minimumReportInterval: 0,
-                maximumReportInterval: repInterval.MINUTES_10, reportableChange: 25}], options);
+                maximumReportInterval: constants.repInterval.MINUTES_10, reportableChange: 25}], options);
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4008, type: 34}, minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR, reportableChange: 1}], options);
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}], options);
         },
     },
 
@@ -13001,8 +12999,8 @@ const devices = [
             await reporting.onOff(endpoint, {min: 1, max: 0xfffe});
             const options = {manufacturerCode: 4406, disableDefaultResponse: false};
             await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
-            await endpoint.configureReporting('seMetering', [{reportableChange: 1,
-                attribute: {ID: 0x2000, type: 0x29}, minimumReportInterval: 1, maximumReportInterval: repInterval.MINUTES_5}], options);
+            await endpoint.configureReporting('seMetering', [{reportableChange: 1, attribute: {ID: 0x2000, type: 0x29},
+                minimumReportInterval: 1, maximumReportInterval: constants.repInterval.MINUTES_5}], options);
         },
     },
     {
@@ -13022,7 +13020,7 @@ const devices = [
             await endpoint.write('seMetering', {0x1005: {value: 0x063e, type: 25}}, options);
             await reporting.onOff(endpoint);
             await endpoint.configureReporting('seMetering', [{attribute: {ID: 0x2000, type: 0x29},
-                minimumReportInterval: 1, maximumReportInterval: repInterval.MINUTES_5, reportableChange: 1}], options);
+                minimumReportInterval: 1, maximumReportInterval: constants.repInterval.MINUTES_5, reportableChange: 1}], options);
         },
     },
 
@@ -13285,9 +13283,9 @@ const devices = [
             }
 
             await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'GFCiStatus', minimumReportInterval: 1,
-                maximumReportInterval: repInterval.HOUR, reportableChange: 1}]);
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
             await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'floorLimitStatus',
-                minimumReportInterval: 1, maximumReportInterval: repInterval.HOUR, reportableChange: 1}]);
+                minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
         },
     },
@@ -14662,7 +14660,7 @@ const devices = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: repInterval.MINUTES_30, change: 50});
+                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 50});
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
                 await reporting.batteryPercentageRemaining(endpoint);
@@ -15133,12 +15131,12 @@ const devices = [
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: repInterval.MINUTES_15, change: 25});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: repInterval.MINUTES_15, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: repInterval.MINUTES_15, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 1});
             // bind of hvacUserInterfaceCfg fails with 'Table Full', does this have any effect?
-            await endpoint.configureReporting('hvacUserInterfaceCfg', [{attribute: 'keypadLockout',
-                minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}]);
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [{attribute: 'keypadLockout', reportableChange: 1,
+                minimumReportInterval: constants.repInterval.MINUTE, maximumReportInterval: constants.repInterval.HOUR}]);
         },
     },
     {
@@ -16012,10 +16010,10 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
             await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
+            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: repInterval.MINUTES_5, change: 10});
+            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
         },
         endpoint: (device) => {
             return {default: 2};
@@ -16038,10 +16036,10 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
             await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
+            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: repInterval.MINUTES_5, change: 10});
+            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
         },
         endpoint: (device) => {
             return {default: 2};
@@ -16064,10 +16062,10 @@ const devices = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
             await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
+            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: repInterval.MINUTES_5, change: 10});
+            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
         },
         endpoint: (device) => {
             return {default: 2};
@@ -16782,13 +16780,14 @@ const devices = [
             const payloadBattery = [{
                 attribute: 'batteryPercentageRemaining', minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1}];
             await endpoint.configureReporting('genPowerCfg', payloadBattery);
-            const payload = [{
-                attribute: 'measuredValue', minimumReportInterval: 5, maximumReportInterval: repInterval.HOUR, reportableChange: 200}];
+            const payload = [{attribute: 'measuredValue', minimumReportInterval: 5, maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 200}];
             await endpoint.configureReporting('msIlluminanceMeasurement', payload);
             const payloadPressure = [{
                 // 0 = measuredValue, override dataType from int16 to uint16
                 // https://github.com/Koenkk/zigbee-herdsman/pull/191/files?file-filters%5B%5D=.ts#r456569398
-                attribute: {ID: 0, type: 33}, minimumReportInterval: 2, maximumReportInterval: repInterval.HOUR, reportableChange: 3}];
+                attribute: {ID: 0, type: 33}, minimumReportInterval: 2, maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 3}];
             await endpoint.configureReporting('msPressureMeasurement', payloadPressure);
             const options = {disableDefaultResponse: true};
             await endpoint.write('genBinaryInput', {0x0051: {value: 0x01, type: 0x10}}, options);
@@ -17003,7 +17002,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2});
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },
@@ -17022,7 +17021,7 @@ const devices = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2});
         },
     },
     {

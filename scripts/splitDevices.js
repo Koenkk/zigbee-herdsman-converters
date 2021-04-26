@@ -9,29 +9,35 @@ const vendorStart = '    // ';
 
 let current = null;
 
-const writeVendor = () => {
-    const content = `
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
-const ota = require('../lib/ota');
-const exposes = require('../lib/exposes');
-const tuya = require('../lib/tuya');
-const ikea = require('../lib/ikea');
-const constants = require('../lib/constants');
-const livolo = require('../lib/livolo');
-const legrand = require('../lib/legrand');
-const xiaomi = require('../lib/xiaomi');
-const {repInterval, defaultBindGroup, OneJanuary2000} = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const preset = require('../lib/presets');
+const includes = [
+    'const assert = require(\'assert\');',
+    'const fz = {...require(\'./converters/fromZigbee\'), legacy: require(\'./lib/legacy\').fromZigbee};',
+    'const tz = require(\'./converters/toZigbee\');',
+    'const globalStore = require(\'./lib/store\');',
+    'const ota = require(\'./lib/ota\');',
+    'const tuya = require(\'./lib/tuya\');',
+    'const ikea = require(\'./lib/ikea\');',
+    'const constants = require(\'./lib/constants\');',
+    'const livolo = require(\'./lib/livolo\');',
+    'const legrand = require(\'./lib/legrand\');',
+    'const xiaomi = require(\'./lib/xiaomi\');',
+    'const reporting = require(\'./lib/reporting\');',
+    'const extend = require(\'./lib/extend\');',
+    'const utils = require(\'./lib/utils\');',
+    'const e = exposes.presets;',
+    'const ea = exposes.access;',
+];
 
-const e = exposes.presets;
-const ea = exposes.access;
+const writeVendor = () => {
+    const content = `const exposes = require('./lib/exposes');
+${includes.map((i) => {
+        const include = i.split(' ')[1];
+        return current.lines.find((l) => l.includes(`${include}.`)) ? i : null;
+    }).filter((l) => l).join('\n')}
 
 module.exports = [
 ${current.lines.join('\n')}
-]`.trim();
+];\n`;
 
     fs.writeFileSync(`devices/${current.vendorFile}.js`, content);
 };
@@ -51,7 +57,7 @@ for (const line of lines) {
 
         const vendor = line.split(vendorStart)[1];
         const vendorFile = vendor.toLowerCase().split(' ').join('_').split(',').join('').split('(').join('').split(')').join('');
-        current = {vendor, lines: [line], start: lines.indexOf(line), vendorFile};
+        current = {vendor, lines: [], start: lines.indexOf(line), vendorFile};
     } else if (current) {
         current.lines.push(line);
     } else {
@@ -61,4 +67,4 @@ for (const line of lines) {
 
 newDevices.push(...current.lines);
 
-fs.writeFileSync('devices.js', newDevices.join('\n'));
+fs.writeFileSync('devices_new.js', newDevices.join('\n'));
