@@ -1,11 +1,18 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const legrand = require('../lib/legrand');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const readInitialBatteryState = async (type, data, device) => {
+    if (['deviceAnnounce'].includes(type)) {
+        const endpoint = device.getEndpoint(1);
+        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+        await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
+    }
+};
 
 module.exports = [
     {
@@ -65,7 +72,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
         onEvent: async (type, data, device, options) => {
-            await legrand.readInitialBatteryState(type, data, device);
+            await readInitialBatteryState(type, data, device);
 
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 const endpoint = device.getEndpoint(1);
@@ -110,7 +117,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
-        onEvent: legrand.readInitialBatteryState,
+        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Double gangs remote switch', 'Double gangs remote switch'],
@@ -130,7 +137,7 @@ module.exports = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
-        onEvent: legrand.readInitialBatteryState,
+        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
@@ -145,7 +152,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
         },
-        onEvent: legrand.readInitialBatteryState,
+        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
@@ -212,7 +219,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
         onEvent: async (type, data, device) => {
-            await legrand.readInitialBatteryState(type, data, device);
+            await readInitialBatteryState(type, data, device);
 
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 // TODO current solution is a work around, it would be cleaner to answer to the request

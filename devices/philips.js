@@ -7,13 +7,34 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const hueExtend = {
+    light_onoff_brightness: (options={}) => ({
+        ...extend.light_onoff_brightness(options),
+        toZigbee: extend.light_onoff_brightness(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+    }),
+    light_onoff_brightness_colortemp: (options={}) => ({
+        ...extend.light_onoff_brightness_colortemp(options),
+        toZigbee: extend.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+    }),
+    light_onoff_brightness_color: (options={}) => ({
+        ...extend.light_onoff_brightness_color({supportsHS: true, ...options}),
+        toZigbee: extend.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee
+            .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+    }),
+    light_onoff_brightness_colortemp_color: (options={}) => ({
+        ...extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
+            .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+    }),
+};
+
 module.exports = [
     {
         zigbeeModel: ['LWU001'],
         model: '9290024406',
         vendor: 'Philips',
         description: 'Hue P45 light bulb',
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -22,7 +43,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Fair',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -31,7 +52,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Fair with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -40,7 +61,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Fair with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -49,7 +70,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white E27 LED bulb filament giant globe',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -58,7 +79,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Garnea downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -66,7 +87,7 @@ module.exports = [
         model: '929002335001',
         vendor: 'Philips',
         description: 'Hue white A21 bulb B22 with Bluetooth (1600 Lumen)',
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -75,7 +96,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Struana',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -84,7 +105,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Attract',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -93,7 +114,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Nyro',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -102,7 +123,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Aphelion downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -111,7 +132,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bloom',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -120,7 +141,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (White)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -129,7 +150,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bloom with Bluetooth (Black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -138,7 +159,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Ensis',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -147,7 +168,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Go',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -156,7 +177,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white single filament bulb A19 E26 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -165,7 +186,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white E12 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -174,7 +195,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A19 bulb E26 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -183,7 +204,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A21 bulb E26 with Bluetooth (1600 Lumen)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -192,7 +213,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A67 bulb E26 with Bluetooth (1600 Lumen)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -201,7 +222,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -210,7 +231,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -219,7 +240,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -228,7 +249,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -237,7 +258,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -246,7 +267,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Econic outdoor wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -255,7 +276,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Impress outdoor Pedestal',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -264,7 +285,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -273,7 +294,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -282,7 +303,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -291,7 +312,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White A19 bulb with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -300,7 +321,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Filament Standard A60/E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -309,7 +330,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -318,7 +339,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lux A19 bulb E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -327,7 +348,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27/B22',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -335,7 +356,7 @@ module.exports = [
         model: '8718696153055',
         vendor: 'Philips',
         description: 'Hue white table light',
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -343,7 +364,7 @@ module.exports = [
         model: '8718696153062',
         vendor: 'Philips',
         description: 'Hue Muscari floor light',
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -352,7 +373,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -361,7 +382,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -370,7 +391,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -379,7 +400,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A19 bulb E26 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -388,7 +409,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -397,7 +418,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance pendant light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -406,7 +427,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White A60 Single bulb E27/B22',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -415,7 +436,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -424,7 +445,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white GU10 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -433,7 +454,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white Filament bulb G93 E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -442,7 +463,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -451,7 +472,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -460,7 +481,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -469,7 +490,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -478,7 +499,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor 2m',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -487,7 +508,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -496,7 +517,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27/E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -504,7 +525,7 @@ module.exports = [
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -513,7 +534,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E12 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -522,7 +543,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance E14 with bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -531,7 +552,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance BR30',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -540,7 +561,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white BR30',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -549,7 +570,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -558,7 +579,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -567,7 +588,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance BR30 flood light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -576,7 +597,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -585,7 +606,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E14 (with Bluetooth)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -594,7 +615,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -603,7 +624,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance GU10',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -612,7 +633,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -621,7 +642,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance 5/6" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -630,7 +651,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -639,7 +660,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -648,7 +669,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -657,7 +678,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Adore wall light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -666,7 +687,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E26',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -675,7 +696,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E26 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -684,7 +705,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E26 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -693,7 +714,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -702,7 +723,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Adore light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -711,7 +732,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom mirror light Adore',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -720,7 +741,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -729,7 +750,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -738,7 +759,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Muscari pendant light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -747,7 +768,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance 4" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -756,7 +777,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance 5/6" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -765,7 +786,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 4" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -774,7 +795,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance 5/6" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -783,7 +804,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Sana',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -792,7 +813,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Liane',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -801,7 +822,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Being',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -810,7 +831,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Being black',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -819,7 +840,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Being white',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -828,7 +849,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Being aluminium',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -837,7 +858,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Aurelle',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -846,7 +867,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Ambiance Pendant',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -855,7 +876,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Being Pendant',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -864,7 +885,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Semeru Ambiance Pendant',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -873,7 +894,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Still',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -882,7 +903,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Cher ceiling light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -891,7 +912,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Cher ceiling light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -900,7 +921,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -909,7 +930,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -918,7 +939,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -927,7 +948,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -936,7 +957,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -945,7 +966,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -954,7 +975,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Fair',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -963,7 +984,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Fair',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -972,7 +993,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Amaze',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -981,7 +1002,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -990,7 +1011,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white PAR38 outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -999,7 +1020,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1008,7 +1029,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 2, white)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1017,7 +1038,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 2, black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1026,7 +1047,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 4)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1035,7 +1056,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1044,7 +1065,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1053,7 +1074,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp (low voltage)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1062,7 +1083,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress lantern',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1071,7 +1092,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1080,7 +1101,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris (Generation 2)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1089,7 +1110,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Signe floor light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1098,7 +1119,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Signe table light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1107,7 +1128,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1116,7 +1137,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1125,7 +1146,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1134,7 +1155,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (1 spot)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1143,7 +1164,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1152,7 +1173,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1161,7 +1182,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1170,7 +1191,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1179,7 +1200,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot white (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1188,7 +1209,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambience Argenta spot aluminium (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1197,7 +1218,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato (2 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1206,7 +1227,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1215,7 +1236,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Fugato (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1224,7 +1245,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1233,7 +1254,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Centura',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1242,7 +1263,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Centura Aluminium (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1251,7 +1272,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Centura White (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1488,7 +1509,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'LivingColors Aura',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1498,7 +1519,7 @@ module.exports = [
         description: 'Hue white ambiance Aurelle rectangle panel light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
@@ -1507,7 +1528,7 @@ module.exports = [
         description: 'Hue Fuzo outdoor wall light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['1743630P7', '1743630V7'],
@@ -1516,7 +1537,7 @@ module.exports = [
         description: 'Hue Welcome white flood light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['1743530P7', '1743530V7'],
@@ -1525,7 +1546,7 @@ module.exports = [
         description: 'Hue Discover white and color ambiance flood light',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['1746330P7', '1746347P7'],
@@ -1533,7 +1554,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Appear outdoor wall light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1542,7 +1563,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1551,7 +1572,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1560,7 +1581,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lily XL outdoor spot light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1569,7 +1590,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lily outdoor led strip',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1579,7 +1600,7 @@ module.exports = [
         description: 'Hue white filament Edison E27 LED',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['LWV002'],
@@ -1588,7 +1609,7 @@ module.exports = [
         description: 'Hue white filament Edison ST19 LED',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['LWV003'],
@@ -1597,7 +1618,7 @@ module.exports = [
         description: 'Hue white filament Edison ST72 E27 LED',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['HML004'],
@@ -1605,7 +1626,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Phoenix light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1614,7 +1635,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Beyond white and color ambiance suspension light',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1623,7 +1644,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1632,7 +1653,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin (square)',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1641,7 +1662,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance Buckram',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1650,7 +1671,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Phoenix downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1659,7 +1680,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Adore bathroom mirror',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
 

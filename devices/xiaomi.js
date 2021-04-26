@@ -3,11 +3,40 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const constants = require('../lib/constants');
-const xiaomi = require('../lib/xiaomi');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const xiaomiExtend = {
+    light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
+        ...extend.light_onoff_brightness_colortemp(options),
+        fromZigbee: extend.light_onoff_brightness_colortemp(options).fromZigbee.concat([
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report,
+        ]),
+    }),
+};
+
+const preventReset = async (type, data, device) => {
+    if (
+        // options.allow_reset ||
+        type !== 'message' ||
+        data.type !== 'attributeReport' ||
+        data.cluster !== 'genBasic' ||
+        !data.data[0xfff0] ||
+        // eg: [0xaa, 0x10, 0x05, 0x41, 0x87, 0x01, 0x01, 0x10, 0x00]
+        !data.data[0xFFF0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
+    ) {
+        return;
+    }
+    const options = {manufacturerCode: 0x115f};
+    const payload = {[0xfff0]: {
+        value: [0xaa, 0x10, 0x05, 0x41, 0x47, 0x01, 0x01, 0x10, 0x01],
+        type: 0x41,
+    }};
+    await device.getEndpoint(1).write('genBasic', payload, options);
+};
 
 module.exports = [
     {
@@ -15,11 +44,11 @@ module.exports = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        toZigbee: extend.xiaomi.light_onoff_brightness_colortemp().toZigbee.concat([
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp().toZigbee.concat([
             tz.xiaomi_light_power_outage_memory]),
-        fromZigbee: extend.xiaomi.light_onoff_brightness_colortemp().fromZigbee,
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp().fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: extend.xiaomi.light_onoff_brightness_colortemp().exposes.concat([
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp().exposes.concat([
             e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
@@ -28,7 +57,7 @@ module.exports = [
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        extend: extend.xiaomi.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -36,7 +65,7 @@ module.exports = [
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        extend: extend.xiaomi.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -44,14 +73,14 @@ module.exports = [
         model: 'JWSP001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        extend: extend.xiaomi.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        extend: extend.xiaomi.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
@@ -93,7 +122,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG03LM_click],
         toZigbee: [],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn01'],
@@ -105,7 +134,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn02'],
@@ -117,7 +146,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['single', 'double', 'hold']),
             e.battery_voltage()],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[1];
@@ -133,7 +162,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_battery, fz.legacy.WXKG02LM_click],
         toZigbee: [],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn01'],
@@ -146,7 +175,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery,
             fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
         toZigbee: [],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1laus01'],
@@ -226,7 +255,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
@@ -248,7 +277,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
     {
@@ -265,7 +294,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
@@ -289,7 +318,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
     {
@@ -307,7 +336,7 @@ module.exports = [
             'single_left', 'single_right', 'single_both',
             'double_left', 'double_right', 'double_both',
             'hold_left', 'hold_right', 'hold_both'])],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1lacn02'],
@@ -321,7 +350,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
@@ -342,7 +371,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
@@ -365,7 +394,7 @@ module.exports = [
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -400,7 +429,7 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
@@ -413,7 +442,7 @@ module.exports = [
         endpoint: (device) => {
             return {'system': 1};
         },
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.action(['single', 'release'])],
     },
@@ -431,7 +460,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE_GET), e.action([
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
             'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both'])],
-        onEvent: xiaomi.preventReset,
+        onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
     {

@@ -2,10 +2,19 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const globalStore = require('../lib/store');
-const livolo = require('../lib/livolo');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const poll = async (device) => {
+    try {
+        const endpoint = device.getEndpoint(6);
+        const options = {transactionSequenceNumber: 0, srcEndpoint: 8, disableResponse: true, disableRecovery: true};
+        await endpoint.command('genOnOff', 'toggle', {}, options);
+    } catch (error) {
+        // device is lost, need to permit join
+    }
+};
 
 module.exports = [
     {
@@ -20,16 +29,16 @@ module.exports = [
             return {'left': 6, 'right': 6};
         },
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
-                await livolo.poll(device);
+                await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
-                    const interval = setInterval(async () => await livolo.poll(device), 300*1000);
+                    const interval = setInterval(async () => await poll(device), 300*1000);
                     globalStore.putValue(device, 'interval', interval);
                 }
             }
@@ -44,17 +53,17 @@ module.exports = [
         toZigbee: [tz.livolo_socket_switch_on_off],
         extend: extend.switch(),
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
-                await livolo.poll(device);
+                await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
                     const interval = setInterval(async () => {
-                        await livolo.poll(device);
+                        await poll(device);
                     }, 300*1000); // Every 300 seconds
                     globalStore.putValue(device, 'interval', interval);
                 }
@@ -70,7 +79,7 @@ module.exports = [
         toZigbee: [tz.livolo_socket_switch_on_off],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
         },
@@ -80,10 +89,10 @@ module.exports = [
                 globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
-                await livolo.poll(device);
+                await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
                     const interval = setInterval(async () => {
-                        await livolo.poll(device);
+                        await poll(device);
                     }, 300*1000); // Every 300 seconds
                     globalStore.putValue(device, 'interval', interval);
                 }
@@ -99,17 +108,17 @@ module.exports = [
         fromZigbee: [fz.livolo_socket_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             }
             if (['start', 'deviceAnnounce'].includes(type)) {
-                await livolo.poll(device);
+                await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
                     const interval = setInterval(async () => {
-                        await livolo.poll(device);
+                        await poll(device);
                     }, 300*1000); // Every 300 seconds
                     globalStore.putValue(device, 'interval', interval);
                 }
@@ -125,16 +134,16 @@ module.exports = [
         toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
         exposes: [e.light_brightness()],
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             }
             if (!globalStore.hasValue(device, 'interval')) {
-                await livolo.poll(device);
+                await poll(device);
                 const interval = setInterval(async () => {
-                    await livolo.poll(device);
+                    await poll(device);
                 }, 300*1000); // Every 300 seconds
                 globalStore.putValue(device, 'interval', interval);
             }
@@ -162,16 +171,16 @@ module.exports = [
                 .withDescription('Motor is moving'),
         ],
         meta: {configureKey: 1},
-        configure: livolo.poll,
+        configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             }
             if (!globalStore.hasValue(device, 'interval')) {
-                await livolo.poll(device);
+                await poll(device);
                 const interval = setInterval(async () => {
-                    await livolo.poll(device);
+                    await poll(device);
                 }, 300*1000); // Every 300 seconds
                 globalStore.putValue(device, 'interval', interval);
             }
