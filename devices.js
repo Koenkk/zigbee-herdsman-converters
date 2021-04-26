@@ -1894,7 +1894,6 @@ const devices = [
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                    await reporting.onOff(endpoint);
                 }
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
@@ -1922,7 +1921,6 @@ const devices = [
                 for (const ID of [1, 2, 3, 4]) {
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                    await reporting.onOff(endpoint);
                 }
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
