@@ -19,5 +19,4 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['msRelativeHumidity']);
         },
     },
-
 ];

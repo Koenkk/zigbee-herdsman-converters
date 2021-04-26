@@ -27,5 +27,4 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },
-
 ];

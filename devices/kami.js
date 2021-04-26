@@ -12,5 +12,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.contact(), e.occupancy()],
     },
-
 ];

@@ -42,5 +42,4 @@ module.exports = [
         description: 'Smart light BR30',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

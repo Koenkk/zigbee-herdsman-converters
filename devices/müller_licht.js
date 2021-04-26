@@ -160,5 +160,4 @@ module.exports = [
         description: 'Tint Armaro',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

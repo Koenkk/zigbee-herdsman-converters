@@ -37,5 +37,4 @@ module.exports = [
         exposes: [e.action(['single', 'double', 'long'])],
         toZigbee: [],
     },
-
 ];

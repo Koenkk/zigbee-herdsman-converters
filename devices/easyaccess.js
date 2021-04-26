@@ -24,5 +24,4 @@ module.exports = [
             e.action(['zigbee_unlock', 'lock', 'rfid_unlock', 'keypad_unlock']),
             exposes.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.')],
     },
-
 ];

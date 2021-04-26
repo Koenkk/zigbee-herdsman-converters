@@ -634,7 +634,6 @@ module.exports = [
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature()],
     },
-
     {
         zigbeeModel: ['HS2SW3L-EF-3.0', 'HS2SW3L-EFR-3.0', 'HS2SW3A-N'],
         fingerprint: [
@@ -674,5 +673,4 @@ module.exports = [
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
-
 ];

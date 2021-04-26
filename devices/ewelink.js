@@ -71,5 +71,4 @@ module.exports = [
             device.skipDefaultResponse = true;
         },
     },
-
 ];

@@ -13,5 +13,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['unlock'])],
     },
-
 ];

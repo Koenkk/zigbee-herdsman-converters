@@ -45,5 +45,4 @@ module.exports = [
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

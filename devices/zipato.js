@@ -8,5 +8,4 @@ module.exports = [
         description: 'RGBW LED bulb with dimmer',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

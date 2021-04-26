@@ -44,5 +44,4 @@ module.exports = [
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

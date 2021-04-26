@@ -15,5 +15,4 @@ module.exports = [
         description: 'Smart Zigbee pro GU10 spotlight bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
     },
-
 ];

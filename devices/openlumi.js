@@ -20,5 +20,4 @@ module.exports = [
         },
         exposes: [e.device_temperature()],
     },
-
 ];

@@ -61,5 +61,4 @@ module.exports = [
                 .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
                 .withLocalTemperatureCalibration().withPiHeatingDemand()],
     },
-
 ];

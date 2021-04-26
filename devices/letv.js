@@ -15,5 +15,4 @@ module.exports = [
             'hold_play', 'single_play', 'double_play', 'tripple_play', 'hold_voice', 'single_voice', 'double_voice', 'tripple_voice'])],
         toZigbee: [],
     },
-
 ];

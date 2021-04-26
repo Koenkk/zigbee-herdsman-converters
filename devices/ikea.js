@@ -574,5 +574,4 @@ module.exports = [
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     },
-
 ];

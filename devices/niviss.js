@@ -8,5 +8,4 @@ module.exports = [
         description: 'Zigbee smart controller',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

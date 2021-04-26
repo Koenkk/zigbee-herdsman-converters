@@ -8,5 +8,4 @@ module.exports = [
         description: 'Smart Ivy Bulb E27',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

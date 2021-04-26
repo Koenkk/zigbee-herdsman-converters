@@ -8,5 +8,4 @@ module.exports = [
         description: 'Connected bulb',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

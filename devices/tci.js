@@ -15,5 +15,4 @@ module.exports = [
         description: 'LED driver for wireless control (60 watt)',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

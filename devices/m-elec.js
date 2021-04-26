@@ -8,5 +8,4 @@ module.exports = [
         description: 'Stitchy Dim switchable wall module',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

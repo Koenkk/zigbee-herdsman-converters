@@ -46,5 +46,4 @@ module.exports = [
                 minimumReportInterval: 1, maximumReportInterval: constants.repInterval.MINUTES_5, reportableChange: 1}], options);
         },
     },
-
 ];

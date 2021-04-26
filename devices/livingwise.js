@@ -56,5 +56,4 @@ module.exports = [
             'button_7_click', 'button_7_hold', 'button_7_release'])],
         toZigbee: [],
     },
-
 ];

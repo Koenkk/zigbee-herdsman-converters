@@ -48,5 +48,4 @@ module.exports = [
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
-
 ];

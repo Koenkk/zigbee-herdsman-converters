@@ -205,5 +205,4 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
         },
     },
-
 ];

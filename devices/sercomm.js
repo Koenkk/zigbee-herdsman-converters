@@ -102,5 +102,4 @@ module.exports = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
-
 ];

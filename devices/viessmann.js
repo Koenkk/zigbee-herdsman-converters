@@ -48,5 +48,4 @@ module.exports = [
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
-
 ];

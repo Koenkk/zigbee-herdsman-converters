@@ -8,5 +8,4 @@ module.exports = [
         description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

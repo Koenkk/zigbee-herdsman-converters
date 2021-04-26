@@ -35,5 +35,4 @@ module.exports = [
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         extend: extend.light_onoff_brightness(),
     },
-
 ];

@@ -61,5 +61,4 @@ module.exports = [
         description: 'A19 soft white bulb',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

@@ -45,5 +45,4 @@ module.exports = [
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
-
 ];

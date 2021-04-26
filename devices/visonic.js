@@ -63,5 +63,4 @@ module.exports = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
-
 ];

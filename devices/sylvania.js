@@ -166,5 +166,4 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
-
 ];

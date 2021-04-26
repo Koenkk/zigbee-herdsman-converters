@@ -8,5 +8,4 @@ module.exports = [
         description: 'WeMo smart LED bulb',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

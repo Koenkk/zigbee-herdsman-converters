@@ -18,5 +18,4 @@ module.exports = [
             exposes.numeric('timer', exposes.access.STATE_SET).withValueMin(0).withValueMax(600).withUnit('minutes')
                 .withDescription('Countdown timer in minutes')],
     },
-
 ];

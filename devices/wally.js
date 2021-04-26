@@ -23,5 +23,4 @@ module.exports = [
             await reporting.humidity(endpoint);
         },
     },
-
 ];

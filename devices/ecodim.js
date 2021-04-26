@@ -73,5 +73,4 @@ module.exports = [
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
     },
-
 ];

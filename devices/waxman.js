@@ -20,5 +20,4 @@ module.exports = [
             await reporting.temperature(endpoint);
         },
     },
-
 ];

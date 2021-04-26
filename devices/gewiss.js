@@ -46,5 +46,4 @@ module.exports = [
         },
         exposes: [e.cover_position()],
     },
-
 ];

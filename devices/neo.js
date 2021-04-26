@@ -27,5 +27,4 @@ module.exports = [
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
         ],
     },
-
 ];

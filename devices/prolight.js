@@ -15,5 +15,4 @@ module.exports = [
         description: 'E27 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

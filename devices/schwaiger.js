@@ -39,5 +39,4 @@ module.exports = [
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 2700K',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

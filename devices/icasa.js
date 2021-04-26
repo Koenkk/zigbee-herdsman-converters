@@ -119,5 +119,4 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-
 ];

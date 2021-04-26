@@ -23,5 +23,4 @@ module.exports = [
         description: 'Zigbee LED controller (Dimmer)',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

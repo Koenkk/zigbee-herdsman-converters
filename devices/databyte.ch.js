@@ -22,5 +22,4 @@ module.exports = [
         description: 'Panda 1 - wall switch (https://databyte.ch/panda1-wallswitch-zigbee)',
         extend: extend.switch(),
     },
-
 ];

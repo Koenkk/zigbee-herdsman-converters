@@ -31,5 +31,4 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
         },
     },
-
 ];

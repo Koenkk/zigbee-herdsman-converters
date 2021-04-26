@@ -21,5 +21,4 @@ module.exports = [
         },
         exposes: [e.cover_position(), e.battery()],
     },
-
 ];

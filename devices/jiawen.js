@@ -15,5 +15,4 @@ module.exports = [
         description: 'LED strip light controller',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

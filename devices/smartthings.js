@@ -459,5 +459,4 @@ module.exports = [
         description: 'Smart bulb',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

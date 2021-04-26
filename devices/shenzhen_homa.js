@@ -50,5 +50,4 @@ module.exports = [
         description: 'Wireless dimmable controller',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

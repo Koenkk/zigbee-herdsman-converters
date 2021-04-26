@@ -52,5 +52,4 @@ module.exports = [
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
     },
-
 ];

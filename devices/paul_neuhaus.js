@@ -93,5 +93,4 @@ module.exports = [
         description: 'Q-MIA LED RGBW wall lamp, 9185-13',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

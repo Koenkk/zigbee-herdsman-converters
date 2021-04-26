@@ -293,5 +293,4 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
-
 ];

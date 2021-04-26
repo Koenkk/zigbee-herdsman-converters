@@ -489,5 +489,4 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
-
 ];

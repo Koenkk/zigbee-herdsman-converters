@@ -946,5 +946,4 @@ module.exports = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
-
 ];

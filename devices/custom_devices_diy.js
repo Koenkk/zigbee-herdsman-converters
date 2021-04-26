@@ -156,5 +156,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['toggle'])],
     },
-
 ];

@@ -30,5 +30,4 @@ module.exports = [
         description: '12 in. LED smart puff',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

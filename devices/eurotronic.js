@@ -45,5 +45,4 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}], options);
         },
     },
-
 ];

@@ -82,5 +82,4 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
-
 ];

@@ -73,5 +73,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
-
 ];

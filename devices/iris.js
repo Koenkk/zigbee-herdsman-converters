@@ -146,5 +146,4 @@ module.exports = [
         },
         exposes: [e.switch(), e.battery()],
     },
-
 ];

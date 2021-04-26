@@ -249,5 +249,4 @@ module.exports = [
         },
         ota: ota.ubisys,
     },
-
 ];

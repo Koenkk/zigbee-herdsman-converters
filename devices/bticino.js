@@ -96,5 +96,4 @@ module.exports = [
             await reporting.activePower(endpoint);
         },
     },
-
 ];

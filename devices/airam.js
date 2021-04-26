@@ -57,5 +57,4 @@ module.exports = [
         description: 'GU10 spot 4.8W 2700K 385lm',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

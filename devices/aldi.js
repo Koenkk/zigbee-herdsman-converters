@@ -61,5 +61,4 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
     },
-
 ];

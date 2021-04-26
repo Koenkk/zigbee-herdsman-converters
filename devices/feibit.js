@@ -165,5 +165,4 @@ module.exports = [
         fromZigbee: [fz.command_recall],
         exposes: [e.action(['recall_*']), e.switch()],
     },
-
 ];

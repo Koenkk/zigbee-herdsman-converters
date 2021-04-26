@@ -27,5 +27,4 @@ module.exports = [
         description: 'Smart dimmable, RGB + white (E27 & B22)',
         extend: extend.light_onoff_brightness_color(),
     },
-
 ];

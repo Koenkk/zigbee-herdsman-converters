@@ -142,5 +142,4 @@ module.exports = [
         description: 'Neo RECUADRO SMART, color temp, dimmable, Zigbee 3.0',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
-
 ];

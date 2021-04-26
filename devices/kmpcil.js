@@ -48,5 +48,4 @@ module.exports = [
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
         },
     },
-
 ];

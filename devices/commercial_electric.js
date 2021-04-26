@@ -8,5 +8,4 @@ module.exports = [
         description: 'Matte White Recessed Retrofit Smart Led Downlight - 4 Inch',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

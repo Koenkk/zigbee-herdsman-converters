@@ -12,5 +12,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery()],
     },
-
 ];

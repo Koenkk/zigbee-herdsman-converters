@@ -28,7 +28,6 @@ module.exports = [
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
     },
-
     {
         zigbeeModel: ['Meter Reader'],
         model: 'HSE2905E',
@@ -53,5 +52,4 @@ module.exports = [
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
     },
-
 ];

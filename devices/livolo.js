@@ -200,5 +200,4 @@ module.exports = [
             }
         },
     },
-
 ];

@@ -15,5 +15,4 @@ module.exports = [
         description: 'LED dimmer driver',
         extend: extend.light_onoff_brightness(),
     },
-
 ];

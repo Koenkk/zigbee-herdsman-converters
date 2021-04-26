@@ -30,5 +30,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
-
 ];

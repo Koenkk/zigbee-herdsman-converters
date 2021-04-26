@@ -10,5 +10,4 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
-
 ];

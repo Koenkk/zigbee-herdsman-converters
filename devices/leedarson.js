@@ -73,5 +73,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux()],
     },
-
 ];

@@ -30,5 +30,4 @@ module.exports = [
         },
         ota: ota.zigbeeOTA,
     },
-
 ];

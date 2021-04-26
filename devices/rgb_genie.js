@@ -77,5 +77,4 @@ module.exports = [
         exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
     },
-
 ];

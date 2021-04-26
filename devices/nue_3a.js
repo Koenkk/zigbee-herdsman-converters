@@ -275,5 +275,4 @@ module.exports = [
         description: 'Smart Zigbee 3.0 strip light controller',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

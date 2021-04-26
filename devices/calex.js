@@ -34,5 +34,4 @@ module.exports = [
         ])],
         meta: {configureKey: 1, disableActionGroup: true},
     },
-
 ];

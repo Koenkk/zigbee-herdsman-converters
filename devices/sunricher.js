@@ -201,5 +201,4 @@ module.exports = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
-
 ];

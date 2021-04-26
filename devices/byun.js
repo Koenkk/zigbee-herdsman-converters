@@ -21,5 +21,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.gas()],
     },
-
 ];

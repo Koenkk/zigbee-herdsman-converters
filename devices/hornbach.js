@@ -50,5 +50,4 @@ module.exports = [
         description: 'FLAIR Viyu Smart LED bulb CCT E27 filament',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
     },
-
 ];

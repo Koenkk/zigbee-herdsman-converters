@@ -29,5 +29,4 @@ module.exports = [
         exposes: [e.action(['*'])],
         whiteLabel: [{vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'}],
     },
-
 ];

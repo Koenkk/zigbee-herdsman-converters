@@ -99,5 +99,4 @@ module.exports = [
         exposes: [],
         ota: ota.salus,
     },
-
 ];

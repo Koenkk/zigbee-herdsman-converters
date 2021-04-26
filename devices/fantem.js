@@ -24,5 +24,4 @@ module.exports = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
-
 ];

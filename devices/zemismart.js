@@ -53,5 +53,4 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
-
 ];

@@ -22,5 +22,4 @@ module.exports = [
                 .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
     },
-
 ];

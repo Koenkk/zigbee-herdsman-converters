@@ -23,5 +23,4 @@ module.exports = [
         description: 'ZigBee Light Link wireless electronic ballast color temperature',
         extend: extend.light_onoff_brightness_colortemp(),
     },
-
 ];

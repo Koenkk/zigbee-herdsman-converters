@@ -260,5 +260,4 @@ module.exports = [
             exposes.numeric('humidity_offset', ea.ALL).withUnit('%').withDescription('Adjust humidity'),
             exposes.numeric('pressure_offset', ea.ALL).withUnit('hPa').withDescription('Adjust pressure')],
     },
-
 ];

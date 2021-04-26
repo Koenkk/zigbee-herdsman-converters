@@ -66,5 +66,4 @@ module.exports = [
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
-
 ];

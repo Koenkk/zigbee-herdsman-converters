@@ -8,5 +8,4 @@ module.exports = [
         vendor: 'Mycket',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

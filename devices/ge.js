@@ -106,5 +106,4 @@ module.exports = [
         description: 'Outlink smart remote outlet',
         extend: extend.switch(),
     },
-
 ];

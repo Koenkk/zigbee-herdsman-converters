@@ -224,5 +224,4 @@ module.exports = [
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
-
 ];

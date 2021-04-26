@@ -40,5 +40,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
-
 ];

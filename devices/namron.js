@@ -182,5 +182,4 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
-
 ];

@@ -150,5 +150,4 @@ module.exports = [
             .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
             .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
     },
-
 ];

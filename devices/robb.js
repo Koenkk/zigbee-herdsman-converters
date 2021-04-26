@@ -111,5 +111,4 @@ module.exports = [
         toZigbee: [],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
     },
-
 ];

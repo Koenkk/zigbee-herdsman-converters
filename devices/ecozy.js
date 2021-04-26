@@ -28,5 +28,4 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
         },
     },
-
 ];

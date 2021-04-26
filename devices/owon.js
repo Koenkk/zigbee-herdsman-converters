@@ -61,5 +61,4 @@ module.exports = [
             device.save();
         },
     },
-
 ];

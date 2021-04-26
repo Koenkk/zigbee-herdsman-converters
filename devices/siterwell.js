@@ -27,5 +27,4 @@ module.exports = [
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
             .withRunningState(['idle', 'heat'], ea.STATE)],
     },
-
 ];

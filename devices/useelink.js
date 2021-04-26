@@ -29,5 +29,4 @@ module.exports = [
         description: 'Smart water/gas valve',
         extend: extend.switch(),
     },
-
 ];

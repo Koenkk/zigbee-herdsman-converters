@@ -125,5 +125,4 @@ module.exports = [
                 attribute: 'StelproSystemMode', minimumReportInterval: 1, maximumReportInterval: 0}]);
         },
     },
-
 ];

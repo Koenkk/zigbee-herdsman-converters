@@ -8,5 +8,4 @@ module.exports = [
         description: 'Wireless Controlled LED retrofit downlight',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
     },
-
 ];

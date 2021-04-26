@@ -51,5 +51,4 @@ module.exports = [
         },
         exposes: [e.lock(), e.battery()],
     },
-
 ];
