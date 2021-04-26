@@ -17169,18 +17169,19 @@ const devices = [
         zigbeeModel: ['CB432'],
         model: 'CB432',
         vendor: 'OWON',
-        description: '32A/63A power circuit breaker',
+        description: '32A/63A Power Circuit Breaker',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         meta: {configureKey: 1},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: repInterval.MINUTES_5, change: 2});
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
     {
