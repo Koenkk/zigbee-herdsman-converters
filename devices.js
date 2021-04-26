@@ -11698,8 +11698,9 @@ const devices = [
         model: 'YRD226/246 TSDB',
         vendor: 'Yale',
         description: 'Assure lock',
-        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response],
-        toZigbee: [tz.lock, tz.pincode_lock],
+        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
+            fz.lock_user_status_response],
+        toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus],
         meta: {configureKey: 2, pinCodeCount: 250},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
