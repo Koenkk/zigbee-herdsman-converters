@@ -17147,7 +17147,7 @@ const devices = [
         zigbeeModel: ['CB432'],
         model: 'CB432',
         vendor: 'OWON',
-        description: '32A/63A Power Circuit Breaker',
+        description: '32A/63A power circuit breaker',
         supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
@@ -17165,7 +17165,7 @@ const devices = [
         zigbeeModel: ['PIR313-E'],
         model: 'PIR313-E',
         vendor: 'OWON',
-        description: 'Sensor',
+        description: 'Motion sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, 
             fz.occupancy_timeout, fz.illuminance],
         toZigbee: [],
@@ -17178,6 +17178,7 @@ const devices = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             device.powerSource = 'Battery';
+            device.save();
         },        
     },
 
