@@ -3546,6 +3546,15 @@ const devices = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3417711P6'],
+        model: '3417711P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore wall light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: preset.hue.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
