@@ -1899,6 +1899,8 @@ const devices = [
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
@@ -1925,6 +1927,8 @@ const devices = [
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
