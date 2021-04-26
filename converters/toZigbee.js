@@ -1820,10 +1820,23 @@ const converters = {
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
+    xiaomi_switch_type: {
+        key: ['switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'toggle': 1, 'momentary': 2};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('aqaraOpple', {0x000A: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x000A], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1837,6 +1850,15 @@ const converters = {
             }
 
             return {state: {power_outage_memory: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0201]);
+            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0xFFF0]);
+            } else {
+                throw new Error('Not supported');
+            }
         },
     },
     xiaomi_light_power_outage_memory: {

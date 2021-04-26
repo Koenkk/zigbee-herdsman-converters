@@ -218,7 +218,7 @@ const devices = [
         fromZigbee: preset.xiaomi.light_onoff_brightness_colortemp().fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: preset.xiaomi.light_onoff_brightness_colortemp().exposes.concat([
-            e.power_outage_memory()]),
+            e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1142,9 +1142,10 @@ const devices = [
         model: 'SSM-U01',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (with neutral)',
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.device_temperature],
-        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature()],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.device_temperature, fz.xiaomi_switch_type,
+            fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
