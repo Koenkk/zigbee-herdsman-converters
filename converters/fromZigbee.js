@@ -3572,6 +3572,33 @@ const converters = {
             return null;
         },
     },
+    tuya_dinrail_switch: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const state = value ? 'ON' : 'OFF';
+
+            switch (dp) {
+            case tuya.dataPoints.state: // DPID that we added to common
+                return {state: state};
+            case tuya.dataPoints.dinrailPowerMeterTotalEnergy:
+                return {energy: value/100};
+            case tuya.dataPoints.dinrailPowerMeterCurrent:
+                return {current: value/1000};
+            case tuya.dataPoints.dinrailPowerMeterPower:
+                return {power: value/10};
+            case tuya.dataPoints.dinrailPowerMeterVoltage:
+                return {voltage: value/10};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
+                    `#${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+
+            return null;
+        },
+    },
     smartthings_acceleration: {
         cluster: 'manuSpecificSamsungAccelerometer',
         type: ['attributeReport', 'readResponse'],

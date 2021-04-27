@@ -627,6 +627,20 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'}],
+        model: 'TS0601_din',
+        vendor: 'TuYa',
+        description: 'Zigbee smart energy meter DDS238-2 Zigbee',
+        fromZigbee: [fz.tuya_dinrail_switch],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+        exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
+    },
+    {
         zigbeeModel: ['RH3001'],
         fingerprint: [{type: 'EndDevice', manufacturerID: 4098, applicationVersion: 66, endpoints: [
             {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 10, 1, 1280], outputClusters: [25]},
