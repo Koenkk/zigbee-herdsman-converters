@@ -17,18 +17,18 @@ If any of those commands finish with an error your PR won't pass the tests and w
 
 ## Documentation of definition meta property
 - `configureKey`: required when a 'configure' is defined, this key is used by the application to determine if the content of the configure has been changed and thus needs to re-execute it. For a currently unsupported device you can set this to 1.
-- `multiEndpoint`: enables the multi endpoint functionallity in e.g. fromZigbee.on_off, example: normally this converter would return {"state": "OFF"}, when multiEndpoint is enabled the 'endpoint' method of the device definition will be called to determine the endpoint name which is then used as key e.g. {"state_left": "OFF"}. Only needed when device sends the same attribute from multiple endpoints.
-- `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one.
-- `applyRedFix`: see toZigbee.light_color
-- `enhancedHue`: see toZigbee.light_color
-- `supportsHueAndSaturation`: see toZigbee.light_color
-- `timeout`: timeout for commands to this device used in toZigbee.
-- `coverInverted`: Set to true for cover controls that report position=100 as open
-- `turnsOffAtBrightness1`: Indicates light turns off when brightness 1 is set
+- `multiEndpoint`: enables the multi endpoint functionallity in e.g. fromZigbee.on_off, example: normally this converter would return {"state": "OFF"}, when multiEndpoint is enabled the 'endpoint' method of the device definition will be called to determine the endpoint name which is then used as key e.g. {"state_left": "OFF"}. Only needed when device sends the same attribute from multiple endpoints. (default: false)
+- `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one. (default: false)
+- `applyRedFix`: see toZigbee.light_color (default: false)
+- `enhancedHue`: see toZigbee.light_color (default: false)
+- `supportsHueAndSaturation`: see toZigbee.light_color (default: false)
+- `timeout`: timeout for commands to this device used in toZigbee. (default: 10000)
+- `coverInverted`: Set to true for cover controls that report position=100 as open (default: false)
+- `turnsOffAtBrightness1`: Indicates light turns off when brightness 1 is set (default: false)
 - `pinCodeCount`: Amount of pincodes the lock can handle
-- `disableActionGroup`: Prevents some converters adding the action_group to the payload
+- `disableActionGroup`: Prevents some converters adding the action_group to the payload (default: false)
 - `tuyaThermostatSystemMode`/`tuyaThermostatPreset`: TuYa specific thermostat options
 - `thermostat`: see e.g. HT-08 definition
 - `battery`:
-  - `{dontDividePercentage: true}`: prevents batteryPercentageRemainig from being divided (ZCL 200=100%, but some report 100=100%)
-  - `{voltageToPercentage: '3V_2100'}`: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
+  - `{dontDividePercentage: true}`: prevents batteryPercentageRemainig from being divided (ZCL 200=100%, but some report 100=100%) (default: false)
+  - `{voltageToPercentage: '3V_2100'}`: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage() (default: null, no voltage to percentage conversion)
