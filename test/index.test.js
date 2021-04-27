@@ -1,5 +1,4 @@
 const index = require('../index');
-const devices = require('../devices');
 const exposes = require('../lib/exposes');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
@@ -177,7 +176,7 @@ describe('index.js', () => {
         let foundModels = [];
         let foundFingerprints = [];
 
-        devices.forEach((device) => {
+        index.definitions.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
                 ['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'],
@@ -285,7 +284,7 @@ describe('index.js', () => {
 
     it('Verify addDeviceDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
-        let mockDevice = {};
+        let mockDevice = {toZigbee: []};
         const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
         expect(undefinedDevice).toBeNull();
         const beforeAdditionDeviceCount = index.devices.length;
@@ -361,7 +360,7 @@ describe('index.js', () => {
     });
 
     it('Exposes access matches toZigbee', () => {
-        devices.forEach((device) => {
+        index.definitions.forEach((device) => {
             if (device.exposes) {
                 const toCheck = [];
                 for (const expose of device.exposes) {
@@ -394,7 +393,7 @@ describe('index.js', () => {
 
     it('Check if all exposes have a color temp range', () => {
         const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
-        for (const definition of devices) {
+        for (const definition of index.definitions) {
             for (const expose of definition.exposes.filter(e => e.type === 'light')) {
                 const colorTemp = expose.features.find(f => f.name === 'color_temp');
                 if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {

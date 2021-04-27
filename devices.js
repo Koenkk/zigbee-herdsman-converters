@@ -28,11 +28,6 @@
  *    {voltageToPercentage: '3V_2100'}: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage()
  */
 
-const assert = require('assert');
-const tz = require('./converters/toZigbee');
-const exposes = require('./lib/exposes');
-const e = exposes.presets;
-
 const devices = [
     ...require('./devices/adeo'),
     ...require('./devices/adurosmart'),
@@ -215,31 +210,4 @@ const devices = [
     ...require('./devices/zipato'),
 ];
 
-module.exports = devices.map((device) => {
-    const {extend, ...deviceWithoutExtend} = device;
-
-    if (extend) {
-        if (extend.hasOwnProperty('configure') && device.hasOwnProperty('configure')) {
-            assert.fail(`'${device.model}' has configure in extend and device, this is not allowed`);
-        }
-
-        device = {
-            ...extend,
-            ...deviceWithoutExtend,
-            meta: extend.meta || deviceWithoutExtend.meta ? {
-                ...extend.meta,
-                ...deviceWithoutExtend.meta,
-            } : undefined,
-        };
-    }
-
-    if (device.toZigbee.length > 0) {
-        device.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
-    }
-
-    if (device.exposes) {
-        device.exposes = device.exposes.concat([e.linkquality()]);
-    }
-
-    return device;
-});
+module.exports = devices;

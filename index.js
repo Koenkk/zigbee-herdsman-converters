@@ -5,6 +5,7 @@ const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
 const assert = require('assert');
+const tz = require('./converters/toZigbee');
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
@@ -56,6 +57,30 @@ function validateDefinition(definition) {
 }
 
 function addDefinition(definition) {
+    const {extend, ...definitionWithoutExtend} = definition;
+    if (extend) {
+        if (extend.hasOwnProperty('configure') && definition.hasOwnProperty('configure')) {
+            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
+        }
+
+        definition = {
+            ...extend,
+            ...definitionWithoutExtend,
+            meta: extend.meta || definitionWithoutExtend.meta ? {
+                ...extend.meta,
+                ...definitionWithoutExtend.meta,
+            } : undefined,
+        };
+    }
+
+    if (definition.toZigbee.length > 0) {
+        definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
+    }
+
+    if (definition.exposes) {
+        definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
+    }
+
     validateDefinition(definition);
     definitions.push(definition);
 
