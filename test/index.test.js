@@ -163,7 +163,7 @@ describe('index.js', () => {
         expect(definition.model).toBe("SNZB-02");
     });
 
-    it('Verify devices.js definitions', () => {
+    it('Verify definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
                 if (!actual.includes(key)) {

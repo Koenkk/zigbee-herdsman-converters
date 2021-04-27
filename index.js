@@ -1,11 +1,12 @@
 'use strict';
 
-const devices = require('./devices');
 const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
 const assert = require('assert');
 const tz = require('./converters/toZigbee');
+const fs = require('fs');
+const path = require('path');
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
@@ -97,8 +98,12 @@ function addDefinition(definition) {
     }
 }
 
-for (const definition of devices) {
-    addDefinition(definition);
+// Load all definitions from devices folder
+const devicesPath = path.join(__dirname, 'devices');
+for (const file of fs.readdirSync(devicesPath)) {
+    for (const definition of require(path.join(devicesPath, file))) {
+        addDefinition(definition);
+    }
 }
 
 function findByZigbeeModel(zigbeeModel) {
