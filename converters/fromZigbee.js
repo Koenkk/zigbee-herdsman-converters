@@ -2,7 +2,7 @@
 
 /**
  * Documentation of convert() parameters
- * - model: zigbee-herdsman-converters definition (form devices.js)
+ * - model: zigbee-herdsman-converters definition (form definition)
  * - msg: message data property
  * - publish: publish method
  * - options: converter options object, e.g. {occupancy_timeout: 120}
