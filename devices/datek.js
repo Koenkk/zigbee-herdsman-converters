@@ -52,4 +52,31 @@ module.exports = [
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
     },
+    {
+        zigbeeModel: ['ID Lock 150'],
+        model: '0402946',
+        vendor: 'Datek',
+        description: 'Zigbee module for ID Lock 150',
+        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.idlock_master_pin_mode,
+            fz.idlock_rfid_enable, fz.idlock_lock_mode, fz.idlock_relock_enabled],
+        toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,
+            tz.idlock_lock_mode, tz.idlock_relock_enabled],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: 4919};
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await endpoint.read('closuresDoorLock', ['lockState','soundVolume','doorState']);
+            await endpoint.read('closuresDoorLock', [0x4000, 0x4001, 0x4004, 0x4005], options);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery(), exposes.enum('sound_volume',
+            ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
+            exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription( 'Allow master pin unlock'),
+            exposes.binary('rfid_enable', ea.ALL, true, false).withDescription( 'Allow RFID to unlock'),
+            exposes.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
+                'auto_on_away_on']).withDescription('Lock Mode of the lock'),
+            exposes.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow auto re-lock')],
+    },
 ];
