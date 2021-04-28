@@ -1989,7 +1989,7 @@ const converters = {
     STS_PRS_251_beep: {
         key: ['beep'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genIdentify', 'identifyTime', {identifytime: value}, utils.getOptions(meta.mapped, entity));
+            await entity.command('genIdentify', 'identify', {identifytime: value}, utils.getOptions(meta.mapped, entity));
         },
     },
     xiaomi_curtain_options: {
