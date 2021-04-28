@@ -3,7 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
-const constants = require('../lib/constants')
+const constants = require('../lib/constants');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -69,16 +69,16 @@ module.exports = [
             const options = {manufacturerCode: 4919};
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
-            await endpoint.read('closuresDoorLock', ['lockState','soundVolume','doorState']);
+            await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume', 'doorState']);
             await endpoint.read('closuresDoorLock', [0x4000, 0x4001, 0x4004, 0x4005], options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.lock(), e.battery(), exposes.enum('sound_volume',
             ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
-            exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription( 'Allow master pin unlock'),
-            exposes.binary('rfid_enable', ea.ALL, true, false).withDescription( 'Allow RFID to unlock'),
-            exposes.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
-                'auto_on_away_on']).withDescription('Lock Mode of the lock'),
-            exposes.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow auto re-lock')],
+        exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription( 'Allow master pin unlock'),
+        exposes.binary('rfid_enable', ea.ALL, true, false).withDescription( 'Allow RFID to unlock'),
+        exposes.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
+            'auto_on_away_on']).withDescription('Lock Mode of the lock'),
+        exposes.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow auto re-lock')],
     },
 ];

@@ -4939,7 +4939,7 @@ const converters = {
         key: ['master_pin_mode'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('closuresDoorLock', {0x4000: {value: value === true ? 1 : 0, type: 0x10}},
-            {manufacturerCode: 4919});
+                {manufacturerCode: 4919});
             return {state: {master_pin_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -4952,7 +4952,7 @@ const converters = {
             await entity.write('closuresDoorLock', {0x4001: {value: value === true ? 1 : 0, type: 0x10}},
                 {manufacturerCode: 4919},
             );
-            return {state: {rfid_enable: value}}; utils.getOptions(meta.mapped, entity)
+            return {state: {rfid_enable: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresDoorLock', [0x4001], {manufacturerCode: 4919});
