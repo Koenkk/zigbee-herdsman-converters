@@ -1,5 +1,6 @@
 'use strict';
 
+const configureKey = require('./lib/configureKey');
 const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
@@ -185,6 +186,7 @@ function fingerprintMatch(fingerprint, device) {
 }
 
 module.exports = {
+    getConfigureKey: configureKey.getConfigureKey,
     devices: definitions,
     exposes,
     definitions,

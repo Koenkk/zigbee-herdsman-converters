@@ -402,4 +402,42 @@ describe('index.js', () => {
             }
         }
     });
+
+    it('Calculate configure key', () => {
+        const definition = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition)).toBe(-1738355762);
+    });
+
+    it('Calculate configure key whitespace shouldnt matter', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition1)).toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure diff', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');
+            console.log('bye mars');
+        }}
+        expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure key legacy', () => {
+        const definition = index.findByZigbeeModel('WaterSensor-N');
+        expect(index.getConfigureKey(definition)).toBe(1);
+    });
 });
