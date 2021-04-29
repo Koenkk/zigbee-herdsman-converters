@@ -217,6 +217,11 @@ const converters = {
                 result.sound_volume = constants.lockSoundVolume[msg.data.soundVolume];
             }
 
+            if (msg.data.hasOwnProperty('doorState')) {
+                const lookup = {
+                    0: 'open', 1: 'closed', 2: 'error_jammed', 3: 'error_forced_open', 4: 'error_unspecified', 0xff: 'undefined'};
+                result.door_state = lookup[msg.data['doorState']];
+            }
             return result;
         },
     },
@@ -5489,6 +5494,27 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:WooxR7060: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
+        },
+    },
+    idlock: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (0x4000 in msg.data) {
+                result.master_pin_mode = msg.data[0x4000] == 1 ? true : false;
+            }
+            if (0x4001 in msg.data) {
+                result.rfid_enable = msg.data[0x4001] == 1 ? true : false;
+            }
+            if (0x4004 in msg.data) {
+                const lookup = {0: 'auto_off_away_off', 1: 'auto_on_away_off', 2: 'auto_off_away_on', 3: 'auto_on_away_on'};
+                result.lock_mode = lookup[msg.data[0x4004]];
+            }
+            if (0x4005 in msg.data) {
+                result.relock_enabled = msg.data[0x4005] == 1 ? true : false;
+            }
+            return result;
         },
     },
 

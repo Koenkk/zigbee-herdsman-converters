@@ -4935,6 +4935,51 @@ const converters = {
             await entity.read('genOnOff', ['onOff']);
         },
     },
+    idlock_master_pin_mode: {
+        key: ['master_pin_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {0x4000: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: 4919});
+            return {state: {master_pin_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', [0x4000], {manufacturerCode: 4919});
+        },
+    },
+    idlock_rfid_enable: {
+        key: ['rfid_enable'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {0x4001: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: 4919});
+            return {state: {rfid_enable: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', [0x4001], {manufacturerCode: 4919});
+        },
+    },
+    idlock_lock_mode: {
+        key: ['lock_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'auto_off_away_off': 0, 'auto_on_away_off': 1, 'auto_off_away_on': 2, 'auto_on_away_on': 3};
+            await entity.write('closuresDoorLock', {0x4004: {value: lookup[value], type: 0x20}},
+                {manufacturerCode: 4919});
+            return {state: {lock_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', [0x4004], {manufacturerCode: 4919});
+        },
+    },
+    idlock_relock_enabled: {
+        key: ['relock_enabled'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('closuresDoorLock', {0x4005: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: 4919});
+            return {state: {relock_enabled: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', [0x4005], {manufacturerCode: 4919});
+        },
+    },
 
     // #endregion
 
