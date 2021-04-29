@@ -23,7 +23,6 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -65,7 +64,6 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -108,7 +106,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
-        meta: {configureKey: 3, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -181,7 +179,6 @@ module.exports = [
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             exposes.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -211,7 +208,6 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -238,7 +234,6 @@ module.exports = [
             '4_scene_*', '4_on', '4_off', '4_toggle', '4_level_move_down', '4_level_move_up',
             '5_scene_*', '5_cover_open', '5_cover_close', '5_cover_stop',
             '6_scene_*', '6_cover_open', '6_cover_close', '6_cover_stop'])],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);

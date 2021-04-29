@@ -12,7 +12,7 @@ module.exports = [
         model: 'URC4450BC0-X-R',
         vendor: 'Xfinity',
         description: 'Alarm security keypad',
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,
             fz.ias_ace_occupancy_with_timeout],
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.battery_low(), e.tamper(), e.presence(), e.contact(),

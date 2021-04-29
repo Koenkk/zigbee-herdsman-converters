@@ -28,7 +28,6 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
         },
-        meta: {configureKey: 1},
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
@@ -52,7 +51,6 @@ module.exports = [
         fromZigbee: [fz.livolo_new_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
@@ -78,7 +76,6 @@ module.exports = [
         fromZigbee: [fz.livolo_new_switch_state_2gang],
         toZigbee: [tz.livolo_socket_switch_on_off],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        meta: {configureKey: 1},
         configure: poll,
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
@@ -107,7 +104,6 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.livolo_socket_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
-        meta: {configureKey: 1},
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
@@ -133,7 +129,6 @@ module.exports = [
         fromZigbee: [fz.livolo_dimmer_state],
         toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
         exposes: [e.light_brightness()],
-        meta: {configureKey: 1},
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
@@ -170,7 +165,6 @@ module.exports = [
             exposes.binary('moving', ea.STATE)
                 .withDescription('Motor is moving'),
         ],
-        meta: {configureKey: 1},
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {

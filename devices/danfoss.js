@@ -36,7 +36,6 @@ module.exports = [
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
                 .withDescription('Scale factor of setpoint filter timeconstant'+
                 ' ("aggressiveness" of control algorithm) 1= Quick ...  5=Moderate ... 10=Slow')],
-        meta: {configureKey: 4},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

@@ -12,7 +12,6 @@ module.exports = [
         description: 'Zigbee smart plug',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -42,7 +41,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -61,7 +60,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);

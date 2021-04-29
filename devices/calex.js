@@ -32,6 +32,6 @@ module.exports = [
             'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             'enhanced_move_to_hue_and_saturation',
         ])],
-        meta: {configureKey: 1, disableActionGroup: true},
+        meta: {disableActionGroup: true},
     },
 ];

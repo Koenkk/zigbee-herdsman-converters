@@ -28,7 +28,6 @@ module.exports = [
         vendor: 'Müller Licht',
         description: 'Smart power strip',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -109,7 +108,6 @@ module.exports = [
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'recall_1'])],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'genScenes']);
@@ -121,7 +119,6 @@ module.exports = [
         description: 'Tint smart switch',
         vendor: 'Müller Licht',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -12,7 +12,6 @@ module.exports = [
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
         exposes: [e.battery(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);

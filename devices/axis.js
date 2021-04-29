@@ -13,7 +13,7 @@ module.exports = [
         description: 'Gear window shade motor',
         fromZigbee: [fz.cover_position_via_brightness, fz.battery],
         toZigbee: [tz.cover_via_brightness],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);

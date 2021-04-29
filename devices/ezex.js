@@ -14,7 +14,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);

@@ -13,7 +13,6 @@ module.exports = [
         description: 'IOT remote control smart buried-type outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -30,7 +29,6 @@ module.exports = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -47,7 +45,6 @@ module.exports = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.device_temperature, fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'genDeviceTempCfg']);
@@ -65,7 +62,6 @@ module.exports = [
         description: 'IOT smart plug 10A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -81,7 +77,6 @@ module.exports = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang without neutral wire',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -98,7 +93,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -116,7 +111,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -132,7 +127,6 @@ module.exports = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -149,7 +143,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -167,7 +161,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -183,7 +177,6 @@ module.exports = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -200,7 +193,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, bottom: 2};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -218,7 +211,7 @@ module.exports = [
         endpoint: (device) => {
             return {top: 1, center: 2, bottom: 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -235,7 +228,6 @@ module.exports = [
         description: 'IOT remote control smart buried-type 16A outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -252,7 +244,6 @@ module.exports = [
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);

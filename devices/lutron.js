@@ -23,7 +23,6 @@ module.exports = [
         fromZigbee: [fz.legacy.dimmer_passthru_brightness],
         toZigbee: [],
         exposes: [e.action(['brightness']), exposes.numeric('brightness', ea.STATE)],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);

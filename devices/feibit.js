@@ -16,7 +16,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -38,7 +38,6 @@ module.exports = [
         description: 'Human body movement sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -64,7 +63,6 @@ module.exports = [
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -80,7 +78,6 @@ module.exports = [
         description: 'Smart carbon monoxide sensor',
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -133,7 +130,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 16, 'right': 17};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -149,7 +146,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 16, 'center': 17, 'right': 18};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);

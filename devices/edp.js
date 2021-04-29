@@ -13,7 +13,6 @@ module.exports = [
         description: 're:dy plug',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -29,7 +28,6 @@ module.exports = [
         vendor: 'EDP',
         description: 're:dy switch',
         extend: extend.switch(),
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

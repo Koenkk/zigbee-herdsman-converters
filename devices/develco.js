@@ -14,7 +14,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -38,7 +37,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
@@ -64,7 +62,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
@@ -90,7 +87,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
@@ -115,7 +111,6 @@ module.exports = [
         description: 'Wattle AMS HAN power-meter sensor',
         fromZigbee: [fz.metering, fz.electrical_measurement],
         toZigbee: [tz.EMIZB_132_mode],
-        meta: {configureKey: 9},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
@@ -146,7 +141,7 @@ module.exports = [
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.warning],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
@@ -167,7 +162,7 @@ module.exports = [
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.warning],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
@@ -198,7 +193,6 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -222,7 +216,6 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(38);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -249,7 +242,7 @@ module.exports = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.humidity()],
-        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
@@ -265,7 +258,6 @@ module.exports = [
         description: 'Energy meter',
         fromZigbee: [fz.metering],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -281,7 +273,6 @@ module.exports = [
         description: 'Smart relay DIN',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         exposes: [e.power(), e.energy(), e.switch()],
         endpoint: (device) => {
             return {'default': 2};

@@ -25,7 +25,6 @@ module.exports = [
                 .withDescription('Manually set window_open, ~1 minute to take affect.'),
             e.keypad_lockout(),
         ],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1221};

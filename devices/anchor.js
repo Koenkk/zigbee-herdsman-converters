@@ -8,7 +8,6 @@ module.exports = [
         description: 'Vetaar smart plug',
         vendor: 'Anchor',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

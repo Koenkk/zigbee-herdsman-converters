@@ -183,7 +183,6 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -197,7 +196,6 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             let endpoint = device.getEndpoint(3);
@@ -288,7 +286,6 @@ module.exports = [
         description: 'SMART+ Motion Sensor',
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
@@ -318,7 +315,7 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'up', 'up_hold', 'up_release', 'down_release', 'circle_release', 'circle_hold', 'down', 'down_hold', 'circle_click'])],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -343,7 +340,7 @@ module.exports = [
             fz.legacy.osram_lightify_switch_AB371860355_cmdMove, fz.legacy.osram_lightify_switch_AB371860355_cmdStop,
             fz.legacy.osram_lightify_switch_AB371860355_cmdMoveHue, fz.legacy.osram_lightify_switch_AB371860355_cmdMoveSat],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);

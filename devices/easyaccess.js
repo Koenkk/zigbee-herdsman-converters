@@ -13,7 +13,6 @@ module.exports = [
         description: 'EasyFinger V2',
         fromZigbee: [fz.lock, fz.easycode_action, fz.battery],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);

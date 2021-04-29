@@ -399,7 +399,6 @@ module.exports = [
         description: 'Smart plug',
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 6},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -424,7 +423,6 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -437,7 +435,6 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -450,7 +447,6 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

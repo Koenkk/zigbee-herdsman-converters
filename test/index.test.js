@@ -259,11 +259,6 @@ describe('index.js', () => {
                 }
             }
 
-            // Verify meta
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
-            }
-
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
                     containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
@@ -271,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
