@@ -60,7 +60,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB+CCT',
         extend: extend.light_onoff_brightness_colortemp_color(),
-        meta: {applyRedFix: true},
+        meta: {applyRedFix: true, enhancedHue: false},
     },
     {
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'}],
