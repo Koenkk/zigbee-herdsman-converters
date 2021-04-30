@@ -1010,7 +1010,7 @@ module.exports = [
         description: 'Aqara S1 Smart Touch Panel',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
-        meta: {multiEndpoint: true},
+        meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
              return {'left': 1, 'center': 2, 'right': 3};
         },
