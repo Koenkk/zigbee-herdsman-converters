@@ -4982,27 +4982,25 @@ const converters = {
     },
     ZNCJMB14LM: {
         key: ['theme',
-              'standby_enabled',
-              'beep_volume',
-              'lcd_brightness',
-              'language',
-              'screen_saver_style',
-              'standby_time',
-              'font_size',
-              'lcd_auto_brightness_enabled',
-              'homepage',
-              'screen_saver_enabled',
-              'standby_lcd_brightness',
-              'available_switches'
+            'standby_enabled',
+            'beep_volume',
+            'lcd_brightness',
+            'language',
+            'screen_saver_style',
+            'standby_time',
+            'font_size',
+            'lcd_auto_brightness_enabled',
+            'homepage',
+            'screen_saver_enabled',
+            'standby_lcd_brightness',
+            'available_switches',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'theme') {
                 const lookup = {'classic': 0, 'concise': 1};
-                // type u8 = uint8 = 0x20 (https://github.com/Koenkk/zigbee-herdsman/blob/608bebf0d1e0d9e538db5e9ae95f72f135c5543d/src/zcl/definition/dataType.ts#L21)
                 await entity.write('aqaraOpple', {0x0215: {value: lookup[value], type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {theme: value}};
             } else if (key === 'standby_enabled') {
-                // type bool = uint8 = 0x10 (https://github.com/Koenkk/zigbee-herdsman/blob/608bebf0d1e0d9e538db5e9ae95f72f135c5543d/src/zcl/definition/dataType.ts#L12)
                 await entity.write('aqaraOpple', {0x0213: {value: value, type: 0x10}}, {manufacturerCode: 0x115f});
                 return {state: {standby_enabled: value}};
             } else if (key === 'beep_volume') {
@@ -5010,7 +5008,6 @@ const converters = {
                 await entity.write('aqaraOpple', {0x0212: {value: lookup[value], type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {beep_volume: value}};
             } else if (key === 'lcd_brightness') {
-                // if auto brightness is enabled this value will not be retained by the device
                 await entity.write('aqaraOpple', {0x0211: {value: value, type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {lcd_brightness: value}};
             } else if (key === 'language') {
@@ -5018,13 +5015,10 @@ const converters = {
                 await entity.write('aqaraOpple', {0x0210: {value: lookup[value], type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {language: value}};
             } else if (key === 'screen_saver_style') {
-                // seems to switch theme too - unsure if 'none' is a valid value but fits with convention for this device
                 const lookup = {'none': 0, 'classic': 1, 'analog clock': 2};
                 await entity.write('aqaraOpple', {0x0215: {value: lookup[value], type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {screen_saver_style: value}};
             } else if (key === 'standby_time') {
-                // type u32 = uint32 = 0x23 (https://github.com/Koenkk/zigbee-herdsman/blob/608bebf0d1e0d9e538db5e9ae95f72f135c5543d/src/zcl/definition/dataType.ts#L24)
-                // if standby is disabled this value will do nothing
                 await entity.write('aqaraOpple', {0x0216: {value: value, type: 0x23}}, {manufacturerCode: 0x115f});
                 return {state: {standby_time: value}};
             } else if (key === 'font_size') {
@@ -5045,8 +5039,8 @@ const converters = {
                 await entity.write('aqaraOpple', {0x0222: {value: value, type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {standby_lcd_brightness: value}};
             } else if (key === 'available_switches') {
-                const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7}
-                await entity.write('aqaraOpple', {0x0222: {value: value, type: 0x20}}, {manufacturerCode: 0x115f});
+                const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7};
+                await entity.write('aqaraOpple', {0x0222: {value: lookup[value], type: 0x20}}, {manufacturerCode: 0x115f});
                 return {state: {available_switches: value}};
             } else {
                 throw new Error(`Not supported: '${key}'`);
