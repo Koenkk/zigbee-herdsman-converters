@@ -1012,33 +1012,33 @@ module.exports = [
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {configureKey: 1, multiEndpoint: true},
         endpoint: (device) => {
-             return {'left': 1, 'center': 2, 'right': 3};
+            return {'left': 1, 'center': 2, 'right': 3};
         },
         exposes: [
-             e.switch().withEndpoint('left'),
-             e.switch().withEndpoint('center'),
-             e.switch().withEndpoint('right'),
-             exposes.binary('standby_enabled', ea.STATE_SET, true, false).withDescription('Enable standby'),
-             exposes.enum('theme', ea.STATE_SET, ['classic', 'concise']).withDescription('Display theme (also changes screen saver style to match)'),
-             exposes.enum('beep_volume', ea.STATE_SET, ['muted', 'low', 'medium', 'high']).withDescription('Beep volume'),
-             exposes.numeric('lcd_brightness', ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%').withDescription('LCD brightness - will not persist if auto-brightness is enabled'),
-             exposes.enum('language', ea.STATE_SET, ['chinese', 'english']).withDescription('Interface language'),
-             exposes.enum('screen_saver_style', ea.STATE_SET, ['none', 'classic', 'analog clock']).withDescription('Screen saver style - also changes display theme to match'),
-             exposes.numeric('standby_time', ea.STATE_SET).withValueMin(0).withValueMax(65534).withUnit('s').withDescription('Display standby time'),
-             exposes.enum('font_size', ea.STATE_SET, ['small', 'medium', 'large']).withDescription('Display font size'),
-             exposes.binary('lcd_auto_brightness_enabled', ea.STATE_SET, true, false).withDescription('Enable LCD auto brightness'),
-             exposes.enum('homepage', ea.STATE_SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
-             exposes.binary('screen_saver_enabled', ea.STATE_SET, true, false).withDescription('Enable screen saver'),
-             exposes.numeric('standby_lcd_brightness', ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%').withDescription('Standby LCD brightness'),
-             exposes.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all']).withDescription('Control which switches are available in the switches screen - none disables the screen altogether')
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'),
+            exposes.binary('standby_enabled', ea.STATE_SET, true, false).withDescription('Enable standby'),
+            exposes.enum('theme', ea.STATE_SET, ['classic', 'concise']).withDescription('Display theme - also changes screen saver style to match'),
+            exposes.enum('beep_volume', ea.STATE_SET, ['muted', 'low', 'medium', 'high']).withDescription('Beep volume'),
+            exposes.numeric('lcd_brightness', ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%').withDescription('LCD brightness - will not persist if auto-brightness is enabled'),
+            exposes.enum('language', ea.STATE_SET, ['chinese', 'english']).withDescription('Interface language'),
+            exposes.enum('screen_saver_style', ea.STATE_SET, ['none', 'classic', 'analog clock']).withDescription('Screen saver style - also changes display theme to match'),
+            exposes.numeric('standby_time', ea.STATE_SET).withValueMin(0).withValueMax(65534).withUnit('s').withDescription('Display standby time'),
+            exposes.enum('font_size', ea.STATE_SET, ['small', 'medium', 'large']).withDescription('Display font size'),
+            exposes.binary('lcd_auto_brightness_enabled', ea.STATE_SET, true, false).withDescription('Enable LCD auto brightness'),
+            exposes.enum('homepage', ea.STATE_SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
+            exposes.binary('screen_saver_enabled', ea.STATE_SET, true, false).withDescription('Enable screen saver'),
+            exposes.numeric('standby_lcd_brightness', ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%').withDescription('Standby LCD brightness'),
+            exposes.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all']).withDescription('Switches available in switches screen - none disables screen'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-             await reporting.onOff(device.getEndpoint(1));
-             await reporting.onOff(device.getEndpoint(2));
-             await reporting.onOff(device.getEndpoint(3));
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+            await reporting.onOff(device.getEndpoint(3));
         },
     },
 
