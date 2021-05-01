@@ -521,7 +521,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1743930P7', '1744030P7'],
+        zigbeeModel: ['1743930P7', '1744030P7', '1744030V7'],
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
