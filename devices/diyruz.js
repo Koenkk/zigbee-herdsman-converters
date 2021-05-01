@@ -74,7 +74,6 @@ module.exports = [
             return features;
         })(20)),
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -118,7 +117,6 @@ module.exports = [
             return features;
         })(8)),
         toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -158,7 +156,6 @@ module.exports = [
             exposes.numeric('sensors_count', ea.ALL).withDescription('Count of installed tubes'),
             exposes.numeric('sensitivity', ea.ALL).withDescription('This is applicable if tubes type is set to other')],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
@@ -204,7 +201,7 @@ module.exports = [
         description: '[Flower sensor](http://modkam.ru/?p=1700)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
         toZigbee: [tz.factory_reset],
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
         },
@@ -239,7 +236,6 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure, fz.diyruz_airsense_config_co2,
             fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
         toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2'];

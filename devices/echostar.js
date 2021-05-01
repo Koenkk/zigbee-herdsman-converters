@@ -22,7 +22,6 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.battery],
         exposes: [e.battery(), e.action(['on', 'off'])],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(18);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);

@@ -34,7 +34,7 @@ module.exports = [
             'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
             'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
-        meta: {configureKey: 3, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             let firstEndpoint = 0x0a;
 

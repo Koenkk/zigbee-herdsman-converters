@@ -12,7 +12,6 @@ module.exports = [
         description: 'Water leakage detector',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -52,7 +51,6 @@ module.exports = [
         description: 'Motion Sensor',
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -67,7 +65,6 @@ module.exports = [
         description: 'Wireless contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);

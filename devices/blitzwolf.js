@@ -23,7 +23,6 @@ module.exports = [
         description: 'Zigbee 3.0 smart light switch module 1 gang',
         extend: extend.switch(),
         toZigbee: [tz.TYZB01_on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
@@ -39,7 +38,7 @@ module.exports = [
             return {'l1': 1, 'l2': 2};
         },
         toZigbee: [tz.TYZB01_on_off],
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);

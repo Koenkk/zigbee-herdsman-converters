@@ -12,7 +12,6 @@ module.exports = [
         vendor: 'Vimar',
         description: '2-way switch IoT connected mechanism',
         extend: extend.switch(),
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

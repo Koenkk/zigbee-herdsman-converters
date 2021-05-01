@@ -12,7 +12,6 @@ module.exports = [
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -25,7 +24,6 @@ module.exports = [
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -38,7 +36,6 @@ module.exports = [
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -51,7 +48,6 @@ module.exports = [
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut rotary dimmer',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -103,7 +99,7 @@ module.exports = [
         model: 'ROB_200-010-0',
         vendor: 'ROBB',
         description: 'Zigbee curtain motor controller',
-        meta: {configureKey: 2, coverInverted: true},
+        meta: {coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {

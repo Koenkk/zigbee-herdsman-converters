@@ -8,7 +8,6 @@ module.exports = [
         vendor: 'LightSolutions',
         description: 'Mini dimmer 200W',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -21,7 +20,6 @@ module.exports = [
         vendor: 'LightSolutions',
         description: 'Zigbee switch 200W',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

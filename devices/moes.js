@@ -15,7 +15,6 @@ module.exports = [
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -36,7 +35,7 @@ module.exports = [
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: extend.switch(),
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
                 .withDescription('Controls the behaviour when the device is powered on')],
@@ -59,7 +58,7 @@ module.exports = [
         description: 'Zigbee 3.0 dual USB wireless socket plug',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true, configureKey: 1},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             const hasEndpoint2 = !!device.getEndpoint(2);
             return {l1: 1, l2: hasEndpoint2 ? 2 : 7};
@@ -94,7 +93,6 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
@@ -134,7 +132,6 @@ module.exports = [
             tz.saswell_thermostat_calibration, tz.saswell_thermostat_anti_scaling, tz.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
         meta: {
-            configureKey: 1,
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)

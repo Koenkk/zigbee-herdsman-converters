@@ -14,7 +14,6 @@ module.exports = [
         extend: extend.switch(),
         whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
             {vendor: 'Moes', model: 'ZK-CH-2U', description: 'Plug with 2 USB ports'}],
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
@@ -34,7 +33,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        meta: {configureKey: 2, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
@@ -88,7 +87,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 1, 'center': 2, 'bottom': 3};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -105,7 +104,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 16, 'center': 17, 'bottom': 18};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -123,7 +122,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top_left': 16, 'top_right': 17, 'bottom_right': 18, 'bottom_left': 19};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -149,7 +148,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 16, 'bottom': 17};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
@@ -165,7 +164,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 11, 'bottom': 12};
         },
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpoint, ['genOnOff']);
@@ -177,7 +176,6 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Power plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
         },

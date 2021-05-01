@@ -50,7 +50,6 @@ module.exports = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -68,7 +67,6 @@ module.exports = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);

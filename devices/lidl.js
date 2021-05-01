@@ -20,7 +20,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -34,7 +33,6 @@ module.exports = [
         description: 'Silvercrest smart wireless door bell',
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -50,7 +48,6 @@ module.exports = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -66,7 +63,6 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -95,7 +91,7 @@ module.exports = [
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         extend: extend.switch(),
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
@@ -111,7 +107,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED light strip 2.5m',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -131,7 +127,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -142,7 +138,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot RGB',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -153,7 +149,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb RGB',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -164,7 +160,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot CCT',
         ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -175,7 +170,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle CCT',
         ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -186,7 +180,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb CCT',
         ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -197,7 +190,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux ceiling light',
         ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -208,7 +200,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux mood light RGB+CCT',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -219,7 +211,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true, enhancedHue: false, configureKey: 2},
+        meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },

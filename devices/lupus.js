@@ -33,7 +33,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -47,7 +46,6 @@ module.exports = [
         vendor: 'Lupus',
         description: '1 chanel relay',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -60,7 +58,7 @@ module.exports = [
         description: '2 chanel relay',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true, configureKey: 2},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },

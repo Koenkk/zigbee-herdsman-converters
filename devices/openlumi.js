@@ -12,7 +12,6 @@ module.exports = [
         description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
         fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);

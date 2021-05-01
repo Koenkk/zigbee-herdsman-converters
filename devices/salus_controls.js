@@ -14,7 +14,6 @@ module.exports = [
         description: 'Smart plug (EU socket)',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -34,7 +33,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.SP600_power],
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -51,7 +49,6 @@ module.exports = [
         vendor: 'Salus Controls',
         description: 'Relay switch',
         extend: extend.switch(),
-        meta: {configureKey: 4},
         ota: ota.salus,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);

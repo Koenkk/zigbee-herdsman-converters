@@ -18,7 +18,6 @@ module.exports = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE).withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
@@ -39,7 +38,7 @@ module.exports = [
         description: 'EZinstall3 2 gang 2x300W dimmer module',
         extend: extend.light_onoff_brightness(),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: {configureKey: 2, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(10);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -60,7 +59,6 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -74,7 +72,6 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -88,7 +85,6 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -102,7 +98,7 @@ module.exports = [
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(10);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
@@ -123,7 +119,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         toZigbee: [tz.cover_position_tilt, tz.cover_state],
         exposes: [e.cover_position()],
-        meta: {configureKey: 1, coverInverted: true},
+        meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
@@ -135,7 +131,7 @@ module.exports = [
         model: '545D6514',
         vendor: 'Schneider Electric',
         description: 'LK FUGA wiser wireless double relay',
-        meta: {multiEndpoint: true, configureKey: 1},
+        meta: {multiEndpoint: true},
         fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
         toZigbee: [tz.on_off],
         endpoint: (device) => {

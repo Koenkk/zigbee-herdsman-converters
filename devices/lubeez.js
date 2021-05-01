@@ -8,7 +8,6 @@ module.exports = [
         vendor: 'Lubeez',
         description: 'zigbee 3.0 AC dimmer',
         extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
