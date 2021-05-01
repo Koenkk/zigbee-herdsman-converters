@@ -92,10 +92,10 @@ module.exports = [
         onEvent: bulbOnEvent,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm'],
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14 WS 450/470 lumen, dimmable, white spectrum, opal white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
