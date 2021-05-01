@@ -81,6 +81,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['LIGHTIFY BR ON/OFF/DIM'],
+        model: '73807',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white dimmable BR30',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['A19 W 10 year'],
         model: '74696',
         vendor: 'Sylvania',
