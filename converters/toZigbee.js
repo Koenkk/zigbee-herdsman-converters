@@ -1568,7 +1568,7 @@ const converters = {
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.gledopto_light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = libColor.miredsToXY(result.state.color_temp);
+                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
         },
@@ -4142,9 +4142,9 @@ const converters = {
                     } catch (e) {
                         e;
                     }
-                    const newColor = libColor.Color.fromConverterArg(val);
 
-                    if (newColor.xy !== null) {
+                    const newColor = libColor.Color.fromConverterArg(val);
+                    if (newColor.isXY()) {
                         const xScaled = utils.mapNumberRange(newColor.xy.x, 0, 1, 0, 65535);
                         const yScaled = utils.mapNumberRange(newColor.xy.y, 0, 1, 0, 65535);
                         extensionfieldsets.push(
@@ -4155,7 +4155,7 @@ const converters = {
                             },
                         );
                         state['color'] = newColor.xy.toObject();
-                    } else if (newColor.hsv !== null) {
+                    } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
                         if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
                             const hScaled = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
