@@ -36,7 +36,7 @@ module.exports = [
             e.battery(),
             e.presence(),
             e.action(['beeping']),
-            exposes.enum('beep', ea.SET, ['2','5','10','15','30']).withDescription('Trigger beep for x seconds')
+            exposes.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds'),
         ],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500'}},
