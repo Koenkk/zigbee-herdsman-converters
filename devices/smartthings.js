@@ -32,7 +32,8 @@ module.exports = [
         vendor: 'SmartThings',
         description: 'Arrival sensor',
         fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.legacy.STS_PRS_251_beeping],
-        exposes: [e.battery(), e.presence(), e.action(['beeping']), exposes.enum('beep', ea.SET, [''])],
+        exposes: [e.battery(), e.presence(), e.action(['beeping']),
+            exposes.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds')],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
