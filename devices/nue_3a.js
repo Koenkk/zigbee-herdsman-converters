@@ -41,6 +41,8 @@ module.exports = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
