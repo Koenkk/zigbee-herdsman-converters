@@ -929,7 +929,7 @@ const converters = {
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
                 newState.color_mode = constants.colorMode[0];
-                newState.color = hsv.toObject();
+                newState.color = hsv.toObject(true);
 
                 if (hsv.hue !== null) {
                     if (enhancedHue) {
@@ -4181,7 +4181,7 @@ const converters = {
                                 },
                             );
                         }
-                        state['color'] = newColor.hsv.toObject();
+                        state['color'] = newColor.hsv.toObject(true);
                     }
                 }
             }

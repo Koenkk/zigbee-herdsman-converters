@@ -57,6 +57,15 @@ describe('lib/color.js', () => {
         });
 
         test.each([
+            [{hue: 0, saturation: 100, value: 100}, {h: 0, s: 100, v: 100}],
+            [{hue: 0, saturation: 100}, {h: 0, s: 100}],
+            [{hue: 0}, {h: 0}],
+            [{saturation: 100}, {s: 100}],
+        ])('.toObject() short - %j', (input, output) => {
+            expect(libColor.ColorHSV.fromObject(input).toObject(true)).toStrictEqual(output);
+        });
+
+        test.each([
             ['red', {hue: 0, saturation: 100, value: 100}, {red: 1.0, green: 0, blue: 0}],
             ['red (only hue)', {hue: 0}, {red: 1.0, green: 0.0, blue: 0.0}],
             ['green', {hue: 120, saturation: 100, value: 100}, {red: 0, green: 1.0, blue: 0}],
