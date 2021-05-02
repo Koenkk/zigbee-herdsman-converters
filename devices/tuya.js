@@ -11,6 +11,15 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
+        model: 'TS0601_temperature_humidity_sensor',
+        vendor: 'Tuya',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.tuya_temperature_humidity_sensor],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',
