@@ -908,7 +908,7 @@ const converters = {
 
             if (newColor.isRGB() || newColor.isXY()) {
                 // Convert RGB to XY color mode because Zigbee doesn't support RGB (only x/y and hue/saturation)
-                const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY() : newColor.xy;
+                const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
 
                 // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
@@ -920,7 +920,7 @@ const converters = {
                 }
 
                 newState.color_mode = constants.colorMode[1];
-                newState.color = xy.toObject(4);
+                newState.color = xy.toObject();
                 zclData.colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                 zclData.colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                 command = 'moveToColor';
@@ -929,7 +929,7 @@ const converters = {
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
                 newState.color_mode = constants.colorMode[0];
-                newState.color = hsv.toObject(0);
+                newState.color = hsv.toObject();
 
                 if (hsv.hue !== null) {
                     if (enhancedHue) {
@@ -1037,7 +1037,7 @@ const converters = {
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).toObject(4);
+                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
         },
@@ -4154,7 +4154,7 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
-                        state['color'] = newColor.xy.toObject(4);
+                        state['color'] = newColor.xy.toObject();
                     } else if (newColor.hsv !== null) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
                         if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
@@ -4181,7 +4181,7 @@ const converters = {
                                 },
                             );
                         }
-                        state['color'] = newColor.hsv.toObject(0);
+                        state['color'] = newColor.hsv.toObject();
                     }
                 }
             }
