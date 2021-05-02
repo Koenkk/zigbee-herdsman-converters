@@ -7,13 +7,6 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['LXT56-LS27LX1.7'],
-        model: '3A12S-15',
-        vendor: 'Nue / 3A',
-        description: 'RGBW led controller',
-        extend: extend.light_onoff_brightness_colortemp_color(),
-    },
-    {
         zigbeeModel: ['LXN59-1S7LX1.0'],
         model: 'HGZB-01',
         vendor: 'Nue / 3A',
@@ -276,7 +269,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['LXT56-LS27LX1.4'],
+        zigbeeModel: ['LXT56-LS27LX1.4', 'LXT56-LS27LX1.7'],
         model: '3A12S-15',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 strip light controller',
