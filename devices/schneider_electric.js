@@ -71,10 +71,7 @@ module.exports = [
         model: 'CCT5011-0001/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
-        meta: {configureKey: 1},
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
