@@ -79,6 +79,24 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['NHROTARY/DIMMER/1'],
+        model: 'WDE002334',
+        vendor: 'Schneider Electric',
+        description: 'Rotary dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness().withLevelConfig(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
