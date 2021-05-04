@@ -104,8 +104,9 @@ module.exports = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
         },

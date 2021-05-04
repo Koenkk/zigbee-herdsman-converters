@@ -17,8 +17,9 @@ module.exports = [
         model: '511.201',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 Dimm-Aktor mini 1x 230V',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -29,8 +30,9 @@ module.exports = [
         model: '5120.1100',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 Dimm-Aktor mini 1x 230V',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);

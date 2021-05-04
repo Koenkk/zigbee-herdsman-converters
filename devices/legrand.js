@@ -155,12 +155,13 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wired switch without neutral',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
             tz.legrand_settingEnableDimmer, tz.legrand_identify],
         exposes: [e.light_brightness()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
             await reporting.onOff(endpoint);
