@@ -1562,7 +1562,7 @@ const converters = {
             if (key == 'color') {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
                 if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state).toMireds());
+                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
                 }
 
                 return result;
