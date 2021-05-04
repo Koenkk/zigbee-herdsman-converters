@@ -40,6 +40,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OPL 130 C'],
+        model: 'OPL 130 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart pedestal light colour',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
         vendor: 'Innr',
