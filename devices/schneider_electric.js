@@ -80,7 +80,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
-        model: 'Rotary dimmer',
+        model: 'WDE002334',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
