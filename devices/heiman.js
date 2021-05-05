@@ -650,4 +650,13 @@ module.exports = [
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
+    {
+        zigbeeModel: ['PIR_TPV16'],
+        model: 'HS1MS-M',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];
