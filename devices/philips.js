@@ -240,7 +240,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -249,7 +249,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
