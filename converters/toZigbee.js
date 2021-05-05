@@ -1933,6 +1933,17 @@ const converters = {
             }
         },
     },
+    SPZ01_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0x00, 'on': 0x01};
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+            await entity.write('genOnOff', {0x2000: {value: payload, type: 0x20}});
+            return {state: {power_outage_memory: value}};
+        },
+    },
     tuya_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
