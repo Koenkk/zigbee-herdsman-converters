@@ -32,7 +32,7 @@ module.exports = [
         exposes: [e.sos(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8'],
+        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8','FB56-BOT02HM1.2'],
         model: 'SBM01ZB',
         vendor: 'Feibit',
         description: 'Human body movement sensor',
@@ -47,7 +47,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-THM14FB2.4', 'FNB54-THM17ML1.1'],
+        zigbeeModel: ['FNB56-THM14FB2.4', 'FNB54-THM17ML1.1','FB56-THM12HM1.2'],
         model: 'STH01ZB',
         vendor: 'Feibit',
         description: 'Smart temperature & humidity Sensor',
@@ -105,7 +105,7 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-DOS07FB2.4'],
+        zigbeeModel: ['FNB56-DOS07FB2.4','FB56-DOS02HM1.2'],
         model: 'SDM01ZB',
         vendor: 'Feibit',
         description: 'Door or window contact switch',
@@ -121,7 +121,7 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        zigbeeModel: ['FB56+ZSW1HKJ2.2'],
+        zigbeeModel: ['FB56+ZSW1HKJ2.2','FB56+ZSW1HKJ1.1'],
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
@@ -137,7 +137,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSW1IKJ2.2'],
+        zigbeeModel: ['FB56+ZSW1IKJ2.2','FB56+ZSW1IKJ1.1'],
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
