@@ -2014,11 +2014,10 @@ const converters = {
         cluster: 65029,
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-		const clickMapping = {0: 'release',1: 'single', 2: 'double', 3: 'hold'};
+            const clickMapping = {0: 'release', 1: 'single', 2: 'double', 3: 'hold'};
             return {action: `${clickMapping[msg.data[6]]}`};
         },
     },
-    
     tuya_on_off_action: {
         cluster: 'genOnOff',
         type: 'raw',
