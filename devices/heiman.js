@@ -653,7 +653,7 @@ module.exports = [
     {
         zigbeeModel: ['PIR_TPV16'], 
         model: 'HS1MS-M', 
-        vendor: 'Heiman', 
+        vendor: 'HEIMAN', 
         description: 'Smart motion sensor', 
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
