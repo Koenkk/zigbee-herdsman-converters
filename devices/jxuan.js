@@ -9,7 +9,7 @@ module.exports = [
     {
         zigbeeModel: ['wall pir'],
         model: 'PRZ01',
-        vendor: 'jdwhale',
+        vendor: 'J.XUAN',
         description: 'Human body movement sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
@@ -18,7 +18,7 @@ module.exports = [
     {
         zigbeeModel: ['door sensor'],
         model: 'DSZ01',
-        vendor: 'jdwhale',
+        vendor: 'J.XUAN',
         description: 'Door or window contact switch',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
@@ -27,7 +27,7 @@ module.exports = [
     {
         zigbeeModel: ['JD-SWITCH\u000002'],
         model: 'WSZ01',
-        vendor: 'jdwhale',
+        vendor: 'J.XUAN',
         description: 'Wireless switch',
         fromZigbee: [fz.WSZ01_on_off_action, fz.battery],
         toZigbee: [],
@@ -36,7 +36,7 @@ module.exports = [
     {
         zigbeeModel: ['00090bdc'],
         model: 'SPZ01',
-        vendor: 'jdwhale',
+        vendor: 'J.XUAN',
         description: 'plug',
         supports: 'plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
