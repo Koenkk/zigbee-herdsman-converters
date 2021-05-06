@@ -189,7 +189,7 @@ module.exports = [
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.metering],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
         exposes: [
                     exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
                                      .withLocalTemperature()
@@ -207,11 +207,11 @@ module.exports = [
             var endpoint2 = device.getEndpoint(2);
             
             await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1, {min: 1, max: 60, change: 1});
-            await reporting.thermostatPIHeatingDemand(endpoint1, {min: 1, max: 60, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1, {min: 0, max: 60, change: 1});
+            await reporting.thermostatPIHeatingDemand(endpoint1, {min: 0, max: 60, change: 1});
             await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
-            await reporting.instantaneousDemand(endpoint2, {min: 1, max: 60, change: 1});
-            await reporting.currentSummDelivered(endpoint2, {min: 1, max: 60, change: 1});
+            await reporting.instantaneousDemand(endpoint2, {min: 0, max: 60, change: 1});
+            await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
         },
     },
 ];
