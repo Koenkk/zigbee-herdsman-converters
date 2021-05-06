@@ -4831,8 +4831,8 @@ const converters = {
     schneider_pilot_mode: {
         key: ['schneider_pilot_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'RELAY': 1, 'PILOT': 3};
-            value = value.toUpperCase();
+            const lookup = {'relay': 1, 'pilot': 3};
+            value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             const mode = lookup[value];
             await entity.write('schneiderSpecificPilotMode', {'pilotMode': mode}, {manufacturerCode: 0x105e});
