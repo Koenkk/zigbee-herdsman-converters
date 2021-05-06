@@ -4828,6 +4828,20 @@ const converters = {
             await entity.read('closuresDoorLock', [0x4005], {manufacturerCode: 4919});
         },
     },
+    schneider_pilot_mode: {
+        key: ['schneider_pilot_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'RELAY': 1, 'PILOT': 3};
+            value = value.toUpperCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const mode = lookup[value];
+            await entity.write('schneiderSpecificPilotMode', {'pilotMode': mode}, {manufacturerCode: 0x105e});
+            return {state: {schneider_pilot_mode: mode}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
+        },
+    },
 
     // #endregion
 
