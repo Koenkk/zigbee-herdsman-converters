@@ -194,7 +194,7 @@ module.exports = [
         model: 'CCTFR6700',
         vendor: 'Schneider Electric',
         description: 'Heating thermostat',
-        fromZigbee: [fz.thermostat, fz.metering],
+        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
         exposes: [
@@ -203,8 +203,8 @@ module.exports = [
                                      .withSystemMode(['off', 'auto', 'heat'])
                                      .withRunningState(['idle', 'heat'])
                                      .withPiHeatingDemand(),
-                    exposes.power(),
-                    exposes.energy(),
+                    e.power(),
+                    e.energy(),
                     exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot'])
                            .withDescription('Controls piloting mode'),
                 ],
