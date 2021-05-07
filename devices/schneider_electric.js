@@ -197,21 +197,13 @@ module.exports = [
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
-        exposes: [
-                    exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
-                                     .withLocalTemperature()
-                                     .withSystemMode(['off', 'auto', 'heat'])
-                                     .withRunningState(['idle', 'heat'])
-                                     .withPiHeatingDemand(),
-                    e.power(),
-                    e.energy(),
-                    exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot'])
-                           .withDescription('Controls piloting mode'),
-                ],
+        exposes: [e.power(), e.energy(),
+            exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot']).withDescription('Controls piloting mode'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            var endpoint1 = device.getEndpoint(1);
-            var endpoint2 = device.getEndpoint(2);
-            
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1, {min: 0, max: 60, change: 1});
             await reporting.thermostatPIHeatingDemand(endpoint1, {min: 0, max: 60, change: 1});
