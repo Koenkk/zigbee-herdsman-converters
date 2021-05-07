@@ -148,7 +148,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
@@ -169,7 +169,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
