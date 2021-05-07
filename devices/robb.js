@@ -7,6 +7,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-006-0'],
+        model: 'ROB_200-006-0',
+        vendor: 'ROBB',
+        description: 'ZigBee LED dimmer',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ROB_200-004-0'],
         model: 'ROB_200-004-0',
         vendor: 'ROBB',
