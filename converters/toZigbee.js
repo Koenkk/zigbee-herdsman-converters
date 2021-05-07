@@ -2395,7 +2395,7 @@ const converters = {
             const state = {
                 [`state_${meta.endpoint_name}`]: value
             }
-            const keyid = multiEndpoint ? lookup[state[0]] : 1;
+            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
 
             const message = meta.message
