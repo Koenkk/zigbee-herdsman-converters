@@ -5544,6 +5544,18 @@ const converters = {
             return result;
         },
     },
+    schneider_pilot_mode: {
+        cluster: 'schneiderSpecificPilotMode',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {1: 'contactor', 3: 'pilot'};
+            if ('pilotMode' in msg.data) {
+                result.schneider_pilot_mode = lookup[msg.data['pilotMode']];
+            }
+            return result;
+        },
+    },
 
     // #endregion
 
