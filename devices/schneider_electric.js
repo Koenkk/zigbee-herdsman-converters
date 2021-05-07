@@ -208,7 +208,6 @@ module.exports = [
                     exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot'])
                            .withDescription('Controls piloting mode'),
                 ],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             var endpoint1 = device.getEndpoint(1);
             var endpoint2 = device.getEndpoint(2);
