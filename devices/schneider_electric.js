@@ -195,10 +195,11 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
+        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
         exposes: [e.power(), e.energy(),
-            exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot']).withDescription('Controls piloting mode'),
+            exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+            exposes.numeric('temperature_measured_value', ea.SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
