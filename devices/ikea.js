@@ -571,4 +571,13 @@ module.exports = [
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm'],
+        model: 'LED1925G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 CWS 470 lumen, dimmable, color, opal white',
+        extend: extend.light_onoff_brightness_color(),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    },
 ];
