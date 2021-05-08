@@ -4849,6 +4849,12 @@ const converters = {
             await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
         },
     },
+    schneider_temperature_measured_value: {
+        key: ['temperature_measured_value'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.report('msTemperatureMeasurement', {'measuredValue':Math.round(value*100)});
+        },
+    },
 
     // #endregion
 
