@@ -40,8 +40,7 @@ const tradfriExtend = {
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp_color: (options = {
-        disableEffect: true, disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
         exposes: extend.light_onoff_brightness_colortemp_color(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
