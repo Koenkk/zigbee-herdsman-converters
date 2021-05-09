@@ -2387,28 +2387,6 @@ const converters = {
             await tuya.sendDataPointValue(entity, dp, newValue, 'setData', 1);
         },
     },
-    tuya_switch_state_multi: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
-            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
-            const state = {
-                [`state_${meta.endpoint_name}`]: value
-            }
-            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await tuya.sendDataPointBool(entity, keyid, value === 'ON');
-
-            const message = meta.message
-            Object.entries(message).forEach(async messageEntry => {
-                if (messageEntry[0].includes('state_')) {
-                    const endpoint = messageEntry[0].split('_')[1]
-                    state[`state_${endpoint}`] = messageEntry[1]
-                    await tuya.sendDataPointBool(entity, lookup[endpoint], messageEntry[1] === 'ON');
-                }
-            });
-            return {state: state};
-        },
-    },
     tuya_switch_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {

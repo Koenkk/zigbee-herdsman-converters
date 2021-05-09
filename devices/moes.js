@@ -85,7 +85,6 @@ module.exports = [
                 .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
     },
-    
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}],
         model: 'ZTS-EU_1gang',
@@ -94,12 +93,8 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
-            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
         },
     },
     {
@@ -110,8 +105,8 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state_multi],
-        meta: {configureKey: 1, multiEndpoint: true},
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1};
@@ -132,7 +127,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state_multi],
+        toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
