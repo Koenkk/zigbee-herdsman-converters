@@ -9,7 +9,6 @@ module.exports = [
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -21,9 +20,9 @@ module.exports = [
         model: '43080',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -43,7 +42,6 @@ module.exports = [
         description: 'Plug-in Zigbee outdoor smart switch',
         extend: extend.switch(),
         fromZigbee: [fz.command_on_state, fz.command_off_state],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -57,9 +55,9 @@ module.exports = [
         model: '43082',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -71,7 +69,6 @@ module.exports = [
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -83,9 +80,9 @@ module.exports = [
         model: '43090',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);

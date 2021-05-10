@@ -15,7 +15,6 @@ module.exports = [
         fromZigbee: [fz.ignore_power_report, fz.command_recall, fz.legacy.AV2010_34_click],
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -48,7 +47,6 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -69,7 +67,6 @@ module.exports = [
         vendor: 'Bitron',
         description: 'Home wireless socket',
         extend: extend.switch(),
-        meta: {configureKey: 4},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -94,7 +91,7 @@ module.exports = [
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration()],
-        meta: {configureKey: 2, battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -152,7 +149,6 @@ module.exports = [
         description: '4 button Zigbee remote control',
         fromZigbee: [fz.ias_no_alarm, fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
         toZigbee: [],
-        meta: {configureKey: 1},
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_*']), e.battery_low()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

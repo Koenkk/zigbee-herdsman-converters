@@ -259,11 +259,6 @@ describe('index.js', () => {
                 }
             }
 
-            // Verify meta
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
-            }
-
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
                     containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
@@ -271,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -401,5 +396,43 @@ describe('index.js', () => {
                 }
             }
         }
+    });
+
+    it('Calculate configure key', () => {
+        const definition = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition)).toBe(-1738355762);
+    });
+
+    it('Calculate configure key whitespace shouldnt matter', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition1)).toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure diff', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');
+            console.log('bye mars');
+        }}
+        expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure key legacy', () => {
+        const definition = index.findByZigbeeModel('WaterSensor-N');
+        expect(index.getConfigureKey(definition)).toBe(1);
     });
 });

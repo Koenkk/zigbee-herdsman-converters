@@ -17,7 +17,6 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report,
             fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
@@ -35,7 +34,6 @@ module.exports = [
         description: 'Contact sensor',
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
@@ -81,7 +79,6 @@ module.exports = [
         description: 'Active plug',
         fromZigbee: [fz.on_off, fz.metering, fz.temperature],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -123,7 +120,6 @@ module.exports = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
             .withPiHeatingDemand()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -146,7 +142,7 @@ module.exports = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
-        meta: {configureKey: 1, disableDefaultResponse: true},
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
@@ -170,7 +166,7 @@ module.exports = [
         endpoint: (device) => {
             return {'heat': 5, 'water': 6};
         },
-        meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
+        meta: {disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
@@ -207,7 +203,7 @@ module.exports = [
         endpoint: (device) => {
             return {'heat': 5, 'water': 6};
         },
-        meta: {configureKey: 3, disableDefaultResponse: true, multiEndpoint: true},
+        meta: {disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);

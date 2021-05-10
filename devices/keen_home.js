@@ -15,7 +15,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
@@ -34,7 +34,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];

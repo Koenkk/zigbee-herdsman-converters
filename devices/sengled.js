@@ -142,7 +142,6 @@ module.exports = [
         vendor: 'Sengled',
         description: 'Smart plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -21,7 +21,7 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Smart light switch',
         extend: extend.switch(),
-        meta: {disableDefaultResponse: true, configureKey: 3},
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

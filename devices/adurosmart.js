@@ -24,7 +24,6 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.legacy.eria_81825_updown],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -35,9 +34,9 @@ module.exports = [
         model: '81849',
         vendor: 'AduroSmart',
         description: 'ERIA build-in multi dimmer module 300W',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -49,9 +48,9 @@ module.exports = [
         model: '81855',
         vendor: 'AduroSmart',
         description: 'ERIA smart plug (dimmer)',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -64,7 +63,6 @@ module.exports = [
         vendor: 'AduroSmart',
         description: 'ERIA smart plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -12,7 +12,6 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);

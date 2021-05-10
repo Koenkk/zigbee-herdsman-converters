@@ -12,7 +12,6 @@ module.exports = [
         description: 'Plug power socket on/off with power consumption monitoring',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);

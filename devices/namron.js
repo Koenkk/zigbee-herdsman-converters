@@ -10,9 +10,9 @@ module.exports = [
         model: '4512700',
         vendor: 'Namron',
         description: 'ZigBee dimmer 400W',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 2},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -24,7 +24,6 @@ module.exports = [
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -36,9 +35,9 @@ module.exports = [
         model: '1402755',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);

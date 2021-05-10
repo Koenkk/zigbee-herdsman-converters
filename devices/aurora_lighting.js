@@ -57,7 +57,6 @@ module.exports = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down'])],
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
@@ -70,7 +69,6 @@ module.exports = [
         description: 'AOne PIR sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(39);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
@@ -86,7 +84,6 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
@@ -107,9 +104,9 @@ module.exports = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
-        extend: extend.light_onoff_brightness(),
-        meta: {configureKey: 1},
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
         },
@@ -123,7 +120,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.power().withEndpoint('right')],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -144,7 +141,6 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.device_temperature(), e.energy()],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -175,7 +171,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.action([
             'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint,
@@ -192,7 +188,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.action([
             'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-        meta: {multiEndpoint: true, configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
             return {'right': 1, 'left': 2};
         },

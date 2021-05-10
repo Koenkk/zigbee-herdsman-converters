@@ -48,7 +48,6 @@ module.exports = [
         exposes: [e.switch(), e.action(['single'])],
         fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

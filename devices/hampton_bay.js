@@ -14,7 +14,7 @@ module.exports = [
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.fan]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.fan_mode]),
         exposes: [e.light_brightness(), e.fan()],
-        meta: {disableDefaultResponse: true, configureKey: 1},
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'hvacFanCtrl']);

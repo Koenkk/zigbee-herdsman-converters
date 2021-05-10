@@ -1,5 +1,6 @@
 'use strict';
 
+const configureKey = require('./lib/configureKey');
 const exposes = require('./lib/exposes');
 const toZigbee = require('./converters/toZigbee');
 const fromZigbee = require('./converters/fromZigbee');
@@ -61,7 +62,7 @@ function addDefinition(definition) {
     const {extend, ...definitionWithoutExtend} = definition;
     if (extend) {
         if (extend.hasOwnProperty('configure') && definition.hasOwnProperty('configure')) {
-            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
+            console.log(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
         definition = {
@@ -185,6 +186,7 @@ function fingerprintMatch(fingerprint, device) {
 }
 
 module.exports = {
+    getConfigureKey: configureKey.getConfigureKey,
     devices: definitions,
     exposes,
     definitions,

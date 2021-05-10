@@ -15,7 +15,6 @@ module.exports = [
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.temperature],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -38,7 +37,6 @@ module.exports = [
         fromZigbee: [fz.metering, fz.electrical_measurement, fz.temperature],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        meta: {configureKey: 3},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
@@ -62,7 +60,6 @@ module.exports = [
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.idlock],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,
             tz.idlock_lock_mode, tz.idlock_relock_enabled],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4919};

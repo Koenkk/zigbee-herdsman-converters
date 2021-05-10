@@ -1392,6 +1392,25 @@ const converters = {
             return {...payload1, ...payload2};
         },
     },
+    tuya_temperature_humidity_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case 1:
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case 2:
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+            case 4:
+                return {battery: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:maa_tuya_temp_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -1989,6 +2008,14 @@ const converters = {
                 const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
                 return {backlight_mode: backlightLookup[value]};
             }
+        },
+    },
+    WSZ01_on_off_action: {
+        cluster: 65029,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping = {0: 'release', 1: 'single', 2: 'double', 3: 'hold'};
+            return {action: `${clickMapping[msg.data[6]]}`};
         },
     },
     tuya_on_off_action: {
@@ -5513,6 +5540,18 @@ const converters = {
             }
             if (0x4005 in msg.data) {
                 result.relock_enabled = msg.data[0x4005] == 1 ? true : false;
+            }
+            return result;
+        },
+    },
+    schneider_pilot_mode: {
+        cluster: 'schneiderSpecificPilotMode',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {1: 'contactor', 3: 'pilot'};
+            if ('pilotMode' in msg.data) {
+                result.schneider_pilot_mode = lookup[msg.data['pilotMode']];
             }
             return result;
         },

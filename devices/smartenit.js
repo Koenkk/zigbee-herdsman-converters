@@ -12,7 +12,6 @@ module.exports = [
         description: 'Wireless metering 30A dual-load switch/controller',
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_light_brightness_report],
         toZigbee: [tz.on_off],
-        meta: {configureKey: 2},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },

@@ -16,7 +16,7 @@ module.exports = [
             fz.legacy.osram_lightify_switch_73743_cmdStop, fz.battery],
         exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -81,6 +81,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['LIGHTIFY BR ON/OFF/DIM'],
+        model: '73807',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white dimmable BR30',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['A19 W 10 year'],
         model: '74696',
         vendor: 'Sylvania',
@@ -94,7 +102,6 @@ module.exports = [
         vendor: 'Sylvania',
         description: 'SMART+ Smart Plug',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

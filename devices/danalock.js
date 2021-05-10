@@ -6,13 +6,12 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['V3-BTZB'],
-        model: 'V3-BTZB',
+        zigbeeModel: ['V3-BTZB', 'V3-BTZBE'],
+        model: 'V3-BTZB/V3-BTZBE',
         vendor: 'Danalock',
         description: 'BT/ZB smartlock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        meta: {configureKey: 5},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);

@@ -92,10 +92,10 @@ module.exports = [
         onEvent: bulbOnEvent,
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm'],
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14 WS 470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14 WS 450/470 lumen, dimmable, white spectrum, opal white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
@@ -211,7 +211,7 @@ module.exports = [
             fz.legacy.cmd_move_to_level_with_onoff, fz.battery],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
@@ -302,7 +302,6 @@ module.exports = [
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on')]),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -322,7 +321,7 @@ module.exports = [
             'arrow_right_release', 'brightness_up_click', 'brightness_down_click', 'brightness_up_hold', 'brightness_up_release'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
@@ -344,7 +343,7 @@ module.exports = [
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.bind('genOnOff', constants.defaultBindGroup);
@@ -362,7 +361,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in
@@ -383,7 +382,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['on', 'off'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in
@@ -401,7 +400,6 @@ module.exports = [
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
         extend: extend.switch(),
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -418,7 +416,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 1, disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // By default this device controls group 0, some devices are by default in
@@ -438,7 +436,7 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
         ota: ota.tradfri,
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
@@ -456,7 +454,7 @@ module.exports = [
             exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
             exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100)],
         ota: ota.tradfri,
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -473,7 +471,6 @@ module.exports = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {configureKey: 2},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
@@ -489,7 +486,7 @@ module.exports = [
         description: 'FYRTUR roller blind',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {configureKey: 2, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -506,7 +503,7 @@ module.exports = [
         description: 'KADRILJ roller blind',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {configureKey: 2, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -525,7 +522,7 @@ module.exports = [
             fz.command_cover_stop, fz.legacy.cover_stop],
         exposes: [e.battery(), e.action(['close', 'open', 'stop'])],
         toZigbee: [],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -571,6 +568,15 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, colour spectrum',
         extend: extend.light_onoff_brightness_colortemp_color(),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm'],
+        model: 'LED1925G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 CWS 470 lumen, dimmable, color, opal white',
+        extend: extend.light_onoff_brightness_color(),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     },
