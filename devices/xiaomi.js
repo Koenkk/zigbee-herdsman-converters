@@ -998,8 +998,8 @@ module.exports = [
         model: 'ZNCJMB14LM',
         vendor: 'Xiaomi',
         description: 'Aqara S1 Smart Touch Panel',
-        fromZigbee: [fz.on_off, fzLocal.ZNCJMB14LM],
-        toZigbee: [tz.on_off, tzLocal.ZNCJMB14LM],
+        fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
+        toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
