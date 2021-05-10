@@ -4976,8 +4976,11 @@ const converters = {
                 return {state: statearr};
             } else {
                 throw new Error(`Not supported: '${key}'`);
-            }
-    // #endregion
+            },
+		},
+    }, 
+ 
+ // #endregion
 
     // #region Ignore converters
     ignore_transition: {
