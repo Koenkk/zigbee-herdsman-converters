@@ -993,6 +993,7 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+	{
         zigbeeModel: ['lumi.switch.n4acn4'],
         model: 'ZNCJMB14LM',
         vendor: 'Xiaomi',
