@@ -5709,75 +5709,74 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-           const result = {};
-           if (msg.data.hasOwnProperty(0x0215)) {
-              const lookup = {0: 'classic', 1: 'concise'};
-              result.theme = lookup[msg.data[0x0215]];
-           }
-           if (msg.data.hasOwnProperty(0x0214)) {
-              const lookup = {1: 'classic', 2: 'analog clock'};
-              result.screen_saver_style = lookup[msg.data[0x0214]];
-           }
-           if (msg.data.hasOwnProperty(0x0213)) {
-              result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
-           }
-           if (msg.data.hasOwnProperty(0x0212)) {
-              const lookup = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
-              result.beep_volume = lookup[msg.data[0x0212]];
-           }
-           if (msg.data.hasOwnProperty(0x0211)) {
-              result.lcd_brightness = msg.data[0x0211];
-           }
-           if (msg.data.hasOwnProperty(0x022b)) {
-              const lookup = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
-              result.available_switches = lookup[msg.data[0x022b]];
-           }
-           if (msg.data.hasOwnProperty(0x217)) {
-              const lookup = {3: 'small', 4: 'medium', 5: 'large'};
-              result.font_size = lookup[msg.data[0x217]];
-           }
-           if (msg.data.hasOwnProperty(0x219)) {
-              const lookup = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
-              result.homepage = lookup[msg.data[0x219]];
-           }
-           if (msg.data.hasOwnProperty(0x210)) {
-              const lookup = {0: 'chinese', 1: 'english'};
-              result.language = lookup[msg.data[0x210]];
-           }
-           if (msg.data.hasOwnProperty(0x216)) {
-              result.standby_time = msg.data[0x216];
-           }
-           if (msg.data.hasOwnProperty(0x218)) {
-              result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
-           }
-           if (msg.data.hasOwnProperty(0x221)) {
-              result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
-           }
-           if (msg.data.hasOwnProperty(0x222)) {
-              result.standby_lcd_brightness = msg.data[0x222];
-           }
-           if (msg.data.hasOwnProperty(0x223)) {
-              const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-              let textarr = msg.data[0x223].slice(1,msg.data[0x223].length);
-              result.switch_1_icon = lookup[msg.data[0x223][0]];
-              result.switch_1_text = String.fromCharCode.apply(String, textarr);
-           }
-           if (msg.data.hasOwnProperty(0x224)) {
-              const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-              let textarr = msg.data[0x224].slice(1,msg.data[0x224].length);
-              result.switch_2_icon = lookup[msg.data[0x224][0]];
-              result.switch_2_text = String.fromCharCode.apply(String, textarr);
-           }
-           if (msg.data.hasOwnProperty(0x225)) {
-              const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-              let textarr = msg.data[0x225].slice(1,msg.data[0x225].length);
-              result.switch_3_icon = lookup[msg.data[0x225][0]];
-              result.switch_3_text = String.fromCharCode.apply(String, textarr);
-           }
-           return result;
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0215)) {
+                const lookup = {0: 'classic', 1: 'concise'};
+                result.theme = lookup[msg.data[0x0215]];
+            }
+            if (msg.data.hasOwnProperty(0x0214)) {
+                const lookup = {1: 'classic', 2: 'analog clock'};
+                result.screen_saver_style = lookup[msg.data[0x0214]];
+            }
+            if (msg.data.hasOwnProperty(0x0213)) {
+                result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x0212)) {
+                const lookup = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
+                result.beep_volume = lookup[msg.data[0x0212]];
+            }
+            if (msg.data.hasOwnProperty(0x0211)) {
+                result.lcd_brightness = msg.data[0x0211];
+            }
+            if (msg.data.hasOwnProperty(0x022b)) {
+                const lookup = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
+                result.available_switches = lookup[msg.data[0x022b]];
+            }
+            if (msg.data.hasOwnProperty(0x217)) {
+                const lookup = {3: 'small', 4: 'medium', 5: 'large'};
+                result.font_size = lookup[msg.data[0x217]];
+            }
+            if (msg.data.hasOwnProperty(0x219)) {
+                const lookup = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
+                result.homepage = lookup[msg.data[0x219]];
+            }
+            if (msg.data.hasOwnProperty(0x210)) {
+                const lookup = {0: 'chinese', 1: 'english'};
+                result.language = lookup[msg.data[0x210]];
+            }
+            if (msg.data.hasOwnProperty(0x216)) {
+                result.standby_time = msg.data[0x216];
+            }
+            if (msg.data.hasOwnProperty(0x218)) {
+                result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x221)) {
+                result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x222)) {
+                result.standby_lcd_brightness = msg.data[0x222];
+            }
+            if (msg.data.hasOwnProperty(0x223)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
+                result.switch_1_icon = lookup[msg.data[0x223][0]];
+                result.switch_1_text = String.fromCharCode(...textarr);
+            }
+            if (msg.data.hasOwnProperty(0x224)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
+                result.switch_2_icon = lookup[msg.data[0x224][0]];
+                result.switch_2_text = String.fromCharCode(...textarr);
+            }
+            if (msg.data.hasOwnProperty(0x225)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
+                result.switch_3_icon = lookup[msg.data[0x225][0]];
+                result.switch_3_text = String.fromCharCode(...textarr);
+            }
+            return result;
         },
     },
-	
     // #endregion
 };
 
