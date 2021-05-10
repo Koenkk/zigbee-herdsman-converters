@@ -993,7 +993,7 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-	{
+    {
         zigbeeModel: ['lumi.switch.n4acn4'],
         model: 'ZNCJMB14LM',
         vendor: 'Xiaomi',
@@ -1048,30 +1048,29 @@ module.exports = [
                 .withDescription('Control which switches are available in the switches screen (none disables switches screen)'),
             exposes.composite('switch_1_text_icon', 'switch_1_text_icon')
                 .withDescription('Switch 1 text and icon')
-                .withFeature(exposes.enum('switch_1_icon', ea.SET, ['1','2','3','4','5','6','7','8','9','10','11'])
+                .withFeature(exposes.enum('switch_1_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_1_text', ea.SET)
                     .withDescription('Text')),
             exposes.composite('switch_2_text_icon', 'switch_2_text_icon')
                 .withDescription('Switch 2 text and icon')
-                .withFeature(exposes.enum('switch_2_icon', ea.SET, ['1','2','3','4','5','6','7','8','9','10','11'])
+                .withFeature(exposes.enum('switch_2_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_2_text', ea.SET)
                     .withDescription('Text')),
             exposes.composite('switch_3_text_icon', 'switch_3_text_icon')
                 .withDescription('Switch 3 text and icon')
-                .withFeature(exposes.enum('switch_3_icon', ea.SET, ['1','2','3','4','5','6','7','8','9','10','11'])
+                .withFeature(exposes.enum('switch_3_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_3_text', ea.SET)
                     .withDescription('Text')),
-        ],
         configure: async (device, coordinatorEndpoint, logger) => {
                 await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
                 await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
                 await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
                 await reporting.onOff(device.getEndpoint(1));
-//                await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
-//                await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
+                //await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
+                //await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
     },
 ];
