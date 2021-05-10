@@ -117,7 +117,7 @@ module.exports = [
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = 'Mains (single phase)';
             device.save();
-        }
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_tz32mtza'}],
@@ -140,7 +140,7 @@ module.exports = [
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = 'Mains (single phase)';
             device.save();
-        }
+        },
     },
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
