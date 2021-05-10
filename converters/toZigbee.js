@@ -4976,7 +4976,7 @@ const converters = {
                 return {state: statearr};
             } else {
                 throw new Error(`Not supported: '${key}'`);
-            },
+            }
 		},
     }, 
  
