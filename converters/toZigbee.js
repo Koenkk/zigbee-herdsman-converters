@@ -4849,6 +4849,136 @@ const converters = {
             await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
         },
     },
+    ZNCJMB14LM: {
+        key: ['theme',
+            'standby_enabled',
+            'beep_volume',
+            'lcd_brightness',
+            'language',
+            'screen_saver_style',
+            'standby_time',
+            'font_size',
+            'lcd_auto_brightness_enabled',
+            'homepage',
+            'screen_saver_enabled',
+            'standby_lcd_brightness',
+            'available_switches',
+            'switch_1_text_icon',
+            'switch_2_text_icon',
+            'switch_3_text_icon',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'theme') {
+                const lookup = {'classic': 0, 'concise': 1};
+                await entity.write('aqaraOpple', {0x0215: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {theme: value}};
+            } else if (key === 'standby_enabled') {
+                await entity.write('aqaraOpple', {0x0213: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {standby_enabled: value}};
+            } else if (key === 'beep_volume') {
+                const lookup = {'mute': 0, 'low': 1, 'medium': 2, 'high': 3};
+                await entity.write('aqaraOpple', {0x0212: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {beep_volume: value}};
+            } else if (key === 'lcd_brightness') {
+                await entity.write('aqaraOpple', {0x0211: {value: value, type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {lcd_brightness: value}};
+            } else if (key === 'language') {
+                const lookup = {'chinese': 0, 'english': 1};
+                await entity.write('aqaraOpple', {0x0210: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {language: value}};
+            } else if (key === 'screen_saver_style') {
+                const lookup = {'classic': 1, 'analog clock': 2};
+                await entity.write('aqaraOpple', {0x0214: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {screen_saver_style: value}};
+            } else if (key === 'standby_time') {
+                await entity.write('aqaraOpple', {0x0216: {value: value, type: 0x23}}, manufacturerOptions.xiaomi);
+                return {state: {standby_time: value}};
+            } else if (key === 'font_size') {
+                const lookup = {'small': 3, 'medium': 4, 'large': 5};
+                await entity.write('aqaraOpple', {0x0217: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {font_size: value}};
+            } else if (key === 'lcd_auto_brightness_enabled') {
+                await entity.write('aqaraOpple', {0x0218: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {lcd_auto_brightness_enabled: value}};
+            } else if (key === 'homepage') {
+                const lookup = {'scene': 0, 'feel': 1, 'thermostat': 2, 'switch': 3};
+                await entity.write('aqaraOpple', {0x0219: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {homepage: value}};
+            } else if (key === 'screen_saver_enabled') {
+                await entity.write('aqaraOpple', {0x0221: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {screen_saver_enabled: value}};
+            } else if (key === 'standby_lcd_brightness') {
+                await entity.write('aqaraOpple', {0x0222: {value: value, type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {standby_lcd_brightness: value}};
+            } else if (key === 'available_switches') {
+                const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7};
+                await entity.write('aqaraOpple', {0x022b: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {available_switches: value}};
+            } else if (key === 'switch_1_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_1_icon')) {
+                    payload.push(lookup[value.switch_1_icon]);
+                    statearr.switch_1_icon = value.switch_1_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_1_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_1_text')) {
+                    payload.push(...value.switch_1_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_1_text = value.switch_1_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_1_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else if (key === 'switch_2_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_2_icon')) {
+                    payload.push(lookup[value.switch_2_icon]);
+                    statearr.switch_2_icon = value.switch_2_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_2_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_2_text')) {
+                    payload.push(...value.switch_2_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_2_text = value.switch_2_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_2_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0224: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else if (key === 'switch_3_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_3_icon')) {
+                    payload.push(lookup[value.switch_3_icon]);
+                    statearr.switch_3_icon = value.switch_3_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_3_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_3_text')) {
+                    payload.push(...value.switch_3_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_3_text = value.switch_3_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_3_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0225: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
+        },
+    },
 
     // #endregion
 
