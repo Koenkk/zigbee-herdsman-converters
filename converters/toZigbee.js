@@ -4926,10 +4926,10 @@ const converters = {
                     statearr.switch_1_icon = '1';
                 }
                 if (value.hasOwnProperty('switch_1_text')) {
-                    payload.push(...value.switch_1_text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...value.switch_1_text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
-                    payload.push(...''.text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_1_text = '';
                 }
                 await entity.write('aqaraOpple', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
@@ -4946,10 +4946,10 @@ const converters = {
                     statearr.switch_2_icon = '1';
                 }
                 if (value.hasOwnProperty('switch_2_text')) {
-                    payload.push(...value.switch_2_text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...value.switch_2_text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
-                    payload.push(...''.text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_2_text = '';
                 }
                 await entity.write('aqaraOpple', {0x0224: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
@@ -4966,10 +4966,10 @@ const converters = {
                     statearr.switch_3_icon = '1';
                 }
                 if (value.hasOwnProperty('switch_3_text')) {
-                    payload.push(...value.switch_3_text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...value.switch_3_text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {
-                    payload.push(...''.text.split('').map(c => c.charCodeAt(0)));
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_3_text = '';
                 }
                 await entity.write('aqaraOpple', {0x0225: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
@@ -4979,8 +4979,8 @@ const converters = {
             }
         },
     },
- 
- // #endregion
+
+    // #endregion
 
     // #region Ignore converters
     ignore_transition: {
