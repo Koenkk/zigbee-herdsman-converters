@@ -4914,7 +4914,7 @@ const converters = {
                 const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7};
                 await entity.write('aqaraOpple', {0x022b: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
                 return {state: {available_switches: value}};
-           } else if (key === 'switch_1_text_icon') {
+            } else if (key === 'switch_1_text_icon') {
                 const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
                 const payload = [];
                 const statearr = {};
@@ -4934,7 +4934,7 @@ const converters = {
                 }
                 await entity.write('aqaraOpple', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
                 return {state: statearr};
-           } else if (key === 'switch_2_text_icon') {
+            } else if (key === 'switch_2_text_icon') {
                 const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
                 const payload = [];
                 const statearr = {};
@@ -4977,8 +4977,8 @@ const converters = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
-		},
-    }, 
+        },
+    },
  
  // #endregion
 
