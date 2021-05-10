@@ -1004,7 +1004,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        exposes: [e.switch().withEndpoint('left'),  e.switch().withEndpoint('center'),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'),
             e.switch().withEndpoint('right'),
             exposes.binary('standby_enabled', ea.SET, true, false).withDescription('Enable standby'),
             exposes.enum('theme', ea.SET, ['classic', 'concise']).withDescription('Display theme'),
