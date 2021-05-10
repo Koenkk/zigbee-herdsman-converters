@@ -1064,14 +1064,14 @@ module.exports = [
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_3_text', ea.SET)
                     .withDescription('Text')),
-		],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
-                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-                await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-                await reporting.onOff(device.getEndpoint(1));
-                //await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
-                //await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            //await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
+            //await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
     },
 ];
