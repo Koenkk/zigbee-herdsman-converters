@@ -13,7 +13,7 @@ module.exports = [
         description: 'Universal wink enabled white ceiling fan premier remote control',
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.fan]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.fan_mode]),
-        exposes: [e.light_brightness(), e.fan()],
+        exposes: [e.light_brightness(), e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
