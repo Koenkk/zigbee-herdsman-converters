@@ -70,13 +70,14 @@ module.exports = [
             device.skipDefaultResponse = true;
         },
     },
-	{
+    {
         zigbeeModel: ['ZB-SW04'],
         model: 'ZB-SW04',
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
