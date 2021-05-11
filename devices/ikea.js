@@ -29,6 +29,18 @@ const bulbOnEvent = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['ASKVADER on/off switch'],
+        model: 'E1836',
+        vendor: 'IKEA',
+        description: 'ASKVADER on/off switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
@@ -568,6 +580,15 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, colour spectrum',
         extend: extend.light_onoff_brightness_colortemp_color(),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm'],
+        model: 'LED1925G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 CWS 470 lumen, dimmable, color, opal white',
+        extend: extend.light_onoff_brightness_color(),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     },

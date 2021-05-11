@@ -59,11 +59,17 @@ module.exports = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness().withLevelConfig(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
         },
@@ -96,6 +102,7 @@ module.exports = [
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
         },
     },
     {
@@ -180,6 +187,29 @@ module.exports = [
                     }
                 }
             });
+        },
+    },
+    {
+        fingerprint: [{modelID: 'CCTFR6700', manufacturerName: 'Schneider Electric'}],
+        model: 'CCTFR6700',
+        vendor: 'Schneider Electric',
+        description: 'Heating thermostat',
+        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
+        toZigbee: [tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
+        exposes: [e.power(), e.energy(),
+            exposes.enum('schneider_pilot_mode', ea.ALL, ['relay', 'pilot']).withDescription('Controls piloting mode'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1, {min: 0, max: 60, change: 1});
+            await reporting.thermostatPIHeatingDemand(endpoint1, {min: 0, max: 60, change: 1});
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
+            await reporting.instantaneousDemand(endpoint2, {min: 0, max: 60, change: 1});
+            await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
         },
     },
 ];
