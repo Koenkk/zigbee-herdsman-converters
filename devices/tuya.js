@@ -627,6 +627,20 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'}],
+        model: 'TS110F_dimmer',
+        vendor: 'TuYa',
+        description: 'Smart dimmer module without neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'}],
         model: 'TS0601_din',
         vendor: 'TuYa',
