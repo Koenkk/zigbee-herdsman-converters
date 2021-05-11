@@ -6,7 +6,7 @@ module.exports = [
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'idinio'}],
         model: '0140302',
         vendor: 'Idinio',
-        description: 'Zigbee LED Foot Dimmer',
+        description: 'Zigbee LED foot dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
