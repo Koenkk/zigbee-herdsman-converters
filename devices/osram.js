@@ -100,7 +100,7 @@ module.exports = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}}),
         ota: ota.ledvance,
         exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
     },
