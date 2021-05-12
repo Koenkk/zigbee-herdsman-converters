@@ -213,4 +213,66 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
         },
     },
+    {
+        fingerprint: [{modelID: 'Thermostat', manufacturerName: 'Schneider Electric'}],
+        model: 'CCTFR6400',
+        vendor: 'Schneider Electric',
+        description: 'Temperature/Humidity measurement with thermostat interface',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.thermostat, fz.wiser_device_info],
+        toZigbee: [tz.schneider_thermostat_system_mode, tz.schneider_thermostat_occupied_heating_setpoint, 
+                   tz.schneider_thermostat_control_sequence_of_operation, tz.schneider_thermostat_pi_heating_demand, tz.schneider_thermostat_keypad_lockout],
+        exposes: [
+                    exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET)
+                                     .withLocalTemperature()
+                                     .withSystemMode(['off', 'heat'], ea.SET)
+                                     .withPiHeatingDemand(ea.SET),
+                    e.keypad_lockout(ea.SET),
+                    e.temperature(),
+                    e.humidity(),
+                    e.battery(),
+                    e.battery_voltage(),
+                ],
+        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            await reporting.temperature(endpoint1);
+            await reporting.humidity(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'read') {
+                let payload = {};
+
+                let defaultValues = {
+                    'schneiderWiserSpecific': 0x01,
+                    'systemMode': 4,
+                    'ctrlSeqeOfOper': 2,
+                    'occupiedHeatingSetpoint': 400,
+                    'pIHeatingDemand': 0,
+                    'zclVersion': 3,
+                }
+
+                for (const key of data.data) {
+                     if (globalStore.hasValue(device.getEndpoint(1), key)) {
+                        payload[key] = globalStore.getValue(data.endpoint, key);
+                    } else if (key in defaultValues) {
+                        payload[key] = defaultValues[key];
+                    }
+                }
+
+                if (Object.keys(payload).length > 0) {
+                    await data.endpoint.readResponse(
+                        data.cluster,  data.meta.zclTransactionSequenceNumber, payload, {},
+                    );
+                }
+
+                // Device is awake perform the pending writes
+                while(pendingWrite = globalStore.popValue(device.getEndpoint(1), 'pending_writes')) {
+                    await data.endpoint.write( pendingWrite.cluster,  pendingWrite.data );
+                }
+            }
+        },
+    },
 ];
