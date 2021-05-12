@@ -4855,6 +4855,57 @@ const converters = {
             await entity.report('msTemperatureMeasurement', {'measuredValue':Math.round(value*100)});
         },
     },
+    schneider_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+            if (systemMode === undefined) {
+                systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            }
+            globalStore.putValue(entity, 'systemMode', systemMode);
+            return {state: {system_mode: value}};
+        },
+    },
+    schneider_thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            globalStore.putValue(entity, 'occupiedHeatingSetpoint', occupiedHeatingSetpoint);
+            return {state: {occupied_heating_setpoint: value}};
+        },
+    },
+    schneider_thermostat_control_sequence_of_operation: {
+        key: ['control_sequence_of_operation'],
+        convertSet: async (entity, key, value, meta) => {
+            let val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, undefined, Number);
+            if (val === undefined) {
+                val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
+            }
+            globalStore.putValue(entity, 'ctrlSeqeOfOper', val);
+            return {state: {control_sequence_of_operation: value}};
+        },
+    },
+    schneider_thermostat_pi_heating_demand: {
+        key: ['pi_heating_demand'],
+        convertSet: async (entity, key, value, meta) => {
+            globalStore.putValue(entity, 'pIHeatingDemand', value);
+            return {state: {pi_heating_demand: value}};
+        },
+    },
+    schneider_thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+
+            try {
+                await entity.write('hvacUserInterfaceCfg', {keypadLockout}, {timeout: 500});
+            } catch(e) {
+                // Will probably fail if device is not awake
+                globalStore.putValue(entity, 'pending_writes', {cluster: 'hvacUserInterfaceCfg', data: keypadLockout.keypadLockout},);
+            }
+            return {state: {keypad_lockout: value}};
+        },
+    },
 
     // #endregion
 
