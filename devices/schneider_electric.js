@@ -200,8 +200,7 @@ module.exports = [
         exposes: [e.power(), e.energy(),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
             exposes.numeric('temperature_measured_value', ea.SET),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature().withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -218,19 +217,19 @@ module.exports = [
         model: 'CCTFR6400',
         vendor: 'Schneider Electric',
         description: 'Temperature/Humidity measurement with thermostat interface',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.thermostat, fz.wiser_device_info],
+        fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fz.schneider_ui_action],
         toZigbee: [tz.schneider_thermostat_system_mode, tz.schneider_thermostat_occupied_heating_setpoint, 
                    tz.schneider_thermostat_control_sequence_of_operation, tz.schneider_thermostat_pi_heating_demand, tz.schneider_thermostat_keypad_lockout],
         exposes: [
                     exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET)
                                      .withLocalTemperature()
-                                     .withSystemMode(['off', 'heat'], ea.SET)
                                      .withPiHeatingDemand(ea.SET),
                     e.keypad_lockout(ea.SET),
                     e.temperature(),
                     e.humidity(),
                     e.battery(),
                     e.battery_voltage(),
+                    e.action(['ScreenSleep', 'ScreenWake', 'ButtonPressPlusDown', 'ButtonPressCenterDown', 'ButtonPressMinusDown'])
                 ],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
