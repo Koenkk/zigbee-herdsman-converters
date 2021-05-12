@@ -5556,6 +5556,29 @@ const converters = {
             return result;
         },
     },
+    schneider_ui_action: {
+        cluster: 'wiserDeviceInfo',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
+
+            const data = msg.data['deviceInfo'].split(',');
+            if(data[0] === 'UI' && data[1]) {
+                publish({action: data[1]});
+            }
+        },
+    },
+    schneider_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const property = postfixWithEndpointName('temperature', msg, model);
+            const property2 = postfixWithEndpointName('local_temperature', msg, model);
+            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
+                    [property2]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+        },
+    },
 
     // #endregion
 
