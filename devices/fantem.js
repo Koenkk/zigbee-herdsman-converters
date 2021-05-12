@@ -3,8 +3,24 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
+const extend = require('../lib/extend');
+const reporting = require('../lib/reporting');
 
 module.exports = [
+    {
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'}],
+        model: 'ZB006-X',
+        vendor: 'Fantem',
+        description: 'Smart dimmer module without neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}, {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
         model: 'ZB003-X',
