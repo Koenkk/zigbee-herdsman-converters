@@ -866,7 +866,7 @@ const converters = {
                 readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['colorTemperature']);
+            await entity.read('lightingColorCtrl', ['colorMode', 'colorTemperature']);
         },
     },
     light_colortemp_startup: {
@@ -989,7 +989,7 @@ const converters = {
               *
               * Additionally when we get a get payload, only request the fields included.
              */
-            const attributes = [];
+            const attributes = ['colorMode'];
 
             if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
                 attributes.push('currentX');
@@ -1038,11 +1038,27 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (key == 'color') {
-                await converters.light_color.convertGet(entity, key, meta);
-            } else if (key == 'color_temp') {
-                await converters.light_colortemp.convertGet(entity, key, meta);
+            /**
+              * Not all bulbs suport the same features, we need to take care we read what is supported.
+              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
+              * `enhancedHue` indicates support for enhancedCurrentHue
+              *
+              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
+              *
+              * Additionally when we get a get payload, only request the fields included.
+             */
+            const attributes = ['colorMode', 'colorTemperature', 'currentX', 'currentY'];
+
+            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
+                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                    attributes.push('enhancedCurrentHue');
+                } else {
+                    attributes.push('currentHue');
+                }
+                attributes.push('currentSaturation');
             }
+
+            await entity.read('lightingColorCtrl', attributes);
         },
     },
     effect: {
