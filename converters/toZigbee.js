@@ -4175,7 +4175,7 @@ const converters = {
                             );
                         }
                         state['color_mode'] = constants.colorMode[0];
-                        state['color'] = newColor.hsv.toObject(true);
+                        state['color'] = newColor.hsv.toObject(false, false);
                     }
                 }
             }
