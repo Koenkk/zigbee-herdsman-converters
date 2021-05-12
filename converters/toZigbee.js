@@ -980,38 +980,7 @@ const converters = {
             return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            /**
-              * Not all bulbs suport the same features, we need to take care we read what is supported.
-              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
-              * `enhancedHue` indicates support for enhancedCurrentHue
-              *
-              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
-              *
-              * Additionally when we get a get payload, only request the fields included.
-             */
-            const attributes = ['colorMode'];
-
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
-                attributes.push('currentX');
-            }
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
-                attributes.push('currentY');
-            }
-
-            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
-                    if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                        attributes.push('enhancedCurrentHue');
-                    } else {
-                        attributes.push('currentHue');
-                    }
-                }
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
-                    attributes.push('currentSaturation');
-                }
-            }
-
-            await entity.read('lightingColorCtrl', attributes);
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta));
         },
     },
     light_color_colortemp: {
@@ -1038,27 +1007,7 @@ const converters = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            /**
-              * Not all bulbs suport the same features, we need to take care we read what is supported.
-              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
-              * `enhancedHue` indicates support for enhancedCurrentHue
-              *
-              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
-              *
-              * Additionally when we get a get payload, only request the fields included.
-             */
-            const attributes = ['colorMode', 'colorTemperature', 'currentX', 'currentY'];
-
-            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                    attributes.push('enhancedCurrentHue');
-                } else {
-                    attributes.push('currentHue');
-                }
-                attributes.push('currentSaturation');
-            }
-
-            await entity.read('lightingColorCtrl', attributes);
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta, ['colorTemperature']));
         },
     },
     effect: {
