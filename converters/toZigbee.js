@@ -4071,6 +4071,20 @@ const converters = {
                 for (const member of entity.members) {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
                         membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
+
+                        let recalledState = member.meta.scenes[metaKey].state;
+
+                        // add color_mode if saved state does not contain it
+                        if (!recalledState.hasOwnProperty('color_mode')) {
+                            recalledState = addColorMode(recalledState);
+                        }
+
+                        // XXX: meta.state is the groups state, we are leaking group state TO devices!
+                        //      e.g. 2 devices in the group, 1x state=ON, 2x state=OFF, we do a scene recall with just color data
+                        //           we now leaked either ON or OFF to both member devices
+                        Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+
+                        membersState[member.getDevice().ieeeAddr] = recalledState;
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
@@ -4079,7 +4093,16 @@ const converters = {
                 return {membersState};
             } else {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    return {state: addColorMode(entity.meta.scenes[metaKey].state)};
+                    let recalledState = entity.meta.scenes[metaKey].state;
+
+                    // add color_mode if saved state does not contain it
+                    if (!recalledState.hasOwnProperty('color_mode')) {
+                        recalledState = addColorMode(recalledState);
+                    }
+
+                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+
+                    return {state: recalledState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
