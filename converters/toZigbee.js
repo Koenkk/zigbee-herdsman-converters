@@ -19,7 +19,7 @@ const manufacturerOptions = {
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
      * This bug has been reported, but it has not been fixed:
-     * https://github.com/Koenkk/zigbee-herdsman/issues/52 
+     * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     ubisysNull: {manufacturerCode: null},
@@ -3046,14 +3046,15 @@ const converters = {
                 const phaseControl = value.toLowerCase();
                 const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
                 utils.validateValue(phaseControl, Object.keys(phaseControlValues));
-                await entity.write('manuSpecificUbisysDimmerSetup', {'mode': phaseControlValues[phaseControl]});
+                await entity.write('manuSpecificUbisysDimmerSetup',
+                    {'mode': phaseControlValues[phaseControl]}, manufacturerOptions.ubisysNull);
             }
             converters.ubisys_dimmer_setup.convertGet(entity, key, meta);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities']);
-            await entity.read('manuSpecificUbisysDimmerSetup', ['status']);
-            await entity.read('manuSpecificUbisysDimmerSetup', ['mode']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
         },
     },
     ubisys_device_setup: {
@@ -3063,14 +3064,20 @@ const converters = {
 
             if (value.hasOwnProperty('input_configurations')) {
                 // example: [0, 0, 0, 0]
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             if (value.hasOwnProperty('input_actions')) {
                 // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputActions': {elementType: 'octetStr', elements: value.input_actions}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: value.input_actions}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             if (value.hasOwnProperty('input_action_templates')) {
@@ -3251,8 +3258,11 @@ const converters = {
 
                 meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
                     JSON.stringify(resultingInputActions));
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             // re-read effective settings and dump them to the log
@@ -3265,8 +3275,8 @@ const converters = {
                     `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
             };
             const devMgmtEp = meta.device.getEndpoint(232);
-            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations']));
-            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions']));
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'], manufacturerOptions.ubisysNull));
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'], manufacturerOptions.ubisysNull));
         },
     },
     tint_scene: {
