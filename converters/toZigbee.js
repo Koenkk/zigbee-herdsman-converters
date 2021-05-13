@@ -16,7 +16,13 @@ const manufacturerOptions = {
     danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
+    /*
+     * Ubisys doesn't accept a manufacturerCode on some commands
+     * This bug has been reported, but it has not been fixed:
+     * https://github.com/Koenkk/zigbee-herdsman/issues/52 
+     */
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
+    ubisysNull: {manufacturerCode: null},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
     viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
