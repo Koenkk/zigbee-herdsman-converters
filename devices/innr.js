@@ -498,17 +498,10 @@ module.exports = [
         model: 'RC 110',
         vendor: 'Innr',
         description: 'Innr RC 110 Remote Control',
-        fromZigbee: [
-            fz.command_step,
-            fz.command_move,
-            fz.command_stop,
-            fz.command_on,
-            fz.command_off,
-            fz.rc_110_level_to_scene
-        ],
+        fromZigbee: [fz.command_step, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fz.rc_110_level_to_scene],
         toZigbee: [],
-		meta: {multiEndpoint: true},
-		endpoint: (device) => {
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
             return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
         },
         exposes: [e.action(['on_*', 'off_*', 'brightness_*', 'scene_*'])],
@@ -519,6 +512,6 @@ module.exports = [
                 const endpoint = device.getEndpoint(ep);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
-        },			
+        },
     },
 ];
