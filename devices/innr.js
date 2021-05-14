@@ -507,7 +507,7 @@ module.exports = [
             fz.rc_110_level_to_scene
         ],
         toZigbee: [],
-		meta: {configureKey: 1, multiEndpoint: true},
+		meta: {multiEndpoint: true},
 		endpoint: (device) => {
             return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
         },
