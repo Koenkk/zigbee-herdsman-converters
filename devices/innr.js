@@ -500,7 +500,6 @@ module.exports = [
         description: 'Innr RC 110 Remote Control',
         fromZigbee: [
             fz.linkquality_from_basic,
-            fz.command_move_to_level,
             fz.command_step,
             fz.command_move,
             fz.command_stop,
