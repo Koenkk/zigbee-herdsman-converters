@@ -5777,6 +5777,14 @@ const converters = {
             return result;
         },
     },
+    rc_110_level_to_scene: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const scenes = {'2': '1', '52': '2', '102': '3', '152': '4', '153': '4', '194': '5', '254': '6'};
+            return {action: `scene_${scenes[msg.data.level]}`};
+        },
+    },
     // #endregion
 };
 

@@ -493,4 +493,34 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
+    {
+        zigbeeModel: ['RC 110'],
+        model: 'RC 110',
+        vendor: 'Innr',
+        description: 'Innr RC 110 Remote Control',
+        fromZigbee: [
+            fz.linkquality_from_basic,
+            fz.command_move_to_level,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_on,
+            fz.command_off,
+            fz.rc_110_level_to_scene
+        ],
+        toZigbee: [],
+		meta: {configureKey: 1, multiEndpoint: true},
+		endpoint: (device) => {
+            return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
+        },
+        exposes: [e.action(['on_*', 'off_*', 'brightness_*', 'scene_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint,
+                ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
+            for (const ep of [3, 4, 5, 6, 7, 8]) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            }
+        },			
+    },
 ];
