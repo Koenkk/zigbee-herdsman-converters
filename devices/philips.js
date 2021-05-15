@@ -1664,7 +1664,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5041131P9'],
+        zigbeeModel: ['5041131P9', '5041148P9'],
         model: '5041131P9',
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin',
