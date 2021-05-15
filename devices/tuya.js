@@ -359,6 +359,14 @@ module.exports = [
         exposes: [e.light_brightness_colortemp_colorhs().removeFeature('color_temp_startup')],
     },
     {
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_keabpigv'}],
+        model: 'R9077',
+        vendor: 'Woox',
+        description: 'RGB+CCT LED',
+        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        meta: {applyRedFix: true},
+    },
+    {
         zigbeeModel: ['TS0505A'],
         model: 'TS0505A',
         vendor: 'TuYa',
