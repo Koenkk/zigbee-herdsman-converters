@@ -590,6 +590,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0121'],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'}],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-SHP13'}],
