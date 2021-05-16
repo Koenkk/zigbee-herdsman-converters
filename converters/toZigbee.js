@@ -868,10 +868,11 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
+            return {state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state, meta.options),
+                readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['colorTemperature']);
+            await entity.read('lightingColorCtrl', ['colorMode', 'colorTemperature']);
         },
     },
     light_colortemp_startup: {
@@ -982,41 +983,10 @@ const converters = {
             }
 
             await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
-            return {state: newState, readAfterWriteTime: zclData.transtime * 100};
+            return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            /**
-              * Not all bulbs suport the same features, we need to take care we read what is supported.
-              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
-              * `enhancedHue` indicates support for enhancedCurrentHue
-              *
-              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
-              *
-              * Additionally when we get a get payload, only request the fields included.
-             */
-            const attributes = [];
-
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
-                attributes.push('currentX');
-            }
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
-                attributes.push('currentY');
-            }
-
-            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
-                    if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                        attributes.push('enhancedCurrentHue');
-                    } else {
-                        attributes.push('currentHue');
-                    }
-                }
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
-                    attributes.push('currentSaturation');
-                }
-            }
-
-            await entity.read('lightingColorCtrl', attributes);
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta));
         },
     },
     light_color_colortemp: {
@@ -1036,23 +1006,14 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
-                }
-
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (key == 'color') {
-                await converters.light_color.convertGet(entity, key, meta);
-            } else if (key == 'color_temp') {
-                await converters.light_colortemp.convertGet(entity, key, meta);
-            }
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta, ['colorTemperature']));
         },
     },
     effect: {
@@ -4091,6 +4052,20 @@ const converters = {
                 for (const member of entity.members) {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
                         membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
+
+                        let recalledState = member.meta.scenes[metaKey].state;
+
+                        // add color_mode if saved state does not contain it
+                        if (!recalledState.hasOwnProperty('color_mode')) {
+                            recalledState = addColorMode(recalledState);
+                        }
+
+                        // XXX: meta.state is the groups state, we are leaking group state TO devices!
+                        //      e.g. 2 devices in the group, 1x state=ON, 2x state=OFF, we do a scene recall with just color data
+                        //           we now leaked either ON or OFF to both member devices
+                        Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+
+                        membersState[member.getDevice().ieeeAddr] = recalledState;
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
@@ -4099,7 +4074,16 @@ const converters = {
                 return {membersState};
             } else {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    return {state: addColorMode(entity.meta.scenes[metaKey].state)};
+                    let recalledState = entity.meta.scenes[metaKey].state;
+
+                    // add color_mode if saved state does not contain it
+                    if (!recalledState.hasOwnProperty('color_mode')) {
+                        recalledState = addColorMode(recalledState);
+                    }
+
+                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+
+                    return {state: recalledState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
@@ -4158,6 +4142,7 @@ const converters = {
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
+                    state['color_mode'] = constants.colorMode[2];
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -4177,6 +4162,7 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
+                        state['color_mode'] = constants.colorMode[1];
                         state['color'] = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
@@ -4204,7 +4190,8 @@ const converters = {
                                 },
                             );
                         }
-                        state['color'] = newColor.hsv.toObject(true);
+                        state['color_mode'] = constants.colorMode[0];
+                        state['color'] = newColor.hsv.toObject(false, false);
                     }
                 }
             }
