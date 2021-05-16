@@ -9,6 +9,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        // eTRV0100 is the same as Hive TRV. If implementing anything, please consider changing Hive TRV001 too.
         zigbeeModel: ['eTRV0100'],
         model: '014G2461',
         vendor: 'Danfoss',
