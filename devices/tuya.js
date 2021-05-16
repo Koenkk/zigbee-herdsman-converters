@@ -124,17 +124,6 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
-        model: 'R7060',
-        vendor: 'Woox',
-        description: 'Smart garden irrigation control',
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.woox_R7060],
-        toZigbee: [tz.on_off],
-        onEvent: tuya.onEventSetTime,
-        exposes: [e.switch()],
-        meta: {disableDefaultResponse: true},
-    },
-    {
         fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
         model: 'TS0108',
         vendor: 'TuYa',
@@ -627,7 +616,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'}],
         model: 'TS011F_plug',
         description: 'Smart EU plug',
         vendor: 'TuYa',
