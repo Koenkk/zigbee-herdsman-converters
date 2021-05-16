@@ -5565,6 +5565,31 @@ const converters = {
             const data = msg.data['deviceInfo'].split(',');
             if(data[0] === 'UI' && data[1]) {
                 publish({action: data[1]});
+
+                let screenAwake = globalStore.getValue(msg.endpoint, 'screenAwake');
+                screenAwake = screenAwake != undefined ? screenAwake : false;
+                let keypadLocked = globalStore.getValue(msg.endpoint, 'keypadLockout');
+                keypadLocked = keypadLocked != undefined ? keypadLocked != 0 : false;
+
+                // Emulate UI temperature update
+                if (data[1] === 'ScreenWake') {
+                    globalStore.putValue(msg.endpoint, 'screenAwake', true);
+                } else if (data[1] === 'ScreenSleep') {
+                    globalStore.putValue(msg.endpoint, 'screenAwake', false);
+                } else if (screenAwake && !keypadLocked) {
+                    let occupiedHeatingSetpoint = globalStore.getValue(msg.endpoint, 'occupiedHeatingSetpoint');
+                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != undefined ? occupiedHeatingSetpoint : 400;
+
+                    if (data[1] === 'ButtonPressMinusDown') {
+                        occupiedHeatingSetpoint -= 50;
+                    } else if (data[1] === 'ButtonPressPlusDown') {
+                        occupiedHeatingSetpoint += 50;
+                    }
+
+                    globalStore.putValue(msg.endpoint, 'occupiedHeatingSetpoint', occupiedHeatingSetpoint);
+                    publish({occupied_heating_setpoint: occupiedHeatingSetpoint/100});
+                }
+            }
             }
         },
     },
