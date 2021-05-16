@@ -20,7 +20,7 @@ module.exports = [
             tz.danfoss_trigger_time, tz.danfoss_window_open, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode', ea.STATE, true, false).withDescription(
-                'Mode in which the unit is mounted. This is set to `false` for normal mounting or `true` for vertical mounting'),
+                'Is the unit in mounting mode. This is set to `false` for mounted (already on the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('heat_required', ea.STATE, true, false).withDescription('Wether or not the unit needs warm water'),
             exposes.binary('window_open_internal', ea.STATE, 1, 0)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
