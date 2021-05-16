@@ -627,6 +627,25 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},],
+        model: 'TS011F_plug',
+        description: 'Smart EU plug',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'}],
         model: 'TS0601_din',
         vendor: 'TuYa',
