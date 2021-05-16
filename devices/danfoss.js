@@ -24,12 +24,12 @@ module.exports = [
             exposes.binary('mounted_mode_control', ea.ALL, true, false).withDescription(
                 'Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
             exposes.binary('heat_required', ea.STATE, true, false).withDescription('Wether or not the unit needs warm water'),
-            exposes.binary('window_open_internal', ea.STATE, 1, 0)
-                .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
-                '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 6, 28, 0.5).withLocalTemperature().withPiHeatingDemand(),
+            exposes.binary('window_open_internal', ea.STATE, 1, 0)
+                .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
+                    '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('window_open_external', ea.ALL, true, false),
             exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
