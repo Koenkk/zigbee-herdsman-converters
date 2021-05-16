@@ -305,6 +305,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RSL 110'],
+        model: 'RSL 110',
+        vendor: 'Innr',
+        description: 'Recessed spot light',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RSL 115'],
         model: 'RSL 115',
         vendor: 'Innr',
